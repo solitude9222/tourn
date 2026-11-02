@@ -2507,9 +2507,9 @@
   gap: 12px !important;
 }
 
+/* The preview row uses the same size as the live page — one size everywhere. */
 .bdg-preview-row .badge-chip {
-  width: 30px !important;
-  height: 30px !important;
+  flex: none;
 }
 
 .bdg-preview-hint {

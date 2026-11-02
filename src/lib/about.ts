@@ -49,6 +49,10 @@ export type AboutDesign = {
   cardPadding: number;
   nameSize: number;
   bioSize: number;
+  /** Pointer tilt strength in degrees (0 = off). */
+  tilt: number;
+  /** Light glare that follows the pointer while tilting. */
+  tiltGlare: boolean;
   slideshow: SlideshowSettings;
   entry: EntrySettings;
   colors: ProfileColors;
@@ -111,6 +115,8 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   cardPadding: 20,
   nameSize: 21,
   bioSize: 11.5,
+  tilt: 0,
+  tiltGlare: false,
   slideshow: DEFAULT_SLIDESHOW,
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
@@ -213,6 +219,8 @@ function loadDesign(input: unknown): AboutDesign {
     cardPadding: numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 12, 40),
     nameSize: numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 16, 34),
     bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 9, 16),
+    tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 16),
+    tiltGlare: boolIn(raw.tiltGlare, DEFAULT_ABOUT_DESIGN.tiltGlare),
     slideshow: loadSlideshow(raw.slideshow),
     entry: loadEntry(raw.entry),
     colors: {

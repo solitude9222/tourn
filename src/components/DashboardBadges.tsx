@@ -177,7 +177,7 @@ export function DashboardBadges({
               if (!def) return null;
               return (
                 <div className={`bdg-equipped-item${inst.visible ? "" : " is-hidden"}`} key={inst.id}>
-                  <BadgeChip badge={inst} style={style} size={28} />
+                  <BadgeChip badge={inst} style={style} />
                   <div className="bdg-equipped-meta">
                     <b>{def.name}</b>
                     <small>{def.description}</small>
@@ -359,7 +359,16 @@ export function DashboardBadges({
                 aria-disabled={!owned}
                 onClick={() => (equipped ? unequip(def.id) : equip(def.id))}
               >
-                <img src={def.art} alt={def.name} className="bdg-cat-art" width={28} height={28} />
+                <img
+                  src={def.art}
+                  alt={def.name}
+                  className="bdg-cat-art"
+                  width={28}
+                  height={28}
+                  loading="lazy"
+                  decoding="async"
+                  fetchPriority="low"
+                />
                 <span className="bdg-cat-name">{def.name}</span>
                 <span className="bdg-cat-req">{def.requirement}</span>
                 {equipped ? (

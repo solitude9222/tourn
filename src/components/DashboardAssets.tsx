@@ -1166,15 +1166,6 @@ export function DashboardAssets({
                     step={0.01}
                     onChange={(value) => updateAudio({ cardOpacity: value })}
                   />
-                  <AssetSlider
-                    label="Player size"
-                    value={assets.audio.size}
-                    min={0.85}
-                    max={1.25}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                    onChange={(value) => updateAudio({ size: value })}
-                  />
                   <ColorField
                     label="Accent colour"
                     value={assets.audio.accentColor}

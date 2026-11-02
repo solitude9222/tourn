@@ -877,9 +877,10 @@
   display: block;
   width: 100%;
   height: 100%;
-  /* cover (not contain): every badge fills the same box, so badges whose
-     source art has transparent padding still render the same visual size. */
-  object-fit: cover;
+  /* Every badge asset is normalised to the same 64×64 trimmed square, so
+     "contain" fills the box exactly and no badge renders smaller than its
+     neighbours. */
+  object-fit: contain;
   pointer-events: none;
 }
 
@@ -1823,11 +1824,88 @@
   place-items: center;
 }
 
+/* Pointer tilt — transform is set inline by useTilt; these rules only supply
+   the transition and the optional glare sweep. */
+.profile-preview--tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+  will-change: transform;
+}
+
+.pv-tilt-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: radial-gradient(
+    320px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.14),
+    transparent 62%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.profile-preview--glare:hover .pv-tilt-glare {
+  opacity: 1;
+}
+
+/* Entrance motion — the card, widgets and links settle in instead of snapping
+   into place. Transform-only, so it can't cover the tilt transform once done. */
+@keyframes pvSettle {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.profile-preview {
+  animation: pvSettle 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lkr-widgets > *,
+.lkr-links > *,
+.lkr-slide-title {
+  animation: pvSettle 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lkr-widgets > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.lkr-widgets > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+.lkr-widgets > *:nth-child(4) {
+  animation-delay: 0.15s;
+}
+
+.lkr-widgets > *:nth-child(n + 5) {
+  animation-delay: 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-preview,
+  .lkr-widgets > *,
+  .lkr-links > *,
+  .lkr-slide-title {
+    animation: none;
+  }
+}
+
 .pv-decoration {
   position: absolute;
-  inset: -7%;
+  /* Kept tight to the avatar — a decoration should frame it, not swallow it. */
+  inset: -3%;
   pointer-events: none;
-  transform: scale(var(--pv-deco-scale, 1));
+  transform: scale(calc(var(--pv-deco-scale, 1) * 0.85));
   transform-origin: center;
 }
 
@@ -1845,7 +1923,7 @@
 }
 
 .pv-deco--glow .pv-decoration {
-  inset: -4%;
+  inset: -1%;
   border-radius: 30%;
   background: radial-gradient(circle, color-mix(in srgb, var(--pv-deco-color) 38%, transparent), transparent 70%);
   filter: blur(9px);
@@ -1853,7 +1931,7 @@
 }
 
 .pv-deco--stars .pv-decoration {
-  inset: -22%;
+  inset: -8%;
 }
 
 .pv-deco--stars.is-spinning .pv-decoration {
@@ -1862,8 +1940,8 @@
 
 .pv-deco--stars .pv-decoration i {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: var(--pv-deco-color);
   box-shadow: 0 0 7px var(--pv-deco-color);
@@ -2779,6 +2857,69 @@
   min-height: 100dvh;
 }
 
+/* ── loading skeleton for a public page ───────────────────── */
+
+.profile-page--loading {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: radial-gradient(600px 400px at 50% 40%, rgba(56, 189, 248, 0.08), transparent 70%), #06080b;
+}
+
+.pv-skeleton {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(420px, 88vw);
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pv-skeleton-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+}
+
+.pv-skeleton-line {
+  height: 10px;
+  border-radius: 6px;
+}
+
+.pv-skeleton-line--name {
+  width: 42%;
+  height: 14px;
+}
+
+.pv-skeleton-line--handle {
+  width: 28%;
+}
+
+.pv-skeleton-line--bio {
+  width: 72%;
+  margin-top: 4px;
+}
+
+.pv-skeleton-card {
+  width: 100%;
+  height: 62px;
+  border-radius: 14px;
+  margin-top: 6px;
+}
+
+.pv-skeleton-card--short {
+  height: 42px;
+}
+
+.pv-loading-copy {
+  color: #79838c;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+
 .demo-page .lkr-flow {
   width: 100%;
 }
@@ -2830,29 +2971,181 @@
   padding-inline: 20px;
 }
 
-.demo-edit-btn {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 40;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border: 1px solid rgba(143, 216, 255, 0.3);
-  border-radius: 999px;
-  background: rgba(10, 14, 20, 0.82);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #cbe9f7;
-  font-size: 11px;
-  font-weight: 650;
-  text-decoration: none;
-  box-shadow: 0 10px 30px -12px #000;
-  transition: transform 0.16s ease, border-color 0.16s ease;
+/* ── /handle notice pages (free handle, unpublished, offline) ── */
+
+.pn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+  overflow: hidden;
+  background: #05070a;
 }
 
-.demo-edit-btn:hover {
-  transform: translateY(-2px);
-  border-color: rgba(143, 216, 255, 0.55);
+.pn-aurora {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(38% 32% at 50% 22%, rgba(88, 101, 242, 0.28), transparent 70%),
+    radial-gradient(30% 26% at 22% 78%, rgba(56, 189, 248, 0.18), transparent 72%),
+    radial-gradient(26% 22% at 82% 72%, rgba(180, 191, 250, 0.14), transparent 72%);
+  animation: pnDrift 18s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes pnDrift {
+  from {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2%, 2%, 0) scale(1.06);
+  }
+}
+
+.pn-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(430px, 100%);
+  padding: 34px 30px 30px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(19, 23, 30, 0.92), rgba(9, 11, 15, 0.96));
+  box-shadow:
+    0 40px 120px -60px #000,
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: pnRise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pnRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pn-mark {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 18px 40px -22px rgba(88, 101, 242, 0.9);
+}
+
+.pn-mark img {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.pn-brand {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7f8b95;
+}
+
+.pn-brand span {
+  color: var(--ice, #a8e0ff);
+}
+
+.pn-handle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: #eef4f8;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.pn-handle span {
+  color: #6f7b86;
+  font-weight: 600;
+}
+
+.pn-handle b {
+  color: var(--ice, #a8e0ff);
+}
+
+.pn-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px 7px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: left;
+}
+
+.pn-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(140deg, #3d6f9c, #6b4fae);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pn-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pn-account b {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+  color: #e6edf2;
+  line-height: 1.2;
+}
+
+.pn-account small {
+  display: block;
+  font-size: 9.5px;
+  color: #78838c;
+}
+
+.pn-copy {
+  max-width: 34ch;
+  margin: 2px 0 0;
+  color: #97a3ad;
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+.pn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pn-actions .btn {
+  min-width: 0;
+}
+
+.pn--missing .pn-mark {
+  box-shadow: 0 18px 40px -20px rgba(143, 216, 255, 0.75);
 }

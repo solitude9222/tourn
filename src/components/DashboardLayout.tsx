@@ -254,7 +254,35 @@ export function DashboardLayout({
               unit="px"
               onChange={(v) => update({ widgetGap: v })}
             />
+            <LayoutSlider
+              label="Card tilt"
+              value={design.tilt}
+              min={0}
+              max={16}
+              step={1}
+              unit="°"
+              onChange={(v) => update({ tilt: v })}
+            />
           </div>
+
+          <div className="lp-toggle" style={{ marginTop: 12 }}>
+            <div>
+              <b>Tilt glare</b>
+              <p>A soft light glare follows the pointer while the card tilts.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={design.tiltGlare}
+              aria-label="Tilt glare"
+              className={`switch${design.tiltGlare ? " is-on" : ""}`}
+              disabled={design.tilt <= 0}
+              onClick={() => update({ tiltGlare: !design.tiltGlare })}
+            >
+              <span />
+            </button>
+          </div>
+          <p className="lp-hint">Set Card tilt above 0° to enable the pointer tilt.</p>
         </section>
 
         {/* Typography & avatar */}

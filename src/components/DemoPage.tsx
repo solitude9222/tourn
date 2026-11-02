@@ -82,11 +82,6 @@ export function DemoPage({
             <ArrowRight size={15} />
           </button>
         </div>
-        {user ? (
-          <a className="demo-edit-btn" href="#/dashboard">
-            Edit this page
-          </a>
-        ) : null}
       </section>
     );
   }
@@ -101,11 +96,6 @@ export function DemoPage({
         links={data.links}
         interactive
       />
-      {user ? (
-        <a className="demo-edit-btn" href="#/dashboard">
-          Edit this page
-        </a>
-      ) : null}
     </section>
   );
 }

@@ -55,7 +55,16 @@ export function BadgeChip({
           style={{ ...maskStyle, backgroundColor: style.monoColor } as CSSProperties}
         />
       ) : (
-        <img className="badge-chip-art" src={def.art} alt={def.name} width={px} height={px} draggable={false} />
+        <img
+          className="badge-chip-art"
+          src={def.art}
+          alt={def.name}
+          width={px}
+          height={px}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+        />
       )}
       {showOverlay ? (
         <span

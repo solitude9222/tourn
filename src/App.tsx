@@ -54,6 +54,117 @@ export default function App() {
 }
 
 /**
+ * The page behind a /handle that has no public profile (yet). One designed
+ * layout for all four cases so a free handle, an unpublished page, a dead
+ * backend and a malformed link never fall back to unstyled HTML.
+ */
+function ProfileNotice({
+  handle,
+  kind,
+  account,
+  isOwn,
+  message,
+  onSignIn,
+  onRetry,
+}: {
+  handle: string | null;
+  kind: "nohandle" | "missing" | "unpublished" | "error";
+  account?: Account;
+  isOwn?: boolean;
+  message?: string;
+  onSignIn?: () => void;
+  onRetry?: () => void;
+}) {
+  const heading =
+    kind === "nohandle"
+      ? "That link isn't a profile"
+      : kind === "missing"
+        ? "This handle is free"
+        : kind === "unpublished"
+          ? "Nothing published here yet"
+          : "Couldn't load this page";
+
+  const copy =
+    kind === "nohandle"
+      ? "tourn.lol links look like tourn.lol/yourname — this one doesn't point anywhere."
+      : kind === "missing"
+        ? "No one has claimed tourn.lol/" + (handle ?? "yourname") + " yet. It could be yours."
+        : kind === "unpublished"
+          ? (isOwn
+              ? "Your page is still private. Open the dashboard and publish it to make it public."
+              : "@" + (account?.username ?? handle) + " has an account, but hasn't published a page yet.")
+          : (message ?? "The tourn.lol backend didn't answer. It may be starting up.");
+
+  return (
+    <section className={`profile-page pn pn--${kind}`}>
+      <div className="pn-aurora" aria-hidden="true" />
+      <div className="pn-card">
+        <span className="pn-mark">
+          <img src="/logo.png" alt="" width={44} height={44} />
+        </span>
+
+        <span className="pn-brand">
+          tourn<span>.</span>lol
+        </span>
+
+        {handle ? (
+          <h1 className="pn-handle">
+            <span>tourn.lol/</span>
+            <b>{handle}</b>
+          </h1>
+        ) : (
+          <h1 className="pn-handle">{heading}</h1>
+        )}
+
+        {kind === "unpublished" && account ? (
+          <div className="pn-account">
+            <span className="pn-avatar">
+              {account.avatarUrl ? (
+                <img src={account.avatarUrl} alt="" />
+              ) : (
+                account.username.slice(0, 1).toUpperCase()
+              )}
+            </span>
+            <span>
+              <b>{account.username}</b>
+              <small>
+                {kind === "unpublished" ? "Not published yet" : "Member"}
+              </small>
+            </span>
+          </div>
+        ) : null}
+
+        <p className="pn-copy">{copy}</p>
+
+        <div className="pn-actions">
+          {isOwn ? (
+            <a className="btn btn-primary btn-sm" href="#/dashboard">
+              Open dashboard
+            </a>
+          ) : null}
+
+          {kind === "missing" && onSignIn ? (
+            <button type="button" className="btn btn-primary btn-sm" onClick={onSignIn}>
+              Claim this handle
+            </button>
+          ) : null}
+
+          {kind === "error" && onRetry ? (
+            <button type="button" className="btn btn-primary btn-sm" onClick={onRetry}>
+              Try again
+            </button>
+          ) : null}
+
+          <a className="btn btn-ghost btn-sm" href="#/">
+            Explore tourn.lol
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
  * tourn.lol/<handle> — a standalone public page, never the marketing site.
  *
  * The document comes from the backend, so it renders for visitors and on any
@@ -106,15 +217,7 @@ function ProfilePage({
   }, [handle, isOwn, attempt]);
 
   if (!handle) {
-    return (
-      <section className="profile-page profile-page--empty">
-        <h1>Profile</h1>
-        <p>That link doesn't point at a profile.</p>
-        <a className="btn btn-primary btn-sm" href="#/">
-          Go to tourn.lol
-        </a>
-      </section>
-    );
+    return <ProfileNotice handle={null} kind="nohandle" />;
   }
 
   if (isOwn && user) {
@@ -128,18 +231,22 @@ function ProfilePage({
           links={links}
           interactive
         />
-        <a className="demo-edit-btn" href="#/dashboard">
-          Edit this page
-        </a>
       </section>
     );
   }
 
   if (remote.status === "loading") {
     return (
-      <section className="profile-page profile-page--empty">
-        <span className="spinner" />
-        <p>Loading tourn.lol/{handle}…</p>
+      <section className="profile-page profile-page--loading" aria-busy="true" aria-live="polite">
+        <div className="pv-skeleton">
+          <span className="skeleton pv-skeleton-avatar" />
+          <span className="skeleton pv-skeleton-line pv-skeleton-line--name" />
+          <span className="skeleton pv-skeleton-line pv-skeleton-line--handle" />
+          <span className="skeleton pv-skeleton-line pv-skeleton-line--bio" />
+          <span className="skeleton pv-skeleton-card" />
+          <span className="skeleton pv-skeleton-card pv-skeleton-card--short" />
+        </div>
+        <p className="pv-loading-copy">Loading tourn.lol/{handle}…</p>
       </section>
     );
   }
@@ -159,60 +266,30 @@ function ProfilePage({
           links={document.links}
           interactive
         />
-        {user ? (
-          <a className="demo-edit-btn" href="#/dashboard">
-            Edit this page
-          </a>
-        ) : null}
       </section>
     );
   }
 
   if (remote.status === "error") {
     return (
-      <section className="profile-page profile-page--empty">
-        <h1>tourn.lol/{handle}</h1>
-        <p>{remote.error}</p>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAttempt((n) => n + 1)}>
-          Try again
-        </button>
-      </section>
+      <ProfileNotice
+        handle={handle}
+        kind="error"
+        message={remote.error}
+        isOwn={isOwn}
+        onRetry={() => setAttempt((n) => n + 1)}
+      />
     );
   }
 
   // Known account, but the page hasn't been published yet.
   if (remote.status === "ok") {
     return (
-      <section className="profile-page profile-page--empty">
-        <h1>tourn.lol/{handle}</h1>
-        <p>
-          @{remote.data.account.username} hasn't published a page yet.
-          {isOwn ? " Open your dashboard to build it." : ""}
-        </p>
-        {isOwn ? (
-          <a className="btn btn-primary btn-sm" href="#/dashboard">
-            Open dashboard
-          </a>
-        ) : null}
-      </section>
+      <ProfileNotice handle={handle} kind="unpublished" account={remote.data.account} isOwn={isOwn} />
     );
   }
 
-  return (
-    <section className="profile-page profile-page--empty">
-      <h1>tourn.lol/{handle} is free</h1>
-      <p>No one has claimed this link yet. It could be yours.</p>
-      {user ? (
-        <button type="button" className="btn btn-primary btn-sm" onClick={onSignIn}>
-          Claim a handle
-        </button>
-      ) : (
-        <button type="button" className="btn btn-primary btn-sm" onClick={onSignIn}>
-          Sign up and claim it
-        </button>
-      )}
-    </section>
-  );
+  return <ProfileNotice handle={handle} kind="missing" onSignIn={onSignIn} />;
 }
 
 function Site() {

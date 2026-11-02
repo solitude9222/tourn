@@ -397,7 +397,7 @@ function loadAudio(value: unknown): AudioSettings {
     autoLyrics: boolIn(raw.autoLyrics, DEFAULT_PROFILE_ASSETS.audio.autoLyrics),
     cardOpacity: numberIn(raw.cardOpacity, DEFAULT_PROFILE_ASSETS.audio.cardOpacity, 0, 1),
     accentColor: colorIn(raw.accentColor, DEFAULT_PROFILE_ASSETS.audio.accentColor),
-    size: numberIn(raw.size, DEFAULT_PROFILE_ASSETS.audio.size, 0.85, 1.25),
+    size: 1,
   };
 }
 

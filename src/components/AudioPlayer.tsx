@@ -72,7 +72,9 @@ export function AudioPlayer({ settings }: { settings: AudioSettings }) {
   const cardStyle = {
     "--ap-opacity": settings.cardOpacity,
     "--ap-accent": settings.accentColor,
-    "--ap-scale": `${settings.size}`,
+    // The player always spans the card at full size; only the compact layout
+    // changes its shape.
+    "--ap-scale": "1",
   } as CSSProperties;
 
   // ── native <audio> playback ──────────────────────────────────────────

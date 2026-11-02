@@ -5,6 +5,7 @@ import { hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
+import { useTilt } from "../lib/useTilt";
 import { EffectText, SparkleLayer, textEffectClass, textEffectStyle } from "./ProfileEffects";
 import { BadgeRow } from "./BadgeRow";
 import { ProfileLinks } from "./ProfileLinks";
@@ -46,6 +47,8 @@ export function ProfilePreview({
   const hasBanner = design.cardStyle === "banner" && banner.enabled;
   const bioEffect = assets.effects.text.bio;
   const uid = accountUid(user.id);
+  const tiltEnabled = (design.tilt ?? 0) > 0;
+  const tilt = useTilt(design.tilt ?? 0);
 
   const style = {
     "--pv-accent": design.colors.accent,
@@ -68,11 +71,17 @@ export function ProfilePreview({
 
   return (
     <article
+      ref={tilt.ref}
+      onPointerMove={tiltEnabled ? tilt.onPointerMove : undefined}
+      onPointerLeave={tiltEnabled ? tilt.onPointerLeave : undefined}
       className={`profile-preview pv-theme-${design.theme} pv-layout-${design.layout} pv-card-${design.cardStyle}${
         hasBanner ? " pv-has-banner" : ""
+      }${tiltEnabled ? " profile-preview--tilt" : ""}${
+        tiltEnabled && design.tiltGlare ? " profile-preview--glare" : ""
       }${compact ? " profile-preview--compact" : ""}${className ? ` ${className}` : ""}`}
-      style={style}
+      style={{ ...style, ...tilt.style }}
     >
+      {tiltEnabled && design.tiltGlare ? <span className="pv-tilt-glare" aria-hidden="true" /> : null}
       {hasBanner ? (
         <div
           className={`pv-banner${banner.imageUrl ? " pv-banner--image" : ""}`}
@@ -139,7 +148,7 @@ export function ProfilePreview({
 
         {badges.length > 0 ? (
           <div className="pv-badges">
-            <BadgeRow badges={badges} style={badgeStyle ?? DEFAULT_BADGE_STYLE} size={compact ? 16 : 20} />
+            <BadgeRow badges={badges} style={badgeStyle ?? DEFAULT_BADGE_STYLE} />
           </div>
         ) : null}
 

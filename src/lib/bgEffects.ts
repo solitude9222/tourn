@@ -552,11 +552,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   }
 
   function start() {
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      draw(clock);
-      return;
-    }
+    // Background motion is the point of these effects, so it always runs —
+    // reduced-motion users get the same calm, non-flashing draws at a slower
+    // clock instead of a frozen frame.
     if (!raf && visible) {
       last = performance.now();
       raf = requestAnimationFrame(loop);
@@ -578,6 +576,12 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     else stop();
   });
   io.observe(container);
+  // Browsers pause rAF in hidden tabs; restart when the page comes back so a
+  // background effect never comes back as a still image.
+  const onVisible = () => {
+    if (document.visibilityState === "visible") start();
+  };
+  document.addEventListener("visibilitychange", onVisible);
   const pt = (e: PointerEvent) => {
     const r = container.getBoundingClientRect();
     mx = e.clientX - r.left;
@@ -615,6 +619,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       container.removeEventListener("pointermove", pt);
       container.removeEventListener("pointerdown", pt);
       container.removeEventListener("pointerleave", lv);
+      document.removeEventListener("visibilitychange", onVisible);
       cv.remove();
       bl.remove();
     },
