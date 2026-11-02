@@ -30,7 +30,7 @@ import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
 import { SiteBackdrop } from "./components/Chrome";
-import type { HeroIdentity } from "./components/ProfileCard";
+
 import { CopyIcon, ExternalIcon, MailIcon, UserIcon } from "./components/Icons";
 
 /* The marketing site, the dashboard and the demo page are not needed to render
@@ -65,7 +65,7 @@ import {
   saveProfile,
   type ProfilePayload,
 } from "./lib/serverProfile";
-import { recordView } from "./lib/views";
+import { getViewCount, recordView } from "./lib/views";
 
 export default function App() {
   return (
@@ -266,6 +266,20 @@ function ProfilePage({
     { status: "loading" } | { status: "ok"; data: ProfilePayload } | { status: "missing" } | { status: "error"; error: string }
   >(() => (cached ? { status: "ok", data: cached } : { status: "loading" }));
   const [attempt, setAttempt] = useState(0);
+  const [views, setViews] = useState<number | null>(null);
+
+  // View count for the card corner — the owner's page never increments it.
+  useEffect(() => {
+    if (!handle) return;
+    let active = true;
+    setViews(null);
+    void getViewCount(handle).then((count) => {
+      if (active) setViews(count);
+    });
+    return () => {
+      active = false;
+    };
+  }, [handle]);
 
   useEffect(() => {
     if (!handle || isOwn) return;
@@ -276,7 +290,11 @@ function ProfilePage({
       if (!active) return;
       if (result.ok) {
         setRemote({ status: "ok", data: result.data });
-        if (result.data.profile) void recordView(result.data.account.username);
+        if (result.data.profile) {
+          void recordView(result.data.account.username).then((count) => {
+            if (active && count > 0) setViews(count);
+          });
+        }
       } else if (result.notFound) {
         setRemote({ status: "missing" });
       } else {
@@ -302,6 +320,8 @@ function ProfilePage({
           badges={{ ...badges, equipped: badges.equipped.filter((b) => earned.includes(b.id)) }}
           links={links}
           interactive
+          views={views}
+          joined={formatJoined(new Date(user.joinedAt))}
         />
       </section>
     );
@@ -333,6 +353,8 @@ function ProfilePage({
           }}
           links={document.links}
           interactive
+          views={views}
+          joined={formatJoined(new Date(remote.data.account.joinedAt))}
         />
       </section>
     );
@@ -486,38 +508,6 @@ function Site() {
     15_000,
   );
 
-
-  const identity = useMemo<HeroIdentity | null>(() => {
-    // Home card: the owner's profile when one exists, otherwise the viewer's own.
-    if (!user && first) {
-      return {
-        displayName: first.alias?.trim() || first.username,
-        handle: first.username,
-        avatarUrl: first.avatarUrl,
-        joined: `Member since ${formatJoined(new Date(first.joinedAt))}`,
-        location: "",
-        bio: "",
-        discordLinked: false,
-        spotifyLinked: false,
-        steamLinked: false,
-        live: false,
-      };
-    }
-    if (!user) return null;
-
-    return {
-      displayName: (user.alias?.trim() || about.displayName.trim() || user.username),
-      handle: user.username,
-      avatarUrl: user.avatarUrl,
-      joined: `Member since ${formatJoined(new Date(user.joinedAt))}`,
-      location: about.location.trim(),
-      bio: about.bio,
-      discordLinked: Boolean(settings.discordUserId),
-      spotifyLinked: Boolean(settings.spotifyTrack || lanyard.data?.spotify),
-      steamLinked: Boolean(settings.steamUrl),
-      live: Boolean(lanyard.data),
-    };
-  }, [user, first, about, lanyard.data, settings.steamUrl]);
 
   const closeAuth = useCallback(() => setAuthMode(null), []);
 
@@ -673,7 +663,6 @@ function Site() {
             ) : (
               <>
                 <Hero
-                  identity={identity}
                   signedIn={Boolean(user)}
                   onPrimary={openPrimary}
                   onExample={() => scrollTo("example")}

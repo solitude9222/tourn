@@ -140,6 +140,8 @@ export function LinkerPreview({
   interactive = false,
   showEntry = true,
   entryPlayToken = 0,
+  views = null,
+  joined,
 }: {
   user: Pick<Account, "id" | "username" | "avatarUrl">;
   about: About;
@@ -150,6 +152,10 @@ export function LinkerPreview({
   interactive?: boolean;
   showEntry?: boolean;
   entryPlayToken?: number;
+  /** Real profile view count, when it has loaded. */
+  views?: number | null;
+  /** Formatted join date for the card footer. */
+  joined?: string;
 }) {
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
@@ -228,6 +234,8 @@ export function LinkerPreview({
       links={links.links}
       linkDesign={links.design ?? DEFAULT_LINK_DESIGN}
       className={slideshow ? "profile-preview--slide" : "profile-preview--with-widgets"}
+      views={views}
+      joined={joined}
     >
       {insideCard && widgets.widgets.length ? widgetStack : null}
     </ProfilePreview>

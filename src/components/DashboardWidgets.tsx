@@ -190,22 +190,30 @@ export function DashboardWidgets({
           </div>
           <span className="widgets-count">{widgetCount} added</span>
         </header>
-        <div className="widgets-platform-gallery">
+        <div className="widgets-catalog-grid">
           {WIDGET_PLATFORMS.map((item) => (
             <button
               type="button"
-              className="widgets-platform-tile"
+              className="platform-card"
               key={item.id}
               onClick={() => choosePlatform(item)}
               style={{ "--platform-color": item.color } as CSSProperties}
             >
-              <span className="widgets-platform-tile-icon">
-                <PlatformIcon id={item.id} size={18} />
+              <span className="platform-card-watermark" aria-hidden="true">
+                <PlatformIcon id={item.id} size={92} />
               </span>
-              <span className="widgets-platform-tile-name">{item.name}</span>
-              {widgetSupportsLive(item.id) ? (
-                <span className="widgets-platform-tile-live">Live</span>
-              ) : null}
+              <span className="platform-card-icon">
+                <PlatformIcon id={item.id} size={20} />
+              </span>
+              <span className="platform-card-copy">
+                <b>{item.name}</b>
+                <span>{item.description}</span>
+                <span className={`platform-card-live${widgetSupportsLive(item.id) ? " is-live" : ""}`}>
+                  {widgetSupportsLive(item.id)
+                    ? "Live data from the public API"
+                    : `Profile card — opens your ${item.name} profile`}
+                </span>
+              </span>
             </button>
           ))}
         </div>

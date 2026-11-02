@@ -71,10 +71,10 @@ function LayoutSelect({
 /* ── position presets ──────────────────────────────────────── */
 
 const PFP_POSITIONS = [
-  { value: "default", label: "Left (default)" },
-  { value: "center", label: "Centered" },
-  { value: "top-right", label: "Right" },
-  { value: "above", label: "Above content" },
+  { value: "above", label: "Stacked on top (default)" },
+  { value: "default", label: "Inline — left" },
+  { value: "center", label: "Inline — centered" },
+  { value: "top-right", label: "Inline — right" },
 ];
 
 const AVATAR_SHAPES = [
@@ -105,6 +105,25 @@ const BIO_POSITIONS = [
   { value: "center", label: "Centered" },
   { value: "left", label: "Left-aligned" },
   { value: "right", label: "Right-aligned" },
+];
+
+const LOCATION_POSITIONS = [
+  { value: "under-name", label: "Under the username" },
+  { value: "top", label: "Beside the avatar" },
+  { value: "footer", label: "Card footer" },
+  { value: "hidden", label: "Hidden" },
+];
+
+const VIEW_POSITIONS = [
+  { value: "top-right", label: "Top-right corner" },
+  { value: "footer", label: "Bottom-right" },
+  { value: "hidden", label: "Hidden" },
+];
+
+const JOIN_POSITIONS = [
+  { value: "footer", label: "Bottom-left" },
+  { value: "under-name", label: "Under the username" },
+  { value: "hidden", label: "Hidden" },
 ];
 
 /* ── component ─────────────────────────────────────────────── */
@@ -231,7 +250,7 @@ export function DashboardLayout({
             <LayoutSlider
               label="Background opacity"
               value={design.backgroundOpacity}
-              min={0.2}
+              min={0}
               max={1}
               step={0.01}
               onChange={(v) => update({ backgroundOpacity: v })}
@@ -346,6 +365,24 @@ export function DashboardLayout({
               value={design.bioPosition}
               options={BIO_POSITIONS}
               onChange={(v) => update({ bioPosition: v as typeof design.bioPosition })}
+            />
+            <LayoutSelect
+              label="Location"
+              value={design.locationPosition}
+              options={LOCATION_POSITIONS}
+              onChange={(v) => update({ locationPosition: v as typeof design.locationPosition })}
+            />
+            <LayoutSelect
+              label="View count"
+              value={design.viewPosition}
+              options={VIEW_POSITIONS}
+              onChange={(v) => update({ viewPosition: v as typeof design.viewPosition })}
+            />
+            <LayoutSelect
+              label="Join date"
+              value={design.joinPosition}
+              options={JOIN_POSITIONS}
+              onChange={(v) => update({ joinPosition: v as typeof design.joinPosition })}
             />
           </div>
         </section>

@@ -4523,3 +4523,21 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
     padding: 10px 14px;
   }
 }
+
+/* ── home hero: the example profile card ─────────────────────────── */
+
+.hero-profile {
+  display: grid;
+  width: 100%;
+  place-items: center;
+}
+
+.hero-profile .profile-preview {
+  width: min(100%, var(--pv-width));
+}
+
+/* The demo card should never answer the pointer with a tilt or a glare —
+   it is a static example, not the visitor's own page. */
+.hero-profile .profile-preview {
+  transform: none !important;
+}

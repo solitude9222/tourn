@@ -4493,3 +4493,138 @@ body:has(.dash) {
 .dash-gate-card--checking {
   animation: none;
 }
+
+/* ── quick edit menu (top bar) ────────────────────────────────────── */
+
+.dash-edit {
+  position: relative;
+}
+
+.dash-top-actions .btn.is-active {
+  border-color: rgba(180, 191, 250, 0.35);
+  background: rgba(180, 191, 250, 0.1);
+  color: #eef0ff;
+}
+
+.dash-edit-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 262px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 50%),
+    #0d0e12;
+  box-shadow: 0 26px 60px -24px #000;
+  animation: dashEditIn 0.16s var(--ease-out) both;
+}
+
+@keyframes dashEditIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.98);
+  }
+}
+
+.dash-edit-head {
+  display: flex;
+  gap: 16px;
+  padding: 9px 10px 11px;
+}
+
+.dash-edit-head span {
+  display: grid;
+  gap: 1px;
+  color: #7f8797;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}
+
+.dash-edit-head b {
+  color: #f1f3fb;
+  font-size: 16px;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+}
+
+.dash-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #cfd4e0;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dash-edit-item:hover {
+  background: rgba(180, 191, 250, 0.1);
+  color: #f4f6ff;
+}
+
+.dash-edit-item svg {
+  flex: none;
+  opacity: 0.8;
+}
+
+.dash-edit-end {
+  margin-left: auto;
+  opacity: 0.5;
+}
+
+.dash-edit-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ── a roomier dashboard: fewer, wider blocks with real breathing room ── */
+
+.dash-main {
+  max-width: 1440px;
+  padding: 36px 52px 44px;
+}
+
+.dash-page {
+  gap: 22px;
+}
+
+.dash-charts {
+  gap: 22px;
+  margin-bottom: 0;
+}
+
+.dash-charts,
+.dash-lower {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+}
+
+.dash-chart-panel,
+.dash-signals,
+.dash-account-card {
+  padding: 26px;
+}
+
+@media (max-width: 1240px) {
+  .dash-charts,
+  .dash-lower {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .dash-main {
+    padding: 26px 20px 34px;
+  }
+}

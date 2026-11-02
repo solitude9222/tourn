@@ -13,6 +13,12 @@ export type BadgePosition = "default" | "above-name" | "top-right" | "bottom" | 
 /** Alignment shared by the display name and bio. */
 export type TextAlignPosition = "default" | "center" | "left" | "right";
 export type AvatarShape = "circle" | "rounded" | "square" | "hexagon";
+/** Where the profile view counter sits. */
+export type ViewPosition = "top-right" | "footer" | "hidden";
+/** Where the “joined” date sits. */
+export type JoinPosition = "footer" | "under-name" | "hidden";
+/** Where the location pill sits. */
+export type LocationPosition = "top" | "under-name" | "footer" | "hidden";
 
 /** Browser-tab behaviour for the public page. */
 export type TabAnimation = "none" | "cycle" | "typewriter";
@@ -80,6 +86,9 @@ export type AboutDesign = {
   namePosition: TextAlignPosition;
   bioPosition: TextAlignPosition;
   avatarShape: AvatarShape;
+  viewPosition: ViewPosition;
+  joinPosition: JoinPosition;
+  locationPosition: LocationPosition;
   slideshow: SlideshowSettings;
   entry: EntrySettings;
   colors: ProfileColors;
@@ -111,11 +120,11 @@ export const DEFAULT_METADATA: AboutMetadata = {
 export const MAX_BIO_LENGTH = 800;
 
 export const DEFAULT_PROFILE_COLORS: ProfileColors = {
-  accent: "#ffcfa8",
-  text: "#f3f7fa",
-  muted: "#98a3ad",
-  background: "#0b0d10",
-  card: "#12161b",
+  accent: "#b4bffa",
+  text: "#f4f6fb",
+  muted: "#98a2b3",
+  background: "#07070a",
+  card: "#12141a",
   border: "#ffffff",
 };
 
@@ -139,24 +148,27 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   theme: "default",
   layout: "classic",
   cardStyle: "default",
-  cardWidth: 420,
-  cardRadius: 22,
-  borderWidth: 1,
-  borderOpacity: 0.14,
-  backgroundOpacity: 0.94,
+  cardWidth: 460,
+  cardRadius: 24,
+  borderWidth: 0,
+  borderOpacity: 0.1,
+  backgroundOpacity: 0.08,
   backgroundBlur: 0,
-  avatarSize: 72,
+  avatarSize: 88,
   widgetGap: 12,
-  cardPadding: 20,
-  nameSize: 21,
-  bioSize: 11.5,
+  cardPadding: 24,
+  nameSize: 23,
+  bioSize: 12.5,
   tilt: 0,
   tiltGlare: false,
-  pfpPosition: "default",
+  pfpPosition: "above",
   badgePosition: "default",
-  namePosition: "default",
-  bioPosition: "default",
+  namePosition: "center",
+  bioPosition: "center",
   avatarShape: "circle",
+  viewPosition: "top-right",
+  joinPosition: "footer",
+  locationPosition: "under-name",
   slideshow: DEFAULT_SLIDESHOW,
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
@@ -210,6 +222,9 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
 }
 
 const PFP_POSITIONS: readonly PfpPosition[] = ["default", "center", "top-right", "left", "right", "above"];
+const VIEW_POSITIONS: readonly ViewPosition[] = ["top-right", "footer", "hidden"];
+const JOIN_POSITIONS: readonly JoinPosition[] = ["footer", "under-name", "hidden"];
+const LOCATION_POSITIONS: readonly LocationPosition[] = ["top", "under-name", "footer", "hidden"];
 const BADGE_POSITIONS: readonly BadgePosition[] = [
   "default",
   "above-name",
@@ -273,6 +288,9 @@ function loadDesign(input: unknown): AboutDesign {
   const cardStyle = CARD_STYLES.some((item) => item.id === raw.cardStyle)
     ? (raw.cardStyle as CardStyle)
     : DEFAULT_ABOUT_DESIGN.cardStyle;
+  // Documents saved before the layout change have no viewPosition. They are
+  // upgraded once so the new stacked layout applies without a manual reset.
+  const legacyLayout = !("viewPosition" in raw);
 
   return {
     theme,
@@ -280,14 +298,15 @@ function loadDesign(input: unknown): AboutDesign {
     cardStyle,
     cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 900),
     cardRadius: numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 36),
-    borderWidth: numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 6),
-    borderOpacity: numberIn(raw.borderOpacity, DEFAULT_ABOUT_DESIGN.borderOpacity, 0, 1),
-    backgroundOpacity: numberIn(
-      raw.backgroundOpacity,
-      DEFAULT_ABOUT_DESIGN.backgroundOpacity,
-      0.2,
-      1,
-    ),
+    borderWidth: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.borderWidth
+      : numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 6),
+    borderOpacity: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.borderOpacity
+      : numberIn(raw.borderOpacity, DEFAULT_ABOUT_DESIGN.borderOpacity, 0, 1),
+    backgroundOpacity: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.backgroundOpacity
+      : numberIn(raw.backgroundOpacity, DEFAULT_ABOUT_DESIGN.backgroundOpacity, 0, 1),
     backgroundBlur: numberIn(raw.backgroundBlur, DEFAULT_ABOUT_DESIGN.backgroundBlur, 0, 30),
     avatarSize: numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 44, 132),
     widgetGap: numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 4, 28),
@@ -296,11 +315,28 @@ function loadDesign(input: unknown): AboutDesign {
     bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 9, 16),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 16),
     tiltGlare: boolIn(raw.tiltGlare, DEFAULT_ABOUT_DESIGN.tiltGlare),
-    pfpPosition: oneOf(raw.pfpPosition, PFP_POSITIONS, DEFAULT_ABOUT_DESIGN.pfpPosition),
-    badgePosition: oneOf(raw.badgePosition, BADGE_POSITIONS, DEFAULT_ABOUT_DESIGN.badgePosition),
-    namePosition: oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
-    bioPosition: oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
-    avatarShape: oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
+    pfpPosition: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.pfpPosition
+      : oneOf(raw.pfpPosition, PFP_POSITIONS, DEFAULT_ABOUT_DESIGN.pfpPosition),
+    badgePosition: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.badgePosition
+      : oneOf(raw.badgePosition, BADGE_POSITIONS, DEFAULT_ABOUT_DESIGN.badgePosition),
+    namePosition: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.namePosition
+      : oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
+    bioPosition: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.bioPosition
+      : oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
+    avatarShape: legacyLayout
+      ? DEFAULT_ABOUT_DESIGN.avatarShape
+      : oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
+    viewPosition: oneOf(raw.viewPosition, VIEW_POSITIONS, DEFAULT_ABOUT_DESIGN.viewPosition),
+    joinPosition: oneOf(raw.joinPosition, JOIN_POSITIONS, DEFAULT_ABOUT_DESIGN.joinPosition),
+    locationPosition: oneOf(
+      raw.locationPosition,
+      LOCATION_POSITIONS,
+      DEFAULT_ABOUT_DESIGN.locationPosition,
+    ),
     slideshow: loadSlideshow(raw.slideshow),
     entry: loadEntry(raw.entry),
     colors: {

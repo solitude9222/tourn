@@ -1,137 +1,70 @@
-import { useTilt } from "../lib/useTilt";
-import { ArrowRight, DiscordIcon, LinkIcon, PinIcon, SpotifyIcon, SteamIcon } from "./Icons";
-import { RichText } from "./RichText";
+import { DEFAULT_ABOUT_DESIGN, type About } from "../lib/about";
+import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
+import { type BadgeInstance } from "../lib/badges";
+import { DEFAULT_LINK_DESIGN, type LinkInstance } from "../lib/links";
+import { ProfilePreview } from "./ProfilePreview";
 
-export type HeroIdentity = {
-  displayName: string;
-  handle: string;
-  avatarUrl: string | null;
-  joined: string;
-  location: string;
-  bio: string;
-  discordLinked: boolean;
-  spotifyLinked: boolean;
-  steamLinked: boolean;
-  live: boolean;
+/**
+ * The home page's example card. It deliberately renders static demo data —
+ * never the viewer's account and never a network request — so it paints on the
+ * first frame and always looks complete, even when the backend is cold.
+ */
+const DEMO_ABOUT: About = {
+  displayName: "tourn",
+  bio: "One link for everything you play.\nDiscord, music and games — always current.",
+  location: "tourn.lol",
+  metadata: { title: "", faviconUrl: "", animation: "none", messages: [], interval: 6 },
+  design: {
+    ...DEFAULT_ABOUT_DESIGN,
+    cardWidth: 372,
+    cardPadding: 22,
+    avatarSize: 86,
+  },
+  assets: DEFAULT_PROFILE_ASSETS,
 };
 
-export function ProfileCard({
-  identity,
-  onClaim,
-}: {
-  identity: HeroIdentity | null;
-  onClaim: () => void;
-}) {
-  const tilt = useTilt(7);
+const DEMO_BADGES: BadgeInstance[] = [
+  { id: "owner", visible: true },
+  { id: "verified", visible: true },
+  { id: "premium", visible: true },
+  { id: "staff", visible: true },
+  { id: "donator", visible: true },
+];
 
+const demoLink = (id: string, platform: string, label: string, url: string): LinkInstance => ({
+  id,
+  platform,
+  label,
+  url,
+  tooltip: "",
+  description: "",
+  fold: "",
+  mode: "icon",
+  visible: true,
+  color: "",
+  glowOn: false,
+  glowColor: "",
+  iconUrl: "",
+});
+
+const DEMO_LINKS: LinkInstance[] = [
+  demoLink("demo-discord", "discord", "Discord", "https://discord.gg/tourn"),
+  demoLink("demo-spotify", "spotify", "Spotify", "https://open.spotify.com"),
+  demoLink("demo-steam", "steam", "Steam", "https://steamcommunity.com"),
+];
+
+export function ProfileCard() {
   return (
-    <aside
-      className={`profile-card${identity ? "" : " profile-card--empty"}`}
-      ref={tilt.ref}
-      style={tilt.style}
-      onPointerMove={tilt.onPointerMove}
-      onPointerLeave={tilt.onPointerLeave}
-    >
-      <div className="profile-glow" aria-hidden="true" />
-      <div className="tilt-glare" aria-hidden="true" />
-
-      {identity ? (
-        <>
-          <div className="pc-top">
-            {identity.avatarUrl ? (
-              <img className="avatar avatar--xl" src={identity.avatarUrl} alt="" />
-            ) : (
-              <span className="avatar avatar--xl avatar--initial" aria-hidden="true">
-                {identity.displayName.slice(0, 1).toUpperCase()}
-              </span>
-            )}
-            <div className="pc-id">
-              <p className="pc-name">{identity.displayName}</p>
-              <p className="pc-handle">@{identity.handle}</p>
-              <p className="pc-joined">{identity.joined}</p>
-              {identity.location ? (
-                <p className="pc-location">
-                  <PinIcon size={9} />
-                  {identity.location}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={`pc-custom${identity.bio.trim() ? "" : " is-empty"}`}>
-            {identity.bio.trim() ? (
-              <RichText text={identity.bio} />
-            ) : (
-              "One link for everything you play — Discord, servers, music and games, live."
-            )}
-          </div>
-
-          {identity.discordLinked || identity.spotifyLinked || identity.steamLinked ? (
-            <div className="pc-platforms">
-              {identity.discordLinked ? (
-                <span className="pc-platform is-on">
-                  <DiscordIcon size={15} />
-                </span>
-              ) : null}
-              {identity.spotifyLinked ? (
-                <span className="pc-platform is-on">
-                  <SpotifyIcon size={15} />
-                </span>
-              ) : null}
-              {identity.steamLinked ? (
-                <span className="pc-platform is-on">
-                  <SteamIcon size={15} />
-                </span>
-              ) : null}
-              <span className="pc-platform-label">{identity.live ? "connected" : "linked"}</span>
-            </div>
-          ) : null}
-
-          {identity.discordLinked || identity.spotifyLinked || identity.steamLinked ? (
-            <div className="pc-stats">
-              {identity.discordLinked ? (
-                <div>
-                  <b>{identity.live ? "Live" : "Member"}</b>
-                  <span>discord</span>
-                </div>
-              ) : null}
-              {identity.spotifyLinked ? (
-                <div>
-                  <b>{identity.live ? "Playing" : "Linked"}</b>
-                  <span>spotify</span>
-                </div>
-              ) : null}
-              {identity.steamLinked ? (
-                <div>
-                  <b>Linked</b>
-                  <span>steam</span>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          <div className="pc-footer">
-            <span className="pc-sync">
-              <i />
-              {identity.live ? "syncing" : "joined"}
-            </span>
-          </div>
-        </>
-      ) : (
-        <div className="pc-empty">
-          <span className="pc-empty-icon" aria-hidden="true">
-            <LinkIcon size={22} />
-          </span>
-          <p className="pc-empty-title">No bio card yet.</p>
-          <p className="pc-empty-sub">
-            Claim your link and this card fills with your bio, platforms and live widget stack.
-          </p>
-          <button type="button" className="btn btn-primary btn-sm" onClick={onClaim}>
-            Claim your link
-            <ArrowRight size={13} />
-          </button>
-        </div>
-      )}
+    <aside className="hero-profile" aria-label="Example tourn.lol profile card">
+      <ProfilePreview
+        user={{ id: "demo", uid: 1, username: "tourn", avatarUrl: "/logo.png" }}
+        about={DEMO_ABOUT}
+        badges={DEMO_BADGES}
+        links={DEMO_LINKS}
+        linkDesign={{ ...DEFAULT_LINK_DESIGN, iconOnly: true, cardStyle: "outline" }}
+        views={353}
+        joined="Nov 2026"
+      />
     </aside>
   );
 }

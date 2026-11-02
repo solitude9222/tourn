@@ -129,16 +129,16 @@ export type WidgetStore = {
 };
 
 export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
-  backgroundStyle: "frosted",
+  backgroundStyle: "solid",
   borderWidth: 1,
-  borderOpacity: 0.12,
+  borderOpacity: 0.08,
   borderColor: "#ffffff",
-  backgroundColor: "#ffffff",
+  backgroundColor: "#0b0c10",
   gradientFrom: "#ff5f6d",
   gradientTo: "#7c5cff",
-  backgroundOpacity: 0.06,
-  backgroundBlur: 16,
-  radius: 18,
+  backgroundOpacity: 0.94,
+  backgroundBlur: 0,
+  radius: 16,
 };
 
 const baseOptions = (): WidgetOption[] => [
@@ -161,7 +161,10 @@ const baseOptions = (): WidgetOption[] => [
 const DID_YOU_KNOW =
   "If you're using the third layout or set a max width of at least 600px, embeds inside the profile card will be displayed in a grid.";
 
-export const WIDGET_PLATFORMS: WidgetPlatform[] = [
+/* The catalog is deliberately limited to these fifteen platforms — anything
+   else is not offered, and widgets saved for a removed platform are dropped
+   by normalizeWidgetStore below. */
+const ALL_WIDGET_PLATFORMS: WidgetPlatform[] = [
   {
     id: "discord",
     name: "Discord",
@@ -740,6 +743,30 @@ export const WIDGET_PLATFORMS: WidgetPlatform[] = [
     ],
   },
 ];
+
+const SUPPORTED_IDS = [
+  "discord",
+  "github",
+  "roblox",
+  "lastfm",
+  "statsfm",
+  "valorant",
+  "timezone",
+  "steam",
+  "twitch",
+  "spotify",
+  "minecraft",
+  "clashofclans",
+  "clashroyale",
+  "brawlstars",
+  "weather",
+] as const;
+
+const SUPPORTED = new Set<string>(SUPPORTED_IDS);
+
+export const WIDGET_PLATFORMS: WidgetPlatform[] = SUPPORTED_IDS.map(
+  (id) => ALL_WIDGET_PLATFORMS.find((platform) => platform.id === id)!,
+).filter((platform) => SUPPORTED.has(platform.id));
 
 export const WIDGET_PLATFORM_BY_ID = new Map(WIDGET_PLATFORMS.map((platform) => [platform.id, platform]));
 

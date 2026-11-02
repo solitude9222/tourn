@@ -3486,3 +3486,282 @@
   border-color: rgba(255, 255, 255, 0.14);
   color: #fff;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Stacked profile card — avatar on top, name → badges → handle → location
+   → bio → links, with the join date and view count on the bottom row.
+   Transparent surface, rounded corners, and a beam that chases the edge.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.profile-preview {
+  background: var(--pv-card);
+  box-shadow: 0 32px 80px -56px #000;
+}
+
+.pv-topline {
+  margin-bottom: 0;
+}
+
+.profile-preview[data-pfp="above"] .pv-topline {
+  margin-bottom: 14px;
+}
+
+.profile-preview[data-pfp="above"] .pv-avatar {
+  box-shadow:
+    0 18px 40px -22px #000,
+    0 0 0 1px color-mix(in srgb, var(--pv-accent) 28%, transparent);
+}
+
+.pv-id {
+  margin-top: 2px;
+}
+
+.pv-handle {
+  display: block;
+  margin-top: 6px;
+  color: var(--pv-muted);
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.profile-preview[data-name="center"] .pv-handle {
+  text-align: center;
+}
+
+.profile-preview[data-name="left"] .pv-handle {
+  text-align: left;
+}
+
+.profile-preview[data-name="right"] .pv-handle {
+  text-align: right;
+}
+
+.profile-preview[data-location="under-name"] .pv-location {
+  margin: 9px auto 0;
+}
+
+.profile-preview[data-name="left"][data-location="under-name"] .pv-location {
+  margin-left: 0;
+}
+
+.profile-preview[data-name="right"][data-location="under-name"] .pv-location {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.pv-joined-inline {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.pv-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--pv-muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.pv-foot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.pv-foot-item svg {
+  opacity: 0.75;
+}
+
+.pv-views--corner {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--pv-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Badges sit in a single soft rail, like a status strip under the name. */
+.pv-badges {
+  justify-content: inherit;
+  width: fit-content;
+  margin: 10px auto 0;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(6px);
+}
+
+.profile-preview[data-name="left"] .pv-badges,
+.profile-preview[data-name="default"] .pv-badges {
+  margin-left: 0;
+}
+
+.profile-preview[data-badges="above-name"] .pv-badges {
+  margin-top: 14px;
+}
+
+.profile-preview[data-badges="bottom"] .pv-badges {
+  margin-top: 16px;
+}
+
+.profile-preview[data-name="center"] .pv-link-row,
+.profile-preview[data-pfp="above"] .pv-link-row {
+  justify-content: center;
+}
+
+.profile-preview[data-name="center"] .pv-bio {
+  text-align: center;
+}
+
+/* ── beam: two light arcs chasing round the card edge ─────────────── */
+
+.pv-card-fx--beam {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: inherit;
+  padding: 1.5px;
+  opacity: var(--pv-card-fx-strength, 0.7);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* The ring is a hugely oversized conic gradient spinning behind the mask, so
+   the bright arcs travel around the whole border without moving the box. */
+.pv-card-fx--beam::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260%;
+  height: 260%;
+  translate: -50% -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 44deg,
+    color-mix(in srgb, var(--pv-accent) 42%, transparent) 74deg,
+    color-mix(in srgb, var(--pv-accent) 96%, transparent) 88deg,
+    #ffffff 93deg,
+    color-mix(in srgb, var(--pv-accent) 96%, transparent) 98deg,
+    transparent 128deg 224deg,
+    color-mix(in srgb, var(--pv-accent) 42%, transparent) 254deg,
+    color-mix(in srgb, var(--pv-accent) 96%, transparent) 268deg,
+    #ffffff 273deg,
+    color-mix(in srgb, var(--pv-accent) 96%, transparent) 278deg,
+    transparent 308deg 360deg
+  );
+  animation: pvBeamSpin var(--pv-card-fx-speed, 6s) linear infinite;
+}
+
+@keyframes pvBeamSpin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.pv-beam-glow {
+  position: absolute;
+  z-index: 1;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--pv-accent) 62%, transparent),
+    transparent 68%
+  );
+  filter: blur(38px);
+  opacity: calc(var(--pv-card-fx-strength, 0.7) * 0.7);
+  pointer-events: none;
+  animation: pvBeamBreathe 7s ease-in-out infinite;
+}
+
+.pv-beam-glow--tl {
+  top: -84px;
+  left: -70px;
+}
+
+.pv-beam-glow--br {
+  right: -70px;
+  bottom: -84px;
+  animation-delay: -3.5s;
+}
+
+@keyframes pvBeamBreathe {
+  0%,
+  100% {
+    opacity: calc(var(--pv-card-fx-strength, 0.7) * 0.45);
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: calc(var(--pv-card-fx-strength, 0.7) * 0.9);
+    transform: scale(1.06);
+  }
+}
+
+/* ── badges: motion that actually reads at 22px ──────────────────── */
+
+.badge-chip {
+  animation: badgeIdle 4.6s ease-in-out infinite;
+}
+
+.badge-anim--shimmer::after {
+  background: linear-gradient(
+    115deg,
+    transparent 26%,
+    rgba(255, 255, 255, 0.95) 45%,
+    #ffffff 52%,
+    rgba(255, 255, 255, 0.95) 59%,
+    transparent 78%
+  );
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.65));
+  animation: badgeShimmer 2.1s ease-in-out infinite;
+}
+
+.badge-anim--shimmer .badge-chip-art {
+  animation: badgeSheenPulse 2.1s ease-in-out infinite;
+}
+
+@keyframes badgeSheenPulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.16);
+  }
+}
+
+.badge-anim--pulse {
+  animation: badgeScalePulse 1.5s ease-in-out infinite;
+}
+
+.badge-row:hover .badge-chip {
+  animation-play-state: paused;
+}

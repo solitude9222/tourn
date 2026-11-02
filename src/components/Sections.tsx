@@ -6,7 +6,7 @@ import type { WidgetStore } from "../lib/widgets";
 import type { SiteStats } from "../lib/siteStats";
 import { formatCompactNumber } from "../lib/format";
 import { Bento } from "./Bento";
-import { ProfileCard, type HeroIdentity } from "./ProfileCard";
+import { ProfileCard } from "./ProfileCard";
 import {
   ArrowRight,
   CheckIcon,
@@ -19,12 +19,10 @@ import {
 /* ------------------------------------------------------------------- hero */
 
 export function Hero({
-  identity,
   signedIn,
   onPrimary,
   onExample,
 }: {
-  identity: HeroIdentity | null;
   signedIn: boolean;
   onPrimary: () => void;
   onExample: () => void;
@@ -64,7 +62,7 @@ export function Hero({
           </div>
         </div>
         <div className="hero-card-slot">
-          <ProfileCard identity={identity} onClaim={onPrimary} />
+          <ProfileCard />
         </div>
       </div>
     </section>

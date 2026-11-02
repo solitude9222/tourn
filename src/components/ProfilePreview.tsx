@@ -12,7 +12,7 @@ import { ProfileLinks } from "./ProfileLinks";
 import { AudioPlayer } from "./AudioPlayer";
 import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
-import { PinIcon } from "./Icons";
+import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
 
 export function ProfilePreview({
@@ -24,6 +24,8 @@ export function ProfilePreview({
   linkDesign,
   className = "",
   compact = false,
+  views,
+  joined,
   children,
 }: {
   user: Pick<Account, "id" | "uid" | "username" | "avatarUrl">;
@@ -34,6 +36,10 @@ export function ProfilePreview({
   linkDesign?: LinkDesign;
   className?: string;
   compact?: boolean;
+  /** Public profile view count. Hidden when it has not loaded. */
+  views?: number | null;
+  /** Already-formatted join date, e.g. "Nov 2026". */
+  joined?: string;
   children?: ReactNode;
 }) {
   const design = about.design;
@@ -50,12 +56,39 @@ export function ProfilePreview({
   const uid = accountUid(user);
   const tiltEnabled = (design.tilt ?? 0) > 0;
   const tilt = useTilt(design.tilt ?? 0);
+  const viewPosition = design.viewPosition ?? "top-right";
+  const joinPosition = design.joinPosition ?? "footer";
+  const locationPosition = design.locationPosition ?? "under-name";
+  const viewCount = typeof views === "number" ? views : null;
+  const showViews = viewCount !== null && viewPosition !== "hidden";
+  const showJoined = Boolean(joined) && joinPosition !== "hidden";
   const badgeRow =
     badges.length > 0 && design.badgePosition !== "hidden" ? (
       <div className={`pv-badges pv-badges--${design.badgePosition}`}>
         <BadgeRow badges={badges} style={badgeStyle ?? DEFAULT_BADGE_STYLE} />
       </div>
     ) : null;
+
+  const locationPill = location ? (
+    <span className="pv-location">
+      <PinIcon size={10} />
+      {location}
+    </span>
+  ) : null;
+
+  const joinedNode = (
+    <span className="pv-foot-item" title={joined}>
+      <CalendarIcon size={10} />
+      Joined {joined ?? "—"}
+    </span>
+  );
+
+  const viewsNode = (
+    <span className="pv-foot-item" title={viewCount === null ? undefined : `${viewCount} views`}>
+      <EyeIcon size={10} />
+      {viewCount === null ? "—" : viewCount.toLocaleString("en-US")}
+    </span>
+  );
 
   const style = {
     "--pv-accent": design.colors.accent,
@@ -95,6 +128,9 @@ export function ProfilePreview({
       data-name={design.namePosition}
       data-bio={design.bioPosition}
       data-shape={design.avatarShape}
+      data-views={viewPosition}
+      data-join={joinPosition}
+      data-location={locationPosition}
     >
       {hasBanner ? (
         <div
@@ -111,6 +147,20 @@ export function ProfilePreview({
       ) : null}
       <div className="pv-ambient" aria-hidden="true" />
       <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" />
+      {cardFx.id === "beam" ? (
+        <>
+          <span className="pv-beam-glow pv-beam-glow--tl" aria-hidden="true" />
+          <span className="pv-beam-glow pv-beam-glow--br" aria-hidden="true" />
+        </>
+      ) : null}
+
+      {showViews && viewPosition === "top-right" ? (
+        <span className="pv-views pv-views--corner" aria-label={`${viewCount} profile views`}>
+          <EyeIcon size={12} />
+          {viewCount.toLocaleString("en-US")}
+        </span>
+      ) : null}
+
       <div className="pv-body">
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
@@ -134,12 +184,7 @@ export function ProfilePreview({
             ) : null}
           </span>
           {design.badgePosition === "beside-avatar" ? badgeRow : null}
-          {location ? (
-            <span className="pv-location">
-              <PinIcon size={10} />
-              {location}
-            </span>
-          ) : null}
+          {locationPosition === "top" ? locationPill : null}
         </div>
 
         {design.badgePosition === "top-right" ? badgeRow : null}
@@ -149,12 +194,18 @@ export function ProfilePreview({
           <h3>
             <EffectText text={displayName} settings={assets.effects.text.name} />
           </h3>
-          <span>
-            <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
-          </span>
         </div>
 
         {design.badgePosition === "default" ? badgeRow : null}
+
+        <span className="pv-handle">
+          <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
+        </span>
+
+        {locationPosition === "under-name" ? locationPill : null}
+        {joinPosition === "under-name" && joined ? (
+          <span className="pv-joined-inline">{joinedNode}</span>
+        ) : null}
 
         <div
           className={`pv-bio${bio ? "" : " is-empty"}${
@@ -179,6 +230,14 @@ export function ProfilePreview({
         {children}
 
         {design.badgePosition === "bottom" ? badgeRow : null}
+
+        {showJoined && (joinPosition === "footer" || viewPosition === "footer") ? (
+          <div className="pv-foot">
+            {joinPosition === "footer" && joined ? joinedNode : <span />}
+            {locationPosition === "footer" && locationPill}
+            {viewPosition === "footer" ? viewsNode : null}
+          </div>
+        ) : null}
       </div>
     </article>
   );

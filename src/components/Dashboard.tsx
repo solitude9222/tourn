@@ -9,6 +9,7 @@ import type { LinkStore } from "../lib/links";
 import { fetchGuildInvite, type LanyardData } from "../lib/api";
 import { STATUS_LABELS, usePolled, type Polled } from "../lib/hooks";
 import { formatJoined } from "../lib/format";
+import { getViewCount } from "../lib/views";
 import { useReveal } from "../lib/useReveal";
 import { DashboardAbout } from "./DashboardAbout";
 import { DashboardAssets } from "./DashboardAssets";
@@ -36,6 +37,7 @@ import {
   CheckIcon,
   CopyIcon,
   DiscordIcon,
+  EditIcon,
   EyeIcon,
   GridIcon,
   HomeIcon,
@@ -150,14 +152,29 @@ export function Dashboard({
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
   const [groups, setGroups] = useState<NavGroups>(loadNavGroups);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [profileViews, setProfileViews] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const editRef = useRef<HTMLDivElement>(null);
 
   const toggleGroup = (group: "profile" | "extra") => {
     setGroups((current) => ({ ...current, [group]: !current[group] }));
   };
 
   useReveal([page, user?.id]);
+
+  // Real view count for the quick-edit menu.
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    void getViewCount(user.username).then((count) => {
+      if (active) setProfileViews(count);
+    });
+    return () => {
+      active = false;
+    };
+  }, [user?.username]);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -199,6 +216,15 @@ export function Dashboard({
       /* private mode — collapse state still works for this session */
     }
   }, [groups]);
+
+  useEffect(() => {
+    if (!editOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!editRef.current?.contains(event.target as Node)) setEditOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [editOpen]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -775,6 +801,75 @@ export function Dashboard({
             <p>{pageMeta.subtitle}</p>
           </div>
           <div className="dash-top-actions">
+            <div className="dash-edit" ref={editRef}>
+              <button
+                type="button"
+                className={`btn btn-ghost btn-sm${editOpen ? " is-active" : ""}`}
+                onClick={() => setEditOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={editOpen}
+              >
+                <EditIcon size={13} />
+                Edit
+              </button>
+
+              {editOpen ? (
+                <div className="dash-edit-menu" role="menu" aria-label="Quick edit">
+                  <div className="dash-edit-head">
+                    <span>
+                      <b>{profileViews === null ? "—" : profileViews.toLocaleString("en-US")}</b>
+                      profile views
+                    </span>
+                    <span>
+                      <b>{badges.equipped.filter((badge) => badge.visible).length}</b>
+                      badges shown
+                    </span>
+                  </div>
+                  {[
+                    { id: "about" as DashPage, label: "Edit name & bio", icon: <UserIcon size={13} /> },
+                    { id: "badges" as DashPage, label: "Assign badges", icon: <BoltIcon size={13} /> },
+                    { id: "links" as DashPage, label: "Edit links", icon: <LinkIcon size={13} /> },
+                    { id: "widgets" as DashPage, label: "Widget stack", icon: <GridIcon size={13} /> },
+                    { id: "layout" as DashPage, label: "Card & layout", icon: <LayoutIcon size={13} /> },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="menuitem"
+                      className="dash-edit-item"
+                      onClick={() => {
+                        setEditOpen(false);
+                        setPage(item.id);
+                      }}
+                    >
+                      {item.icon}
+                      {item.label}
+                      <ChevronIcon size={11} className="dash-edit-end" />
+                    </button>
+                  ))}
+                  <div className="dash-edit-sep" />
+                  <a
+                    className="dash-edit-item"
+                    role="menuitem"
+                    href={`/${encodeURIComponent(user.username)}`}
+                  >
+                    <EyeIcon size={13} />
+                    View public page
+                    <ArrowUpRight size={11} className="dash-edit-end" />
+                  </a>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="dash-edit-item"
+                    onClick={() => void copyLink(`https://tourn.lol/${user.username}`)}
+                  >
+                    {copied ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
+                    {copied ? "Link copied" : "Copy profile link"}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
             <a className="btn btn-ghost btn-sm" href={`/${encodeURIComponent(user.username)}`}>
               <EyeIcon size={13} />
               View bio

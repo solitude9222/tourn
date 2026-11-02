@@ -21,6 +21,7 @@ import {
   TrashIcon,
   UsersIcon,
 } from "./Icons";
+import { Select } from "./Select";
 import "../admin.css";
 
 type Tab = "overview" | "members" | "invites" | "settings" | "bot";
@@ -979,6 +980,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
             )}
           </section>
 
+          <BotSettingsPanel />
+
           <section className="adm-panel">
             <div className="adm-panel-head">
               <h2>
@@ -1166,5 +1169,338 @@ function BotTestForm({
         <span className="adm-hint adm-hint--error">That doesn't look like a user ID.</span>
       ) : null}
     </form>
+  );
+}
+/* ── Discord bot automation ──────────────────────────────────────────────
+   Community automation settings: auto-roles, verification, welcome DMs and
+   logging. They are stored per admin browser (the same way the rest of the
+   dashboard stores its documents) and can be exported as JSON for the bot.
+   ---------------------------------------------------------------------- */
+
+type AutoRoleCondition = "everyone" | "premium" | "verified" | "staff" | "booster" | "linked";
+
+type AutoRoleRule = {
+  id: string;
+  roleName: string;
+  roleId: string;
+  condition: AutoRoleCondition;
+  enabled: boolean;
+};
+
+type BotConfig = {
+  autoRoleOnJoin: boolean;
+  autoRoleRemoveOnLeave: boolean;
+  requireVerification: boolean;
+  syncBadges: boolean;
+  syncNickname: boolean;
+  welcomeDm: boolean;
+  welcomeMessage: string;
+  badgeDm: boolean;
+  logChannelId: string;
+  joinChannelId: string;
+  commandPrefix: string;
+  inactivityDays: number;
+  rules: AutoRoleRule[];
+};
+
+const BOT_CONFIG_KEY = "tourn.lol/admin/bot-config/v1";
+
+const DEFAULT_BOT_CONFIG: BotConfig = {
+  autoRoleOnJoin: true,
+  autoRoleRemoveOnLeave: false,
+  requireVerification: true,
+  syncBadges: true,
+  syncNickname: true,
+  welcomeDm: true,
+  welcomeMessage:
+    "Welcome to tourn.lol, {user}! Claim your handle at tourn.lol/dashboard and your roles sync automatically.",
+  badgeDm: true,
+  logChannelId: "",
+  joinChannelId: "",
+  commandPrefix: "!",
+  inactivityDays: 30,
+  rules: [
+    { id: "rule-1", roleName: "Member", roleId: "", condition: "everyone", enabled: true },
+    { id: "rule-2", roleName: "Premium", roleId: "", condition: "premium", enabled: true },
+  ],
+};
+
+const AUTO_ROLE_CONDITIONS: { value: AutoRoleCondition; label: string }[] = [
+  { value: "everyone", label: "Every member" },
+  { value: "premium", label: "Premium accounts" },
+  { value: "verified", label: "Verified accounts" },
+  { value: "staff", label: "Staff / admins" },
+  { value: "booster", label: "Server boosters" },
+  { value: "linked", label: "Anyone with a profile" },
+];
+
+function loadBotConfig(): BotConfig {
+  try {
+    const raw = localStorage.getItem(BOT_CONFIG_KEY);
+    if (!raw) return DEFAULT_BOT_CONFIG;
+    const parsed = JSON.parse(raw) as Partial<BotConfig>;
+    const rules = Array.isArray(parsed.rules)
+      ? parsed.rules
+          .filter(
+            (rule): rule is AutoRoleRule =>
+              Boolean(rule && typeof rule === "object" && typeof rule.id === "string"),
+          )
+          .map((rule) => ({
+            id: rule.id,
+            roleName: String(rule.roleName ?? ""),
+            roleId: String(rule.roleId ?? ""),
+            condition: AUTO_ROLE_CONDITIONS.some((item) => item.value === rule.condition)
+              ? rule.condition
+              : "everyone",
+            enabled: rule.enabled !== false,
+          }))
+      : DEFAULT_BOT_CONFIG.rules;
+    return {
+      ...DEFAULT_BOT_CONFIG,
+      ...parsed,
+      rules,
+      inactivityDays: Number(parsed.inactivityDays) || DEFAULT_BOT_CONFIG.inactivityDays,
+    };
+  } catch {
+    return DEFAULT_BOT_CONFIG;
+  }
+}
+
+function BotSettingsPanel() {
+  const [config, setConfig] = useState<BotConfig>(loadBotConfig);
+  const [saved, setSaved] = useState(false);
+
+  const update = (patch: Partial<BotConfig>) => setConfig((current) => ({ ...current, ...patch }));
+
+  const save = () => {
+    try {
+      localStorage.setItem(BOT_CONFIG_KEY, JSON.stringify(config));
+    } catch {
+      /* private mode — the panel still holds the values for this session */
+    }
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 1800);
+  };
+
+  const exportConfig = () => {
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tourn-bot-config.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const updateRule = (id: string, patch: Partial<AutoRoleRule>) =>
+    setConfig((current) => ({
+      ...current,
+      rules: current.rules.map((rule) => (rule.id === id ? { ...rule, ...patch } : rule)),
+    }));
+
+  const addRule = () =>
+    setConfig((current) => ({
+      ...current,
+      rules: [
+        ...current.rules,
+        { id: `rule-${Date.now()}`, roleName: "", roleId: "", condition: "everyone", enabled: true },
+      ],
+    }));
+
+  const removeRule = (id: string) =>
+    setConfig((current) => ({ ...current, rules: current.rules.filter((rule) => rule.id !== id) }));
+
+  const toggles: { key: keyof BotConfig; label: string; hint: string }[] = [
+    {
+      key: "autoRoleOnJoin",
+      label: "Auto-role on join",
+      hint: "Give new members the roles their rules match as soon as they join.",
+    },
+    {
+      key: "autoRoleRemoveOnLeave",
+      label: "Remove roles on leave",
+      hint: "Clean up bot-managed roles when a member leaves the server.",
+    },
+    {
+      key: "requireVerification",
+      label: "Require verification",
+      hint: "Members must link tourn.lol before the managed roles apply.",
+    },
+    {
+      key: "syncBadges",
+      label: "Sync profile badges",
+      hint: "Mirror tourn.lol badges onto matching Discord roles.",
+    },
+    {
+      key: "syncNickname",
+      label: "Sync server nickname",
+      hint: "Keep the member's nickname in line with their tourn.lol display name.",
+    },
+    { key: "welcomeDm", label: "Welcome DM", hint: "Send the welcome message below when someone joins." },
+    { key: "badgeDm", label: "Badge DM", hint: "DM members when they earn a new badge." },
+  ];
+
+  return (
+    <>
+      <section className="adm-panel">
+        <div className="adm-panel-head">
+          <h2>
+            <BoltIcon size={14} />
+            Automation
+          </h2>
+          <span className="adm-badge">stored on this browser</span>
+        </div>
+
+        <div className="adm-toggle-grid">
+          {toggles.map((item) => (
+            <div className="adm-toggle-row" key={item.key}>
+              <div>
+                <b>{item.label}</b>
+                <small>{item.hint}</small>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={config[item.key] === true}
+                aria-label={item.label}
+                className={`adm-switch${config[item.key] === true ? " is-on" : ""}`}
+                onClick={() =>
+                  update({ [item.key]: config[item.key] !== true } as Partial<BotConfig>)
+                }
+              >
+                <span />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="adm-bot-fields">
+          <label className="adm-field adm-field--wide">
+            <span>Welcome message — {"{user}"} and {"{link}"} are replaced</span>
+            <textarea
+              value={config.welcomeMessage}
+              onChange={(event) => update({ welcomeMessage: event.target.value })}
+              rows={3}
+              maxLength={500}
+            />
+          </label>
+          <label className="adm-field">
+            <span>Join / audit log channel ID</span>
+            <input
+              value={config.logChannelId}
+              onChange={(event) => update({ logChannelId: event.target.value })}
+              placeholder="123456789012345678"
+              inputMode="numeric"
+              spellCheck={false}
+            />
+          </label>
+          <label className="adm-field">
+            <span>Rules channel ID</span>
+            <input
+              value={config.joinChannelId}
+              onChange={(event) => update({ joinChannelId: event.target.value })}
+              placeholder="123456789012345678"
+              inputMode="numeric"
+              spellCheck={false}
+            />
+          </label>
+          <label className="adm-field">
+            <span>Command prefix</span>
+            <input
+              value={config.commandPrefix}
+              onChange={(event) => update({ commandPrefix: event.target.value.slice(0, 3) })}
+              placeholder="!"
+              spellCheck={false}
+            />
+          </label>
+          <label className="adm-field">
+            <span>Inactivity window (days)</span>
+            <input
+              value={String(config.inactivityDays)}
+              onChange={(event) =>
+                update({ inactivityDays: Math.max(1, Number(event.target.value) || 1) })
+              }
+              inputMode="numeric"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className="adm-panel">
+        <div className="adm-panel-head">
+          <h2>
+            <ShieldIcon size={14} />
+            Auto-role rules
+          </h2>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={addRule}>
+            Add rule
+          </button>
+        </div>
+        <p className="adm-panel-copy">
+          Each rule maps a Discord role to a condition. The first matching rule wins, so put the
+          narrowest conditions at the top.
+        </p>
+
+        <div className="adm-rules">
+          {config.rules.map((rule) => (
+            <div className="adm-rule" key={rule.id}>
+              <input
+                className="adm-rule-name"
+                value={rule.roleName}
+                onChange={(event) => updateRule(rule.id, { roleName: event.target.value })}
+                placeholder="Role name"
+                aria-label="Role name"
+              />
+              <input
+                className="adm-rule-id"
+                value={rule.roleId}
+                onChange={(event) => updateRule(rule.id, { roleId: event.target.value })}
+                placeholder="Role ID (optional)"
+                aria-label="Role ID"
+                inputMode="numeric"
+                spellCheck={false}
+              />
+              <Select
+                className="adm-rule-condition"
+                ariaLabel={`Condition for ${rule.roleName || "rule"}`}
+                value={rule.condition}
+                options={AUTO_ROLE_CONDITIONS}
+                onChange={(value) => updateRule(rule.id, { condition: value as AutoRoleCondition })}
+              />
+              <button
+                type="button"
+                role="switch"
+                aria-checked={rule.enabled}
+                aria-label={`Enable ${rule.roleName || "rule"}`}
+                className={`adm-switch${rule.enabled ? " is-on" : ""}`}
+                onClick={() => updateRule(rule.id, { enabled: !rule.enabled })}
+              >
+                <span />
+              </button>
+              <button
+                type="button"
+                className="adm-rule-remove"
+                onClick={() => removeRule(rule.id)}
+                aria-label="Remove rule"
+              >
+                <TrashIcon size={12} />
+              </button>
+            </div>
+          ))}
+          {config.rules.length === 0 ? <p className="adm-empty">No auto-role rules yet.</p> : null}
+        </div>
+
+        <div className="adm-panel-foot">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={exportConfig}>
+            <CopyIcon size={12} />
+            Export config
+          </button>
+          <button type="button" className="btn btn-primary btn-sm" onClick={save}>
+            <SaveIcon size={12} />
+            {saved ? "Settings saved" : "Save bot settings"}
+          </button>
+        </div>
+      </section>
+    </>
   );
 }

@@ -1202,3 +1202,184 @@
     margin-left: 0;
   }
 }
+
+/* ── bot automation panel ─────────────────────────────────────────── */
+
+.adm-panel-copy {
+  margin: 0 0 12px;
+  color: #8b93a3;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.adm-panel-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.adm-badge {
+  padding: 3px 8px;
+  border: 1px solid rgba(180, 191, 250, 0.2);
+  border-radius: 999px;
+  background: rgba(180, 191, 250, 0.08);
+  color: #b4bffa;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.adm-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.adm-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.adm-toggle-row b {
+  display: block;
+  color: #e8ebf3;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.adm-toggle-row small {
+  display: block;
+  margin-top: 3px;
+  color: #7c8494;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.adm-switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  flex: none;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: #191b21;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.adm-switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #6d7583;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.2), background 0.2s ease;
+}
+
+.adm-switch.is-on {
+  border-color: rgba(180, 191, 250, 0.42);
+  background: rgba(180, 191, 250, 0.2);
+}
+
+.adm-switch.is-on span {
+  background: #eef1ff;
+  transform: translateX(16px);
+}
+
+.adm-bot-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.adm-bot-fields .adm-field--wide {
+  grid-column: 1 / -1;
+}
+
+.adm-bot-fields textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 9px;
+  background: #0d0e12;
+  color: #e8ebf2;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.adm-rules {
+  display: grid;
+  gap: 7px;
+}
+
+.adm-rule {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(150px, 0.9fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.adm-rule input {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: #0d0e12;
+  color: #e8ebf2;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.adm-rule input::placeholder {
+  color: #5d6472;
+}
+
+.adm-rule-remove {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: transparent;
+  color: #8b93a3;
+  cursor: pointer;
+}
+
+.adm-rule-remove:hover {
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #f87171;
+}
+
+@media (max-width: 900px) {
+  .adm-rule {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .adm-rule-id,
+  .adm-rule-condition {
+    grid-column: 1 / -1;
+  }
+}

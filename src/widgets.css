@@ -1503,3 +1503,122 @@
   opacity: 0.78;
   text-decoration: underline;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Platform + widget cards — dark tiles with a large watermark, a brand
+   coloured icon plate and readable two-line descriptions.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.platform-card {
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 96px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 55%),
+    #0a0a0c;
+}
+
+.platform-card:hover {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--platform-color) 8%, transparent), transparent 60%),
+    #0d0d10;
+}
+
+.platform-card-watermark {
+  top: 50%;
+  right: -18px;
+  translate: 0 -50%;
+  opacity: 0.055;
+  transform: none;
+}
+
+.platform-card:hover .platform-card-watermark {
+  opacity: 0.09;
+  transform: none;
+}
+
+.platform-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.platform-card-copy {
+  gap: 5px;
+  padding-top: 2px;
+}
+
+.platform-card-copy b {
+  color: #f4f6f8;
+  font-size: 14px;
+  font-weight: 660;
+  letter-spacing: -0.02em;
+}
+
+.platform-card-copy > span {
+  max-width: 42ch;
+  color: #8b929b;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.platform-card-copy .platform-card-live {
+  margin-top: 2px;
+  color: #6b7580;
+  font-size: 9px;
+}
+
+/* Widget cards on a profile share the same dark surface. */
+.widget-card {
+  background-color: #0b0c10;
+  background-image: radial-gradient(
+    130% 120% at 100% 0%,
+    color-mix(in srgb, var(--wg-brand, #a8e0ff) 12%, transparent),
+    transparent 62%
+  );
+  color: #f2f6f9;
+  box-shadow: 0 18px 40px -34px #000;
+}
+
+.widget-card--bg-frosted {
+  background-color: #0b0c10;
+}
+
+.widget-card-avatar {
+  border-radius: 12px;
+}
+
+.widget-card-avatar.is-square {
+  border-radius: 10px;
+}
+
+.widget-card-name b {
+  font-size: 13.5px;
+  letter-spacing: -0.02em;
+}
+
+.widget-card-handle {
+  font-size: 10.5px;
+  color: #8f98a2;
+}
+
+.widget-card-chip {
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.045);
+  color: #aeb6bf;
+}
+
+/* The inline "Add a widget" catalog uses the same wide tiles as the modal. */
+.widgets-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.widgets-catalog-grid .platform-card {
+  height: 100%;
+}

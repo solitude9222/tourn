@@ -1,6 +1,14 @@
 export type AvatarDecorationStyle = "none" | "ring" | "glow" | "stars" | "flame" | "blob";
 /** Light-and-sheen treatments for the profile card itself. */
-export type CardEffectId = "none" | "shimmer" | "sheen" | "hologram" | "aurora" | "edgeGlow" | "frost";
+export type CardEffectId =
+  | "none"
+  | "beam"
+  | "shimmer"
+  | "sheen"
+  | "hologram"
+  | "aurora"
+  | "edgeGlow"
+  | "frost";
 export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
 export type ProfileBackgroundStyle = "solid" | "gradient" | "image";
 /** Canvas background effects — the same twelve engines power both the
@@ -240,9 +248,10 @@ export const DEFAULT_TEXT_EFFECT: TextEffectSettings = {
 export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   avatarUrl: "",
   card: {
-    id: "none",
-    color: "#ffffff",
-    intensity: 55,
+    // Two beams chase each other around the card's edge — the default look.
+    id: "beam",
+    color: "#b4bffa",
+    intensity: 70,
     speed: 6,
   },
   decoration: {
@@ -317,6 +326,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
 
 export const CARD_EFFECTS: { id: CardEffectId; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "Plain card surface" },
+  { id: "beam", name: "Beam ring", hint: "Two light beams chase around the card edge" },
   { id: "shimmer", name: "Shimmer", hint: "A soft light band sweeps across the card" },
   { id: "sheen", name: "Sheen", hint: "Glossy top highlight that breathes" },
   { id: "hologram", name: "Hologram", hint: "Iridescent colour drift along the edges" },
