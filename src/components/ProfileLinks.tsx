@@ -1,5 +1,5 @@
-import type { CSSProperties } from "react";
-import type { LinkDesign, LinkInstance } from "../lib/links";
+import { useState, type CSSProperties } from "react";
+import { linkHref, type LinkDesign, type LinkInstance } from "../lib/links";
 import { getPlatform } from "../lib/linkPlatforms";
 import { LinkIcon } from "./Icons";
 import { Tooltip } from "./Tooltip";
@@ -13,8 +13,19 @@ export function ProfileLinks({
   design: LinkDesign;
   className?: string;
 }) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const visible = links.filter((l) => l.visible && l.url.trim());
   if (!visible.length) return null;
+
+  const copyValue = async (link: LinkInstance) => {
+    try {
+      await navigator.clipboard.writeText(link.url.trim());
+      setCopiedId(link.id);
+      window.setTimeout(() => setCopiedId((id) => (id === link.id ? null : id)), 1600);
+    } catch {
+      /* clipboard can be blocked — the value is still visible on the card */
+    }
+  };
 
   const rowStyle = {
     "--lnk-radius": `${design.borderRadius}px`,
@@ -60,29 +71,64 @@ export function ProfileLinks({
           .filter(Boolean)
           .join(" ");
 
+        // A pasted handle or wallet address has no URL to open — copy it
+        // instead of sending visitors to a broken relative link.
+        const href = linkHref(link.url);
+        const inner = (
+          <>
+            {isIconMode ? (
+              <span className="pv-link-icon">{iconNode}</span>
+            ) : (
+              <span className="pv-link-main">
+                {design.showIcon && design.iconStyle !== "none" ? (
+                  <span className={`pv-link-icon pv-link-icon--${design.iconStyle}`}>{iconNode}</span>
+                ) : null}
+                <span className="pv-link-label">
+                  {copiedId === link.id ? "Copied" : link.label}
+                </span>
+              </span>
+            )}
+            {hasDesc ? (
+              <small className={`pv-link-desc${link.fold === "hover" ? " pv-link-desc--hover" : ""}`}>
+                {link.description}
+              </small>
+            ) : null}
+          </>
+        );
+
         return (
           <Tooltip
             key={link.id}
-            text={design.tooltipEnabled ? link.tooltip || link.label : ""}
+            text={
+              design.tooltipEnabled
+                ? href
+                  ? link.tooltip || link.label
+                  : `Click to copy · ${link.url.trim()}`
+                : ""
+            }
             style={design.tooltipStyle}
           >
-            <a className={btnClass} href={link.url} target="_blank" rel="noreferrer noopener" style={btnStyle}>
-              {isIconMode ? (
-                <span className="pv-link-icon">{iconNode}</span>
-              ) : (
-                <span className="pv-link-main">
-                  {design.showIcon && design.iconStyle !== "none" ? (
-                    <span className={`pv-link-icon pv-link-icon--${design.iconStyle}`}>{iconNode}</span>
-                  ) : null}
-                  <span className="pv-link-label">{link.label}</span>
-                </span>
-              )}
-              {hasDesc ? (
-                <small className={`pv-link-desc${link.fold === "hover" ? " pv-link-desc--hover" : ""}`}>
-                  {link.description}
-                </small>
-              ) : null}
-            </a>
+            {href ? (
+              <a
+                className={btnClass}
+                href={href}
+                target="_blank"
+                rel="noreferrer noopener"
+                style={btnStyle}
+              >
+                {inner}
+              </a>
+            ) : (
+              <button
+                type="button"
+                className={`${btnClass} pv-link-btn--copy`}
+                style={btnStyle}
+                aria-label={`Copy ${link.label}`}
+                onClick={() => void copyValue(link)}
+              >
+                {inner}
+              </button>
+            )}
           </Tooltip>
         );
       })}

@@ -137,6 +137,22 @@ export const LINK_FOLDS: { id: LinkFold; name: string }[] = [
 
 /* ── helpers ───────────────────────────────────────────────── */
 
+/**
+ * Turn whatever someone typed into a URL that actually navigates.
+ *
+ * People paste `github.com/me`, `@handle`, an email, or a crypto wallet
+ * address. Only the first two can become a link; a bare address/handle returns
+ * "" so the card can copy it instead of opening a broken relative URL.
+ */
+export function linkHref(input: string): string {
+  const value = input.trim();
+  if (!value) return "";
+  if (/^(https?:|mailto:|tel:)/i.test(value)) return value;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return `mailto:${value}`;
+  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/|$|[?#])/i.test(value)) return `https://${value}`;
+  return "";
+}
+
 export function createLink(platformId: string): LinkInstance {
   const platform = getPlatform(platformId);
   const id = typeof crypto !== "undefined" && "randomUUID" in crypto

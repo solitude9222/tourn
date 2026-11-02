@@ -936,6 +936,13 @@
   border-color: color-mix(in srgb, var(--lnk-accent) 50%, transparent);
 }
 
+/* A link with no navigable URL renders as a button that copies its value. */
+.pv-link-btn--copy {
+  font-family: inherit;
+  cursor: copy;
+  text-align: left;
+}
+
 /* outline — border only, no fill */
 .pv-link-row--outline .pv-link-btn {
   background: transparent;
