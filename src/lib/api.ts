@@ -105,8 +105,70 @@ export async function fetchLanyard(userId: string, signal: AbortSignal): Promise
   return body.data;
 }
 
+export type DiscordIdentity = {
+  id: string;
+  username: string;
+  displayName: string;
+  avatar: string | null;
+  banner: string | null;
+  accent: string | null;
+  publicFlags: number;
+};
+
+/**
+ * Public Discord profile (name, avatar, banner, badges) with no presence.
+ *
+ * Lanyard only knows accounts that joined its server, so this is the honest
+ * fallback for everyone else: real identity, no invented online status.
+ */
+export async function fetchDiscordIdentity(
+  userId: string,
+  signal: AbortSignal,
+): Promise<DiscordIdentity> {
+  const res = await request(
+    `https://discord-lookup.lookupbotdc.workers.dev/search/${encodeURIComponent(userId)}`,
+    signal,
+    { headers: jsonHeaders },
+  );
+  if (res.status === 404) throw new WidgetError("not_found", "That Discord ID has no public profile");
+  if (res.status === 429) throw new WidgetError("rate_limited", "Discord lookup is rate limited");
+  if (!res.ok) throw new WidgetError("http", `Discord lookup responded ${res.status}`);
+  const body = (await res.json()) as {
+    user?: {
+      id?: string;
+      username?: string;
+      global_name?: string | null;
+      public_flags?: number;
+    };
+    avatar_url?: string | null;
+    banner_url?: string | null;
+    banner_color?: string | null;
+  };
+  const user = body.user;
+  if (!user?.id || !user.username) {
+    throw new WidgetError("not_found", "That Discord ID has no public profile");
+  }
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.global_name || user.username,
+    avatar: body.avatar_url ?? null,
+    banner: body.banner_url ?? null,
+    accent: body.banner_color ?? null,
+    publicFlags: user.public_flags ?? 0,
+  };
+}
+
 export type GuildInvite = {
   code: string;
+  /** Public profile of whoever created the invite — real name and avatar. */
+  inviter?: {
+    id?: string;
+    username?: string;
+    global_name?: string | null;
+    avatar?: string | null;
+    public_flags?: number;
+  } | null;
   guild: {
     id: string;
     name: string;

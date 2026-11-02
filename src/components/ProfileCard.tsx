@@ -59,7 +59,11 @@ export function ProfileCard({
           </div>
 
           <div className={`pc-custom${identity.bio.trim() ? "" : " is-empty"}`}>
-            {identity.bio.trim() ? <RichText text={identity.bio} /> : "No bio yet."}
+            {identity.bio.trim() ? (
+              <RichText text={identity.bio} />
+            ) : (
+              "One link for everything you play — Discord, servers, music and games, live."
+            )}
           </div>
 
           {identity.discordLinked || identity.spotifyLinked || identity.steamLinked ? (

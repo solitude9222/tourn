@@ -53,10 +53,11 @@ function handleFromPath(): string | null {
 function readRoute(): Route {
   const hash = window.location.hash.replace(/^#\/?/, "").split("?")[0];
   if (hash === "demo") return "demo";
+  // The admin console lives inside the dashboard — old #/admin links land there.
+  if (hash === "admin" || hash === "dashboard/admin") return "dashboard";
   if (hash === "leaderboard" || hash === "shop" || hash === "dashboard" || hash === "premium") {
     return hash;
   }
-  if (hash === "admin") return "admin";
   if (hash.startsWith("profile/")) return "profile";
   if (!hash) {
     if (isDemoPath()) return "demo";
@@ -128,6 +129,12 @@ export function hrefFor(route: Route): string {
   return route ? `#/${route}` : "#/";
 }
 
+/** The shareable URL a visitor opens: tourn.lol/<handle>. */
+export function publicProfileUrl(handle: string): string {
+  return `/${encodeURIComponent(handle)}`;
+}
+
+/** In-app link to a profile — always the public path, never a hash. */
 export function profileHref(handle: string): string {
-  return `#/profile/${encodeURIComponent(handle)}`;
+  return publicProfileUrl(handle);
 }

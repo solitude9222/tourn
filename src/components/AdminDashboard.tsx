@@ -101,7 +101,7 @@ function errorText(message: string): string {
     : message;
 }
 
-export function AdminDashboard() {
+export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   const { user, isOwner, isAdmin, security, signOut } = useAuth();
   const [tab, setTab] = useState<Tab>("overview");
   const [profiles, setProfiles] = useState<AdminProfile[] | null>(null);
@@ -252,7 +252,8 @@ export function AdminDashboard() {
   const recent = useMemo(() => (profiles ?? []).slice(0, 6), [profiles]);
 
   return (
-    <main className="adm adm-page">
+    <div className={`adm${embedded ? " adm--embedded" : " adm-page"}`}>
+      {embedded ? null : (
       <header className="adm-top">
         <div>
           <span className="eyebrow eyebrow--sm">
@@ -284,6 +285,7 @@ export function AdminDashboard() {
           </a>
         </div>
       </header>
+      )}
 
       <nav className="adm-tabs" aria-label="Admin sections">
         {TABS.map((item) => (
@@ -856,7 +858,7 @@ export function AdminDashboard() {
           Sign out of this device
         </button>
       </footer>
-    </main>
+    </div>
   );
 }
 

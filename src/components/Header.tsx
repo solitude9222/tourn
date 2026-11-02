@@ -33,9 +33,9 @@ export function Header({
   onSignOut: () => void;
 }) {
   const { isOwner, isAdmin, setAlias, user: viewer } = useAuth();
-  // Admins get the console in the same nav as every other page.
-  const links: { label: string; route: Route }[] = isAdmin
-    ? [...LINKS, { label: "Admin", route: "admin" }]
+  // Admins reach the console through the dashboard, where it lives.
+  const links: { label: string; route: Route; href?: string }[] = isAdmin
+    ? [...LINKS, { label: "Admin", route: "dashboard", href: "#/dashboard/admin" }]
     : LINKS;
   const [menuOpen, setMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -94,7 +94,7 @@ export function Header({
           {links.map((link) => (
             <a
               key={link.label}
-              href={hrefFor(link.route)}
+              href={link.href ?? hrefFor(link.route)}
               className={`head-link${route === link.route ? " is-active" : ""}`}
               aria-current={route === link.route ? "page" : undefined}
             >
@@ -146,7 +146,11 @@ export function Header({
                     <GridIcon size={15} />
                     Dashboard
                   </a>
-                  <a className="menu-item" role="menuitem" href={hrefFor("")}>
+                  <a
+                    className="menu-item"
+                    role="menuitem"
+                    href={`/${encodeURIComponent(user.username)}`}
+                  >
                     <SettingsIcon size={15} />
                     View public bio
                   </a>
@@ -212,7 +216,7 @@ export function Header({
           {links.map((link) => (
             <a
               key={link.label}
-              href={hrefFor(link.route)}
+              href={link.href ?? hrefFor(link.route)}
               className={`head-mobile-link${route === link.route ? " is-active" : ""}`}
             >
               {link.label}

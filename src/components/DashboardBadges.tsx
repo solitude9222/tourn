@@ -91,20 +91,26 @@ const GROUPS = [
 export function DashboardBadges({
   user,
   badges,
+  earned,
   onChange,
 }: {
   user: Account;
   badges: BadgeStore;
+  /** Badge ids the backend has verified for this account. */
+  earned: string[];
   onChange: (store: BadgeStore) => void;
 }) {
   const [filter, setFilter] = useState<string>("all");
   const style = badges.style;
+  const earnedSet = new Set(earned);
 
   const updateStyle = (patch: Partial<BadgeStyle>) => {
     onChange({ ...badges, style: { ...style, ...patch } });
   };
 
   const equip = (id: string) => {
+    // Badges are earned, so only verified ids can be equipped.
+    if (!earnedSet.has(id)) return;
     if (badges.equipped.some((b) => b.id === id)) return;
     onChange({ ...badges, equipped: [...badges.equipped, { id, visible: true }] });
   };
@@ -128,9 +134,12 @@ export function DashboardBadges({
 
   const equippedIds = new Set(badges.equipped.map((b) => b.id));
 
-  const previewBadges: BadgeInstance[] = badges.equipped.length
-    ? badges.equipped
-    : BADGE_CATALOGUE.slice(0, 5).map((d) => ({ id: d.id, visible: true }));
+  const ownedEquipped = badges.equipped.filter((b) => earnedSet.has(b.id));
+  const previewBadges: BadgeInstance[] = ownedEquipped.length
+    ? ownedEquipped
+    : BADGE_CATALOGUE.filter((def) => earnedSet.has(def.id))
+        .slice(0, 5)
+        .map((d) => ({ id: d.id, visible: true }));
 
   return (
     <div className="bdg-page">
@@ -143,7 +152,11 @@ export function DashboardBadges({
         <div className="bdg-preview-stage">
           <span className="bdg-preview-name">{user.username}</span>
           <BadgeRow badges={previewBadges} style={style} className="bdg-preview-row" />
-          {!badges.equipped.length ? <small className="bdg-preview-hint">Sample badges shown — equip your own below.</small> : null}
+          {!ownedEquipped.length ? (
+            <small className="bdg-preview-hint">
+              {earned.length ? "Equip a badge below to put it on your card." : "No badges earned yet — the catalogue shows what unlocks each one."}
+            </small>
+          ) : null}
         </div>
       </section>
 
@@ -151,12 +164,15 @@ export function DashboardBadges({
       <section className="dash-panel bdg-panel" data-reveal data-reveal-delay="20">
         <header className="bdg-section-head">
           <h2>Your badges</h2>
-          <p>These badges show on your profile card. Drag to reorder, click to toggle visibility.</p>
+          <p>
+            You've earned {earned.length} badge{earned.length === 1 ? "" : "s"}. Equipped badges show on
+            your profile card — toggle one off with the bin icon.
+          </p>
         </header>
 
-        {badges.equipped.length ? (
+        {ownedEquipped.length ? (
           <div className="bdg-equipped">
-            {badges.equipped.map((inst) => {
+            {ownedEquipped.map((inst) => {
               const def = badgeDef(inst.id);
               if (!def) return null;
               return (
@@ -311,7 +327,10 @@ export function DashboardBadges({
       <section className="dash-panel bdg-panel" data-reveal data-reveal-delay="80">
         <header className="bdg-section-head">
           <h2>Badge catalogue</h2>
-          <p>Click a badge to equip it. Platform, seasonal and Discord badges.</p>
+          <p>
+            Every badge is earned by the backend — equip the ones you own. Locked tiles show exactly
+            what unlocks them.
+          </p>
         </header>
 
         <div className="bdg-filters">
@@ -330,20 +349,25 @@ export function DashboardBadges({
         <div className="bdg-catalogue">
           {catalogue.map((def) => {
             const equipped = equippedIds.has(def.id);
+            const owned = earnedSet.has(def.id);
             return (
               <button
                 type="button"
                 key={def.id}
-                className={`bdg-cat-tile${equipped ? " is-equipped" : ""}`}
-                title={`${def.name} — ${def.description}`}
+                className={`bdg-cat-tile${equipped ? " is-equipped" : ""}${owned ? "" : " is-locked"}`}
+                title={`${def.name} — ${owned ? def.description : def.requirement}`}
+                aria-disabled={!owned}
                 onClick={() => (equipped ? unequip(def.id) : equip(def.id))}
               >
                 <img src={def.art} alt={def.name} className="bdg-cat-art" width={28} height={28} />
                 <span className="bdg-cat-name">{def.name}</span>
+                <span className="bdg-cat-req">{def.requirement}</span>
                 {equipped ? (
                   <span className="bdg-cat-check"><CheckIcon size={8} /></span>
-                ) : (
+                ) : owned ? (
                   <span className="bdg-cat-add"><PlusIcon size={10} /></span>
+                ) : (
+                  <span className="bdg-cat-lock">Locked</span>
                 )}
               </button>
             );

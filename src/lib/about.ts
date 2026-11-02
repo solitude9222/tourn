@@ -231,18 +231,26 @@ function storageKey(userId: string): string {
   return `tourn.lol/about/v1/${userId}`;
 }
 
+/** Coerce anything (a saved document, a server payload) into a safe About. */
+export function normalizeAbout(input: unknown): About {
+  const parsed = (input ?? {}) as Partial<About>;
+  if (!parsed || typeof parsed !== "object") {
+    return { ...EMPTY_ABOUT, design: loadDesign(null) };
+  }
+  return {
+    displayName: String(parsed.displayName ?? "").trim().slice(0, 32),
+    bio: String(parsed.bio ?? "").slice(0, MAX_BIO_LENGTH),
+    location: String(parsed.location ?? "").trim().slice(0, 64),
+    design: loadDesign(parsed.design),
+    assets: loadProfileAssets(parsed.assets),
+  };
+}
+
 export function loadAbout(userId: string): About {
   try {
     const raw = localStorage.getItem(storageKey(userId));
     if (!raw) return { ...EMPTY_ABOUT, design: loadDesign(null) };
-    const parsed = JSON.parse(raw) as Partial<About>;
-    return {
-      displayName: String(parsed.displayName ?? "").trim().slice(0, 32),
-      bio: String(parsed.bio ?? "").slice(0, MAX_BIO_LENGTH),
-      location: String(parsed.location ?? "").trim().slice(0, 64),
-      design: loadDesign(parsed.design),
-      assets: loadProfileAssets(parsed.assets),
-    };
+    return normalizeAbout(JSON.parse(raw));
   } catch {
     return { ...EMPTY_ABOUT, design: loadDesign(null) };
   }

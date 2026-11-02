@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import {
   fetchGuildInvite,
   fetchSpotifyMeta,
+  type DiscordIdentity,
   type GuildInvite,
   type LanyardData,
 } from "../lib/api";
@@ -137,15 +138,51 @@ function SkeletonCard({ label, delay = 0 }: { label: string; delay?: number }) {
 
 export function DiscordCard({
   lanyard,
+  identity,
   guildId,
   onConfigure,
 }: {
   lanyard: Polled<LanyardData>;
+  /** Public profile used when Lanyard isn't watching this account. */
+  identity?: DiscordIdentity | null;
   guildId: string | null;
   onConfigure: () => void;
 }) {
   if (!lanyard.data) {
     if (lanyard.loading) return <SkeletonCard label="Discord" />;
+    if (identity) {
+      const badges = discordBadges(identity.publicFlags);
+      return (
+        <Card
+          tone="discord"
+          art={identity.avatar}
+          label="Discord"
+          labelIcon={<DiscordIcon size={11} />}
+        >
+          <Media src={identity.avatar} fallback={<DiscordIcon size={22} />} />
+          <span className="bcard-main">
+            <span className="bcard-line">
+              <ScrollText className="bcard-title">{identity.displayName}</ScrollText>
+              {badges.length ? (
+                <span className="bcard-badges">
+                  {badges.slice(0, 3).map((badge) => (
+                    <DiscordBadgeIcon
+                      key={`${badge.kind}-${badge.flag}`}
+                      kind={badge.kind}
+                      label={badge.label}
+                    />
+                  ))}
+                </span>
+              ) : null}
+            </span>
+            <ScrollText className="bcard-sub">@{identity.username}</ScrollText>
+            <span className="bcard-meta">
+              <MetaItem icon={<Dot color="#64748b" />}>Presence not shared</MetaItem>
+            </span>
+          </span>
+        </Card>
+      );
+    }
     return (
       <Card
         tone="discord"
@@ -556,10 +593,28 @@ export function Bento({
     120_000,
   );
 
+  // When Lanyard isn't watching the account, the invite still carries a real
+  // public profile (name, avatar, badges) for the person who made it.
+  const inviter = invite.data?.inviter ?? null;
+  const identity: DiscordIdentity | null = inviter?.id
+    ? {
+        id: inviter.id,
+        username: inviter.username || "discord",
+        displayName: inviter.global_name || inviter.username || "discord",
+        avatar: inviter.avatar
+          ? `https://cdn.discordapp.com/avatars/${inviter.id}/${inviter.avatar}.png?size=128`
+          : null,
+        banner: null,
+        accent: null,
+        publicFlags: inviter.public_flags ?? 0,
+      }
+    : null;
+
   return (
     <div className="bento-grid" data-reveal>
       <DiscordCard
         lanyard={lanyard}
+        identity={identity}
         guildId={invite.data?.guild?.id ?? null}
         onConfigure={onConfigure}
       />

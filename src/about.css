@@ -921,7 +921,9 @@
   padding: 9px 14px;
   border-radius: var(--lnk-radius, 12px);
   border: 1px solid color-mix(in srgb, var(--lnk-accent) 28%, transparent);
-  background: color-mix(in srgb, var(--lnk-accent) 12%, rgba(255, 255, 255, 0.03));
+  background: color-mix(in srgb, var(--lnk-accent) var(--lnk-bg-opacity, 12%), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(var(--lnk-bg-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--lnk-bg-blur, 0px));
   color: #e7edf1;
   font-size: 12px;
   font-weight: 560;

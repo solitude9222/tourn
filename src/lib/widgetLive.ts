@@ -468,6 +468,58 @@ async function steamLive(input: string, signal: AbortSignal): Promise<WidgetLive
   };
 }
 
+/* Stats.fm is the one music service besides Spotify that exposes a public,
+   CORS-open profile endpoint — so this card is real data, not a placeholder. */
+async function statsfmLive(input: string, signal: AbortSignal): Promise<WidgetLive> {
+  const username = input
+    .trim()
+    .replace(/^https?:\/\/(www\.)?stats\.fm\//i, "")
+    .replace(/^@/, "")
+    .split(/[/?#]/)[0];
+  if (!username) throw new WidgetError("invalid", "Add your Stats.fm username");
+
+  const res = await fetch(`https://api.stats.fm/api/v1/users/${encodeURIComponent(username)}`, {
+    signal,
+    headers: { Accept: "application/json" },
+  });
+  if (res.status === 404) throw new WidgetError("not_found", "That Stats.fm user was not found");
+  if (res.status === 429) throw new WidgetError("rate_limited", "Stats.fm is rate limiting lookups");
+  if (!res.ok) throw new WidgetError("http", `Stats.fm responded ${res.status}`);
+
+  const body = (await res.json()) as {
+    item?: {
+      customId?: string;
+      displayName?: string;
+      image?: string | null;
+      createdAt?: string;
+      isPlus?: boolean;
+      isPro?: boolean;
+    };
+  };
+  const item = body.item;
+  if (!item?.customId) throw new WidgetError("not_found", "That Stats.fm user was not found");
+
+  const meta: string[] = [item.isPro ? "Stats.fm Pro" : item.isPlus ? "Stats.fm Plus" : "Stats.fm member"];
+  if (item.createdAt) {
+    const year = new Date(item.createdAt).getFullYear();
+    if (Number.isFinite(year)) meta.push(`Joined ${year}`);
+  }
+
+  return {
+    title: item.displayName?.trim() || item.customId,
+    subtitle: `@${item.customId}`,
+    meta,
+    avatar: item.image ?? null,
+    decoration: null,
+    banner: null,
+    art: item.image ?? null,
+    accent: "#1ed760",
+    tag: null,
+    badges: [],
+    status: null,
+  };
+}
+
 async function spotifyLive(input: string, signal: AbortSignal): Promise<WidgetLive> {
   const id = spotifyTrackId(input);
   if (!id) throw new WidgetError("invalid", "Paste a Spotify track link");
@@ -651,6 +703,8 @@ async function liveForWidget(widget: WidgetInstance, signal: AbortSignal): Promi
       return steamLive(content, signal);
     case "spotify":
       return spotifyLive(content, signal);
+    case "statsfm":
+      return statsfmLive(content, signal);
     case "weather":
       return weatherLive(content, signal);
     case "minecraft":
@@ -670,6 +724,7 @@ const LIVE_PLATFORMS = new Set([
   "github",
   "steam",
   "spotify",
+  "statsfm",
   "weather",
   "minecraft",
   "youtube",

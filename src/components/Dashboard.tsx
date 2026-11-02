@@ -19,6 +19,7 @@ import { DashboardEntry } from "./DashboardEntry";
 import { DashboardBadges } from "./DashboardBadges";
 import { DashboardLinks } from "./DashboardLinks";
 import { SettingsPage } from "./SettingsPage";
+import { AdminDashboard } from "./AdminDashboard";
 import {
   ProfileCompletionChart,
   ServerReachChart,
@@ -53,7 +54,18 @@ import {
 } from "./Icons";
 import "../dashboard.css";
 
-type DashPage = "overview" | "about" | "assets" | "widgets" | "layout" | "slideshow" | "entry" | "badges" | "links" | "settings";
+type DashPage =
+  | "overview"
+  | "about"
+  | "assets"
+  | "widgets"
+  | "layout"
+  | "slideshow"
+  | "entry"
+  | "badges"
+  | "links"
+  | "settings"
+  | "admin";
 
 type DashboardProps = {
   user: Account | null;
@@ -65,6 +77,8 @@ type DashboardProps = {
   profileLinks: LinkStore;
   isPremium: boolean;
   isAdmin: boolean;
+  /** Badge ids the backend has verified — only these can be equipped. */
+  earned: string[];
   onSaveAbout: (about: About) => void;
   onSaveWidgets: (store: WidgetStore) => void;
   onSaveBadges: (store: BadgeStore) => void;
@@ -109,6 +123,7 @@ export function Dashboard({
   profileLinks,
   isPremium,
   isAdmin,
+  earned,
   onSaveAbout,
   onSaveWidgets,
   onSaveBadges,
@@ -118,7 +133,9 @@ export function Dashboard({
   onSignUp,
   onSignOut,
 }: DashboardProps) {
-  const [page, setPage] = useState<DashPage>("overview");
+  const [page, setPage] = useState<DashPage>(() =>
+    isAdmin && window.location.hash.includes("/admin") ? "admin" : "overview",
+  );
   const [copied, setCopied] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
   const [groups, setGroups] = useState<NavGroups>(loadNavGroups);
@@ -136,6 +153,17 @@ export function Dashboard({
     window.scrollTo({ top: 0 });
     setMenuOpen(false);
   }, [page]);
+
+  // `#/dashboard/admin` (the header's Admin link) opens the console in place.
+  useEffect(() => {
+    if (!isAdmin) return;
+    const apply = () => {
+      if (window.location.hash.includes("/admin")) setPage("admin");
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, [isAdmin]);
 
   useEffect(() => {
     try {
@@ -341,6 +369,7 @@ export function Dashboard({
     badges: { title: "Badges", subtitle: "Equip badges and customise how they look on your card." },
     links: { title: "Links", subtitle: "Social links and buttons on your profile card." },
     settings: { title: "Settings", subtitle: "Your claims, account security and plan." },
+    admin: { title: "Admin", subtitle: "Members, invites, site settings and the Discord bot." },
   }[page];
 
   return (
@@ -516,11 +545,15 @@ export function Dashboard({
               Settings
             </button>
             {isAdmin ? (
-              <a className="dash-rail-link dash-rail-link--admin" href="#/admin">
+              <button
+                type="button"
+                className={`dash-rail-link dash-rail-link--admin${page === "admin" ? " dash-rail-link--active" : ""}`}
+                onClick={() => setPage("admin")}
+                aria-current={page === "admin" ? "page" : undefined}
+              >
                 <ShieldIcon size={14} />
                 Admin
-                <ArrowUpRight size={12} />
-              </a>
+              </button>
             ) : null}
             {isPremium ? (
               <span className="dash-rail-link dash-rail-link--active" aria-current="true">
@@ -560,7 +593,11 @@ export function Dashboard({
 
                 <div className="dash-user-pop-sep" />
 
-                <a className="dash-user-pop-item" href="#/" role="menuitem">
+                <a
+                  className="dash-user-pop-item"
+                  href={`/${encodeURIComponent(user.username)}`}
+                  role="menuitem"
+                >
                   <EyeIcon size={14} />
                   View public bio
                   <ArrowUpRight size={11} className="dash-user-pop-end" />
@@ -653,7 +690,7 @@ export function Dashboard({
             <p>{pageMeta.subtitle}</p>
           </div>
           <div className="dash-top-actions">
-            <a className="btn btn-ghost btn-sm" href="#/">
+            <a className="btn btn-ghost btn-sm" href={`/${encodeURIComponent(user.username)}`}>
               <EyeIcon size={13} />
               View bio
             </a>
@@ -694,7 +731,9 @@ export function Dashboard({
         ) : page === "entry" ? (
           <DashboardEntry user={user} about={about} widgets={widgets} onChange={onSaveAbout} />
         ) : page === "badges" ? (
-          <DashboardBadges user={user} badges={badges} onChange={onSaveBadges} />
+          <DashboardBadges user={user} badges={badges} earned={earned} onChange={onSaveBadges} />
+        ) : page === "admin" && isAdmin ? (
+          <AdminDashboard embedded />
         ) : page === "links" ? (
           <DashboardLinks
             user={user}

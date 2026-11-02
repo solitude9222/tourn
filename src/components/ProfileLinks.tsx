@@ -20,6 +20,8 @@ export function ProfileLinks({
     "--lnk-radius": `${design.borderRadius}px`,
     "--lnk-gap": `${design.gap}px`,
     "--lnk-glow-color": design.glowColor,
+    "--lnk-bg-opacity": `${Math.round((design.backgroundOpacity ?? 0.12) * 100)}%`,
+    "--lnk-bg-blur": `${design.backgroundBlur ?? 0}px`,
   } as CSSProperties;
 
   return (
@@ -31,7 +33,7 @@ export function ProfileLinks({
         const platform = getPlatform(link.platform);
         const accent = link.color || platform?.color || "#8b939b";
         const glowing = design.showGlow || link.glowOn;
-        const isIconMode = link.mode === "icon";
+        const isIconMode = design.iconOnly === true || link.mode === "icon";
         const hasDesc = !isIconMode && link.description.trim().length > 0;
         const shape = design.iconStyle === "none" ? "default" : design.iconStyle;
         const iconSize = isIconMode ? 22 : 17;

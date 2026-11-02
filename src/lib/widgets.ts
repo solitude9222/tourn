@@ -700,11 +700,10 @@ function storageKey(userId: string): string {
   return `tourn.lol/widgets/v1/${userId}`;
 }
 
-export function loadWidgetStore(userId: string): WidgetStore {
+/** Coerce anything (a saved document, a server payload) into a safe WidgetStore. */
+export function normalizeWidgetStore(input: unknown): WidgetStore {
   try {
-    const raw = localStorage.getItem(storageKey(userId));
-    if (!raw) return { ...EMPTY_WIDGET_STORE, widgets: [], design: { ...DEFAULT_WIDGET_DESIGN } };
-    const parsed = JSON.parse(raw) as Partial<WidgetStore>;
+    const parsed = (input ?? {}) as Partial<WidgetStore>;
     const rawDesign = (parsed.design ?? {}) as Partial<WidgetDesign>;
     const widgets = Array.isArray(parsed.widgets)
       ? parsed.widgets
@@ -753,6 +752,16 @@ export function loadWidgetStore(userId: string): WidgetStore {
         radius: clamp(rawDesign.radius, DEFAULT_WIDGET_DESIGN.radius, 0, 30),
       },
     };
+  } catch {
+    return { ...EMPTY_WIDGET_STORE, widgets: [], design: { ...DEFAULT_WIDGET_DESIGN } };
+  }
+}
+
+export function loadWidgetStore(userId: string): WidgetStore {
+  try {
+    const raw = localStorage.getItem(storageKey(userId));
+    if (!raw) return { ...EMPTY_WIDGET_STORE, widgets: [], design: { ...DEFAULT_WIDGET_DESIGN } };
+    return normalizeWidgetStore(JSON.parse(raw));
   } catch {
     return { ...EMPTY_WIDGET_STORE, widgets: [], design: { ...DEFAULT_WIDGET_DESIGN } };
   }

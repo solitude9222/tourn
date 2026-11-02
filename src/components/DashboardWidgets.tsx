@@ -13,6 +13,7 @@ import {
   type WidgetPlatform,
   type WidgetStore,
 } from "../lib/widgets";
+import { widgetSupportsLive } from "../lib/widgetLive";
 import { PlatformIcon } from "./PlatformIcons";
 import { ColorField } from "./ColorPicker";
 import { WidgetCard, WidgetCardPreview } from "./WidgetCard";
@@ -201,6 +202,9 @@ export function DashboardWidgets({
                 <PlatformIcon id={item.id} size={18} />
               </span>
               <span className="widgets-platform-tile-name">{item.name}</span>
+              {widgetSupportsLive(item.id) ? (
+                <span className="widgets-platform-tile-live">Live</span>
+              ) : null}
             </button>
           ))}
         </div>
@@ -412,6 +416,11 @@ export function DashboardWidgets({
                         <span className="platform-card-copy">
                           <b>{item.name}</b>
                           <span>{item.description}</span>
+                          <span className={`platform-card-live${widgetSupportsLive(item.id) ? " is-live" : ""}`}>
+                            {widgetSupportsLive(item.id)
+                              ? "Live data from the public API"
+                              : "No public API yet — shows your profile link"}
+                          </span>
                         </span>
                       </button>
                     ))}

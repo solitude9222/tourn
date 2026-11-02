@@ -7,6 +7,7 @@ import {
   TOOLTIP_STYLES,
   DISPLAY_MODES,
   LINK_FOLDS,
+  LINK_PRESETS,
   createLink,
   type LinkDesign,
   type LinkIconStyle,
@@ -751,6 +752,28 @@ export function DashboardLinks({
 
           <div className="lnk-style-grid">
             <div className="lnk-option-group">
+              <span className="lnk-option-label">Quick looks</span>
+              <div className="lnk-option-row">
+                {LINK_PRESETS.map((preset) => {
+                  const active = Object.entries(preset.patch).every(
+                    ([key, value]) => design[key as keyof LinkDesign] === value,
+                  );
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      className={`lnk-style-btn${active ? " is-active" : ""}`}
+                      onClick={() => updateDesign(preset.patch)}
+                    >
+                      <b>{preset.name}</b>
+                      <small>{preset.hint}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="lnk-option-group">
               <span className="lnk-option-label">Card style</span>
               <div className="lnk-option-row">
                 {LINK_CARD_STYLES.map((s) => (
@@ -794,6 +817,14 @@ export function DashboardLinks({
                 </button>
               </label>
               <label className="lnk-toggle">
+                <span>Icon-only row (hide labels)</span>
+                <button type="button" role="switch" aria-checked={design.iconOnly}
+                  className={`switch${design.iconOnly ? " is-on" : ""}`}
+                  onClick={() => updateDesign({ iconOnly: !design.iconOnly })}>
+                  <span />
+                </button>
+              </label>
+              <label className="lnk-toggle">
                 <span>Glow effect for all links</span>
                 <button type="button" role="switch" aria-checked={design.showGlow}
                   className={`switch${design.showGlow ? " is-on" : ""}`}
@@ -813,6 +844,27 @@ export function DashboardLinks({
                 onChange={(v) => updateDesign({ borderRadius: v })} />
               <LinkSlider label="Gap" value={design.gap} min={4} max={16} step={1} unit="px"
                 onChange={(v) => updateDesign({ gap: v })} />
+            </div>
+
+            <div className="lnk-slider-row">
+              <LinkSlider
+                label="Background opacity"
+                value={Math.round(design.backgroundOpacity * 100)}
+                min={0}
+                max={60}
+                step={1}
+                unit="%"
+                onChange={(v) => updateDesign({ backgroundOpacity: v / 100 })}
+              />
+              <LinkSlider
+                label="Background blur"
+                value={design.backgroundBlur}
+                min={0}
+                max={24}
+                step={1}
+                unit="px"
+                onChange={(v) => updateDesign({ backgroundBlur: v })}
+              />
             </div>
 
             <div className="lnk-option-group">

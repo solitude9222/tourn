@@ -30,8 +30,12 @@ export type LinkDesign = {
   iconStyle: LinkIconStyle;
   showBackground: boolean;
   showIcon: boolean;
+  /** Render every link as an icon bubble, whatever the per-link choice. */
+  iconOnly: boolean;
   showGlow: boolean;
   glowColor: string;
+  backgroundOpacity: number; // 0–0.6
+  backgroundBlur: number;    // 0–24px
   borderRadius: number;  // 0–24
   gap: number;           // 4–16
   tooltipStyle: TooltipStyle;
@@ -48,8 +52,11 @@ export const DEFAULT_LINK_DESIGN: LinkDesign = {
   iconStyle: "default",
   showBackground: true,
   showIcon: true,
+  iconOnly: false,
   showGlow: false,
   glowColor: "#b4bffa",
+  backgroundOpacity: 0.12,
+  backgroundBlur: 0,
   borderRadius: 12,
   gap: 8,
   tooltipStyle: "default",
@@ -83,6 +90,39 @@ export const TOOLTIP_STYLES: { id: TooltipStyle; name: string }[] = [
   { id: "accent", name: "Accent" },
   { id: "dark", name: "Dark" },
   { id: "minimal", name: "Minimal" },
+];
+
+/** One-click looks for the whole link row. */
+export const LINK_PRESETS: {
+  id: string;
+  name: string;
+  hint: string;
+  patch: Partial<LinkDesign>;
+}[] = [
+  {
+    id: "cards",
+    name: "Cards",
+    hint: "Icon + label with a background",
+    patch: { cardStyle: "filled", showBackground: true, iconOnly: false, showGlow: false, backgroundOpacity: 0.12 },
+  },
+  {
+    id: "icons",
+    name: "Icon only",
+    hint: "Every link as an icon bubble",
+    patch: { cardStyle: "filled", showBackground: true, iconOnly: true, iconStyle: "circle", showGlow: false },
+  },
+  {
+    id: "bare-icons",
+    name: "Icons, no background",
+    hint: "Clean icons floating on the card",
+    patch: { showBackground: false, iconOnly: true, iconStyle: "circle", showGlow: false },
+  },
+  {
+    id: "glow-icons",
+    name: "Glow + icon",
+    hint: "Icon bubbles with a coloured halo",
+    patch: { showBackground: true, iconOnly: true, iconStyle: "circle", showGlow: true },
+  },
 ];
 
 export const DISPLAY_MODES: { id: LinkDisplayMode; name: string }[] = [
@@ -139,11 +179,10 @@ function colorOrInherit(v: unknown, max = 7): string {
   return /^#[0-9a-f]{6}$/i.test(v) ? v.slice(0, max) : "";
 }
 
-export function loadLinkStore(userId: string): LinkStore {
+/** Coerce anything (a saved document, a server payload) into a safe LinkStore. */
+export function normalizeLinkStore(input: unknown): LinkStore {
   try {
-    const raw = localStorage.getItem(`tourn.lol/links/v1/${userId}`);
-    if (!raw) return { ...EMPTY_LINK_STORE, links: [], design: { ...DEFAULT_LINK_DESIGN } };
-    const parsed = JSON.parse(raw) as Partial<LinkStore>;
+    const parsed = (input ?? {}) as Partial<LinkStore>;
     const d = (parsed.design ?? {}) as Partial<LinkDesign>;
     const links = Array.isArray(parsed.links)
       ? parsed.links
@@ -172,14 +211,32 @@ export function loadLinkStore(userId: string): LinkStore {
         iconStyle: (["default", "rounded", "circle", "pill", "none"] as const).includes(d.iconStyle as LinkIconStyle) ? d.iconStyle as LinkIconStyle : DEFAULT_LINK_DESIGN.iconStyle,
         showBackground: bool(d.showBackground, DEFAULT_LINK_DESIGN.showBackground),
         showIcon: bool(d.showIcon, DEFAULT_LINK_DESIGN.showIcon),
+        iconOnly: bool(d.iconOnly, DEFAULT_LINK_DESIGN.iconOnly),
         showGlow: bool(d.showGlow, DEFAULT_LINK_DESIGN.showGlow),
         glowColor: hex(d.glowColor, DEFAULT_LINK_DESIGN.glowColor),
+        backgroundOpacity: clamp(
+          d.backgroundOpacity,
+          DEFAULT_LINK_DESIGN.backgroundOpacity,
+          0,
+          0.6,
+        ),
+        backgroundBlur: clamp(d.backgroundBlur, DEFAULT_LINK_DESIGN.backgroundBlur, 0, 24),
         borderRadius: clamp(d.borderRadius, DEFAULT_LINK_DESIGN.borderRadius, 0, 24),
         gap: clamp(d.gap, DEFAULT_LINK_DESIGN.gap, 4, 16),
         tooltipStyle: (["default", "glass", "accent", "dark", "minimal"] as const).includes(d.tooltipStyle as TooltipStyle) ? d.tooltipStyle as TooltipStyle : DEFAULT_LINK_DESIGN.tooltipStyle,
         tooltipEnabled: bool(d.tooltipEnabled, DEFAULT_LINK_DESIGN.tooltipEnabled),
       },
     };
+  } catch {
+    return { ...EMPTY_LINK_STORE, links: [], design: { ...DEFAULT_LINK_DESIGN } };
+  }
+}
+
+export function loadLinkStore(userId: string): LinkStore {
+  try {
+    const raw = localStorage.getItem(`tourn.lol/links/v1/${userId}`);
+    if (!raw) return { ...EMPTY_LINK_STORE, links: [], design: { ...DEFAULT_LINK_DESIGN } };
+    return normalizeLinkStore(JSON.parse(raw));
   } catch {
     return { ...EMPTY_LINK_STORE, links: [], design: { ...DEFAULT_LINK_DESIGN } };
   }

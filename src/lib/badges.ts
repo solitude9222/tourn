@@ -15,6 +15,8 @@ export type BadgeDef = {
   id: string;
   name: string;
   description: string;
+  /** How the badge is earned — shown to the account in the dashboard. */
+  requirement: string;
   group: BadgeGroup;
   /** Local SVG path under /public/badges */
   art: string;
@@ -80,30 +82,30 @@ export const BADGE_ANIMATIONS: { id: BadgeAnimationStyle; name: string; hint: st
 /* ── platform badges (tourn.lol's own) ─────────────────────── */
 
 const PLATFORM: BadgeDef[] = [
-  { id: "owner", name: "Owner", description: "Platform creator", group: "platform", art: "/badges/icons/owner.gif", color: "#b4bffa" },
-  { id: "founder", name: "Founder", description: "Founded the platform", group: "platform", art: "/badges/icons/founder.gif", color: "#b4bffa" },
-  { id: "staff", name: "Staff", description: "Core team member", group: "platform", art: "/badges/icons/staffteam.png", color: "#38bdf8" },
-  { id: "verified", name: "Verified", description: "Officially verified user", group: "platform", art: "/badges/icons/verifed.png", color: "#b4bffa" },
-  { id: "premium", name: "Premium", description: "Supporter with premium perks", group: "platform", art: "/badges/icons/premium.png", color: "#f472b6" },
-  { id: "booster", name: "Booster", description: "Server booster", group: "platform", art: "/badges/icons/booster.png", color: "#f472b6" },
-  { id: "partner", name: "Partner", description: "Official platform partner", group: "platform", art: "/badges/icons/parnter.png", color: "#60a5fa" },
-  { id: "donator", name: "Donator", description: "Donated to keep the site running", group: "platform", art: "/badges/icons/donator.gif", color: "#fbbf24" },
-  { id: "coder", name: "Coder", description: "Contributed code", group: "platform", art: "/badges/icons/coder.png", color: "#22c55e" },
-  { id: "newbie", name: "Newbie", description: "Joined recently", group: "platform", art: "/badges/icons/newbie.png", color: "#b4bffa" },
-  { id: "user", name: "Active User", description: "Long-time active member", group: "platform", art: "/badges/icons/iverauser.gif", color: "#b4bffa" },
+  { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: "/badges/icons/owner.gif", color: "#b4bffa" },
+  { id: "founder", name: "Founder", description: "Founded the platform", requirement: "Automatic: one of the first 100 accounts ever created.", group: "platform", art: "/badges/icons/founder.gif", color: "#b4bffa" },
+  { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: "/badges/icons/staffteam.png", color: "#38bdf8" },
+  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: "/badges/icons/verifed.png", color: "#b4bffa" },
+  { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: "/badges/icons/premium.png", color: "#f472b6" },
+  { id: "booster", name: "Booster", description: "Server booster", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: "/badges/icons/booster.png", color: "#f472b6" },
+  { id: "partner", name: "Partner", description: "Official platform partner", requirement: "Granted by staff to official partners.", group: "platform", art: "/badges/icons/parnter.png", color: "#60a5fa" },
+  { id: "donator", name: "Donator", description: "Donated to keep the site running", requirement: "Granted by staff after a donation.", group: "platform", art: "/badges/icons/donator.gif", color: "#fbbf24" },
+  { id: "coder", name: "Coder", description: "Contributed code", requirement: "Automatic: publish a profile with a GitHub link or GitHub widget.", group: "platform", art: "/badges/icons/coder.png", color: "#22c55e" },
+  { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: "/badges/icons/newbie.png", color: "#b4bffa" },
+  { id: "user", name: "Active User", description: "Long-time active member", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: "/badges/icons/iverauser.gif", color: "#b4bffa" },
 ];
 
 /* ── seasonal badges ───────────────────────────────────────── */
 
 const SEASONAL: BadgeDef[] = [
-  { id: "halloween_2026", name: "Halloween 2026", description: "Celebrated Halloween 2026", group: "seasonal", art: "/badges/icons/hallowen.gif", color: "#f97316" },
-  { id: "christmas_2026", name: "Christmas 2026", description: "Celebrated Christmas 2026", group: "seasonal", art: "/badges/icons/christmas.gif", color: "#dc2626" },
+  { id: "halloween_2026", name: "Halloween 2026", description: "Celebrated Halloween 2026", requirement: "Automatic: your account was created during October 2026.", group: "seasonal", art: "/badges/icons/hallowen.gif", color: "#f97316" },
+  { id: "christmas_2026", name: "Christmas 2026", description: "Celebrated Christmas 2026", requirement: "Automatic: your account was created during December 2026.", group: "seasonal", art: "/badges/icons/christmas.gif", color: "#dc2626" },
 ];
 
 /* ── Discord badges — local SVG art (reliable, never 404s) ─── */
 
 const DISCORD: BadgeDef[] = [
-  { id: "dc_indiscord", name: "Discord Member", description: "Member of the Discord community", group: "discord", art: "/badges/icons/indiscord.png", color: "#5865f2" },
+  { id: "dc_indiscord", name: "Discord Member", description: "Member of the Discord community", requirement: "Automatic: the bot sees your Discord account in the tourn.lol server.", group: "discord", art: "/badges/icons/indiscord.png", color: "#5865f2" },
 ];
 
 /* ── full catalogue ────────────────────────────────────────── */
@@ -131,11 +133,10 @@ function animIn(v: unknown, fallback: BadgeAnimationStyle): BadgeAnimationStyle 
   return BADGE_ANIMATIONS.some((a) => a.id === v) ? (v as BadgeAnimationStyle) : fallback;
 }
 
-export function loadBadgeStore(userId: string): BadgeStore {
+/** Coerce anything (a saved document, a server payload) into a safe BadgeStore. */
+export function normalizeBadgeStore(input: unknown): BadgeStore {
   try {
-    const raw = localStorage.getItem(`tourn.lol/badges/v1/${userId}`);
-    if (!raw) return { ...EMPTY_BADGE_STORE, equipped: [], style: { ...DEFAULT_BADGE_STYLE } };
-    const parsed = JSON.parse(raw) as Partial<BadgeStore>;
+    const parsed = (input ?? {}) as Partial<BadgeStore>;
     const style = (parsed.style ?? {}) as Partial<BadgeStyle>;
     const equipped = Array.isArray(parsed.equipped)
       ? parsed.equipped
@@ -158,6 +159,16 @@ export function loadBadgeStore(userId: string): BadgeStore {
         size: clamp(style.size, DEFAULT_BADGE_STYLE.size, 14, 32),
       },
     };
+  } catch {
+    return { ...EMPTY_BADGE_STORE, equipped: [], style: { ...DEFAULT_BADGE_STYLE } };
+  }
+}
+
+export function loadBadgeStore(userId: string): BadgeStore {
+  try {
+    const raw = localStorage.getItem(`tourn.lol/badges/v1/${userId}`);
+    if (!raw) return { ...EMPTY_BADGE_STORE, equipped: [], style: { ...DEFAULT_BADGE_STYLE } };
+    return normalizeBadgeStore(JSON.parse(raw));
   } catch {
     return { ...EMPTY_BADGE_STORE, equipped: [], style: { ...DEFAULT_BADGE_STYLE } };
   }

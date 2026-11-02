@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { DEFAULT_SETTINGS, EMPTY_SETTINGS, loadSettings, type Settings } from "./config";
 import { EMPTY_ABOUT, loadAbout, saveAbout, type About } from "./lib/about";
@@ -29,7 +29,6 @@ import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
-import { AdminDashboard } from "./components/AdminDashboard";
 import { BentoSection, FaqSection, Footer, Hero, StatsBand } from "./components/Sections";
 import { LeaderboardPage, PremiumPage, ShopPage } from "./components/Pages";
 import { SiteBackdrop } from "./components/Chrome";
@@ -38,6 +37,13 @@ import type { HeroIdentity } from "./components/ProfileCard";
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
 import { DemoPage } from "./components/DemoPage";
+import {
+  fetchOwnProfile,
+  fetchPublicProfile,
+  saveProfile,
+  type ProfilePayload,
+} from "./lib/serverProfile";
+import { recordView } from "./lib/views";
 
 export default function App() {
   return (
@@ -47,6 +53,13 @@ export default function App() {
   );
 }
 
+/**
+ * tourn.lol/<handle> — a standalone public page, never the marketing site.
+ *
+ * The document comes from the backend, so it renders for visitors and on any
+ * device. The signed-in owner keeps seeing their live local state. A missing
+ * handle stays on the same URL and offers to claim it — it never bounces home.
+ */
 function ProfilePage({
   handle,
   user,
@@ -54,6 +67,7 @@ function ProfilePage({
   widgets,
   badges,
   links,
+  earned,
   onSignIn,
 }: {
   handle: string | null;
@@ -62,36 +76,139 @@ function ProfilePage({
   widgets: WidgetStore;
   badges: BadgeStore;
   links: LinkStore;
+  earned: string[];
   onSignIn: () => void;
 }) {
-  // Only the signed-in account's own settings are stored in this browser, so
-  // the full linker is shown for that account's handle.
-  if (user && handle && user.username.toLowerCase() === handle) {
+  const isOwn = Boolean(handle && user && user.username.toLowerCase() === handle);
+  const [remote, setRemote] = useState<
+    { status: "loading" } | { status: "ok"; data: ProfilePayload } | { status: "missing" } | { status: "error"; error: string }
+  >({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!handle || isOwn) return;
+    let active = true;
+    setRemote({ status: "loading" });
+    void fetchPublicProfile(handle).then((result) => {
+      if (!active) return;
+      if (result.ok) {
+        setRemote({ status: "ok", data: result.data });
+        if (result.data.profile) void recordView(result.data.account.username);
+      } else if (result.notFound) {
+        setRemote({ status: "missing" });
+      } else {
+        setRemote({ status: "error", error: result.error });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [handle, isOwn, attempt]);
+
+  if (!handle) {
+    return (
+      <section className="profile-page profile-page--empty">
+        <h1>Profile</h1>
+        <p>That link doesn't point at a profile.</p>
+        <a className="btn btn-primary btn-sm" href="#/">
+          Go to tourn.lol
+        </a>
+      </section>
+    );
+  }
+
+  if (isOwn && user) {
     return (
       <section className="profile-page">
         <LinkerPreview
           user={user}
           about={about}
           widgets={widgets}
-          badges={badges}
+          badges={{ ...badges, equipped: badges.equipped.filter((b) => earned.includes(b.id)) }}
           links={links}
           interactive
         />
+        <a className="demo-edit-btn" href="#/dashboard">
+          Edit this page
+        </a>
+      </section>
+    );
+  }
+
+  if (remote.status === "loading") {
+    return (
+      <section className="profile-page profile-page--empty">
+        <span className="spinner" />
+        <p>Loading tourn.lol/{handle}…</p>
+      </section>
+    );
+  }
+
+  if (remote.status === "ok" && remote.data.profile) {
+    const document = remote.data.profile;
+    return (
+      <section className="profile-page">
+        <LinkerPreview
+          user={remote.data.account}
+          about={document.about}
+          widgets={document.widgets}
+          badges={{
+            ...document.badges,
+            equipped: document.badges.equipped.filter((b) => remote.data.earned.includes(b.id)),
+          }}
+          links={document.links}
+          interactive
+        />
+        {user ? (
+          <a className="demo-edit-btn" href="#/dashboard">
+            Edit this page
+          </a>
+        ) : null}
+      </section>
+    );
+  }
+
+  if (remote.status === "error") {
+    return (
+      <section className="profile-page profile-page--empty">
+        <h1>tourn.lol/{handle}</h1>
+        <p>{remote.error}</p>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAttempt((n) => n + 1)}>
+          Try again
+        </button>
+      </section>
+    );
+  }
+
+  // Known account, but the page hasn't been published yet.
+  if (remote.status === "ok") {
+    return (
+      <section className="profile-page profile-page--empty">
+        <h1>tourn.lol/{handle}</h1>
+        <p>
+          @{remote.data.account.username} hasn't published a page yet.
+          {isOwn ? " Open your dashboard to build it." : ""}
+        </p>
+        {isOwn ? (
+          <a className="btn btn-primary btn-sm" href="#/dashboard">
+            Open dashboard
+          </a>
+        ) : null}
       </section>
     );
   }
 
   return (
     <section className="profile-page profile-page--empty">
-      <h1>{handle ? `@${handle}` : "Profile"}</h1>
-      <p>
-        {user
-          ? "This profile's linker isn't available yet."
-          : "Sign in to view your linker."}
-      </p>
-      {user ? null : (
+      <h1>tourn.lol/{handle} is free</h1>
+      <p>No one has claimed this link yet. It could be yours.</p>
+      {user ? (
         <button type="button" className="btn btn-primary btn-sm" onClick={onSignIn}>
-          Sign in
+          Claim a handle
+        </button>
+      ) : (
+        <button type="button" className="btn btn-primary btn-sm" onClick={onSignIn}>
+          Sign up and claim it
         </button>
       )}
     </section>
@@ -109,6 +226,9 @@ function Site() {
   const [badges, setBadges] = useState<BadgeStore>(EMPTY_BADGE_STORE);
   const [profileLinks, setProfileLinks] = useState<LinkStore>(EMPTY_LINK_STORE);
   const [isPremium, setIsPremiumState] = useState(false);
+  const [earned, setEarned] = useState<string[]>([]);
+  const hydratedFor = useRef<string | null>(null);
+  const lastSaved = useRef<string>("");
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const [siteStats, setSiteStats] = useState<SiteStats>({ users: null, views: null });
 
@@ -142,6 +262,62 @@ function Site() {
     setSettings(loadSettings(user?.id ?? null));
   }, [user?.id]);
 
+  // Pull the published document from the backend: it is what every visitor
+  // sees, so a new device (or a cleared browser) restores it instead of
+  // starting from an empty page.
+  useEffect(() => {
+    if (!user) {
+      hydratedFor.current = null;
+      lastSaved.current = "";
+      setEarned([]);
+      return;
+    }
+    let active = true;
+    void fetchOwnProfile().then((result) => {
+      if (!active || !result.ok) return;
+      setEarned(result.data.earned);
+      if (result.data.profile) {
+        const document = result.data.profile;
+        setAbout(document.about);
+        setWidgets(document.widgets);
+        setBadges(document.badges);
+        setProfileLinks(document.links);
+        saveAbout(user.id, document.about);
+        saveWidgetStore(user.id, document.widgets);
+        saveBadgeStore(user.id, document.badges);
+        saveLinkStore(user.id, document.links);
+        lastSaved.current = JSON.stringify(document);
+      } else {
+        // First publish for this account: push what this browser already has.
+        const document = {
+          about: loadAbout(user.id),
+          widgets: loadWidgetStore(user.id),
+          badges: loadBadgeStore(user.id),
+          links: loadLinkStore(user.id),
+        };
+        lastSaved.current = JSON.stringify(document);
+        void saveProfile(document);
+      }
+      hydratedFor.current = user.id;
+    });
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
+  // Any dashboard edit republishes the page (debounced so sliders don't spam).
+  useEffect(() => {
+    if (!user || hydratedFor.current !== user.id) return;
+    const document = { about, widgets, badges, links: profileLinks };
+    const serialized = JSON.stringify(document);
+    if (serialized === lastSaved.current) return;
+    const timer = window.setTimeout(() => {
+      lastSaved.current = serialized;
+      void saveProfile(document);
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [user?.id, about, widgets, badges, profileLinks]);
+
   const lanyard = usePolled(
     Boolean(settings.discordUserId),
     settings.discordUserId,
@@ -157,6 +333,7 @@ function Site() {
     (signal) => fetchLanyard(DEFAULT_SETTINGS.discordUserId, signal),
     15_000,
   );
+
 
   const identity = useMemo<HeroIdentity | null>(() => {
     // Home card: the owner's profile when one exists, otherwise the viewer's own.
@@ -251,20 +428,24 @@ function Site() {
     [user],
   );
 
-  // Top-bar "Save changes" — re-persists every dashboard store at once.
+  // Top-bar "Save changes" — re-persists every dashboard store at once and
+  // republishes the public page immediately.
   const handleSaveAll = useCallback(() => {
     if (!user) return;
     saveAbout(user.id, about);
     saveWidgetStore(user.id, widgets);
     saveBadgeStore(user.id, badges);
     saveLinkStore(user.id, profileLinks);
+    const document = { about, widgets, badges, links: profileLinks };
+    lastSaved.current = JSON.stringify(document);
+    void saveProfile(document);
   }, [user, about, widgets, badges, profileLinks]);
 
   return (
     <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}`}>
-      {route === "demo" ? null : <SiteBackdrop />}
+      {route === "demo" || route === "profile" ? null : <SiteBackdrop />}
 
-      {route !== "dashboard" && route !== "demo" ? (
+      {route !== "dashboard" && route !== "demo" && route !== "profile" ? (
         <Header
           route={route}
           user={user}
@@ -289,6 +470,19 @@ function Site() {
             if (window.location.hash !== "#/") window.location.hash = "#/";
           }}
         />
+      ) : route === "profile" ? (
+        <main className="page-enter">
+          <ProfilePage
+            handle={profileHandleFromLocation()}
+            user={user}
+            about={about}
+            widgets={widgets}
+            badges={badges}
+            links={profileLinks}
+            earned={earned}
+            onSignIn={() => setAuthMode("signup")}
+          />
+        </main>
       ) : route === "dashboard" ? (
         <Dashboard
           user={user}
@@ -299,6 +493,7 @@ function Site() {
           badges={badges}
           isPremium={isPremium}
           isAdmin={isAdmin}
+          earned={earned}
           onSaveAbout={handleSaveAbout}
           onSaveWidgets={handleSaveWidgets}
           onSaveBadges={handleSaveBadges}
@@ -318,18 +513,6 @@ function Site() {
               <ShopPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "premium" ? (
               <PremiumPage onSignUp={() => setAuthMode("signup")} />
-            ) : route === "admin" ? (
-              <AdminDashboard />
-            ) : route === "profile" ? (
-              <ProfilePage
-                handle={profileHandleFromLocation()}
-                user={user}
-                about={about}
-                widgets={widgets}
-                badges={badges}
-                links={profileLinks}
-                onSignIn={() => setAuthMode("signin")}
-              />
             ) : (
               <>
                 <Hero

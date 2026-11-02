@@ -2583,6 +2583,42 @@
   background: rgba(143, 216, 255, 0.06);
 }
 
+/* An unearned badge stays visible with its unlock rule instead of vanishing. */
+.bdg-cat-tile.is-locked {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.bdg-cat-tile.is-locked:hover {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.bdg-cat-req {
+  color: #6f7a83;
+  font-size: 7.5px;
+  line-height: 1.35;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bdg-cat-lock {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #7c868e;
+  font-size: 6.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .bdg-cat-art {
   width: 28px;
   height: 28px;

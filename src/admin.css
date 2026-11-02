@@ -9,6 +9,12 @@
   padding: 140px 22px 84px;
 }
 
+/* Inside the dashboard the console shares the dashboard's own page padding. */
+.adm.adm--embedded {
+  padding: 0;
+  max-width: none;
+}
+
 .adm-page .adm-top {
   margin-bottom: 18px;
 }

@@ -130,6 +130,12 @@ create table if not exists site_settings (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists profiles (
+  user_id uuid primary key references users on delete cascade,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists invite_codes (
   code text primary key,
   created_by uuid references users(id) on delete set null,
@@ -263,6 +269,105 @@ async function currentUser(req) {
 const cleanHandle = (input) =>
   String(input ?? "").trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
 
+/* The public shape of an account — never includes email, password, MFA or
+   Discord ids. Used by every profile page read. */
+function publicAccountOf(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    username: row.username,
+    alias: row.alias ?? null,
+    alias2: row.alias2 ?? null,
+    avatarUrl: row.avatar_url ?? null,
+    joinedAt: row.created_at,
+    premium: Boolean(row.premium),
+    isAdmin: Boolean(row.is_admin),
+    isOwner: Boolean(row.is_owner),
+  };
+}
+
+async function userByHandle(handle) {
+  const clean = cleanHandle(handle);
+  if (!clean) return null;
+  const { rows } = await pool.query(
+    `select * from users
+     where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1
+     limit 1`,
+    [clean],
+  );
+  return rows[0] ?? null;
+}
+
+async function profileRow(userId) {
+  const { rows } = await pool.query("select data from profiles where user_id = $1", [userId]);
+  return rows[0]?.data ?? null;
+}
+
+/* ── badges ────────────────────────────────────────────────────────────── */
+/* Badges are earned, not picked: every one is derived from a fact the backend
+   can check. The catalogue (names, art, requirement copy) lives in the
+   frontend; this only decides which ids an account has actually earned. */
+
+const guildMemberCache = new Map();
+
+/** Is this Discord account in the site's Discord server? null = can't tell. */
+async function discordGuildMember(discordId) {
+  if (!DISCORD_BOT_TOKEN || !DISCORD_GUILD_ID || !discordId) return null;
+  const cached = guildMemberCache.get(discordId);
+  if (cached && Date.now() - cached.at < 10 * 60_000) return cached.member;
+  try {
+    const res = await fetch(
+      `https://discord.com/api/v10/guilds/${DISCORD_GUILD_ID}/members/${encodeURIComponent(discordId)}`,
+      { headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` } },
+    );
+    if (res.status === 404) {
+      guildMemberCache.set(discordId, { member: false, at: Date.now() });
+      return false;
+    }
+    if (!res.ok) return null;
+    guildMemberCache.set(discordId, { member: true, at: Date.now() });
+    if (guildMemberCache.size > 5_000) guildMemberCache.clear();
+    return true;
+  } catch {
+    return null;
+  }
+}
+
+async function earnedBadges(user, profile) {
+  const earned = [];
+  const created = new Date(user.created_at);
+  const ageDays = (Date.now() - created.getTime()) / 86_400_000;
+  let rank = 1;
+  try {
+    const { rows } = await pool.query(
+      "select count(*)::int as n from users where created_at <= $1",
+      [user.created_at],
+    );
+    rank = rows[0]?.n ?? 1;
+  } catch {
+    rank = 1;
+  }
+  const document = JSON.stringify(profile ?? {});
+  const bio = typeof profile?.about?.bio === "string" ? profile.about.bio.trim() : "";
+
+  if (user.is_owner) earned.push("owner");
+  if (user.is_admin) earned.push("staff");
+  if (user.premium) earned.push("premium");
+  if (rank <= 100) earned.push("founder");
+  if (ageDays < 7) earned.push("newbie");
+  if (ageDays >= 30 && bio.length >= 20) earned.push("user");
+  if (/github/i.test(document)) earned.push("coder");
+
+  const month = created.getUTCMonth();
+  const year = created.getUTCFullYear();
+  if (year === 2026 && month === 9) earned.push("halloween_2026");
+  if (year === 2026 && month === 11) earned.push("christmas_2026");
+
+  if ((await discordGuildMember(user.discord_id)) === true) earned.push("dc_indiscord");
+
+  return earned;
+}
+
 const RESERVED = new Set([
   "admin", "about", "shop", "leaderboard", "dashboard", "profile", "demo",
   "login", "signin", "signup", "help", "support", "api", "assets", "premium",
@@ -382,7 +487,6 @@ async function sendDiscordDm(discordId, content) {
 
 const app = express();
 app.set("trust proxy", 1);
-app.use(express.json({ limit: "256kb" }));
 app.use(cookieParser());
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
@@ -398,6 +502,34 @@ app.use(
     credentials: true,
   }),
 );
+
+/* ── profile documents ─────────────────────────────────────────────────── */
+/* A saved profile carries the bio, links, badges and widget stack — including
+   uploaded art as data URLs — so this single route gets a larger JSON body.
+   It is registered before the global parser, which stays tight for the rest
+   of the API. */
+app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req, res) => {
+  try {
+    const data = req.body?.data;
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return res.status(400).json({ error: "Send the profile document as { data }." });
+    }
+    const serialized = JSON.stringify(data);
+    if (serialized.length > 7_500_000) {
+      return res.status(413).json({ error: "That profile is too large — remove a big upload." });
+    }
+    await pool.query(
+      `insert into profiles (user_id, data, updated_at) values ($1, $2::jsonb, now())
+       on conflict (user_id) do update set data = excluded.data, updated_at = now()`,
+      [req.auth.sub, serialized],
+    );
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.use(express.json({ limit: "256kb" }));
 
 /* ── runtime public env (the only config the static site needs) ────────── */
 
@@ -922,6 +1054,41 @@ app.get("/api/profiles", async (req, res) => {
       joinedAt: row.created_at,
     })),
   });
+});
+
+/* The signed-in account's own profile document (used to hydrate the
+   dashboard on a new device). */
+app.get("/api/profile", requireAuth, async (req, res) => {
+  try {
+    const user = await userById(req.auth.sub);
+    if (!user) return res.status(401).json({ error: "Sign in again." });
+    const profile = await profileRow(user.id);
+    res.set("Cache-Control", "no-store");
+    res.json({
+      account: publicAccountOf(user),
+      profile: profile ?? null,
+      earned: await earnedBadges(user, profile),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* The public page behind tourn.lol/<handle>. */
+app.get("/api/profile/:handle", async (req, res) => {
+  try {
+    const user = await userByHandle(req.params.handle);
+    if (!user) return res.status(404).json({ error: "No profile with that handle." });
+    const profile = await profileRow(user.id);
+    res.set("Cache-Control", "public, max-age=30");
+    res.json({
+      account: publicAccountOf(user),
+      profile: profile ?? null,
+      earned: await earnedBadges(user, profile),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get("/api/stats", async (_req, res) => {
