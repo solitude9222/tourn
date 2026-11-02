@@ -2325,6 +2325,120 @@ button {
   overflow: hidden;
 }
 
+/* ── custom dropdown (replaces native <select>) ───────────── */
+
+.ui-select {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #e7eef5;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.ui-select:hover {
+  border-color: rgba(143, 216, 255, 0.32);
+  background: rgba(143, 216, 255, 0.05);
+}
+
+.ui-select.is-open {
+  border-color: rgba(143, 216, 255, 0.45);
+  background: rgba(143, 216, 255, 0.07);
+}
+
+.ui-select > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select-chevron {
+  flex: none;
+  opacity: 0.7;
+  transition: transform 0.16s ease;
+}
+
+.ui-select.is-open .ui-select-chevron {
+  transform: rotate(180deg);
+}
+
+.ui-select-pop {
+  position: fixed;
+  z-index: 4500;
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid rgba(143, 216, 255, 0.18);
+  border-radius: 12px;
+  background: rgba(10, 13, 18, 0.98);
+  box-shadow: 0 30px 70px -30px #000;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: uiSelectIn 0.16s ease both;
+}
+
+@keyframes uiSelectIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ui-select-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #c9d4dd;
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-select-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #eef5fa;
+}
+
+.ui-select-item.is-active {
+  background: rgba(143, 216, 255, 0.1);
+  color: #eaf7ff;
+}
+
+.dialog--auth {
+  position: relative;
+  width: min(480px, 100%);
+  border-radius: 26px;
+  border: 1px solid rgba(140, 180, 255, 0.16);
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(88, 101, 242, 0.24), transparent 62%),
+    linear-gradient(180deg, rgba(13, 17, 25, 0.985), rgba(7, 9, 13, 0.995));
+  box-shadow:
+    0 50px 120px -50px #000,
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  overflow: hidden;
+}
+
 .dialog--auth::before {
   content: "";
   position: absolute;
@@ -2337,7 +2451,10 @@ button {
   width: 40px;
   height: 40px;
   border-radius: 13px;
-  box-shadow: 0 14px 34px -18px rgba(88, 101, 242, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  /* No ring/outline around the mark — just its own soft shadow. */
+  box-shadow: 0 14px 34px -18px rgba(88, 101, 242, 0.85);
+  border: 0;
+  outline: none;
 }
 
 .dialog--auth .dialog-head h2 {

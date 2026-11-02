@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { DEFAULT_SETTINGS, EMPTY_SETTINGS, loadSettings, type Settings } from "./config";
 import { EMPTY_ABOUT, loadAbout, saveAbout, type About } from "./lib/about";
@@ -29,17 +29,39 @@ import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
-import { BentoSection, FaqSection, Footer, Hero, StatsBand } from "./components/Sections";
-import { LeaderboardPage, PremiumPage, ShopPage } from "./components/Pages";
 import { SiteBackdrop } from "./components/Chrome";
-import { Dashboard } from "./components/Dashboard";
 import type { HeroIdentity } from "./components/ProfileCard";
+import { CopyIcon, ExternalIcon, MailIcon, UserIcon } from "./components/Icons";
+
+/* The marketing site, the dashboard and the demo page are not needed to render
+   tourn.lol/<handle>. Splitting them keeps a profile visit down to the profile
+   bundle instead of parsing the whole dashboard first. */
+const Dashboard = lazy(() =>
+  import("./components/Dashboard").then((module) => ({ default: module.Dashboard })),
+);
+const DemoPage = lazy(() =>
+  import("./components/DemoPage").then((module) => ({ default: module.DemoPage })),
+);
+const Hero = lazy(() => import("./components/Sections").then((m) => ({ default: m.Hero })));
+const StatsBand = lazy(() => import("./components/Sections").then((m) => ({ default: m.StatsBand })));
+const BentoSection = lazy(() =>
+  import("./components/Sections").then((m) => ({ default: m.BentoSection })),
+);
+const FaqSection = lazy(() => import("./components/Sections").then((m) => ({ default: m.FaqSection })));
+const Footer = lazy(() => import("./components/Sections").then((m) => ({ default: m.Footer })));
+const LeaderboardPage = lazy(() =>
+  import("./components/Pages").then((m) => ({ default: m.LeaderboardPage })),
+);
+const ShopPage = lazy(() => import("./components/Pages").then((m) => ({ default: m.ShopPage })));
+const PremiumPage = lazy(() =>
+  import("./components/Pages").then((m) => ({ default: m.PremiumPage })),
+);
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
-import { DemoPage } from "./components/DemoPage";
 import {
   fetchOwnProfile,
   fetchPublicProfile,
+  readCachedProfile,
   saveProfile,
   type ProfilePayload,
 } from "./lib/serverProfile";
@@ -62,6 +84,7 @@ function ProfileNotice({
   handle,
   kind,
   account,
+  viewer,
   isOwn,
   message,
   onSignIn,
@@ -70,16 +93,20 @@ function ProfileNotice({
   handle: string | null;
   kind: "nohandle" | "missing" | "unpublished" | "error";
   account?: Account;
+  /** The signed-in visitor, if any — the bottom account bar only renders for them. */
+  viewer?: Account | null;
   isOwn?: boolean;
   message?: string;
   onSignIn?: () => void;
   onRetry?: () => void;
 }) {
+  const [copied, setCopied] = useState(false);
+
   const heading =
     kind === "nohandle"
       ? "That link isn't a profile"
       : kind === "missing"
-        ? "This handle is free"
+        ? "Username not found"
         : kind === "unpublished"
           ? "Nothing published here yet"
           : "Couldn't load this page";
@@ -88,77 +115,115 @@ function ProfileNotice({
     kind === "nohandle"
       ? "tourn.lol links look like tourn.lol/yourname — this one doesn't point anywhere."
       : kind === "missing"
-        ? "No one has claimed tourn.lol/" + (handle ?? "yourname") + " yet. It could be yours."
+        ? "No one has claimed " +
+          "tourn.lol/" +
+          (handle ?? "yourname") +
+          " yet. Claim this username by clicking the button below!"
         : kind === "unpublished"
           ? (isOwn
               ? "Your page is still private. Open the dashboard and publish it to make it public."
               : "@" + (account?.username ?? handle) + " has an account, but hasn't published a page yet.")
           : (message ?? "The tourn.lol backend didn't answer. It may be starting up.");
 
+  const copyUrl = async () => {
+    if (!viewer) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/${viewer.username}`);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+
   return (
     <section className={`profile-page pn pn--${kind}`}>
-      <div className="pn-aurora" aria-hidden="true" />
-      <div className="pn-card">
-        <span className="pn-mark">
-          <img src="/logo.png" alt="" width={44} height={44} />
-        </span>
+      <div className="pn-shell">
+        <div className="pn-card">
+          <span className="pn-mark" aria-hidden="true">
+            {kind === "missing" ? (
+              <b className="pn-mark-bang">!</b>
+            ) : (
+              <img src="/logo.png" alt="" width={34} height={34} />
+            )}
+          </span>
 
-        <span className="pn-brand">
-          tourn<span>.</span>lol
-        </span>
+          <h1 className="pn-title">{heading}</h1>
 
-        {handle ? (
-          <h1 className="pn-handle">
-            <span>tourn.lol/</span>
-            <b>{handle}</b>
-          </h1>
-        ) : (
-          <h1 className="pn-handle">{heading}</h1>
-        )}
+          {kind !== "missing" && handle ? (
+            <p className="pn-handle">
+              <span>tourn.lol/</span>
+              <b>{handle}</b>
+            </p>
+          ) : null}
 
-        {kind === "unpublished" && account ? (
-          <div className="pn-account">
-            <span className="pn-avatar">
-              {account.avatarUrl ? (
-                <img src={account.avatarUrl} alt="" />
-              ) : (
-                account.username.slice(0, 1).toUpperCase()
-              )}
-            </span>
-            <span>
-              <b>{account.username}</b>
-              <small>
-                {kind === "unpublished" ? "Not published yet" : "Member"}
-              </small>
-            </span>
+          {kind === "unpublished" && account ? (
+            <div className="pn-account">
+              <span className="pn-avatar">
+                {account.avatarUrl ? (
+                  <img src={account.avatarUrl} alt="" />
+                ) : (
+                  account.username.slice(0, 1).toUpperCase()
+                )}
+              </span>
+              <span>
+                <b>{account.username}</b>
+                <small>{kind === "unpublished" ? "Not published yet" : "Member"}</small>
+              </span>
+            </div>
+          ) : null}
+
+          <p className="pn-copy">{copy}</p>
+
+          <div className="pn-actions">
+            <a className="btn btn-ghost btn-sm" href="#/">
+              Go Home
+            </a>
+
+            {isOwn ? (
+              <a className="btn btn-primary btn-sm" href="#/dashboard">
+                Open dashboard
+              </a>
+            ) : null}
+
+            {kind === "missing" && onSignIn ? (
+              <button type="button" className="btn btn-primary btn-sm" onClick={onSignIn}>
+                Claim Now!
+              </button>
+            ) : null}
+
+            {kind === "error" && onRetry ? (
+              <button type="button" className="btn btn-primary btn-sm" onClick={onRetry}>
+                Try again
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {viewer ? (
+          <div className="pn-session">
+            <p className="pn-session-who">
+              <UserIcon size={14} />
+              <span>
+                Currently logged in as <b>@{viewer.username}</b>
+              </span>
+            </p>
+            <div className="pn-session-actions">
+              <a className="pn-session-btn" href={`/${viewer.username}`}>
+                <ExternalIcon size={12} />
+                Open
+              </a>
+              <button type="button" className="pn-session-btn" onClick={() => void copyUrl()}>
+                <CopyIcon size={12} />
+                {copied ? "Copied" : "Copy Profile URL"}
+              </button>
+              <a className="pn-session-btn" href="mailto:hello@tourn.lol">
+                <MailIcon size={12} />
+                Help
+              </a>
+            </div>
           </div>
         ) : null}
-
-        <p className="pn-copy">{copy}</p>
-
-        <div className="pn-actions">
-          {isOwn ? (
-            <a className="btn btn-primary btn-sm" href="#/dashboard">
-              Open dashboard
-            </a>
-          ) : null}
-
-          {kind === "missing" && onSignIn ? (
-            <button type="button" className="btn btn-primary btn-sm" onClick={onSignIn}>
-              Claim this handle
-            </button>
-          ) : null}
-
-          {kind === "error" && onRetry ? (
-            <button type="button" className="btn btn-primary btn-sm" onClick={onRetry}>
-              Try again
-            </button>
-          ) : null}
-
-          <a className="btn btn-ghost btn-sm" href="#/">
-            Explore tourn.lol
-          </a>
-        </div>
       </div>
     </section>
   );
@@ -191,15 +256,22 @@ function ProfilePage({
   onSignIn: () => void;
 }) {
   const isOwn = Boolean(handle && user && user.username.toLowerCase() === handle);
+  // A cached copy paints the real page — entry screen included — on the very
+  // first frame. The fetch below only refreshes it in the background.
+  const cached = useMemo(
+    () => (handle && !isOwn ? readCachedProfile(handle) : null),
+    [handle, isOwn],
+  );
   const [remote, setRemote] = useState<
     { status: "loading" } | { status: "ok"; data: ProfilePayload } | { status: "missing" } | { status: "error"; error: string }
-  >({ status: "loading" });
+  >(() => (cached ? { status: "ok", data: cached } : { status: "loading" }));
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!handle || isOwn) return;
     let active = true;
-    setRemote({ status: "loading" });
+    // Keep an already-painted page on screen while revalidating.
+    setRemote((current) => (current.status === "ok" ? current : { status: "loading" }));
     void fetchPublicProfile(handle).then((result) => {
       if (!active) return;
       if (result.ok) {
@@ -235,19 +307,15 @@ function ProfilePage({
     );
   }
 
+  // Nothing to paint yet: a plain black screen, never a skeleton flash. The
+  // entry screen (or the page itself) replaces it as soon as data is ready.
   if (remote.status === "loading") {
     return (
-      <section className="profile-page profile-page--loading" aria-busy="true" aria-live="polite">
-        <div className="pv-skeleton">
-          <span className="skeleton pv-skeleton-avatar" />
-          <span className="skeleton pv-skeleton-line pv-skeleton-line--name" />
-          <span className="skeleton pv-skeleton-line pv-skeleton-line--handle" />
-          <span className="skeleton pv-skeleton-line pv-skeleton-line--bio" />
-          <span className="skeleton pv-skeleton-card" />
-          <span className="skeleton pv-skeleton-card pv-skeleton-card--short" />
-        </div>
-        <p className="pv-loading-copy">Loading tourn.lol/{handle}…</p>
-      </section>
+      <section
+        className="profile-page profile-page--loading"
+        aria-busy="true"
+        aria-label={`Loading tourn.lol/${handle}`}
+      />
     );
   }
 
@@ -276,6 +344,7 @@ function ProfilePage({
         handle={handle}
         kind="error"
         message={remote.error}
+        viewer={user}
         isOwn={isOwn}
         onRetry={() => setAttempt((n) => n + 1)}
       />
@@ -285,11 +354,17 @@ function ProfilePage({
   // Known account, but the page hasn't been published yet.
   if (remote.status === "ok") {
     return (
-      <ProfileNotice handle={handle} kind="unpublished" account={remote.data.account} isOwn={isOwn} />
+      <ProfileNotice
+        handle={handle}
+        kind="unpublished"
+        account={remote.data.account}
+        viewer={user}
+        isOwn={isOwn}
+      />
     );
   }
 
-  return <ProfileNotice handle={handle} kind="missing" onSignIn={onSignIn} />;
+  return <ProfileNotice handle={handle} kind="missing" viewer={user} onSignIn={onSignIn} />;
 }
 
 function Site() {
@@ -520,6 +595,7 @@ function Site() {
 
   return (
     <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}`}>
+      <Suspense fallback={null}>
       {route === "demo" || route === "profile" ? null : <SiteBackdrop />}
 
       {route !== "dashboard" && route !== "demo" && route !== "profile" ? (
@@ -550,6 +626,7 @@ function Site() {
       ) : route === "profile" ? (
         <main className="page-enter">
           <ProfilePage
+            key={profileHandleFromLocation() ?? "none"}
             handle={profileHandleFromLocation()}
             user={user}
             about={about}
@@ -623,6 +700,7 @@ function Site() {
           />
         </>
       )}
+      </Suspense>
 
       <AuthDialog
         open={route !== "demo" && authMode !== null}

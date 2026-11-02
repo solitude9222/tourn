@@ -62,7 +62,7 @@ export function SettingsPage({
   };
 
   const displayName = user?.alias?.trim() || user?.username || "Account";
-  const uid = accountUid(user?.id);
+  const uid = accountUid(user);
 
   return (
     <div className="settings-page">
@@ -80,7 +80,7 @@ export function SettingsPage({
             <small>{user?.email ?? "Discord account"}</small>
           </div>
           <div className="settings-hero-tags">
-            <span className="settings-tag">UID#{uid}</span>
+            <span className="settings-tag">#{uid}</span>
             {isPremiumUser ? (
               <span className="settings-tag settings-tag--premium">
                 <BoltIcon size={10} />

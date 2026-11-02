@@ -26,7 +26,7 @@ export function ProfilePreview({
   compact = false,
   children,
 }: {
-  user: Pick<Account, "id" | "username" | "avatarUrl">;
+  user: Pick<Account, "id" | "uid" | "username" | "avatarUrl">;
   about: About;
   badges?: BadgeInstance[];
   badgeStyle?: BadgeStyle;
@@ -46,9 +46,16 @@ export function ProfilePreview({
   const banner = assets.banner;
   const hasBanner = design.cardStyle === "banner" && banner.enabled;
   const bioEffect = assets.effects.text.bio;
-  const uid = accountUid(user.id);
+  const cardFx = assets.card;
+  const uid = accountUid(user);
   const tiltEnabled = (design.tilt ?? 0) > 0;
   const tilt = useTilt(design.tilt ?? 0);
+  const badgeRow =
+    badges.length > 0 && design.badgePosition !== "hidden" ? (
+      <div className={`pv-badges pv-badges--${design.badgePosition}`}>
+        <BadgeRow badges={badges} style={badgeStyle ?? DEFAULT_BADGE_STYLE} />
+      </div>
+    ) : null;
 
   const style = {
     "--pv-accent": design.colors.accent,
@@ -65,8 +72,11 @@ export function ProfilePreview({
     "--pv-pad": `${design.cardPadding}px`,
     "--pv-name": `${design.nameSize}px`,
     "--pv-bio-size": `${design.bioSize}px`,
-    "--pv-deco-color": decoration.color,
-    "--pv-deco-scale": decoration.size,
+    "--pv-card-fx-color": cardFx.color,
+    "--pv-card-fx-strength": cardFx.intensity / 100,
+    "--pv-card-fx-speed": `${Math.max(1.5, cardFx.speed)}s`,
+    "--pv-zoom": decoration.zoom ?? 1,
+    "--pv-rotate": `${decoration.rotate ?? 0}deg`,
   } as CSSProperties;
 
   return (
@@ -77,11 +87,15 @@ export function ProfilePreview({
       className={`profile-preview pv-theme-${design.theme} pv-layout-${design.layout} pv-card-${design.cardStyle}${
         hasBanner ? " pv-has-banner" : ""
       }${tiltEnabled ? " profile-preview--tilt" : ""}${
-        tiltEnabled && design.tiltGlare ? " profile-preview--glare" : ""
-      }${compact ? " profile-preview--compact" : ""}${className ? ` ${className}` : ""}`}
+        compact ? " profile-preview--compact" : ""
+      }${className ? ` ${className}` : ""}`}
       style={{ ...style, ...tilt.style }}
+      data-pfp={design.pfpPosition}
+      data-badges={design.badgePosition}
+      data-name={design.namePosition}
+      data-bio={design.bioPosition}
+      data-shape={design.avatarShape}
     >
-      {tiltEnabled && design.tiltGlare ? <span className="pv-tilt-glare" aria-hidden="true" /> : null}
       {hasBanner ? (
         <div
           className={`pv-banner${banner.imageUrl ? " pv-banner--image" : ""}`}
@@ -96,14 +110,11 @@ export function ProfilePreview({
         />
       ) : null}
       <div className="pv-ambient" aria-hidden="true" />
+      <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" />
       <div className="pv-body">
         <div className="pv-topline">
-          <span
-            className={`pv-avatar-wrap pv-deco--${decoration.style}${
-              decoration.spin ? " is-spinning" : ""
-            }`}
-          >
-            <Tooltip text={`UID#${uid}`} style="dark">
+          <span className="pv-avatar-wrap">
+            <Tooltip text={`#${uid}`} style="dark">
               <span className="pv-avatar" aria-hidden="true">
                 {avatar ? (
                   <img src={avatar} alt="" />
@@ -112,23 +123,17 @@ export function ProfilePreview({
                 )}
               </span>
             </Tooltip>
-            {decoration.style !== "none" ? (
-              <span className="pv-decoration" aria-hidden="true">
-                {decoration.style === "stars"
-                  ? Array.from({ length: 6 }, (_, index) => (
-                      <i
-                        key={index}
-                        style={
-                          {
-                            "--pv-star-index": index,
-                          } as CSSProperties
-                        }
-                      />
-                    ))
-                  : null}
-              </span>
+            {decoration.discordUrl ? (
+              <img
+                className="pv-avatar-decoration"
+                src={decoration.discordUrl}
+                alt=""
+                aria-hidden="true"
+                draggable={false}
+              />
             ) : null}
           </span>
+          {design.badgePosition === "beside-avatar" ? badgeRow : null}
           {location ? (
             <span className="pv-location">
               <PinIcon size={10} />
@@ -136,6 +141,9 @@ export function ProfilePreview({
             </span>
           ) : null}
         </div>
+
+        {design.badgePosition === "top-right" ? badgeRow : null}
+        {design.badgePosition === "above-name" ? badgeRow : null}
 
         <div className="pv-id">
           <h3>
@@ -146,11 +154,7 @@ export function ProfilePreview({
           </span>
         </div>
 
-        {badges.length > 0 ? (
-          <div className="pv-badges">
-            <BadgeRow badges={badges} style={badgeStyle ?? DEFAULT_BADGE_STYLE} />
-          </div>
-        ) : null}
+        {design.badgePosition === "default" ? badgeRow : null}
 
         <div
           className={`pv-bio${bio ? "" : " is-empty"}${
@@ -173,6 +177,8 @@ export function ProfilePreview({
         <AudioPlayer settings={assets.audio} />
 
         {children}
+
+        {design.badgePosition === "bottom" ? badgeRow : null}
       </div>
     </article>
   );

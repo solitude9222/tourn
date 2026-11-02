@@ -16,6 +16,7 @@ import {
 import { widgetSupportsLive } from "../lib/widgetLive";
 import { PlatformIcon } from "./PlatformIcons";
 import { ColorField } from "./ColorPicker";
+import { Select } from "./Select";
 import { WidgetCard, WidgetCardPreview } from "./WidgetCard";
 import {
   ArrowRight,
@@ -491,22 +492,18 @@ export function DashboardWidgets({
                             <span />
                           </button>
                         ) : (
-                          <select
+                          <Select
                             className="widget-option-select"
+                            ariaLabel={option.label}
                             value={String(draftOptions[option.key] ?? option.default)}
-                            onChange={(event) =>
-                              setDraftOptions((current) => ({
-                                ...current,
-                                [option.key]: event.target.value,
-                              }))
+                            options={(option.choices ?? []).map((choice) => ({
+                              value: choice.value,
+                              label: choice.label,
+                            }))}
+                            onChange={(value) =>
+                              setDraftOptions((current) => ({ ...current, [option.key]: value }))
                             }
-                          >
-                            {option.choices?.map((choice) => (
-                              <option key={choice.value} value={choice.value}>
-                                {choice.label}
-                              </option>
-                            ))}
-                          </select>
+                          />
                         )}
                       </div>
                     ))}

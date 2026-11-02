@@ -11,6 +11,39 @@
 
 import { publicEnv } from "./runtimeEnv";
 
+/**
+ * `/env.js` used to be a blocking <script> in the document head, so every page
+ * waited a full round-trip before React could even start. It is loaded here
+ * instead: the request starts as soon as this module runs, runs alongside the
+ * first render, and only the first API call actually waits for it.
+ */
+let envReady: Promise<void> | null = null;
+
+function ensurePublicEnv(): Promise<void> {
+  if (typeof window === "undefined" || window.__ENV__) return Promise.resolve();
+  if (!envReady) {
+    envReady = new Promise<void>((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      const script = document.createElement("script");
+      script.src = "/env.js";
+      script.async = true;
+      script.onload = finish;
+      script.onerror = finish;
+      document.head.appendChild(script);
+      // A cold backend must never hold the first request hostage.
+      window.setTimeout(finish, 1500);
+    });
+  }
+  return envReady;
+}
+
+void ensurePublicEnv();
+
 export function apiBase(): string {
   return publicEnv("VITE_API_BASE_URL").replace(/\/+$/, "");
 }
@@ -24,6 +57,7 @@ export async function api<T = unknown>(
   init: RequestInit = {},
 ): Promise<ApiResult<T>> {
   try {
+    await ensurePublicEnv();
     const res = await fetch(`${apiBase()}${path}`, {
       credentials: "include",
       headers: {

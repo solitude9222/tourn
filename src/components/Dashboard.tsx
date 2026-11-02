@@ -158,7 +158,13 @@ export function Dashboard({
   useEffect(() => {
     if (!isAdmin) return;
     const apply = () => {
-      if (window.location.hash.includes("/admin")) setPage("admin");
+      // `#/dashboard/admin` and the bare `/admin` path both open the console.
+      if (
+        window.location.hash.includes("/admin") ||
+        /^\/admin\/?$/i.test(window.location.pathname)
+      ) {
+        setPage("admin");
+      }
     };
     apply();
     window.addEventListener("hashchange", apply);

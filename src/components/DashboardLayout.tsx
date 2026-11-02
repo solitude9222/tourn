@@ -3,6 +3,7 @@ import type { Account } from "../lib/auth";
 import { CARD_STYLES, type About, type AboutDesign, type CardStyle } from "../lib/about";
 import type { WidgetStore } from "../lib/widgets";
 import { CheckIcon } from "./Icons";
+import { Select } from "./Select";
 import "../layoutPages.css";
 
 /* ── reusable controls ─────────────────────────────────────── */
@@ -60,28 +61,27 @@ function LayoutSelect({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="lp-select">
+    <div className="lp-select">
       <span>{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </label>
+      <Select value={value} options={options} onChange={onChange} ariaLabel={label} />
+    </div>
   );
 }
 
 /* ── position presets ──────────────────────────────────────── */
 
 const PFP_POSITIONS = [
-  { value: "default", label: "Default (top-left)" },
+  { value: "default", label: "Left (default)" },
   { value: "center", label: "Centered" },
-  { value: "top-right", label: "Top-right" },
-  { value: "left", label: "Far left" },
-  { value: "right", label: "Far right" },
-  { value: "above", label: "Above card" },
+  { value: "top-right", label: "Right" },
+  { value: "above", label: "Above content" },
+];
+
+const AVATAR_SHAPES = [
+  { value: "circle", label: "Circle" },
+  { value: "rounded", label: "Rounded square" },
+  { value: "square", label: "Square" },
+  { value: "hexagon", label: "Hexagon" },
 ];
 
 const BADGE_POSITIONS = [
@@ -187,8 +187,8 @@ export function DashboardLayout({
             <LayoutSlider
               label="Card width"
               value={design.cardWidth}
-              min={300}
-              max={680}
+              min={320}
+              max={900}
               step={1}
               unit="px"
               onChange={(v) => update({ cardWidth: v })}
@@ -265,24 +265,7 @@ export function DashboardLayout({
             />
           </div>
 
-          <div className="lp-toggle" style={{ marginTop: 12 }}>
-            <div>
-              <b>Tilt glare</b>
-              <p>A soft light glare follows the pointer while the card tilts.</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={design.tiltGlare}
-              aria-label="Tilt glare"
-              className={`switch${design.tiltGlare ? " is-on" : ""}`}
-              disabled={design.tilt <= 0}
-              onClick={() => update({ tiltGlare: !design.tiltGlare })}
-            >
-              <span />
-            </button>
-          </div>
-          <p className="lp-hint">Set Card tilt above 0° to enable the pointer tilt.</p>
+          <p className="lp-hint">Tilt follows the pointer when you set it above 0°.</p>
         </section>
 
         {/* Typography & avatar */}
@@ -291,6 +274,15 @@ export function DashboardLayout({
             <h2>Typography &amp; avatar</h2>
             <p>Size of the avatar, display name and bio text.</p>
           </header>
+
+          <div className="lp-dropdown-grid" style={{ marginBottom: 12 }}>
+            <LayoutSelect
+              label="Avatar shape"
+              value={design.avatarShape}
+              options={AVATAR_SHAPES}
+              onChange={(v) => update({ avatarShape: v as typeof design.avatarShape })}
+            />
+          </div>
 
           <div className="lp-slider-grid">
             <LayoutSlider
@@ -333,27 +325,27 @@ export function DashboardLayout({
           <div className="lp-dropdown-grid">
             <LayoutSelect
               label="Profile picture"
-              value={(design as Record<string, unknown>).pfpPosition as string ?? "default"}
+              value={design.pfpPosition}
               options={PFP_POSITIONS}
-              onChange={(v) => update({ avatarX: 0, avatarY: 0, ...({pfpPosition: v} as Partial<AboutDesign>) })}
+              onChange={(v) => update({ pfpPosition: v as typeof design.pfpPosition })}
             />
             <LayoutSelect
               label="Badges"
-              value={(design as Record<string, unknown>).badgePosition as string ?? "default"}
+              value={design.badgePosition}
               options={BADGE_POSITIONS}
-              onChange={(v) => update({ badgeX: 0, badgeY: 0, ...({badgePosition: v} as Partial<AboutDesign>) })}
+              onChange={(v) => update({ badgePosition: v as typeof design.badgePosition })}
             />
             <LayoutSelect
               label="Display name"
-              value={(design as Record<string, unknown>).namePosition as string ?? "default"}
+              value={design.namePosition}
               options={NAME_POSITIONS}
-              onChange={(v) => update({...({namePosition: v} as Partial<AboutDesign>)})}
+              onChange={(v) => update({ namePosition: v as typeof design.namePosition })}
             />
             <LayoutSelect
               label="Bio text"
-              value={(design as Record<string, unknown>).bioPosition as string ?? "default"}
+              value={design.bioPosition}
               options={BIO_POSITIONS}
-              onChange={(v) => update({...({bioPosition: v} as Partial<AboutDesign>)})}
+              onChange={(v) => update({ bioPosition: v as typeof design.bioPosition })}
             />
           </div>
         </section>

@@ -5,8 +5,12 @@ import {
   MAX_BIO_LENGTH,
   type About,
   type AboutDesign,
+  type AboutMetadata,
   type ProfileColors,
+  type TabAnimation,
 } from "../lib/about";
+import { ImageUpload } from "./ImageUpload";
+import { Select } from "./Select";
 import type { WidgetStore } from "../lib/widgets";
 import { ColorField } from "./ColorPicker";
 import { RichText } from "./RichText";
@@ -54,7 +58,7 @@ const SLIDERS: {
   step: number;
   unit?: string;
 }[] = [
-  { key: "cardWidth", label: "Card width", min: 300, max: 680, step: 1, unit: "px" },
+  { key: "cardWidth", label: "Card width", min: 320, max: 900, step: 1, unit: "px" },
   { key: "cardPadding", label: "Card padding", min: 12, max: 40, step: 1, unit: "px" },
   { key: "cardRadius", label: "Corner radius", min: 0, max: 36, step: 1, unit: "px" },
   { key: "borderWidth", label: "Border width", min: 0, max: 6, step: 1, unit: "px" },
@@ -173,6 +177,10 @@ export function DashboardAbout({
   const update = (patch: Partial<About>) => {
     setDraft((current) => ({ ...current, ...patch }));
     setSaved(false);
+  };
+
+  const updateMetadata = (patch: Partial<AboutMetadata>) => {
+    setDraft((current) => ({ ...current, metadata: { ...current.metadata, ...patch } }));
   };
 
   const updateDesign = (patch: Partial<AboutDesign>) => {
@@ -433,32 +441,32 @@ export function DashboardAbout({
                 </div>
               </label>
 
-              <label className="about-field">
+              <div className="about-field">
                 <span>Theme</span>
-                <select
+                <Select
                   value={draft.design.theme}
-                  onChange={(event) =>
-                    updateDesign({ theme: event.target.value as AboutDesign["theme"] })
-                  }
-                >
-                  <option value="portfolio">Portfolio</option>
-                  <option value="modern">Modern</option>
-                  <option value="default">Default</option>
-                </select>
-              </label>
+                  ariaLabel="Theme"
+                  options={[
+                    { value: "portfolio", label: "Portfolio" },
+                    { value: "modern", label: "Modern" },
+                    { value: "default", label: "Default" },
+                  ]}
+                  onChange={(value) => updateDesign({ theme: value as AboutDesign["theme"] })}
+                />
+              </div>
 
-              <label className="about-field">
+              <div className="about-field">
                 <span>Portfolio layout</span>
-                <select
+                <Select
                   value={draft.design.layout}
-                  onChange={(event) =>
-                    updateDesign({ layout: event.target.value as AboutDesign["layout"] })
-                  }
-                >
-                  <option value="classic">Classic</option>
-                  <option value="modern">Modern</option>
-                </select>
-              </label>
+                  ariaLabel="Portfolio layout"
+                  options={[
+                    { value: "classic", label: "Classic" },
+                    { value: "modern", label: "Modern" },
+                  ]}
+                  onChange={(value) => updateDesign({ layout: value as AboutDesign["layout"] })}
+                />
+              </div>
             </div>
 
             <div className="about-ranges">
@@ -532,6 +540,90 @@ export function DashboardAbout({
                 </div>
               </div>
             </details>
+          </section>
+
+          <section className="dash-panel about-panel" data-reveal data-reveal-delay="60">
+            <header className="about-panel-head">
+              <div>
+                <h2>Metadata</h2>
+                <p>What the browser tab and the link show when someone opens tourn.lol/{user.username}.</p>
+              </div>
+            </header>
+
+            <label className="about-field">
+              <span>Tab name</span>
+              <input
+                value={draft.metadata.title}
+                onChange={(event) => updateMetadata({ title: event.target.value.slice(0, 60) })}
+                placeholder={draft.displayName.trim() || user.username}
+                maxLength={60}
+              />
+            </label>
+            <p className="about-help">Leave empty to use your name and tourn.lol.</p>
+
+            <div className="about-block">
+              <span className="about-label">Favicon</span>
+              <ImageUpload
+                label="favicon"
+                value={draft.metadata.faviconUrl}
+                onChange={(value) => updateMetadata({ faviconUrl: value })}
+                hint="The little icon in the browser tab and next to the link. Empty = your profile picture."
+                recommended="Square image · 128 × 128 or larger"
+                variant="compact"
+                maxWidth={128}
+                maxHeight={128}
+              />
+            </div>
+
+            <div className="about-columns">
+              <div className="about-field">
+                <span>Tab animation</span>
+                <Select
+                  value={draft.metadata.animation}
+                  ariaLabel="Tab animation"
+                  options={[
+                    { value: "none", label: "Static" },
+                    { value: "cycle", label: "Cycle messages" },
+                    { value: "typewriter", label: "Typewriter" },
+                  ]}
+                  onChange={(value) => updateMetadata({ animation: value as TabAnimation })}
+                />
+              </div>
+
+              <label className="about-field">
+                <span>Seconds per message</span>
+                <input
+                  type="number"
+                  min={2}
+                  max={30}
+                  value={draft.metadata.interval}
+                  onChange={(event) =>
+                    updateMetadata({ interval: Math.min(30, Math.max(2, Number(event.target.value) || 6)) })
+                  }
+                />
+              </label>
+            </div>
+
+            <label className="about-field">
+              <span>Tab messages (one per line)</span>
+              <textarea
+                rows={3}
+                value={draft.metadata.messages.join("\n")}
+                onChange={(event) =>
+                  updateMetadata({
+                    messages: event.target.value
+                      .split("\n")
+                      .map((line) => line.slice(0, 60))
+                      .slice(0, 8),
+                  })
+                }
+                placeholder={"tourn.lol\n@" + user.username}
+                spellCheck={false}
+              />
+            </label>
+            <p className="about-help">
+              Only used when an animation is selected. Empty lines are ignored.
+            </p>
           </section>
 
           <div className="about-savebar">

@@ -7,6 +7,7 @@ import { DEFAULT_BADGE_STYLE, EMPTY_BADGE_STORE, type BadgeStore } from "../lib/
 import { DEFAULT_LINK_DESIGN, EMPTY_LINK_STORE, type LinkStore } from "../lib/links";
 import { ProfilePreview } from "./ProfilePreview";
 import { ProfileLinks } from "./ProfileLinks";
+import { ProfileMetadata } from "./ProfileMetadata";
 import { BackgroundEffectLayer, OverlayEffectLayer } from "./ProfileEffects";
 import { WidgetCard } from "./WidgetCard";
 import { ChevronIcon } from "./Icons";
@@ -48,7 +49,9 @@ function EntryOverlay({
     return () => window.clearTimeout(timer);
   }, [playToken, beginLeave]);
 
-  const title = entry.title.trim() || (!entry.imageUrl ? about.displayName.trim() || "Welcome" : "");
+  // Nothing is invented here — no default greeting, no "click to enter" copy.
+  // Whatever the owner typed is the whole entry screen.
+  const title = entry.title.trim();
 
   const content = (
     <>
@@ -98,7 +101,6 @@ function EntryOverlay({
       style={{
         "--lkr-entry-accent": accent,
         "--lkr-entry-blur": `${entry.blur}px`,
-        "--lkr-entry-glow": `${entry.glow}px`,
       } as CSSProperties}
     >
       <div className="lkr-entry-bg" aria-hidden="true" />
@@ -338,6 +340,7 @@ export function LinkerPreview({
       style={style}
       data-interactive={interactive ? "true" : undefined}
     >
+      <ProfileMetadata about={about} user={user} />
       <div className={`lkr-bg lkr-bg--${assets.background.style}`} aria-hidden="true">
         {assets.background.style === "image" && assets.background.imageUrl ? (
           <span

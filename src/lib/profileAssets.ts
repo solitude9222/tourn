@@ -1,4 +1,6 @@
 export type AvatarDecorationStyle = "none" | "ring" | "glow" | "stars" | "flame" | "blob";
+/** Light-and-sheen treatments for the profile card itself. */
+export type CardEffectId = "none" | "shimmer" | "sheen" | "hologram" | "aurora" | "edgeGlow" | "frost";
 export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
 export type ProfileBackgroundStyle = "solid" | "gradient" | "image";
 /** Canvas background effects — the same twelve engines power both the
@@ -19,7 +21,20 @@ export type BackgroundEffectId =
   | "leaf";
 export type OverlayEffectId = BackgroundEffectId;
 export type AudioStyle = "none" | "compact" | "marquee" | "lyrics" | "vinyl";
-export type TextEffectId = "none" | "rgb" | "wave" | "typewriter" | "glow" | "sparkle" | "glitch" | "neon" | "bounce" | "fade" | "flicker" | "shake";
+export type TextEffectId =
+  | "none"
+  | "rgb"
+  | "wave"
+  | "typewriter"
+  | "glow"
+  | "sparkle"
+  | "shimmer"
+  | "glitch"
+  | "neon"
+  | "bounce"
+  | "fade"
+  | "flicker"
+  | "shake";
 export type TextEffectTarget = "alias" | "name" | "bio";
 
 /* ── per-effect custom settings ───────────────────────────────────────────
@@ -59,6 +74,7 @@ export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
   typewriter: { kind: "toggle", key: "cursor", label: "Blinking cursor", default: true },
   glow: { kind: "toggle", key: "pulse", label: "Pulse", default: true },
   sparkle: { kind: "slider", key: "density", label: "Density", min: 3, max: 20, step: 1, default: 10 },
+  shimmer: { kind: "slider", key: "shineWidth", label: "Shine width", min: 10, max: 80, step: 5, unit: "%", default: 40 },
   glitch: { kind: "slider", key: "intensity", label: "Intensity", min: 1, max: 10, step: 1, default: 4 },
   neon: { kind: "toggle", key: "flicker", label: "Flicker", default: true },
   bounce: { kind: "slider", key: "amplitude", label: "Amplitude", min: 3, max: 18, step: 1, unit: "px", default: 8 },
@@ -139,8 +155,10 @@ export type AudioSettings = {
   cardOpacity: number;
   /** Accent colour for the progress fill / highlighted lyric line. */
   accentColor: string;
-  /** Player scale, 0.85–1.25 — how large the player renders on the page. */
+  /** Player scale, 0.85–1.25 — retained for saved documents; always full width. */
   size: number;
+  /** Start playing as soon as the page opens (with an interaction fallback). */
+  autoplay: boolean;
 };
 
 export type BannerSettings = {
@@ -148,6 +166,15 @@ export type BannerSettings = {
   imageUrl: string;
   height: number;
   opacity: number;
+};
+
+export type CardEffectSettings = {
+  id: CardEffectId;
+  color: string;
+  /** 0–100, how strong the sheen reads. */
+  intensity: number;
+  /** seconds per sweep; higher = slower. */
+  speed: number;
 };
 
 export type BackgroundEffectSettings = {
@@ -186,6 +213,8 @@ export type TextEffectSettings = {
 
 export type ProfileAssets = {
   avatarUrl: string;
+  /** Card-level light treatment (shimmer, sheen, hologram, …). */
+  card: CardEffectSettings;
   decoration: DecorationSettings;
   cursor: CursorSettings;
   background: BackgroundSettings;
@@ -210,6 +239,12 @@ export const DEFAULT_TEXT_EFFECT: TextEffectSettings = {
 
 export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   avatarUrl: "",
+  card: {
+    id: "none",
+    color: "#ffffff",
+    intensity: 55,
+    speed: 6,
+  },
   decoration: {
     style: "none",
     color: "#a8e0ff",
@@ -238,7 +273,8 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   banner: {
     enabled: true,
     imageUrl: "",
-    height: 84,
+    // Tall enough to read as a real banner, not a thin strip.
+    height: 150,
     opacity: 0.92,
   },
   audio: {
@@ -252,6 +288,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     cardOpacity: 0.92,
     accentColor: "#f2c9dd",
     size: 1,
+    autoplay: true,
   },
   effects: {
     background: {
@@ -277,6 +314,16 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     },
   },
 };
+
+export const CARD_EFFECTS: { id: CardEffectId; name: string; hint: string }[] = [
+  { id: "none", name: "None", hint: "Plain card surface" },
+  { id: "shimmer", name: "Shimmer", hint: "A soft light band sweeps across the card" },
+  { id: "sheen", name: "Sheen", hint: "Glossy top highlight that breathes" },
+  { id: "hologram", name: "Hologram", hint: "Iridescent colour drift along the edges" },
+  { id: "aurora", name: "Aurora", hint: "Slow, cloudy colour wash behind the content" },
+  { id: "edgeGlow", name: "Edge glow", hint: "Accent light hugging the card border" },
+  { id: "frost", name: "Frost", hint: "Fine frosted grain with a dull shine" },
+];
 
 export const DECORATIONS: { id: AvatarDecorationStyle; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "Clean avatar" },
@@ -313,6 +360,7 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
   { id: "typewriter", name: "Typewriter", hint: "Reveal letter by letter" },
   { id: "glow", name: "Glow", hint: "Soft coloured halo" },
   { id: "sparkle", name: "Sparkle", hint: "Tiny moving stars" },
+  { id: "shimmer", name: "Shimmer", hint: "Light sweeps across the letters" },
   { id: "glitch", name: "Glitch", hint: "Digital interference" },
   { id: "neon", name: "Neon", hint: "Bright tube glow" },
   { id: "bounce", name: "Bounce", hint: "Letters hop in sequence" },
@@ -398,6 +446,7 @@ function loadAudio(value: unknown): AudioSettings {
     cardOpacity: numberIn(raw.cardOpacity, DEFAULT_PROFILE_ASSETS.audio.cardOpacity, 0, 1),
     accentColor: colorIn(raw.accentColor, DEFAULT_PROFILE_ASSETS.audio.accentColor),
     size: 1,
+    autoplay: boolIn(raw.autoplay, DEFAULT_PROFILE_ASSETS.audio.autoplay),
   };
 }
 
@@ -407,6 +456,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
   const cursor = (raw.cursor ?? {}) as Partial<CursorSettings>;
   const background = (raw.background ?? {}) as Partial<BackgroundSettings>;
   const banner = (raw.banner ?? {}) as Partial<BannerSettings>;
+  const card = (raw.card ?? {}) as Partial<CardEffectSettings>;
   const effects = (raw.effects ?? {}) as Partial<ProfileAssets["effects"]>;
   const backgroundEffect = (effects.background ?? {}) as Partial<BackgroundEffectSettings>;
   const overlay = (effects.overlay ?? {}) as Partial<OverlayEffectSettings>;
@@ -417,15 +467,23 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
 
   return {
     avatarUrl: textIn(raw.avatarUrl, "", 2_500_000),
+    card: {
+      id: choiceIn(card.id, CARD_EFFECTS.map((item) => item.id), DEFAULT_PROFILE_ASSETS.card.id),
+      color: colorIn(card.color, DEFAULT_PROFILE_ASSETS.card.color),
+      intensity: numberIn(card.intensity, DEFAULT_PROFILE_ASSETS.card.intensity, 0, 100),
+      speed: numberIn(card.speed, DEFAULT_PROFILE_ASSETS.card.speed, 1.5, 20),
+    },
     decoration: {
-      style: choiceIn(
-        decoration.style,
-        DECORATIONS.map((item) => item.id),
-        DEFAULT_PROFILE_ASSETS.decoration.style,
-      ),
+      // Avatar decorations are Discord presets only; the old generated styles
+      // (ring/glow/stars/…) are kept in the type for saved documents but are
+      // never rendered.
+      style: "none",
       color: colorIn(decoration.color, DEFAULT_PROFILE_ASSETS.decoration.color),
       size: numberIn(decoration.size, DEFAULT_PROFILE_ASSETS.decoration.size, 0.5, 1.8),
       spin: boolIn(decoration.spin, DEFAULT_PROFILE_ASSETS.decoration.spin),
+      discordUrl: textIn(decoration.discordUrl, "", 900),
+      zoom: numberIn(decoration.zoom, 1, 0.5, 2),
+      rotate: numberIn(decoration.rotate, 0, -180, 180),
     },
     cursor: {
       // The preset cursors were replaced by a single uploaded image. Migrate
@@ -453,7 +511,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
     banner: {
       enabled: boolIn(banner.enabled, DEFAULT_PROFILE_ASSETS.banner.enabled),
       imageUrl: textIn(banner.imageUrl, "", 2_500_000),
-      height: numberIn(banner.height, DEFAULT_PROFILE_ASSETS.banner.height, 40, 220),
+      height: numberIn(banner.height, DEFAULT_PROFILE_ASSETS.banner.height, 110, 260),
       opacity: numberIn(banner.opacity, DEFAULT_PROFILE_ASSETS.banner.opacity, 0, 1),
     },
     audio: loadAudio(raw.audio),

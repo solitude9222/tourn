@@ -48,6 +48,45 @@ function withDocument(payload: Omit<ProfilePayload, "profile"> & { profile: unkn
   };
 }
 
+/* ---------------------------------------------------------------------------
+   Profile cache.
+
+   A linker page has to paint immediately. The published document is cached per
+   handle in localStorage so a repeat visit (or a click between two profiles)
+   renders the real card — entry screen included — before any network request
+   finishes. The fetch still runs and replaces the cached copy when it lands.
+   --------------------------------------------------------------------------- */
+
+const CACHE_PREFIX = "tourn.lol/profile-cache/v2/";
+/** Cached copies older than this are ignored so a stale page never sticks. */
+const CACHE_MAX_AGE = 1000 * 60 * 60 * 12;
+/** Big pages (data-URL backgrounds) would blow the storage quota — skip those. */
+const CACHE_MAX_BYTES = 320_000;
+
+export function readCachedProfile(handle: string): ProfilePayload | null {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + handle.toLowerCase());
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { savedAt?: number; data?: unknown };
+    if (!parsed?.savedAt || Date.now() - parsed.savedAt > CACHE_MAX_AGE) return null;
+    const data = withDocument(parsed.data as ProfilePayload);
+    if (!data.account?.username) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedProfile(handle: string, data: ProfilePayload): void {
+  try {
+    const serialized = JSON.stringify({ savedAt: Date.now(), data });
+    if (serialized.length > CACHE_MAX_BYTES) return;
+    localStorage.setItem(CACHE_PREFIX + handle.toLowerCase(), serialized);
+  } catch {
+    /* quota or private mode — the page still works, it just skips the cache */
+  }
+}
+
 /** The public page behind tourn.lol/<handle>. */
 export async function fetchPublicProfile(
   handle: string,
@@ -56,7 +95,18 @@ export async function fetchPublicProfile(
   if (!result.ok) {
     return { ok: false, notFound: result.status === 404, error: result.error };
   }
-  return { ok: true, data: withDocument(result.data) };
+  const data = withDocument(result.data);
+  if (data.profile) writeCachedProfile(handle, data);
+  return { ok: true, data };
+}
+
+/** Drop a cached page, e.g. right after the owner publishes an edit. */
+export function clearCachedProfile(handle: string): void {
+  try {
+    localStorage.removeItem(CACHE_PREFIX + handle.toLowerCase());
+  } catch {
+    /* ignore */
+  }
 }
 
 /** The signed-in account's own document — hydrates a new device. */

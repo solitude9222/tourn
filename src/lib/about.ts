@@ -6,6 +6,29 @@ export type AboutLayout = "classic" | "modern";
 /** The public "linker" page layout. */
 export type CardStyle = "default" | "banner" | "compact" | "minimal" | "slideshow";
 
+/** Where the avatar sits in the card's top row. */
+export type PfpPosition = "default" | "center" | "top-right" | "left" | "right" | "above";
+/** Where the badge row renders. */
+export type BadgePosition = "default" | "above-name" | "top-right" | "bottom" | "beside-avatar" | "hidden";
+/** Alignment shared by the display name and bio. */
+export type TextAlignPosition = "default" | "center" | "left" | "right";
+export type AvatarShape = "circle" | "rounded" | "square" | "hexagon";
+
+/** Browser-tab behaviour for the public page. */
+export type TabAnimation = "none" | "cycle" | "typewriter";
+
+export type AboutMetadata = {
+  /** Custom tab title. Empty = the account's name + tourn.lol. */
+  title: string;
+  /** Custom favicon. Empty = the account's profile picture. */
+  faviconUrl: string;
+  animation: TabAnimation;
+  /** Titles cycled in the tab, one per entry. */
+  messages: string[];
+  /** Seconds each title stays up. */
+  interval: number;
+};
+
 export type EntryAnimation = "split" | "bottom-right" | "top-left" | "fade" | "zoom";
 
 export type SlideshowSettings = {
@@ -22,7 +45,6 @@ export type EntrySettings = {
   imageUrl: string;
   animation: EntryAnimation;
   blur: number;
-  glow: number;
 };
 
 export type ProfileColors = {
@@ -51,8 +73,13 @@ export type AboutDesign = {
   bioSize: number;
   /** Pointer tilt strength in degrees (0 = off). */
   tilt: number;
-  /** Light glare that follows the pointer while tilting. */
+  /** Retained for saved documents; the pointer glare is no longer rendered. */
   tiltGlare: boolean;
+  pfpPosition: PfpPosition;
+  badgePosition: BadgePosition;
+  namePosition: TextAlignPosition;
+  bioPosition: TextAlignPosition;
+  avatarShape: AvatarShape;
   slideshow: SlideshowSettings;
   entry: EntrySettings;
   colors: ProfileColors;
@@ -68,8 +95,17 @@ export type About = {
   displayName: string;
   bio: string;
   location: string;
+  metadata: AboutMetadata;
   design: AboutDesign;
   assets: ProfileAssets;
+};
+
+export const DEFAULT_METADATA: AboutMetadata = {
+  title: "",
+  faviconUrl: "",
+  animation: "none",
+  messages: [],
+  interval: 6,
 };
 
 export const MAX_BIO_LENGTH = 800;
@@ -97,7 +133,6 @@ export const DEFAULT_ENTRY: EntrySettings = {
   imageUrl: "",
   animation: "split",
   blur: 8,
-  glow: 14,
 };
 
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
@@ -117,6 +152,11 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   bioSize: 11.5,
   tilt: 0,
   tiltGlare: false,
+  pfpPosition: "default",
+  badgePosition: "default",
+  namePosition: "default",
+  bioPosition: "default",
+  avatarShape: "circle",
   slideshow: DEFAULT_SLIDESHOW,
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
@@ -126,6 +166,7 @@ export const EMPTY_ABOUT: About = {
   displayName: "",
   bio: "",
   location: "",
+  metadata: DEFAULT_METADATA,
   design: DEFAULT_ABOUT_DESIGN,
   assets: DEFAULT_PROFILE_ASSETS,
 };
@@ -164,6 +205,41 @@ function textIn(value: unknown, fallback: string, max: number): string {
   return typeof value === "string" ? value.slice(0, max) : fallback;
 }
 
+function oneOf<T extends string>(value: unknown, options: readonly T[], fallback: T): T {
+  return options.includes(value as T) ? (value as T) : fallback;
+}
+
+const PFP_POSITIONS: readonly PfpPosition[] = ["default", "center", "top-right", "left", "right", "above"];
+const BADGE_POSITIONS: readonly BadgePosition[] = [
+  "default",
+  "above-name",
+  "top-right",
+  "bottom",
+  "beside-avatar",
+  "hidden",
+];
+const TEXT_POSITIONS: readonly TextAlignPosition[] = ["default", "center", "left", "right"];
+const AVATAR_SHAPES: readonly AvatarShape[] = ["circle", "rounded", "square", "hexagon"];
+const TAB_ANIMATIONS: readonly TabAnimation[] = ["none", "cycle", "typewriter"];
+
+function loadMetadata(input: unknown): AboutMetadata {
+  const raw = (input ?? {}) as Partial<AboutMetadata>;
+  const messages = Array.isArray(raw.messages)
+    ? raw.messages
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.slice(0, 60).trim())
+        .filter(Boolean)
+        .slice(0, 8)
+    : [];
+  return {
+    title: textIn(raw.title, DEFAULT_METADATA.title, 60),
+    faviconUrl: textIn(raw.faviconUrl, DEFAULT_METADATA.faviconUrl, 250_000),
+    animation: oneOf(raw.animation, TAB_ANIMATIONS, DEFAULT_METADATA.animation),
+    messages,
+    interval: numberIn(raw.interval, DEFAULT_METADATA.interval, 2, 30),
+  };
+}
+
 function loadSlideshow(input: unknown): SlideshowSettings {
   const raw = (input ?? {}) as Partial<SlideshowSettings>;
   return {
@@ -186,7 +262,6 @@ function loadEntry(input: unknown): EntrySettings {
     imageUrl: textIn(raw.imageUrl, DEFAULT_ENTRY.imageUrl, 2_500_000),
     animation,
     blur: numberIn(raw.blur, DEFAULT_ENTRY.blur, 0, 24),
-    glow: numberIn(raw.glow, DEFAULT_ENTRY.glow, 0, 40),
   };
 }
 
@@ -203,7 +278,7 @@ function loadDesign(input: unknown): AboutDesign {
     theme,
     layout,
     cardStyle,
-    cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 300, 680),
+    cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 900),
     cardRadius: numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 36),
     borderWidth: numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 6),
     borderOpacity: numberIn(raw.borderOpacity, DEFAULT_ABOUT_DESIGN.borderOpacity, 0, 1),
@@ -221,6 +296,11 @@ function loadDesign(input: unknown): AboutDesign {
     bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 9, 16),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 16),
     tiltGlare: boolIn(raw.tiltGlare, DEFAULT_ABOUT_DESIGN.tiltGlare),
+    pfpPosition: oneOf(raw.pfpPosition, PFP_POSITIONS, DEFAULT_ABOUT_DESIGN.pfpPosition),
+    badgePosition: oneOf(raw.badgePosition, BADGE_POSITIONS, DEFAULT_ABOUT_DESIGN.badgePosition),
+    namePosition: oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
+    bioPosition: oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
+    avatarShape: oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
     slideshow: loadSlideshow(raw.slideshow),
     entry: loadEntry(raw.entry),
     colors: {
@@ -249,6 +329,7 @@ export function normalizeAbout(input: unknown): About {
     displayName: String(parsed.displayName ?? "").trim().slice(0, 32),
     bio: String(parsed.bio ?? "").slice(0, MAX_BIO_LENGTH),
     location: String(parsed.location ?? "").trim().slice(0, 64),
+    metadata: loadMetadata(parsed.metadata),
     design: loadDesign(parsed.design),
     assets: loadProfileAssets(parsed.assets),
   };

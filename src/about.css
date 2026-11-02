@@ -630,13 +630,29 @@
   backdrop-filter: blur(var(--pv-blur));
 }
 
+/* Full-bleed banner: spans the whole card, always covers its box, and fades
+   into the card body so the avatar overlap stays readable. */
 .pv-banner {
   position: relative;
-  height: 76px;
-  background:
+  width: 100%;
+  min-height: 110px;
+  height: 110px;
+  background-color: var(--pv-card);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-image:
     radial-gradient(240px 130px at 22% 0%, rgba(255, 255, 255, 0.18), transparent 70%),
-    linear-gradient(120deg, color-mix(in srgb, var(--pv-accent) 55%, transparent), transparent 72%),
-    var(--pv-card);
+    linear-gradient(120deg, color-mix(in srgb, var(--pv-accent) 55%, transparent), transparent 72%);
+}
+
+.pv-banner::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(to top, var(--pv-card), transparent);
+  pointer-events: none;
 }
 
 .pv-card-banner .pv-body {
@@ -728,7 +744,7 @@
   place-items: center;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 24%;
+  border-radius: 50%;
   background: linear-gradient(145deg, var(--pv-accent), rgba(255, 255, 255, 0.06));
   color: #061018;
   font-size: calc(var(--pv-avatar) * 0.36);
@@ -740,22 +756,139 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(var(--pv-zoom, 1)) rotate(var(--pv-rotate, 0deg));
+}
+
+/* Discord avatar decoration — the preset APNG paints outside the avatar box. */
+.pv-avatar-decoration {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 128%;
+  height: 128%;
+  translate: -50% -50%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── avatar shape ────────────────────────────────────────── */
+
+.profile-preview[data-shape="rounded"] .pv-avatar {
+  border-radius: 24%;
+}
+
+.profile-preview[data-shape="square"] .pv-avatar {
+  border-radius: 6px;
+}
+
+.profile-preview[data-shape="hexagon"] .pv-avatar {
+  border-radius: 18%;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+}
+
+/* ── element placement ───────────────────────────────────── */
+
+.profile-preview[data-pfp="center"] .pv-topline {
+  justify-content: center;
+}
+
+.profile-preview[data-pfp="center"] .pv-location {
+  margin-left: 0;
+}
+
+.profile-preview[data-pfp="top-right"] .pv-topline,
+.profile-preview[data-pfp="right"] .pv-topline {
+  flex-direction: row-reverse;
+}
+
+.profile-preview[data-pfp="top-right"] .pv-location,
+.profile-preview[data-pfp="right"] .pv-location {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.profile-preview[data-pfp="above"] .pv-topline {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-preview[data-pfp="above"] .pv-location {
+  margin: 0;
+}
+
+.profile-preview[data-name="center"] .pv-id,
+.profile-preview[data-name="center"] .pv-id > span {
+  text-align: center;
+}
+
+.profile-preview[data-name="right"] .pv-id,
+.profile-preview[data-name="right"] .pv-id > span {
+  text-align: right;
+}
+
+.profile-preview[data-name="left"] .pv-id,
+.profile-preview[data-name="left"] .pv-id > span {
+  text-align: left;
+}
+
+.profile-preview[data-bio="center"] .pv-bio {
+  text-align: center;
+}
+
+.profile-preview[data-bio="right"] .pv-bio {
+  text-align: right;
+}
+
+.profile-preview[data-bio="left"] .pv-bio {
+  text-align: left;
+}
+
+.pv-badges--top-right {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  margin: 0;
+}
+
+.pv-badges--above-name {
+  margin: 10px 0 8px;
+}
+
+.pv-badges--bottom {
+  margin-top: 16px;
+}
+
+.profile-preview[data-badges="beside-avatar"] .pv-badges {
+  margin: 0;
 }
 
 .pv-location {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
+  max-width: 55%;
   margin-left: auto;
-  padding: 3px 7px;
+  padding: 4px 9px 4px 7px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--pv-accent) 22%, rgba(255, 255, 255, 0.06));
   border-radius: 999px;
-  color: var(--pv-muted);
-  font-size: 8.5px;
+  background: color-mix(in srgb, var(--pv-accent) 9%, rgba(255, 255, 255, 0.02));
+  color: color-mix(in srgb, var(--pv-text) 82%, transparent);
+  font-size: 9.5px;
+  font-weight: 550;
+  letter-spacing: 0.005em;
   text-overflow: ellipsis;
   white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+.pv-location svg {
+  flex: none;
+  color: var(--pv-accent);
 }
 
 .pv-id h3 {
@@ -842,7 +975,22 @@
   justify-content: center;
   flex: none;
   transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1.4);
+  /* A slow idle float keeps badges alive even when the shine is switched off. */
+  animation: badgeIdle 5s ease-in-out infinite;
 }
+
+@keyframes badgeIdle {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -2px;
+  }
+}
+
+/* Badge motion is a product feature (the art itself used to be animated), so
+   it deliberately runs regardless of the OS reduced-motion preference. */
 
 .badge-chip:hover {
   transform: scale(1.28);
@@ -1321,7 +1469,7 @@
 }
 
 .lkr-slideshow {
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
 }
 
 .lkr-section {
@@ -1330,6 +1478,9 @@
 
 .lkr-slide {
   display: flex;
+  /* Includes padding in the 100% height so each slide is exactly one screen
+     and scroll-snap lands cleanly instead of drifting past the fold. */
+  box-sizing: border-box;
   min-height: 100%;
   flex-direction: column;
   align-items: center;
@@ -1432,7 +1583,9 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--pv-bg);
+  /* Transparent so the real page background shows through the fade-out — a
+     solid layer here made entry → page look like a flash. */
+  background: transparent;
   cursor: pointer;
 }
 
@@ -1444,9 +1597,7 @@
 .lkr-entry-bg {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(360px 240px at 50% 50%, color-mix(in srgb, var(--lkr-entry-accent) 22%, transparent), transparent 70%),
-    var(--pv-bg);
+  background: var(--lkr-bg-color, var(--pv-bg));
   filter: blur(var(--lkr-entry-blur));
   transform: scale(1.08);
 }
@@ -1475,7 +1626,6 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
   background: color-mix(in srgb, var(--lkr-entry-accent) 18%, #0b0d10);
-  box-shadow: 0 0 var(--lkr-entry-glow) color-mix(in srgb, var(--lkr-entry-accent) 45%, transparent);
 }
 
 .lkr-entry-visual img {
@@ -1519,7 +1669,6 @@
   font-size: 22px;
   font-weight: 720;
   letter-spacing: -0.04em;
-  text-shadow: 0 0 var(--lkr-entry-glow) color-mix(in srgb, var(--lkr-entry-accent) 55%, transparent);
 }
 
 .lkr-split {
@@ -1824,6 +1973,134 @@
   place-items: center;
 }
 
+/* ── card effects — light-only treatments (shimmer, sheen, …) ── */
+
+.pv-card-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  opacity: var(--pv-card-fx-strength, 0.55);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.pv-card-fx--shimmer::before {
+  content: "";
+  position: absolute;
+  inset: -60% -30%;
+  background: linear-gradient(
+    112deg,
+    transparent 40%,
+    color-mix(in srgb, var(--pv-card-fx-color) 62%, transparent) 50%,
+    transparent 60%
+  );
+  animation: pvCardShimmer var(--pv-card-fx-speed, 6s) linear infinite;
+}
+
+@keyframes pvCardShimmer {
+  from {
+    transform: translate3d(-32%, 0, 0);
+  }
+  to {
+    transform: translate3d(32%, 0, 0);
+  }
+}
+
+.pv-card-fx--sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    130% 90% at 50% -25%,
+    color-mix(in srgb, var(--pv-card-fx-color) 34%, transparent),
+    transparent 62%
+  );
+  animation: pvCardSheen var(--pv-card-fx-speed, 6s) ease-in-out infinite;
+}
+
+@keyframes pvCardSheen {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.pv-card-fx--hologram::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 128, 190, 0.22),
+    rgba(120, 210, 255, 0.2),
+    rgba(170, 255, 190, 0.18),
+    rgba(255, 210, 140, 0.2),
+    rgba(255, 128, 190, 0.22)
+  );
+  background-size: 300% 100%;
+  mix-blend-mode: screen;
+  animation: pvCardHologram var(--pv-card-fx-speed, 6s) linear infinite;
+}
+
+@keyframes pvCardHologram {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 300% 50%;
+  }
+}
+
+.pv-card-fx--aurora::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  background:
+    radial-gradient(48% 42% at 28% 32%, color-mix(in srgb, var(--pv-card-fx-color) 42%, transparent), transparent 70%),
+    radial-gradient(44% 40% at 72% 68%, color-mix(in srgb, var(--pv-accent) 38%, transparent), transparent 72%);
+  filter: blur(20px);
+  animation: pvCardAurora var(--pv-card-fx-speed, 6s) ease-in-out infinite alternate;
+}
+
+@keyframes pvCardAurora {
+  from {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, 5%, 0) scale(1.08);
+  }
+}
+
+.pv-card-fx--edgeGlow {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--pv-card-fx-color) 40%, transparent),
+    inset 0 0 34px -10px color-mix(in srgb, var(--pv-card-fx-color) 70%, transparent);
+  animation: pvCardEdge var(--pv-card-fx-speed, 6s) ease-in-out infinite;
+}
+
+@keyframes pvCardEdge {
+  0%,
+  100% {
+    opacity: calc(var(--pv-card-fx-strength, 0.55) * 0.55);
+  }
+  50% {
+    opacity: var(--pv-card-fx-strength, 0.55);
+  }
+}
+
+.pv-card-fx--frost {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: calc(var(--pv-card-fx-strength, 0.55) * 0.4);
+  mix-blend-mode: overlay;
+}
+
+
+
 /* Pointer tilt — transform is set inline by useTilt; these rules only supply
    the transition and the optional glare sweep. */
 .profile-preview--tilt {
@@ -2025,6 +2302,33 @@
   color: transparent;
   animation: fxRgbFlow var(--fx-speed) linear infinite;
   filter: brightness(1.1);
+}
+
+/* shimmer — a bright band travels across the letters. Width is a true
+   per-effect control: a narrow band reads as a glint, a wide one as a wash. */
+.fx-text-wrap--shimmer {
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--pv-text) 88%, transparent) 30%,
+    var(--fx-color-a) 44%,
+    #fff 50%,
+    var(--fx-color-a) 56%,
+    color-mix(in srgb, var(--pv-text) 88%, transparent) 70%
+  );
+  background-size: var(--fx-band, 240%) 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fxShimmerSweep var(--fx-speed) linear infinite;
+}
+
+@keyframes fxShimmerSweep {
+  from {
+    background-position: 220% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
 }
 
 /* glow — guns.lol style bright core + soft colored halo. Pulse is a true
@@ -2738,14 +3042,9 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .profile-fx-bg,
-  .profile-fx-overlay,
-  .pv-decoration,
-  .fx-text-wrap {
-    animation: none !important;
-  }
-}
+/* Profile motion (card effects, text effects, badges, canvas) is the point of
+   these settings and is authored by the page owner, so the OS reduced-motion
+   flag no longer freezes it. */
 
 
 /* ── tooltips ──────────────────────────────────────────────── */
@@ -2853,18 +3152,24 @@
 .demo-page .lkr-page,
 .profile-page .lkr-page {
   flex: 1;
+  /* A definite height is what makes the slideshow a real scroll container:
+     with only a min-height the slides stack and the overflow is clipped. */
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
 }
 
 /* ── loading skeleton for a public page ───────────────────── */
 
+/* A profile paints from its cache instantly; a first visit waits on a plain
+   black screen so nothing renders twice or flashes. */
 .profile-page--loading {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  background: radial-gradient(600px 400px at 50% 40%, rgba(56, 189, 248, 0.08), transparent 70%), #06080b;
+  min-height: 100vh;
+  background: #000;
 }
 
 .pv-skeleton {
@@ -2977,56 +3282,23 @@
   position: relative;
   display: grid;
   place-items: center;
+  min-height: 100vh;
   padding: 40px 20px;
-  overflow: hidden;
-  background: #05070a;
+  background: #000;
 }
 
-.pn-aurora {
-  position: absolute;
-  inset: -20%;
-  background:
-    radial-gradient(38% 32% at 50% 22%, rgba(88, 101, 242, 0.28), transparent 70%),
-    radial-gradient(30% 26% at 22% 78%, rgba(56, 189, 248, 0.18), transparent 72%),
-    radial-gradient(26% 22% at 82% 72%, rgba(180, 191, 250, 0.14), transparent 72%);
-  animation: pnDrift 18s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-@keyframes pnDrift {
-  from {
-    transform: translate3d(-2%, -1%, 0) scale(1);
-  }
-  to {
-    transform: translate3d(2%, 2%, 0) scale(1.06);
-  }
-}
-
-.pn-card {
-  position: relative;
-  z-index: 1;
+.pn-shell {
   display: grid;
   justify-items: center;
-  gap: 12px;
-  width: min(430px, 100%);
-  padding: 34px 30px 30px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 26px;
-  background:
-    linear-gradient(180deg, rgba(19, 23, 30, 0.92), rgba(9, 11, 15, 0.96));
-  box-shadow:
-    0 40px 120px -60px #000,
-    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  animation: pnRise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  gap: 10px;
+  width: min(440px, 100%);
+  animation: pnRise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes pnRise {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.985);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -3034,48 +3306,53 @@
   }
 }
 
+.pn-card {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 38px 30px 34px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 16px;
+  background: #0b0b0d;
+}
+
 .pn-mark {
   display: grid;
   place-items: center;
-  width: 62px;
-  height: 62px;
-  border-radius: 19px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 18px 40px -22px rgba(88, 101, 242, 0.9);
+  width: 34px;
+  height: 34px;
+  color: #fff;
 }
 
 .pn-mark img {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
 }
 
-.pn-brand {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #7f8b95;
+.pn-mark-bang {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
 }
 
-.pn-brand span {
-  color: var(--ice, #a8e0ff);
+.pn-title {
+  margin: 0;
+  color: #f4f6f8;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
 }
 
 .pn-handle {
   margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  color: #eef4f8;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
-.pn-handle span {
-  color: #6f7b86;
+  font-size: 12px;
   font-weight: 600;
+  color: #79838d;
+  overflow-wrap: anywhere;
 }
 
 .pn-handle b {
@@ -3127,11 +3404,11 @@
 }
 
 .pn-copy {
-  max-width: 34ch;
-  margin: 2px 0 0;
-  color: #97a3ad;
+  max-width: 36ch;
+  margin: 0;
+  color: #8b949e;
   font-size: 12.5px;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .pn-actions {
@@ -3139,13 +3416,73 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .pn-actions .btn {
   min-width: 0;
 }
 
-.pn--missing .pn-mark {
-  box-shadow: 0 18px 40px -20px rgba(143, 216, 255, 0.75);
+/* Signed-in account bar — only rendered for a visitor with a session. */
+
+.pn-session {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 18px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: #0b0b0d;
+}
+
+.pn-session-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #98a1aa;
+  font-size: 12px;
+}
+
+.pn-session-who b {
+  color: #e7ecf0;
+  font-weight: 650;
+}
+
+.pn-session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.pn-session-btn {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #c9d1d9;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.pn-session-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #fff;
 }

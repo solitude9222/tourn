@@ -89,6 +89,39 @@ export function AudioPlayer({ settings }: { settings: AudioSettings }) {
     setDuration(0);
   }, [settings.fileUrl]);
 
+  // Autoplay: try immediately, and if the browser blocks it, replay on the
+  // visitor's first click or keypress (the entry screen is usually that click).
+  const retryCleanup = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !settings.fileUrl || !settings.autoplay) return;
+    let cancelled = false;
+
+    const armRetry = () => {
+      const retry = () => {
+        cleanup();
+        if (!cancelled) void el.play().catch(() => undefined);
+      };
+      const cleanup = () => {
+        window.removeEventListener("pointerdown", retry);
+        window.removeEventListener("keydown", retry);
+        retryCleanup.current = null;
+      };
+      retryCleanup.current = cleanup;
+      window.addEventListener("pointerdown", retry, { once: true });
+      window.addEventListener("keydown", retry, { once: true });
+    };
+
+    void el.play().catch(() => {
+      if (!cancelled) armRetry();
+    });
+
+    return () => {
+      cancelled = true;
+      retryCleanup.current?.();
+    };
+  }, [settings.fileUrl, settings.autoplay]);
+
   const togglePlay = () => {
     const el = audioRef.current;
     if (!el) return;
@@ -132,7 +165,7 @@ export function AudioPlayer({ settings }: { settings: AudioSettings }) {
     <audio
       ref={audioRef}
       src={settings.fileUrl}
-      preload="metadata"
+      preload="auto"
       onPlay={() => setPlaying(true)}
       onPause={() => setPlaying(false)}
       onEnded={() => setPlaying(false)}

@@ -50,8 +50,26 @@ function handleFromPath(): string | null {
   return handle || null;
 }
 
+/** Page paths that work without a hash, e.g. tourn.lol/dashboard. */
+const PATH_ROUTES: Record<string, Route> = {
+  dashboard: "dashboard",
+  admin: "dashboard",
+  leaderboard: "leaderboard",
+  shop: "shop",
+  premium: "premium",
+};
+
+function routeFromPath(): Route | null {
+  const segment = window.location.pathname
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")[0]
+    .toLowerCase();
+  return PATH_ROUTES[segment] ?? null;
+}
+
 function readRoute(): Route {
-  const hash = window.location.hash.replace(/^#\/?/, "").split("?")[0];
+  const rawHash = window.location.hash;
+  const hash = rawHash.replace(/^#\/?/, "").split("?")[0];
   if (hash === "demo") return "demo";
   // The admin console lives inside the dashboard — old #/admin links land there.
   if (hash === "admin" || hash === "dashboard/admin") return "dashboard";
@@ -60,7 +78,12 @@ function readRoute(): Route {
   }
   if (hash.startsWith("profile/")) return "profile";
   if (!hash) {
+    // `#/` is an explicit "home" link; only a hash-less URL falls back to the
+    // path, so leaving /dashboard for Home still lands on the home page.
+    if (rawHash) return "";
     if (isDemoPath()) return "demo";
+    const pathRoute = routeFromPath();
+    if (pathRoute) return pathRoute;
     if (handleFromPath()) return "profile";
   }
   return "";

@@ -1559,6 +1559,83 @@
   letter-spacing: -0.03em;
 }
 
+/* Card-effect preview stage + picker thumbnails */
+
+.asset-card-fx-stage {
+  position: relative;
+  display: grid;
+  width: 100%;
+  max-width: 340px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 18px;
+  isolation: isolate;
+}
+
+.asset-card-fx-stage .asset-effect-card {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+.card-fx-thumb {
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background: linear-gradient(160deg, #1b2028, #0b0d11);
+  opacity: var(--pv-card-fx-strength, 0.6);
+}
+
+.card-fx-thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.card-fx-thumb--shimmer::before {
+  background: linear-gradient(
+    112deg,
+    transparent 38%,
+    color-mix(in srgb, var(--pv-card-fx-color) 65%, transparent) 50%,
+    transparent 62%
+  );
+}
+
+.card-fx-thumb--sheen::before {
+  background: radial-gradient(
+    125% 90% at 50% -25%,
+    color-mix(in srgb, var(--pv-card-fx-color) 42%, transparent),
+    transparent 66%
+  );
+}
+
+.card-fx-thumb--hologram::before {
+  background: linear-gradient(115deg, rgba(255, 128, 190, 0.32), rgba(120, 210, 255, 0.3), rgba(170, 255, 190, 0.26));
+  mix-blend-mode: screen;
+}
+
+.card-fx-thumb--aurora::before {
+  background:
+    radial-gradient(48% 42% at 30% 30%, color-mix(in srgb, var(--pv-card-fx-color) 50%, transparent), transparent 70%),
+    radial-gradient(46% 40% at 70% 70%, rgba(120, 210, 255, 0.45), transparent 72%);
+  filter: blur(7px);
+}
+
+.card-fx-thumb--edgeGlow::before {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--pv-card-fx-color) 45%, transparent),
+    inset 0 0 16px -4px color-mix(in srgb, var(--pv-card-fx-color) 75%, transparent);
+}
+
+.card-fx-thumb--frost::before {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
 .effect-choice-aa {
   position: relative;
   z-index: 2;

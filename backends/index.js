@@ -221,6 +221,7 @@ function accountOf(row) {
   if (!row) return null;
   return {
     id: row.id,
+    uid: row.uid ?? null,
     username: row.username,
     alias: row.alias ?? null,
     alias2: row.alias2 ?? null,
@@ -233,9 +234,26 @@ function accountOf(row) {
   };
 }
 
+/**
+ * Sequential account number (#1, #2, …) from sign-up order, used on the
+ * profile card. Cheap enough to attach to the one user a request needs.
+ */
+async function withUid(row) {
+  if (!row) return row;
+  try {
+    const { rows } = await pool.query(
+      "select count(*)::int as uid from users where created_at <= $1",
+      [row.created_at],
+    );
+    return { ...row, uid: rows[0]?.uid ?? 1 };
+  } catch {
+    return row;
+  }
+}
+
 async function userById(id) {
   const { rows } = await pool.query("select * from users where id = $1", [id]);
-  return rows[0] ?? null;
+  return withUid(rows[0] ?? null);
 }
 
 function requireAuth(req, res, next) {
@@ -275,6 +293,7 @@ function publicAccountOf(row) {
   if (!row) return null;
   return {
     id: row.id,
+    uid: row.uid ?? null,
     username: row.username,
     alias: row.alias ?? null,
     alias2: row.alias2 ?? null,
@@ -295,7 +314,7 @@ async function userByHandle(handle) {
      limit 1`,
     [clean],
   );
-  return rows[0] ?? null;
+  return withUid(rows[0] ?? null);
 }
 
 async function profileRow(userId) {

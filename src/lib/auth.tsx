@@ -13,6 +13,8 @@ import { loadIsPremium } from "./premium";
 
 export type Account = {
   id: string;
+  /** Sequential account number — always shown as #1, #2, … */
+  uid?: number | null;
   username: string;
   alias?: string | null;
   /** Premium second claim — shown as swats.bio/<alias2>. */
@@ -52,17 +54,13 @@ export function normalizeHandle(input: string): string {
 }
 
 /**
- * Stable numeric UID shown on the profile card ("UID#1").
- * Every account gets a deterministic number derived from its id, so the same
- * account always shows the same UID.
+ * The account's sequential number, shown as "#1", "#2", …
+ * The backend derives it from sign-up order; unknown accounts fall back to #1
+ * rather than inventing a random-looking value.
  */
-export function accountUid(accountId: string | undefined | null): number {
-  if (!accountId) return 1;
-  let hash = 5381;
-  for (let index = 0; index < accountId.length; index += 1) {
-    hash = ((hash * 33) ^ accountId.charCodeAt(index)) >>> 0;
-  }
-  return (hash % 999_999) + 1;
+export function accountUid(account: Pick<Account, "uid"> | null | undefined): number {
+  const uid = account?.uid;
+  return typeof uid === "number" && Number.isFinite(uid) && uid > 0 ? Math.floor(uid) : 1;
 }
 
 type AuthValue = {

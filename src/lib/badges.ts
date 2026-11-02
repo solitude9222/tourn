@@ -62,7 +62,8 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   overlay: false,
   overlayColor: "#b4bffa",
   overlayStrength: 50,
-  animation: "none",
+  // Badges carry a light sweep by default so they never look like flat stickers.
+  animation: "shimmer",
   size: 22,
 };
 

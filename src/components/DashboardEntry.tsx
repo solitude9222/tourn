@@ -3,6 +3,7 @@ import type { Account } from "../lib/auth";
 import { ENTRY_ANIMATIONS, type About, type EntrySettings } from "../lib/about";
 import type { WidgetStore } from "../lib/widgets";
 import { ImageUpload } from "./ImageUpload";
+import { Select } from "./Select";
 import "../layoutPages.css";
 
 export function DashboardEntry({
@@ -68,7 +69,8 @@ export function DashboardEntry({
           </div>
 
           <p className="entry-hint">
-            Use text, an image, or both. Visitors click the screen to trigger the animation.
+            Use text, an image, or nothing at all. The screen stays plain black until whatever you
+            set here appears; a click starts the animation.
           </p>
 
           <label className="lp-field">
@@ -83,18 +85,15 @@ export function DashboardEntry({
 
           <label className="lp-field">
             <span className="lp-label">Animation</span>
-            <select
+            <Select
               value={entry.animation}
-              onChange={(event) =>
-                update({ animation: event.target.value as EntrySettings["animation"] })
-              }
-            >
-              {ENTRY_ANIMATIONS.map((animation) => (
-                <option key={animation.id} value={animation.id}>
-                  {animation.name}
-                </option>
-              ))}
-            </select>
+              ariaLabel="Entry animation"
+              options={ENTRY_ANIMATIONS.map((animation) => ({
+                value: animation.id,
+                label: animation.name,
+              }))}
+              onChange={(value) => update({ animation: value as EntrySettings["animation"] })}
+            />
           </label>
 
           <div className="lp-slider-grid">
@@ -111,21 +110,6 @@ export function DashboardEntry({
                 value={entry.blur}
                 style={{ "--slider-fill": `${(entry.blur / 24) * 100}%` } as CSSProperties}
                 onChange={(event) => update({ blur: Number(event.target.value) })}
-              />
-            </label>
-            <label className="lp-slider">
-              <span className="lp-slider-head">
-                <span>Glow</span>
-                <b>{entry.glow}px</b>
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={40}
-                step={1}
-                value={entry.glow}
-                style={{ "--slider-fill": `${(entry.glow / 40) * 100}%` } as CSSProperties}
-                onChange={(event) => update({ glow: Number(event.target.value) })}
               />
             </label>
           </div>

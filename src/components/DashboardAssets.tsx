@@ -5,7 +5,7 @@ import type { About } from "../lib/about";
 import {
   AUDIO_STYLES,
   BACKGROUND_EFFECTS,
-  DECORATIONS,
+  CARD_EFFECTS,
   DEFAULT_PROFILE_ASSETS,
   OVERLAY_EFFECTS,
   TEXT_EFFECTS,
@@ -19,6 +19,7 @@ import {
   type BackgroundEffectSettings,
   type BackgroundSettings,
   type BannerSettings,
+  type CardEffectSettings,
   type CursorSettings,
   type DecorationSettings,
   type EffectParamSpec,
@@ -264,12 +265,13 @@ function DecorationPicker({
 }
 
 type AssetModal = "effects" | "fonts" | "audio" | null;
-type EffectsTab = "background" | "overlay" | "text";
+type EffectsTab = "background" | "overlay" | "text" | "card";
 
 const EFFECTS_TABS: { id: EffectsTab; name: string }[] = [
   { id: "background", name: "Background" },
   { id: "overlay", name: "Overlay" },
   { id: "text", name: "Text" },
+  { id: "card", name: "Card" },
 ];
 
 function AssetSlider({
@@ -434,27 +436,19 @@ function AssetAvatar({
   const decoration = assets.decoration;
   return (
     <span
-      className={`pv-avatar-wrap asset-avatar pv-deco--${decoration.style}${
-        decoration.spin ? " is-spinning" : ""
-      }`}
+      className="pv-avatar-wrap asset-avatar"
       style={
         {
-          "--pv-deco-color": decoration.color,
-          "--pv-deco-scale": decoration.size,
+          "--pv-zoom": decoration.zoom ?? 1,
+          "--pv-rotate": `${decoration.rotate ?? 0}deg`,
         } as CSSProperties
       }
     >
       <span className="pv-avatar" style={{ "--pv-avatar": "78px" } as CSSProperties}>
         {avatar ? <img src={avatar} alt="" /> : <span>{user.username.slice(0, 1).toUpperCase()}</span>}
       </span>
-      {decoration.style !== "none" ? (
-        <span className="pv-decoration" aria-hidden="true">
-          {decoration.style === "stars"
-            ? Array.from({ length: 6 }, (_, index) => (
-                <i key={index} style={{ "--pv-star-index": index } as CSSProperties} />
-              ))
-            : null}
-        </span>
+      {decoration.discordUrl ? (
+        <img className="pv-avatar-decoration" src={decoration.discordUrl} alt="" aria-hidden="true" />
       ) : null}
     </span>
   );
@@ -555,6 +549,10 @@ export function DashboardAssets({
     updateAssets({ banner: { ...assets.banner, ...patch } });
   };
 
+  const updateCardEffect = (patch: Partial<CardEffectSettings>) => {
+    updateAssets({ card: { ...assets.card, ...patch } });
+  };
+
   const updateAudio = (patch: Partial<AudioSettings>) => {
     updateAssets({ audio: { ...assets.audio, ...patch } });
   };
@@ -623,6 +621,14 @@ export function DashboardAssets({
 
   const backgroundEffect = assets.effects.background;
   const overlayEffect = assets.effects.overlay;
+  const cardEffect = assets.card;
+  const cardFxStyle = {
+    "--pv-card-fx-color": cardEffect.color,
+    "--pv-card-fx-strength": cardEffect.intensity / 100,
+    "--pv-card-fx-speed": `${Math.max(1.5, cardEffect.speed)}s`,
+    "--pv-accent": about.design.colors.accent,
+    "--pv-text": about.design.colors.text,
+  } as CSSProperties;
   const textSettings = assets.effects.text[textTarget];
   const textSample =
     textTarget === "alias"
@@ -646,7 +652,7 @@ export function DashboardAssets({
                 <div>
                   <span className="asset-kicker">Effects</span>
                   <h2 id="asset-effects-title">Motion, texture and type</h2>
-                  <p>Background, overlay and text effects, all in one place. Switch tabs without losing your preview.</p>
+                  <p>Background, overlay, text and card effects, all in one place. Switch tabs without losing your preview.</p>
                 </div>
                 <button type="button" className="icon-btn" onClick={() => setModal(null)} aria-label="Close">
                   <CloseIcon size={15} />
@@ -814,6 +820,80 @@ export function DashboardAssets({
                         onChange={(value) => updateOverlay({ color: value })}
                         compact
                       />
+                    </div>
+                  </div>
+                </>
+              ) : effectsTab === "card" ? (
+                <>
+                  <div className="asset-modal-preview asset-modal-preview--effects" style={bgStyle}>
+                    <span className="asset-card-fx-stage" style={cardFxStyle}>
+                      <EffectPreviewCard user={user} about={about} />
+                      <span className={`pv-card-fx pv-card-fx--${cardEffect.id}`} aria-hidden="true" />
+                    </span>
+                  </div>
+
+                  <div className="asset-modal-body">
+                    <div className="effect-choice-grid effect-choice-grid--text">
+                      {CARD_EFFECTS.map((effect) => (
+                        <button
+                          type="button"
+                          key={effect.id}
+                          className={`effect-choice${cardEffect.id === effect.id ? " is-active" : ""}`}
+                          aria-pressed={cardEffect.id === effect.id}
+                          onClick={() => updateCardEffect({ id: effect.id })}
+                        >
+                          <span className="effect-choice-preview">
+                            {effect.id === "none" ? (
+                              <span className="effect-none-label">None</span>
+                            ) : (
+                              <span
+                                className={`card-fx-thumb card-fx-thumb--${effect.id}`}
+                                style={cardFxStyle}
+                                aria-hidden="true"
+                              />
+                            )}
+                          </span>
+                          <span className="effect-choice-copy">
+                            <b>{effect.name}</b>
+                            <small>{effect.hint}</small>
+                          </span>
+                          {cardEffect.id === effect.id ? <CheckIcon size={11} /> : null}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="effect-settings">
+                      <div className="effect-settings-head">
+                        <span className="asset-kicker">Settings</span>
+                        <h3>{CARD_EFFECTS.find((effect) => effect.id === cardEffect.id)?.name}</h3>
+                      </div>
+                      <ColorField
+                        label="Light colour"
+                        value={cardEffect.color}
+                        onChange={(value) => updateCardEffect({ color: value })}
+                        compact
+                      />
+                      <AssetSlider
+                        label="Intensity"
+                        value={cardEffect.intensity}
+                        min={0}
+                        max={100}
+                        step={1}
+                        unit="%"
+                        onChange={(value) => updateCardEffect({ intensity: value })}
+                      />
+                      <AssetSlider
+                        label="Speed"
+                        value={cardEffect.speed}
+                        min={1.5}
+                        max={20}
+                        step={0.5}
+                        unit="s"
+                        onChange={(value) => updateCardEffect({ speed: value })}
+                      />
+                      <p className="asset-hint">
+                        Light-only treatments for the card surface — no scanlines, glitch or fake HUD overlays.
+                      </p>
                     </div>
                   </div>
                 </>
@@ -1157,6 +1237,16 @@ export function DashboardAssets({
                 </div>
 
                 <div className="lnk-option-group">
+                  <span className="lnk-option-label">Playback</span>
+                  <AssetToggle
+                    label="Autoplay"
+                    hint="Starts as soon as the page opens; if the browser blocks it, it starts on the first click."
+                    checked={assets.audio.autoplay}
+                    onChange={(checked) => updateAudio({ autoplay: checked })}
+                  />
+                </div>
+
+                <div className="lnk-option-group">
                   <span className="lnk-option-label">Card styling</span>
                   <AssetSlider
                     label="Background opacity"
@@ -1481,7 +1571,7 @@ export function DashboardAssets({
               className={`asset-banner-demo${banner.enabled ? "" : " is-disabled"}`}
               style={
                 {
-                  height: `${Math.min(112, banner.height)}px`,
+                  height: `${Math.min(190, Math.max(110, banner.height))}px`,
                   opacity: banner.enabled ? banner.opacity : 0.28,
                   backgroundImage: banner.imageUrl ? `url("${banner.imageUrl}")` : undefined,
                 } as CSSProperties
@@ -1510,8 +1600,8 @@ export function DashboardAssets({
               <AssetSlider
                 label="Banner height"
                 value={banner.height}
-                min={40}
-                max={220}
+                min={110}
+                max={260}
                 step={1}
                 unit="px"
                 onChange={(value) => updateBanner({ height: value })}
@@ -1545,8 +1635,8 @@ export function DashboardAssets({
               </span>
               <span className="effect-launcher-copy">
                 <span className="asset-kicker">Effects</span>
-                <b>Background, overlay &amp; text</b>
-                <small>Weather and light, VHS/grain textures, and type effects — one library, three tabs.</small>
+                <b>Background, overlay, text &amp; card</b>
+                <small>Weather and light, soft sheens, card shimmer and type effects — one library, four tabs.</small>
               </span>
               <EyeIcon size={14} />
             </button>

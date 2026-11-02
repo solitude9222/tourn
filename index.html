@@ -21,103 +21,39 @@
     <meta property="og:type" content="website" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts load without blocking the first paint; the stack falls back to
+         system sans until they land. -->
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
     <!--
-      Runtime public env, served by the backend and proxied through this
-      site's own host (/env.js → API). This is the ONLY place the frontend
-      gets its configuration on a static host — no env vars are set in
-      Vercel. The backend whitelists what it exposes (owner email + public
-      client ids) and nothing secret ever appears here, and no backend URL
-      is written into this page. Falls back to .env in local dev.
+      Runtime public env (/env.js → API, whitelisted public values only) is
+      fetched by src/lib/backend.ts instead of being a blocking script here,
+      so the bundle starts without waiting for the API host.
     -->
-    <script src="/env.js"></script>
-    <!-- First paint: shown until React mounts and replaces #root. Inline so it
-         never waits on the bundle and the page never flashes white. -->
+    <!-- First paint: a plain black screen. Nothing to download, nothing to
+         animate — a profile page paints the moment React has its data, and an
+         entry screen never sits behind a splash the visitor didn't choose. -->
     <style>
       html,
       body {
-        background: #05070a;
+        background: #000;
         color: #eaf3f8;
       }
       body {
         margin: 0;
       }
-      .boot {
-        position: fixed;
-        inset: 0;
-        display: grid;
-        place-content: center;
-        justify-items: center;
-        gap: 18px;
-        font-family: Inter, system-ui, -apple-system, sans-serif;
-      }
-      .boot-glow {
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(42% 34% at 50% 42%, rgba(88, 101, 242, 0.22), transparent 70%);
-        animation: bootPulse 2.6s ease-in-out infinite;
-      }
-      .boot-mark {
-        width: 52px;
-        height: 52px;
-        border-radius: 16px;
-        animation: bootFloat 2.8s ease-in-out infinite;
-        box-shadow: 0 22px 60px -26px rgba(88, 101, 242, 0.9);
-      }
-      .boot-brand {
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: #8e9aa4;
-      }
-      .boot-brand span {
-        color: #a8e0ff;
-      }
-      .boot-bar {
-        position: relative;
-        width: 118px;
-        height: 2px;
-        overflow: hidden;
-        border-radius: 2px;
-        background: rgba(255, 255, 255, 0.07);
-      }
-      .boot-bar i {
-        position: absolute;
-        inset: 0;
-        width: 42%;
-        border-radius: 2px;
-        background: linear-gradient(90deg, transparent, #a8e0ff, transparent);
-        animation: bootSlide 1.15s ease-in-out infinite;
-      }
-      @keyframes bootSlide {
-        from {
-          transform: translateX(-120%);
-        }
-        to {
-          transform: translateX(320%);
-        }
-      }
-      @keyframes bootFloat {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-5px);
-        }
-      }
-      @keyframes bootPulse {
-        0%,
-        100% {
-          opacity: 0.7;
-        }
-        50% {
-          opacity: 1;
-        }
+      #root {
+        min-height: 100vh;
       }
     </style>
   </head>
@@ -131,12 +67,7 @@
         }
       </style>
     </noscript>
-    <div id="root"><div class="boot" role="status" aria-label="Loading tourn.lol">
-  <div class="boot-glow" aria-hidden="true"></div>
-  <img class="boot-mark" src="/logo.png" alt="" width="52" height="52" />
-  <span class="boot-brand">tourn<span>.</span>lol</span>
-  <span class="boot-bar" aria-hidden="true"><i></i></span>
-</div></div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
