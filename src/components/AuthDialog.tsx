@@ -5,6 +5,7 @@ import { ArrowRight, CloseIcon, DiscordIcon } from "./Icons";
 export type AuthMode = "signin" | "signup";
 
 const OAUTH_ERRORS: Record<string, string> = {
+  oauth_config: "Discord sign-in isn't available right now.",
   oauth_state: "That sign-in link expired — hit the button again.",
   discord_token: "Discord didn't accept the sign-in — try once more.",
   discord_profile: "Couldn't read your Discord profile — allow email sharing on the consent screen.",

@@ -33,8 +33,10 @@ export async function api<T = unknown>(
       return { ok: false, error: body?.error || `Request failed (${res.status})` };
     }
     return { ok: true, data: body };
-  } catch {
-    return { ok: false, error: "Couldn't reach the tourn.lol backend — is Railway up?" };
+  } catch (error) {
+    // Keep the technical detail in the console; visitors get a plain message.
+    console.warn("[backend] request failed", path, error);
+    return { ok: false, error: "Couldn't reach tourn.lol right now — try again in a moment." };
   }
 }
 

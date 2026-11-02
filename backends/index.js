@@ -29,6 +29,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { frontendOrigins } from "./origins.js";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 
@@ -55,6 +56,19 @@ if (!DATABASE_URL) {
 if (!JWT_SECRET) {
   console.error("JWT_SECRET is required (openssl rand -hex 32)");
 }
+
+/* ── frontend origins ──────────────────────────────────────────────────── */
+
+/* FRONTEND_URL may name several deploy targets (tourn.lol + swats.bio) and
+   every domain answers on its apex and www host. CORS and the OAuth return
+   need one real origin at a time, never the raw comma-joined env value. */
+const CONFIGURED_FRONTEND_ORIGINS = frontendOrigins(FRONTEND_URL);
+const FRONTEND_ORIGINS = new Set([
+  ...CONFIGURED_FRONTEND_ORIGINS,
+  "http://127.0.0.1:5180",
+  "http://localhost:5180",
+]);
+const CANONICAL_FRONTEND_ORIGIN = CONFIGURED_FRONTEND_ORIGINS[0] ?? "http://127.0.0.1:5180";
 
 /* ── database ──────────────────────────────────────────────────────────── */
 
@@ -128,14 +142,40 @@ function signSession(user) {
   return jwt.sign({ sub: user.id, v: user.token_version }, JWT_SECRET, { expiresIn: "30d" });
 }
 
+/* The static site is on tourn.lol / swats.bio while this API is on
+   railway.app, so API calls are cross-site. A `lax` session cookie is dropped
+   on those fetches and every reload looks signed out; `none` keeps the session
+   but requires HTTPS, so local HTTP development stays on `lax`. */
+const sessionCookie = secureCookie
+  ? { sameSite: "none", secure: true }
+  : { sameSite: "lax" };
+
 function setSession(res, user) {
   res.cookie(COOKIE, signSession(user), {
     httpOnly: true,
-    sameSite: "lax",
-    secure: secureCookie,
+    ...sessionCookie,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/",
   });
+}
+
+/** The site fetches the authorize URL instead of navigating to the API. */
+function wantsJson(req) {
+  return String(req.get("accept") ?? "").toLowerCase().includes("application/json");
+}
+
+/** The allowed site the sign-in started from, so OAuth returns to it. */
+function returnOriginFromReferer(req) {
+  const referer = req.get("referer");
+  if (referer) {
+    try {
+      const origin = new URL(referer).origin;
+      if (FRONTEND_ORIGINS.has(origin)) return origin;
+    } catch {
+      /* malformed referer — fall back to the canonical origin */
+    }
+  }
+  return CANONICAL_FRONTEND_ORIGIN;
 }
 
 function clearSession(res) {
@@ -259,7 +299,11 @@ app.use((_req, res, next) => {
 });
 app.use(
   cors({
-    origin: [FRONTEND_URL, "http://127.0.0.1:5180", "http://localhost:5180"],
+    origin(origin, callback) {
+      // Server-to-server requests and same-origin reads send no Origin header.
+      if (!origin || FRONTEND_ORIGINS.has(origin)) return callback(null, true);
+      return callback(null, false);
+    },
     credentials: true,
   }),
 );
@@ -346,42 +390,76 @@ app.post("/api/auth/signout-others", requireAuth, async (req, res) => {
   }
 });
 
-/* Discord OAuth — THE sign-up path. */
+/* Discord OAuth — THE sign-up path.
+   `state` is signed with JWT_SECRET and carries the site to return to, so the
+   flow needs no cookie and survives the site/API domain split. */
+function signOAuthState(returnOrigin) {
+  const payload = Buffer.from(
+    JSON.stringify({
+      nonce: crypto.randomBytes(12).toString("hex"),
+      returnOrigin,
+      issuedAt: Date.now(),
+    }),
+  ).toString("base64url");
+  const signature = crypto.createHmac("sha256", JWT_SECRET).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+function readOAuthState(state) {
+  const [payload, signature] = String(state ?? "").split(".");
+  if (!payload || !signature) return null;
+  const expected = crypto.createHmac("sha256", JWT_SECRET).update(payload).digest("base64url");
+  const given = Buffer.from(signature);
+  const want = Buffer.from(expected);
+  if (given.length !== want.length || !crypto.timingSafeEqual(given, want)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (typeof data?.issuedAt !== "number" || Date.now() - data.issuedAt > 10 * 60 * 1000) {
+      return null;
+    }
+    if (typeof data?.returnOrigin !== "string" || !FRONTEND_ORIGINS.has(data.returnOrigin)) {
+      return null;
+    }
+    return { returnOrigin: data.returnOrigin };
+  } catch {
+    return null;
+  }
+}
+
 app.get("/api/auth/discord", (req, res) => {
+  const returnOrigin = returnOriginFromReferer(req);
   if (!VITE_DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
     console.error(
       "[discord oauth] not configured — set VITE_DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET in Railway",
     );
-    return res.redirect(`${FRONTEND_URL}/#/?error=oauth_config`);
+    if (wantsJson(req)) {
+      return res.status(503).json({ error: "Discord sign-in isn't configured yet." });
+    }
+    return res.redirect(`${returnOrigin}/#/?error=oauth_config`);
   }
-  const state = crypto.randomBytes(16).toString("hex");
-  res.cookie("tourn_oauth", state, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: secureCookie,
-    maxAge: 10 * 60 * 1000,
-    path: "/",
-  });
   const params = new URLSearchParams({
     client_id: VITE_DISCORD_CLIENT_ID,
     redirect_uri: `${BACKEND_URL}/api/auth/discord/callback`,
     response_type: "code",
     scope: "identify email",
-    state,
+    state: signOAuthState(returnOrigin),
     prompt: "consent",
   });
-  res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
+  const url = `https://discord.com/oauth2/authorize?${params.toString()}`;
+  // The site asks for this URL and navigates to Discord itself, so visitors
+  // never land on the Railway API host.
+  if (wantsJson(req)) return res.json({ url });
+  res.redirect(url);
 });
 
 app.get("/api/auth/discord/callback", async (req, res) => {
   try {
     const code = String(req.query?.code ?? "");
-    const state = String(req.query?.state ?? "");
-    const expectedState = req.cookies?.tourn_oauth;
-    res.clearCookie("tourn_oauth", { path: "/" });
-    if (!code || !state || state !== expectedState) {
-      return res.redirect(`${FRONTEND_URL}/#/?error=oauth_state`);
+    const state = readOAuthState(req.query?.state);
+    if (!code || !state) {
+      return res.redirect(`${CANONICAL_FRONTEND_ORIGIN}/#/?error=oauth_state`);
     }
+    const returnOrigin = state.returnOrigin;
 
     const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
       method: "POST",
@@ -394,13 +472,13 @@ app.get("/api/auth/discord/callback", async (req, res) => {
         redirect_uri: `${BACKEND_URL}/api/auth/discord/callback`,
       }),
     });
-    if (!tokenRes.ok) return res.redirect(`${FRONTEND_URL}/#/?error=discord_token`);
+    if (!tokenRes.ok) return res.redirect(`${returnOrigin}/#/?error=discord_token`);
     const token = await tokenRes.json();
 
     const meRes = await fetch("https://discord.com/api/v10/users/@me", {
       headers: { Authorization: `Bearer ${token.access_token}` },
     });
-    if (!meRes.ok) return res.redirect(`${FRONTEND_URL}/#/?error=discord_profile`);
+    if (!meRes.ok) return res.redirect(`${returnOrigin}/#/?error=discord_profile`);
     const me = await meRes.json();
 
     const discordId = String(me.id);
@@ -446,10 +524,10 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     }
 
     setSession(res, user);
-    res.redirect(`${FRONTEND_URL}/#/dashboard`);
+    res.redirect(`${returnOrigin}/#/dashboard`);
   } catch (error) {
     console.error("[discord callback]", error);
-    res.redirect(`${FRONTEND_URL}/#/?error=oauth_failed`);
+    res.redirect(`${CANONICAL_FRONTEND_ORIGIN}/#/?error=oauth_failed`);
   }
 });
 
@@ -820,7 +898,9 @@ initDb()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`[tourn] backend listening on :${PORT}`);
-      console.log(`[tourn] frontend: ${FRONTEND_URL} · backend: ${BACKEND_URL}`);
+      console.log(
+        `[tourn] frontend: ${[...FRONTEND_ORIGINS].join(", ")} · backend: ${BACKEND_URL}`,
+      );
     });
   })
   .catch((error) => {

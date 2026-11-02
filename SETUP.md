@@ -55,7 +55,7 @@ The backend creates its own tables on boot (`users`, `profile_views`,
 ```bash
 DATABASE_URL=            # from service A
 JWT_SECRET=              # openssl rand -hex 32
-FRONTEND_URL=https://tourn.lol
+FRONTEND_URL=https://tourn.lol,https://swats.bio   # comma-separated list; apex + www both work
 BACKEND_URL=https://tourn-production.up.railway.app
 VITE_OWNER_EMAIL=you@example.com
 ADMIN_EMAIL=             # optional seeded admin (gets is_admin + is_owner)
@@ -104,7 +104,7 @@ page immediately.
 ## The complete env (Railway + local `.env`)
 
 ```bash
-FRONTEND_URL=https://tourn.lol
+FRONTEND_URL=https://tourn.lol,https://swats.bio   # comma-separated list; apex + www both work
 BACKEND_URL=https://tourn-production.up.railway.app
 VITE_API_BASE_URL=https://tourn-production.up.railway.app
 
@@ -167,7 +167,8 @@ values are secrets, backend only.
 | Symptom | Fix |
 | --- | --- |
 | Sign-up bounces to `/api/auth/discord` and shows the homepage; console says `env.js … MIME type ('text/html') is not executable` | The Railway service is serving the static frontend, not this backend. Set **Root Directory: `backends`** (or use the root `railway.json`), redeploy, then verify `https://<backend>/env.js` shows `window.__ENV__ = {…}` and `/api/health` shows `{"ok":true}`. |
-| "Couldn't reach the tourn.lol backend" | Backend service down or `VITE_API_BASE_URL`/`env.js` URL wrong — check `/api/health` and `/env.js`. |
+| "Couldn't reach the tourn.lol backend" | Backend service down, `VITE_API_BASE_URL`/`env.js` URL wrong, or the visitor's origin is missing from `FRONTEND_URL`. That variable is a comma-separated list and each entry also allows its apex + www host, so `https://tourn.lol,https://swats.bio` covers `https://www.tourn.lol`. Check `/api/health` and `/env.js`. |
+| Sign-in works, then every reload is signed out | API calls are cross-site (site on tourn.lol, API on railway.app). The backend marks the session cookie `SameSite=None; Secure` in production for this; it needs HTTPS on both ends. Browsers that block all third-party cookies need the API on a `tourn.lol` subdomain instead. |
 | `DATABASE_URL is required` in Railway logs | The Postgres service's variable isn't linked (reference it: `${{Postgres.DATABASE_URL}}`). |
 | Discord login loops back signed out | OAuth redirect must be exactly `https://<backend>/api/auth/discord/callback`, and `FRONTEND_URL` must match your real domain. |
 | Bot DM fails | The bot must share a server with the user, and `DISCORD_BOT_TOKEN` must be set. |

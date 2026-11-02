@@ -32,7 +32,11 @@ export function Header({
   onSignUp: () => void;
   onSignOut: () => void;
 }) {
-  const { isOwner, setAlias, user: viewer } = useAuth();
+  const { isOwner, isAdmin, setAlias, user: viewer } = useAuth();
+  // Admins get the console in the same nav as every other page.
+  const links: { label: string; route: Route }[] = isAdmin
+    ? [...LINKS, { label: "Admin", route: "admin" }]
+    : LINKS;
   const [menuOpen, setMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -87,7 +91,7 @@ export function Header({
         </a>
 
         <nav className="head-links" aria-label="Main">
-          {LINKS.map((link) => (
+          {links.map((link) => (
             <a
               key={link.label}
               href={hrefFor(link.route)}
@@ -205,7 +209,7 @@ export function Header({
 
       {navOpen ? (
         <div className="head-mobile" id="mobile-nav">
-          {LINKS.map((link) => (
+          {links.map((link) => (
             <a
               key={link.label}
               href={hrefFor(link.route)}

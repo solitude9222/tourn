@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
-import { EMPTY_SETTINGS, loadSettings, type Settings } from "./config";
+import { DEFAULT_SETTINGS, EMPTY_SETTINGS, loadSettings, type Settings } from "./config";
 import { EMPTY_ABOUT, loadAbout, saveAbout, type About } from "./lib/about";
 import {
   EMPTY_WIDGET_STORE,
@@ -146,6 +146,15 @@ function Site() {
     Boolean(settings.discordUserId),
     settings.discordUserId,
     (signal) => fetchLanyard(settings.discordUserId, signal),
+    15_000,
+  );
+
+  // The home page's example stack is site data, not the viewer's, so it keeps
+  // polling the demo accounts even after someone signs in.
+  const exampleLanyard = usePolled(
+    Boolean(DEFAULT_SETTINGS.discordUserId),
+    DEFAULT_SETTINGS.discordUserId,
+    (signal) => fetchLanyard(DEFAULT_SETTINGS.discordUserId, signal),
     15_000,
   );
 
@@ -331,8 +340,8 @@ function Site() {
                 />
                 <StatsBand stats={siteStats} />
                 <BentoSection
-                  lanyard={lanyard}
-                  settings={settings}
+                  lanyard={exampleLanyard}
+                  settings={DEFAULT_SETTINGS}
                   signedIn={Boolean(user)}
                   widgets={widgets}
                   onConfigure={() => {

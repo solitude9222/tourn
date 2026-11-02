@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, apiBase, post } from "./backend";
+import { api, post } from "./backend";
 import { publicEnv } from "./runtimeEnv";
 import { loadIsPremium } from "./premium";
 
@@ -140,9 +140,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithDiscord = useCallback<AuthValue["signInWithDiscord"]>(async () => {
-    // Full-page redirect to the backend's Discord OAuth; the callback sends
-    // the browser back with a fresh session cookie.
-    window.location.href = `${apiBase()}/api/auth/discord`;
+    // Ask the backend for the Discord authorize URL, then send the browser
+    // straight to Discord. Navigating to the API host itself would expose the
+    // Railway domain to visitors.
+    const result = await api<{ url?: string }>("/api/auth/discord");
+    const url = result.ok ? result.data.url : null;
+    if (!result.ok) return { error: result.error };
+    if (!url) return { error: "Discord sign-in isn't available right now." };
+    window.location.href = url;
     return {};
   }, []);
 
