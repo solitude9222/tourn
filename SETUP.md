@@ -2,8 +2,9 @@
 
 **Stack:** Vercel (static frontend, zero env) · Railway (backend + Postgres).
 
-No Supabase. The backend in `server/` is an Express app on Railway Postgres —
-it owns sessions, Discord sign-up, claims, MFA, view counts, and `/env.js`.
+No Supabase. The backend in `backends/` is an Express app on Railway
+Postgres — it owns sessions, Discord sign-up, claims, MFA, view counts, and
+`/env.js`. The only external services: Railway Postgres and Cloudinary.
 
 ---
 
@@ -13,7 +14,7 @@ it owns sessions, Discord sign-up, claims, MFA, view counts, and `/env.js`.
 
 ```bash
 npm install
-npm --prefix server install
+npm --prefix backends install
 ```
 
 Provision Postgres (Railway → New → Database → **Add PostgreSQL** → copy its
@@ -49,7 +50,7 @@ The backend creates its own tables on boot (`users`, `profile_views`,
 `DATABASE_URL` variable.
 
 **Service B — backend:** New → GitHub repo → `solitude9222/tourn` →
-**Settings → Root Directory: `server`** → deploy. Add variables:
+**Settings → Root Directory: `backends`** → deploy. Add variables:
 
 ```bash
 DATABASE_URL=            # from service A
@@ -130,6 +131,11 @@ STRIPE_WEBHOOK_SECRET=
 
 VITE_TURNSTILE_SITE_KEY=0x4AAAAAAFThWr36t2uJbW1e
 TURNSTILE_SECRET_KEY=
+
+CLOUDINARY_URL=               # media hosting — the only external besides Postgres
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 `VITE_` values are public — the backend re-serves them via `/env.js`. Plain
@@ -160,6 +166,7 @@ values are secrets, backend only.
 
 | Symptom | Fix |
 | --- | --- |
+| Sign-up bounces to `/api/auth/discord` and shows the homepage; console says `env.js … MIME type ('text/html') is not executable` | The Railway service is serving the static frontend, not this backend. Set **Root Directory: `backends`** (or use the root `railway.json`), redeploy, then verify `https://<backend>/env.js` shows `window.__ENV__ = {…}` and `/api/health` shows `{"ok":true}`. |
 | "Couldn't reach the tourn.lol backend" | Backend service down or `VITE_API_BASE_URL`/`env.js` URL wrong — check `/api/health` and `/env.js`. |
 | `DATABASE_URL is required` in Railway logs | The Postgres service's variable isn't linked (reference it: `${{Postgres.DATABASE_URL}}`). |
 | Discord login loops back signed out | OAuth redirect must be exactly `https://<backend>/api/auth/discord/callback`, and `FRONTEND_URL` must match your real domain. |

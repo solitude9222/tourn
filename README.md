@@ -6,9 +6,10 @@ links row and a fully customisable public page. Signed-in accounts get a full
 dashboard: About me, Assets (effects/cursor/audio), Widgets, Links, Badges,
 Card/layout and Settings (claims, security, premium).
 
-**Stack:** React 19 + Vite static frontend (Vercel) · Express backend on
-Railway with Postgres (`server/`) — sessions, Discord OAuth, claims, MFA,
+**Stack:** React 19 + Vite static frontend (Vercel) · Express backend in
+`backends/` on Railway with Postgres — sessions, Discord OAuth, claims, MFA,
 view counters, and the public `/env.js` runtime config. **No Supabase.**
+The only external services are Railway Postgres and Cloudinary (media).
 
 ## Setup
 
@@ -16,7 +17,7 @@ view counters, and the public `/env.js` runtime config. **No Supabase.**
 
 ```bash
 npm install
-npm --prefix server install
+npm --prefix backends install
 
 # Railway: add PostgreSQL, then put DATABASE_URL + the rest in .env
 cp .env.example .env
@@ -26,9 +27,14 @@ npm run server    # backend  → http://127.0.0.1:8787
 npm run build     # typecheck + production bundle in dist/
 ```
 
-Deploy: backend service on Railway (root directory `server`, Postgres
+Deploy: backend service on Railway (root directory `backends`, Postgres
 attached, env vars from SETUP.md) + frontend on Vercel with **zero env
 vars** (config arrives at runtime from `/env.js`).
+
+Or host **everything on Railway**: run `npm run build` (or make the backend
+build it) and leave the service's root directory at the repo root — the
+backend serves the `dist/` bundle and the SPA alongside the API, so
+`/env.js` is same-origin and there is no separate frontend host.
 
 ## Accounts
 
@@ -108,8 +114,11 @@ are admin-issued (admin console → premium toggle).
 ## Structure
 
 ```
-server/                  Express backend (Railway + Postgres)
+backends/                Express backend (Railway + Postgres)
   index.js               routes: auth, claims, MFA, admin, views, env.js
+  railway.json           Railway build/deploy config for this directory
+railway.json             Railway config when deploying from the repo root
+                         (runs the backend; also serves dist/ if built)
 src/
   App.tsx                routing, hero identity, dialogs
   lib/backend.ts         API client (cookie sessions)

@@ -10,6 +10,8 @@
      JWT_SECRET                session signing key
      FRONTEND_URL              https://tourn.lol (CORS + OAuth return)
      BACKEND_URL               https://tourn-production.up.railway.app
+    CLOUDINARY_*              media/file hosting — the only external besides
+                              Postgres (declared here, wired per feature)
      VITE_OWNER_EMAIL          owner account email
      ADMIN_EMAIL / ADMIN_PASSWORD
      VITE_DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET / DISCORD_BOT_TOKEN
@@ -24,6 +26,9 @@ import pg from "pg";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 
@@ -248,6 +253,10 @@ const app = express();
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "256kb" }));
 app.use(cookieParser());
+app.use((_req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  next();
+});
 app.use(
   cors({
     origin: [FRONTEND_URL, "http://127.0.0.1:5180", "http://localhost:5180"],
@@ -339,6 +348,12 @@ app.post("/api/auth/signout-others", requireAuth, async (req, res) => {
 
 /* Discord OAuth — THE sign-up path. */
 app.get("/api/auth/discord", (req, res) => {
+  if (!VITE_DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
+    console.error(
+      "[discord oauth] not configured — set VITE_DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET in Railway",
+    );
+    return res.redirect(`${FRONTEND_URL}/#/?error=oauth_config`);
+  }
   const state = crypto.randomBytes(16).toString("hex");
   res.cookie("tourn_oauth", state, {
     httpOnly: true,
@@ -773,7 +788,33 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
 
 /* ── boot ──────────────────────────────────────────────────────────────── */
 
-app.use((req, res) => res.status(404).json({ error: "Not found." }));
+/* If the repo was built (`dist/`, one level up), serve the static site from
+   this same service so a single Railway app can host frontend + backend
+   together. API routes and /env.js above always win; everything else falls
+   back to index.html (SPA). Without a build, unknown paths stay 404 JSON. */
+
+const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist");
+const hasStaticBuild = fs.existsSync(path.join(distDir, "index.html"));
+
+if (hasStaticBuild) {
+  console.log("[tourn] serving the built frontend from ../dist");
+  app.use(
+    express.static(distDir, {
+      index: false,
+      maxAge: "1h",
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".html")) res.set("Cache-Control", "no-cache");
+      },
+    }),
+  );
+}
+
+app.use((req, res) => {
+  if (hasStaticBuild && req.method === "GET" && !req.path.startsWith("/api/")) {
+    return res.sendFile(path.join(distDir, "index.html"));
+  }
+  res.status(404).json({ error: "Not found." });
+});
 
 initDb()
   .then(() => {
