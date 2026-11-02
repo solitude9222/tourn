@@ -3726,7 +3726,7 @@
 
 /* ── badges: motion that actually reads at 22px ──────────────────── */
 
-.badge-chip {
+.badge-chip.badge-anim--none {
   animation: badgeIdle 4.6s ease-in-out infinite;
 }
 
@@ -3759,9 +3759,18 @@
 }
 
 .badge-anim--pulse {
-  animation: badgeScalePulse 1.5s ease-in-out infinite;
+  animation: badgeScalePulse 1.6s ease-in-out infinite;
 }
 
-.badge-row:hover .badge-chip {
-  animation-play-state: paused;
+.badge-anim--bounce {
+  animation: badgeHop 1.2s cubic-bezier(0.3, 0.7, 0.4, 1) infinite;
 }
+
+.badge-anim--spin .badge-chip-art,
+.badge-anim--spin .badge-chip-mono {
+  animation: badgeSpin 3.4s linear infinite;
+}
+
+/* Hovering used to pause every badge in the row, which read as "the
+   animation is broken" whenever the cursor rested on a card. Hover now
+   only lifts the badge (see .badge-chip:hover) instead of stopping it. */

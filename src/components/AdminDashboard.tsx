@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../lib/auth";
 import { api } from "../lib/backend";
 import { formatJoined } from "../lib/format";
@@ -7,17 +16,19 @@ import {
   ArrowUpRight,
   BoltIcon,
   ChevronIcon,
+  CloseIcon,
   CopyIcon,
   DiscordIcon,
+  EditIcon,
   EyeIcon,
   KeyIcon,
   LinkIcon,
   LogoutIcon,
   SaveIcon,
   SearchIcon,
-  SignalIcon,
   SettingsIcon,
   ShieldIcon,
+  SignalIcon,
   TrashIcon,
   UsersIcon,
 } from "./Icons";
@@ -70,14 +81,12 @@ type BotStatus = {
   inviteUrl: string | null;
 };
 
-type Draft = { alias: string; alias2: string; views: string };
-
 const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
-  { id: "overview", label: "Overview", icon: <EyeIcon size={14} /> },
-  { id: "members", label: "Members", icon: <UsersIcon size={14} /> },
-  { id: "invites", label: "Invites", icon: <KeyIcon size={14} /> },
-  { id: "settings", label: "Site settings", icon: <SettingsIcon size={14} /> },
-  { id: "bot", label: "Discord bot", icon: <DiscordIcon size={14} /> },
+  { id: "overview", label: "Overview", icon: <EyeIcon size={13} /> },
+  { id: "members", label: "Members", icon: <UsersIcon size={13} /> },
+  { id: "invites", label: "Invites", icon: <KeyIcon size={13} /> },
+  { id: "settings", label: "Site settings", icon: <SettingsIcon size={13} /> },
+  { id: "bot", label: "Discord bot", icon: <DiscordIcon size={13} /> },
 ];
 
 /* Section cards on the admin landing — orientation, not a second navigation. */
@@ -85,7 +94,7 @@ const ADMIN_CARDS: { tab: Tab; title: string; body: string; icon: ReactNode }[] 
   {
     tab: "members",
     title: "Members",
-    body: "Every account, its claims, views, premium and admin flags — editable in place.",
+    body: "Every account, its claims, views, premium and admin flags — edited in a popup.",
     icon: <UsersIcon size={16} />,
   },
   {
@@ -132,6 +141,206 @@ function errorText(message: string): string {
     : message;
 }
 
+/* ── member editor ───────────────────────────────────────────────────────
+   A dialog, not an inline row: opening a member used to stretch the table
+   cell and reflow the whole page. The popup keeps the list intact and gives
+   the fields room to breathe.
+   ---------------------------------------------------------------------- */
+
+type MemberDraft = { alias: string; alias2: string; views: string };
+
+function MemberEditor({
+  row,
+  busy,
+  isSelf,
+  onClose,
+  onSave,
+  onToggle,
+}: {
+  row: AdminProfile;
+  busy: boolean;
+  /** Your own account can't lose the admin flag from here. */
+  isSelf: boolean;
+  onClose: () => void;
+  onSave: (fields: { alias: string | null; alias2: string | null; views: number }) => Promise<boolean>;
+  onToggle: (fields: Partial<AdminProfile>, label: string) => Promise<boolean>;
+}) {
+  const [draft, setDraft] = useState<MemberDraft>({
+    alias: row.alias ?? "",
+    alias2: row.alias2 ?? "",
+    views: String(row.views),
+  });
+  const [localError, setLocalError] = useState<string | null>(null);
+  const firstField = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    firstField.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    const views = Number(draft.views);
+    if (!Number.isFinite(views) || views < 0) {
+      setLocalError("Views must be a positive number.");
+      return;
+    }
+    setLocalError(null);
+    const ok = await onSave({
+      alias: draft.alias.trim() || null,
+      alias2: draft.alias2.trim() || null,
+      views,
+    });
+    if (ok) onClose();
+  };
+
+  return createPortal(
+    <div
+      className="adm-modal"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <form
+        className="adm-modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="adm-member-title"
+        onSubmit={submit}
+      >
+        <header className="adm-modal-head">
+          <span className="adm-modal-avatar">
+            {row.avatar_url ? (
+              <img src={row.avatar_url} alt="" width={40} height={40} />
+            ) : (
+              <span className="adm-user-initial">{row.username.slice(0, 1).toUpperCase()}</span>
+            )}
+          </span>
+          <span className="adm-modal-id">
+            <b id="adm-member-title">@{row.username}</b>
+            <small>joined {formatJoined(new Date(row.created_at))}</small>
+          </span>
+          <button
+            type="button"
+            className="adm-modal-close"
+            onClick={onClose}
+            aria-label="Close member editor"
+          >
+            <CloseIcon size={14} />
+          </button>
+        </header>
+
+        <div className="adm-modal-body">
+          <div className="adm-modal-grid">
+            <label className="adm-field">
+              <span>tourn.lol claim</span>
+              <input
+                ref={firstField}
+                value={draft.alias}
+                onChange={(event) => setDraft({ ...draft, alias: event.target.value })}
+                placeholder={row.username}
+                spellCheck={false}
+              />
+            </label>
+            <label className="adm-field">
+              <span>swats.bio claim</span>
+              <input
+                value={draft.alias2}
+                onChange={(event) => setDraft({ ...draft, alias2: event.target.value })}
+                placeholder="not claimed"
+                spellCheck={false}
+              />
+            </label>
+            <label className="adm-field">
+              <span>Profile views</span>
+              <input
+                value={draft.views}
+                onChange={(event) => setDraft({ ...draft, views: event.target.value })}
+                inputMode="numeric"
+                placeholder="0"
+              />
+            </label>
+          </div>
+
+          {localError ? <p className="adm-modal-error">{localError}</p> : null}
+
+          <div className="adm-modal-toggles">
+            <div className="adm-toggle-row">
+              <div>
+                <b>Premium</b>
+                <small>Grants premium perks and the premium badge.</small>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={row.premium}
+                aria-label="Premium"
+                className={`adm-switch${row.premium ? " is-on" : ""}`}
+                disabled={busy}
+                onClick={() =>
+                  void onToggle({ premium: !row.premium }, "Premium updated.")
+                }
+              >
+                <span />
+              </button>
+            </div>
+            <div className="adm-toggle-row">
+              <div>
+                <b>Admin</b>
+                <small>
+                  {isSelf
+                    ? "You can't remove the admin flag from your own account."
+                    : "Full access to members, invites and site settings."}
+                </small>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={row.is_admin}
+                aria-label="Admin"
+                className={`adm-switch${row.is_admin ? " is-on" : ""}`}
+                disabled={busy || isSelf}
+                title={isSelf ? "You can't demote yourself" : undefined}
+                onClick={() => void onToggle({ is_admin: !row.is_admin }, "Admin flag updated.")}
+              >
+                <span />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <footer className="adm-modal-foot">
+          <a className="adm-modal-link" href={profileHref(row.alias?.trim() || row.username)}>
+            <LinkIcon size={12} />
+            Open profile
+          </a>
+          <span className="adm-modal-actions">
+            <button type="button" className="adm-btn adm-btn--ghost" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="adm-btn adm-btn--primary" disabled={busy}>
+              <SaveIcon size={12} />
+              {busy ? "Saving…" : "Save changes"}
+            </button>
+          </span>
+        </footer>
+      </form>
+    </div>,
+    document.body,
+  );
+}
+
+/* ── console ─────────────────────────────────────────────────────────── */
+
 export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   const { user, isOwner, isAdmin, security, signOut } = useAuth();
   const [tab, setTab] = useState<Tab>("overview");
@@ -145,7 +354,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const loadProfiles = useCallback(async () => {
     const result = await api<{ profiles: AdminProfile[] }>("/api/admin/profiles");
@@ -255,42 +464,20 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
     return true;
   };
 
-  const saveDraft = async (row: AdminProfile) => {
-    const draft = drafts[row.id];
-    if (!draft) return;
-    const views = Number(draft.views);
-    if (!Number.isFinite(views) || views < 0) {
-      setError("Views must be a positive number.");
-      return;
-    }
-    const ok = await patch(
-      row.id,
-      { alias: draft.alias.trim() || null, alias2: draft.alias2.trim() || null, views },
-      `@${row.username} updated.`,
-    );
-    if (ok) {
-      setDrafts((current) => {
-        const next = { ...current };
-        delete next[row.id];
-        return next;
-      });
-    }
-  };
-
   if (!isAdmin) {
     return (
       <main className="adm adm--gate">
-        <div className="adm-gate" data-reveal>
+        <div className="adm-gate">
           <span className="adm-gate-icon" aria-hidden="true">
             <ShieldIcon size={22} />
           </span>
-          <span className="eyebrow eyebrow--sm">restricted</span>
+          <span className="adm-eyebrow">restricted</span>
           <h1>Admins only.</h1>
           <p>
             This area checks your account against the directory's admin list on every load — the
             server rejects any write from an account that isn't one, not just the UI.
           </p>
-          <a className="btn btn-ghost btn-sm" href="#/dashboard">
+          <a className="adm-btn adm-btn--ghost" href="#/dashboard">
             Back to your dashboard
           </a>
         </div>
@@ -309,31 +496,33 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   });
 
   const recent = useMemo(() => (profiles ?? []).slice(0, 6), [profiles]);
+  const editing = editingId ? (profiles ?? []).find((row) => row.id === editingId) ?? null : null;
 
   return (
     <div className={`adm${embedded ? " adm--embedded" : " adm-page"}`}>
       {embedded ? null : (
-      <header className="adm-top">
-        <div>
-          <span className="eyebrow eyebrow--sm">
-            <ShieldIcon size={11} />
-            admin console
-          </span>
-          <h1>Directory control</h1>
-          <p>
-            Signed in as <b>{user?.email ?? user?.username}</b>
-            {isOwner ? " (owner)" : ""}
-          </p>
-        </div>
-        <div className="adm-top-actions">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={refreshAll}>
-            Refresh
-          </button>
-          <a className="btn btn-ghost btn-sm" href="#/dashboard">
-            Dashboard
-          </a>
-        </div>
-      </header>
+        <header className="adm-head">
+          <div className="adm-head-copy">
+            <span className="adm-eyebrow">
+              <ShieldIcon size={11} />
+              admin console
+            </span>
+            <h1>Directory control</h1>
+            <p>
+              Signed in as <b>{user?.email ?? user?.username}</b>
+              {isOwner ? " (owner)" : ""}
+            </p>
+          </div>
+          <div className="adm-head-actions">
+            <button type="button" className="adm-btn adm-btn--ghost" onClick={refreshAll}>
+              <SignalIcon size={12} />
+              Refresh
+            </button>
+            <a className="adm-btn adm-btn--ghost" href="#/dashboard">
+              Dashboard
+            </a>
+          </div>
+        </header>
       )}
 
       <nav className="adm-tabs" aria-label="Admin sections">
@@ -412,12 +601,12 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
           </section>
 
           <section className="adm-panel adm-ops">
-            <div className="adm-panel-head">
+            <div className="adm-ops-head">
               <h2>
                 <BoltIcon size={14} />
                 Operations &amp; system health
               </h2>
-              <span className="adm-health adm-health--inline">
+              <span className="adm-health">
                 <i aria-hidden="true" />
                 All systems operational
               </span>
@@ -518,7 +707,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
                 {recent.map((row) => (
                   <li key={row.id}>
                     {row.avatar_url ? (
-                      <img src={row.avatar_url} alt="" width={24} height={24} />
+                      <img src={row.avatar_url} alt="" width={28} height={28} />
                     ) : (
                       <span className="adm-user-initial">{row.username.slice(0, 1).toUpperCase()}</span>
                     )}
@@ -568,179 +757,90 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
                     <th>Account</th>
                     <th>Claims · views</th>
                     <th>Joined</th>
-                    <th>Premium</th>
-                    <th>Admin</th>
+                    <th>Status</th>
                     <th />
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((row) => {
-                    const draft = drafts[row.id];
-                    return (
-                      <tr key={row.id} className={busy === row.id ? "is-busy" : undefined}>
-                        <td>
-                          <span className="adm-user-cell">
-                            {row.avatar_url ? (
-                              <img src={row.avatar_url} alt="" width={22} height={22} />
-                            ) : (
-                              <span className="adm-user-initial">
-                                {row.username.slice(0, 1).toUpperCase()}
-                              </span>
-                            )}
-                            <span>
-                              <b>@{row.username}</b>
-                              {row.id === user?.id ? <small>you</small> : null}
-                            </span>
-                          </span>
-                        </td>
-                        <td>
-                          {draft ? (
-                            <span className="adm-edit-fields">
-                              <label className="adm-field">
-                                <span>tourn.lol</span>
-                                <input
-                                  value={draft.alias}
-                                  onChange={(event) =>
-                                    setDrafts((current) => ({
-                                      ...current,
-                                      [row.id]: { ...draft, alias: event.target.value },
-                                    }))
-                                  }
-                                  placeholder="alias"
-                                  spellCheck={false}
-                                />
-                              </label>
-                              <label className="adm-field">
-                                <span>swats.bio</span>
-                                <input
-                                  value={draft.alias2}
-                                  onChange={(event) =>
-                                    setDrafts((current) => ({
-                                      ...current,
-                                      [row.id]: { ...draft, alias2: event.target.value },
-                                    }))
-                                  }
-                                  placeholder="second alias"
-                                  spellCheck={false}
-                                />
-                              </label>
-                              <label className="adm-field">
-                                <span>views</span>
-                                <input
-                                  value={draft.views}
-                                  onChange={(event) =>
-                                    setDrafts((current) => ({
-                                      ...current,
-                                      [row.id]: { ...draft, views: event.target.value },
-                                    }))
-                                  }
-                                  inputMode="numeric"
-                                  placeholder="0"
-                                />
-                              </label>
-                            </span>
+                  {filtered.map((row) => (
+                    <tr key={row.id} className={busy === row.id ? "is-busy" : undefined}>
+                      <td>
+                        <span className="adm-user-cell">
+                          {row.avatar_url ? (
+                            <img src={row.avatar_url} alt="" width={24} height={24} />
                           ) : (
-                            <>
-                              <span className="adm-claim">
-                                tourn.lol/<b>{row.alias?.trim() || row.username}</b>
-                              </span>
-                              <span className={`adm-claim${row.alias2 ? "" : " adm-claim--unset"}`}>
-                                swats.bio/<b>{row.alias2 || "—"}</b>
-                              </span>
-                              <span className="adm-claim adm-claim--views">
-                                <EyeIcon size={10} /> {row.views.toLocaleString("en-US")} views
-                              </span>
-                            </>
+                            <span className="adm-user-initial">
+                              {row.username.slice(0, 1).toUpperCase()}
+                            </span>
                           )}
-                        </td>
-                        <td>{formatJoined(new Date(row.created_at))}</td>
-                        <td>
-                          <button
-                            type="button"
-                            className={`adm-toggle${row.premium ? " is-on" : ""}`}
-                            onClick={() => void patch(row.id, { premium: !row.premium }, "Premium updated.")}
-                            disabled={busy === row.id}
-                            aria-label={row.premium ? "Revoke premium" : "Grant premium"}
-                          >
-                            <BoltIcon size={12} />
-                            {row.premium ? "active" : "off"}
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className={`adm-toggle adm-toggle--admin${row.is_admin ? " is-on" : ""}`}
-                            onClick={() => void patch(row.id, { is_admin: !row.is_admin }, "Admin flag updated.")}
-                            disabled={busy === row.id || row.id === user?.id}
-                            title={row.id === user?.id ? "You can't demote yourself" : undefined}
-                          >
-                            <ShieldIcon size={12} />
-                            {row.is_admin ? "admin" : "off"}
-                          </button>
-                        </td>
-                        <td>
-                          <span className="adm-row-actions">
-                            {draft ? (
-                              <>
-                                <button
-                                  type="button"
-                                  className="adm-mini adm-mini--save"
-                                  onClick={() => void saveDraft(row)}
-                                  disabled={busy === row.id}
-                                >
-                                  <SaveIcon size={11} />
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  className="adm-mini"
-                                  onClick={() =>
-                                    setDrafts((current) => {
-                                      const next = { ...current };
-                                      delete next[row.id];
-                                      return next;
-                                    })
-                                  }
-                                >
-                                  Cancel
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  className="adm-mini"
-                                  onClick={() =>
-                                    setDrafts((current) => ({
-                                      ...current,
-                                      [row.id]: {
-                                        alias: row.alias ?? "",
-                                        alias2: row.alias2 ?? "",
-                                        views: String(row.views),
-                                      },
-                                    }))
-                                  }
-                                >
-                                  Edit
-                                </button>
-                                <a
-                                  className="adm-open"
-                                  href={profileHref(row.alias?.trim() || row.username)}
-                                >
-                                  <LinkIcon size={12} />
-                                  open
-                                </a>
-                              </>
-                            )}
+                          <span>
+                            <b>@{row.username}</b>
+                            {row.id === user?.id ? <small>you</small> : null}
                           </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="adm-claim">
+                          tourn.lol/<b>{row.alias?.trim() || row.username}</b>
+                        </span>
+                        <span className={`adm-claim${row.alias2 ? "" : " adm-claim--unset"}`}>
+                          swats.bio/<b>{row.alias2 || "—"}</b>
+                        </span>
+                        <span className="adm-claim adm-claim--views">
+                          <EyeIcon size={10} /> {row.views.toLocaleString("en-US")}
+                        </span>
+                      </td>
+                      <td className="adm-cell-date">{formatJoined(new Date(row.created_at))}</td>
+                      <td>
+                        <span className="adm-flags">
+                          <span className={`adm-flag${row.premium ? " is-on" : ""}`}>
+                            <BoltIcon size={10} />
+                            {row.premium ? "premium" : "free"}
+                          </span>
+                          <span className={`adm-flag adm-flag--admin${row.is_admin ? " is-on" : ""}`}>
+                            <ShieldIcon size={10} />
+                            {row.is_admin ? "admin" : "member"}
+                          </span>
+                        </span>
+                      </td>
+                      <td>
+                        <span className="adm-row-actions">
+                          <button
+                            type="button"
+                            className="adm-mini adm-mini--edit"
+                            onClick={() => setEditingId(row.id)}
+                            disabled={busy === row.id}
+                          >
+                            <EditIcon size={11} />
+                            Edit
+                          </button>
+                          <a
+                            className="adm-open"
+                            href={profileHref(row.alias?.trim() || row.username)}
+                          >
+                            <LinkIcon size={12} />
+                            open
+                          </a>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
+
+          {editing ? (
+            <MemberEditor
+              key={editing.id}
+              row={editing}
+              busy={busy === editing.id}
+              isSelf={editing.id === user?.id}
+              onClose={() => setEditingId(null)}
+              onSave={(fields) => patch(editing.id, fields, `@${editing.username} updated.`)}
+              onToggle={(fields, label) => patch(editing.id, fields, label)}
+            />
+          ) : null}
         </section>
       ) : null}
 
@@ -872,8 +972,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
             </h2>
             <button
               type="button"
-              className="btn btn-primary btn-sm"
-              disabled={registration === null || modeDraft === registration}
+              className="adm-btn adm-btn--primary"
+              disabled={registration === null || modeDraft === registration || busy === "settings"}
               onClick={async () => {
                 setBusy("settings");
                 setError(null);
@@ -950,12 +1050,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
                 Bot identity
               </h2>
               {bot?.inviteUrl ? (
-                <a
-                  className="btn btn-ghost btn-sm"
-                  href={bot.inviteUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a className="adm-btn adm-btn--ghost" href={bot.inviteUrl} target="_blank" rel="noreferrer">
                   Add bot to a server
                   <ArrowUpRight size={11} />
                 </a>
@@ -1014,7 +1109,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
       <footer className="adm-foot">
         <button
           type="button"
-          className="btn btn-ghost btn-sm"
+          className="adm-btn adm-btn--ghost"
           onClick={() => void security.signOutOthers()}
           title="Sign out every device except this one"
         >
@@ -1112,7 +1207,7 @@ function InviteForm({
         />
         <span>Premium attaches to these accounts</span>
       </label>
-      <button type="submit" className="btn btn-primary btn-sm" disabled={busy}>
+      <button type="submit" className="adm-btn adm-btn--primary" disabled={busy}>
         <KeyIcon size={12} />
         {busy ? "Generating…" : Number(count) > 1 ? "Generate codes" : "Generate code"}
       </button>
@@ -1161,7 +1256,7 @@ function BotTestForm({
           maxLength={500}
         />
       </label>
-      <button type="submit" className="btn btn-primary btn-sm" disabled={busy || !valid}>
+      <button type="submit" className="adm-btn adm-btn--primary" disabled={busy || !valid}>
         <DiscordIcon size={12} />
         {busy ? "Sending…" : "Send DM"}
       </button>
@@ -1171,6 +1266,7 @@ function BotTestForm({
     </form>
   );
 }
+
 /* ── Discord bot automation ──────────────────────────────────────────────
    Community automation settings: auto-roles, verification, welcome DMs and
    logging. They are stored per admin browser (the same way the rest of the
@@ -1432,7 +1528,7 @@ function BotSettingsPanel() {
             <ShieldIcon size={14} />
             Auto-role rules
           </h2>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={addRule}>
+          <button type="button" className="adm-btn adm-btn--ghost" onClick={addRule}>
             Add rule
           </button>
         </div>
@@ -1491,11 +1587,11 @@ function BotSettingsPanel() {
         </div>
 
         <div className="adm-panel-foot">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={exportConfig}>
+          <button type="button" className="adm-btn adm-btn--ghost" onClick={exportConfig}>
             <CopyIcon size={12} />
             Export config
           </button>
-          <button type="button" className="btn btn-primary btn-sm" onClick={save}>
+          <button type="button" className="adm-btn adm-btn--primary" onClick={save}>
             <SaveIcon size={12} />
             {saved ? "Settings saved" : "Save bot settings"}
           </button>
