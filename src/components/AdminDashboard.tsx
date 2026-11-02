@@ -6,6 +6,7 @@ import { profileHref } from "../lib/router";
 import {
   ArrowUpRight,
   BoltIcon,
+  ChevronIcon,
   CopyIcon,
   DiscordIcon,
   EyeIcon,
@@ -14,6 +15,7 @@ import {
   LogoutIcon,
   SaveIcon,
   SearchIcon,
+  SignalIcon,
   SettingsIcon,
   ShieldIcon,
   TrashIcon,
@@ -75,6 +77,34 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: "invites", label: "Invites", icon: <KeyIcon size={14} /> },
   { id: "settings", label: "Site settings", icon: <SettingsIcon size={14} /> },
   { id: "bot", label: "Discord bot", icon: <DiscordIcon size={14} /> },
+];
+
+/* Section cards on the admin landing — orientation, not a second navigation. */
+const ADMIN_CARDS: { tab: Tab; title: string; body: string; icon: ReactNode }[] = [
+  {
+    tab: "members",
+    title: "Members",
+    body: "Every account, its claims, views, premium and admin flags — editable in place.",
+    icon: <UsersIcon size={16} />,
+  },
+  {
+    tab: "invites",
+    title: "Invite codes",
+    body: "Generate codes, cap their uses, and hand out Premium on sign-up.",
+    icon: <KeyIcon size={16} />,
+  },
+  {
+    tab: "settings",
+    title: "Site settings",
+    body: "Open, invite-only or closed registration — enforced by the backend.",
+    icon: <SettingsIcon size={16} />,
+  },
+  {
+    tab: "bot",
+    title: "Discord bot",
+    body: "Bot identity, pending verification codes and direct messages.",
+    icon: <DiscordIcon size={16} />,
+  },
 ];
 
 const REGISTRATION_OPTIONS: { id: RegistrationMode; title: string; desc: string }[] = [
@@ -163,11 +193,39 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
     setBot(result.data);
   }, []);
 
-  useEffect(() => {
-    if (!isAdmin) return;
+  const refreshAll = useCallback(() => {
     void loadProfiles();
     void loadSummary();
-  }, [isAdmin, loadProfiles, loadSummary]);
+    void loadInvites();
+    void loadSettings();
+    void loadBot();
+  }, [loadProfiles, loadSummary, loadInvites, loadSettings, loadBot]);
+
+  const exportSnapshot = useCallback(() => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      admin: user?.username ?? null,
+      summary,
+      registration,
+      invites,
+      bot,
+      profiles,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `tourn-admin-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [user, summary, registration, invites, bot, profiles]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    // The landing page shows every panel's health, so load them all up front.
+    refreshAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -267,17 +325,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
           </p>
         </div>
         <div className="adm-top-actions">
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => {
-              void loadProfiles();
-              void loadSummary();
-              void loadInvites();
-              void loadSettings();
-              void loadBot();
-            }}
-          >
+          <button type="button" className="btn btn-ghost btn-sm" onClick={refreshAll}>
             Refresh
           </button>
           <a className="btn btn-ghost btn-sm" href="#/dashboard">
@@ -307,29 +355,146 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
 
       {tab === "overview" ? (
         <>
+          <section className="adm-hero">
+            <span className="adm-hero-icon" aria-hidden="true">
+              <ShieldIcon size={18} />
+            </span>
+            <div className="adm-hero-copy">
+              <h2>Admin</h2>
+              <p>
+                Signed in as <b>@{user?.username}</b>
+                {isOwner ? " (owner)" : ""}. Everything below is the platform itself — users,
+                access, and what people are told.
+              </p>
+            </div>
+            <span className="adm-health">
+              <i aria-hidden="true" />
+              Systems answering
+            </span>
+          </section>
+
           <section className="adm-stats">
             <article className="adm-stat">
-              <span className="adm-stat-label">Accounts</span>
+              <span className="adm-stat-label">
+                <UsersIcon size={12} /> Accounts
+              </span>
               <b className="adm-stat-value">{summary?.users ?? "—"}</b>
               <small>every handle on the site</small>
             </article>
             <article className="adm-stat">
-              <span className="adm-stat-label">Profile views</span>
+              <span className="adm-stat-label">
+                <EyeIcon size={12} /> Profile views
+              </span>
               <b className="adm-stat-value">
                 {summary ? summary.views.toLocaleString("en-US") : "—"}
               </b>
               <small>all handles, since launch</small>
             </article>
             <article className="adm-stat">
-              <span className="adm-stat-label">Premium</span>
+              <span className="adm-stat-label">
+                <BoltIcon size={12} /> Premium
+              </span>
               <b className="adm-stat-value">{summary?.premium ?? "—"}</b>
-              <small>granted accounts</small>
+              <small>
+                {summary
+                  ? `${summary.admins} admin${summary.admins === 1 ? "" : "s"} on the team`
+                  : "granted accounts"}
+              </small>
             </article>
             <article className="adm-stat">
-              <span className="adm-stat-label">Active invites</span>
+              <span className="adm-stat-label">
+                <KeyIcon size={12} /> Active invites
+              </span>
               <b className="adm-stat-value">{summary?.activeInvites ?? "—"}</b>
               <small>codes with uses left</small>
             </article>
+          </section>
+
+          <section className="adm-panel adm-ops">
+            <div className="adm-panel-head">
+              <h2>
+                <BoltIcon size={14} />
+                Operations &amp; system health
+              </h2>
+              <span className="adm-health adm-health--inline">
+                <i aria-hidden="true" />
+                All systems operational
+              </span>
+            </div>
+
+            <div className="adm-metrics">
+              <div className="adm-metric">
+                <span>Accounts API</span>
+                <b>{error ? "Degraded" : "Healthy"}</b>
+              </div>
+              <div className="adm-metric">
+                <span>Registration</span>
+                <b>
+                  {registration === "open"
+                    ? "Open"
+                    : registration === "invite"
+                      ? "Invite only"
+                      : registration === "closed"
+                        ? "Closed"
+                        : "—"}
+                </b>
+              </div>
+              <div className="adm-metric">
+                <span>Invite codes</span>
+                <b>{invites ? `${invites.length} total` : "—"}</b>
+              </div>
+              <div className="adm-metric">
+                <span>Discord bot</span>
+                <b>
+                  {bot
+                    ? bot.tokenValid
+                      ? "Online"
+                      : bot.configured
+                        ? "Token rejected"
+                        : "Not configured"
+                    : "—"}
+                </b>
+              </div>
+            </div>
+
+            <div className="adm-ops-actions">
+              <button type="button" className="adm-action" onClick={refreshAll}>
+                <SignalIcon size={12} />
+                Refresh everything
+              </button>
+              <button type="button" className="adm-action" onClick={exportSnapshot}>
+                <SaveIcon size={12} />
+                Export snapshot
+              </button>
+              <button type="button" className="adm-action" onClick={() => setTab("members")}>
+                <UsersIcon size={12} />
+                Manage members
+              </button>
+              <button type="button" className="adm-action" onClick={() => setTab("settings")}>
+                <SettingsIcon size={12} />
+                Site settings
+              </button>
+            </div>
+          </section>
+
+          <section className="adm-cards">
+            {ADMIN_CARDS.map((card) => (
+              <button
+                type="button"
+                key={card.tab}
+                className="adm-card"
+                onClick={() => setTab(card.tab)}
+              >
+                <span className="adm-card-icon">{card.icon}</span>
+                <span className="adm-card-copy">
+                  <b>
+                    {card.title}
+                    <ChevronIcon size={12} />
+                  </b>
+                  <small>{card.body}</small>
+                </span>
+              </button>
+            ))}
           </section>
 
           <section className="adm-panel">

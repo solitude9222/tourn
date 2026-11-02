@@ -86,6 +86,10 @@ type AuthValue = {
     mfaUnenroll: (factorId: string) => Promise<AuthResult>;
   };
   loading: boolean;
+  /** True when the session check itself failed (backend down), not "signed out". */
+  unavailable: boolean;
+  /** Re-checks the session cookie — used by the "can't reach" states. */
+  retryAuth: () => Promise<void>;
   configured: boolean;
   /** Email + password sign-in for accounts that added a password. */
   signIn: (input: { email: string; password: string }) => Promise<AuthResult>;
@@ -111,19 +115,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Account | null>(null);
   const [first, setFirst] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState(false);
 
-  // Restore the session (JWT cookie) from the backend on load.
-  useEffect(() => {
-    let active = true;
-    void api<{ account: Account | null }>("/api/auth/me").then((result) => {
-      if (!active) return;
-      setUser(result.ok ? result.data.account : null);
-      setLoading(false);
-    });
-    return () => {
-      active = false;
-    };
+  // Restore the session (JWT cookie) from the backend on load. A failed request
+  // is NOT the same as a signed-out visitor: "unavailable" keeps the dashboard
+  // from claiming the account doesn't exist when the API is simply down.
+  const retryAuth = useCallback(async () => {
+    setLoading(true);
+    const result = await api<{ account: Account | null }>("/api/auth/me");
+    setUser(result.ok ? result.data.account : null);
+    setUnavailable(!result.ok);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    void retryAuth();
+  }, [retryAuth]);
 
   const refreshFirst = useCallback(async () => {
     const result = await api<{ owner: Account | null }>("/api/profiles/owner");
@@ -290,6 +297,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAlias2,
       security,
       loading,
+      unavailable,
+      retryAuth,
       configured: true,
       signIn,
       signInWithDiscord,
@@ -306,6 +315,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAlias2,
       security,
       loading,
+      unavailable,
+      retryAuth,
       signIn,
       signInWithDiscord,
       linkDiscord,

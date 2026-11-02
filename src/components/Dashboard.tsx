@@ -79,6 +79,11 @@ type DashboardProps = {
   profileLinks: LinkStore;
   isPremium: boolean;
   isAdmin: boolean;
+  /** The session check is still in flight — show the shell, never the gate. */
+  authLoading?: boolean;
+  /** The session check failed (API unreachable), so "signed out" is unknown. */
+  authUnavailable?: boolean;
+  onRetryAuth?: () => void;
   /** Badge ids the backend has verified — only these can be equipped. */
   earned: string[];
   onSaveAbout: (about: About) => void;
@@ -125,6 +130,9 @@ export function Dashboard({
   profileLinks,
   isPremium,
   isAdmin,
+  authLoading = false,
+  authUnavailable = false,
+  onRetryAuth,
   earned,
   onSaveAbout,
   onSaveWidgets,
@@ -279,6 +287,30 @@ export function Dashboard({
     }
   };
 
+  // The session cookie is still being checked: show the dashboard shell with a
+  // quiet placeholder instead of the sign-up gate, which used to flash (and
+  // stick, when the API was slow) on every reload of /dashboard.
+  if (!user && authLoading) {
+    return (
+      <main className="dash dash--gate">
+        <a className="dash-gate-brand" href="#/">
+          <img src="/logo.png" alt="" width={30} height={30} />
+          <span>
+            tourn<span>.</span>lol
+          </span>
+        </a>
+        <div className="dash-gate-card dash-gate-card--checking" aria-busy="true">
+          <span className="dash-gate-icon" aria-hidden="true">
+            <UserIcon size={22} />
+          </span>
+          <span className="eyebrow eyebrow--sm">dashboard</span>
+          <h1>Checking your session…</h1>
+          <p>One moment while tourn.lol confirms which account this browser is signed into.</p>
+        </div>
+      </main>
+    );
+  }
+
   if (!user) {
     return (
       <main className="dash dash--gate">
@@ -288,6 +320,32 @@ export function Dashboard({
             tourn<span>.</span>lol
           </span>
         </a>
+        {authUnavailable ? (
+          <div className="dash-gate-card" data-reveal>
+            <span className="dash-gate-icon" aria-hidden="true">
+              <SignalIcon size={22} />
+            </span>
+            <span className="eyebrow eyebrow--sm">offline</span>
+            <h1>Couldn't reach tourn.lol.</h1>
+            <p>
+              The account API didn't answer, so this could be a connection problem rather than a
+              signed-out browser. Nothing has been signed out.
+            </p>
+            <div className="dash-gate-actions">
+              {onRetryAuth ? (
+                <button type="button" className="btn btn-primary" onClick={onRetryAuth}>
+                  Try again
+                </button>
+              ) : null}
+              <button type="button" className="btn btn-ghost" onClick={onSignIn}>
+                Sign in instead
+              </button>
+            </div>
+            <a className="dash-gate-back" href="#/">
+              Back to the site
+            </a>
+          </div>
+        ) : (
         <div className="dash-gate-card" data-reveal>
           <span className="dash-gate-icon" aria-hidden="true">
             <UserIcon size={22} />
@@ -311,6 +369,7 @@ export function Dashboard({
             Back to the site
           </a>
         </div>
+        )}
       </main>
     );
   }

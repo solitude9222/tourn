@@ -4488,3 +4488,8 @@ body:has(.dash) {
     flex-wrap: wrap;
   }
 }
+
+/* Session check in progress: no actions, no promise of a signed-out visitor. */
+.dash-gate-card--checking {
+  animation: none;
+}

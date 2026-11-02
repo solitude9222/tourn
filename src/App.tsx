@@ -368,7 +368,7 @@ function ProfilePage({
 }
 
 function Site() {
-  const { user, first, isOwner, isAdmin, loading, signOut } = useAuth();
+  const { user, first, isOwner, isAdmin, loading, unavailable, retryAuth, signOut } = useAuth();
   const route = useHashRoute();
   // Start empty so a signed-in account never fires a request for the site's
   // marketing demo IDs while auth/account settings are still resolving.
@@ -647,6 +647,9 @@ function Site() {
           badges={badges}
           isPremium={isPremium}
           isAdmin={isAdmin}
+          authLoading={loading}
+          authUnavailable={unavailable}
+          onRetryAuth={() => void retryAuth()}
           earned={earned}
           onSaveAbout={handleSaveAbout}
           onSaveWidgets={handleSaveWidgets}
