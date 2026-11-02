@@ -12,10 +12,8 @@ import {
   CheckIcon,
   ChevronIcon,
   DiscordIcon,
-  EyeIcon,
   SpotifyIcon,
   SteamIcon,
-  UsersIcon,
 } from "./Icons";
 
 /* ------------------------------------------------------------------- hero */
@@ -82,23 +80,17 @@ export function StatsBand({ stats }: { stats: SiteStats }) {
     <section className="stats-band" aria-label="tourn.lol, in numbers">
       <div className="wrap stats-band-row" data-reveal>
         <div className="stats-band-item">
-          <span className="stats-band-icon">
-            <UsersIcon size={15} />
-          </span>
-          <span className="stats-band-copy">
-            <b>{stats.users === null ? "—" : formatCompactNumber(stats.users)}</b>
-            <small>Creators signed up</small>
-          </span>
+          <b className="stats-band-value">
+            {stats.users === null ? "—" : formatCompactNumber(stats.users)}
+          </b>
+          <span className="stats-band-label">creators signed up</span>
         </div>
         <span className="stats-band-divider" aria-hidden="true" />
         <div className="stats-band-item">
-          <span className="stats-band-icon">
-            <EyeIcon size={15} />
-          </span>
-          <span className="stats-band-copy">
-            <b>{stats.views === null ? "—" : formatCompactNumber(stats.views)}</b>
-            <small>Profile views</small>
-          </span>
+          <b className="stats-band-value">
+            {stats.views === null ? "—" : formatCompactNumber(stats.views)}
+          </b>
+          <span className="stats-band-label">profile views</span>
         </div>
       </div>
     </section>

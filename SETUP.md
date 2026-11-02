@@ -31,12 +31,12 @@ For local dev, point the two URL vars at localhost in `.env`:
 ```bash
 FRONTEND_URL=http://127.0.0.1:5180
 BACKEND_URL=http://127.0.0.1:8787
-VITE_API_BASE_URL=http://127.0.0.1:8787
 ```
 
-(And in `index.html`, temporarily point the `<script src="…/env.js">` at
-`http://127.0.0.1:8787/env.js` — or leave it on Railway if that's already
-deployed.)
+Nothing else is needed: the frontend always calls its own origin (`/api/*`,
+`/env.js`) and Vite forwards those to `http://127.0.0.1:8787` in dev/preview,
+just like `vercel.json` does in production. The Railway host never appears in
+the page.
 
 ### 2) Supabase-free database (Railway Postgres)
 
@@ -57,6 +57,7 @@ DATABASE_URL=            # from service A
 JWT_SECRET=              # openssl rand -hex 32
 FRONTEND_URL=https://tourn.lol,https://swats.bio   # comma-separated list; apex + www both work
 BACKEND_URL=https://tourn-production.up.railway.app
+OAUTH_REDIRECT_URI=      # optional, see §4 — hides the API host from sign-in
 VITE_OWNER_EMAIL=you@example.com
 ADMIN_EMAIL=             # optional seeded admin (gets is_admin + is_owner)
 ADMIN_PASSWORD=
@@ -82,15 +83,24 @@ ever created becomes owner + admin**.
      (e.g. `https://tourn-production.up.railway.app/api/auth/discord/callback`)
      and, for local dev, `http://127.0.0.1:8787/api/auth/discord/callback`.
    - Copy Client Secret → `DISCORD_CLIENT_SECRET`.
+   - **Fully branded sign-in (optional):** also add
+     `https://www.tourn.lol/api/auth/discord/callback`, then set
+     `OAUTH_REDIRECT_URI=https://www.tourn.lol/api/auth/discord/callback` on
+     Railway. The site proxies that path to the backend, so the address bar
+     stays on `tourn.lol` from the first click to the dashboard. Leave the
+     variable empty and the callback uses the backend host (still works, but
+     the URL flashes once after you approve Discord).
 2. **Bot → Reset Token** → `DISCORD_BOT_TOKEN` (the verification-codes bot;
    invite it with only *Send Direct Messages* to a server you're in).
 
 ### 5) Vercel — frontend, zero env
 
 Import `solitude9222/tourn`, preset **Vite**, deploy. **No environment
-variables** — `index.html` loads the public config from the backend's
-`/env.js` at runtime. Update `FRONTEND_URL` in Railway to your final domain
-(used for OAuth return + CORS).
+variables** — `index.html` loads the public config from its own `/env.js` at
+runtime. `vercel.json` rewrites `/api/*` and `/env.js` to the Railway service,
+so every request the browser makes is to `tourn.lol` itself: no backend URL in
+the markup, no cross-site cookie. Update `FRONTEND_URL` in Railway to your
+final domain (used for the OAuth return).
 
 ### 6) Make yourself the owner
 
@@ -106,7 +116,7 @@ page immediately.
 ```bash
 FRONTEND_URL=https://tourn.lol,https://swats.bio   # comma-separated list; apex + www both work
 BACKEND_URL=https://tourn-production.up.railway.app
-VITE_API_BASE_URL=https://tourn-production.up.railway.app
+VITE_API_BASE_URL=            # leave empty: the site is same-origin (proxied)
 
 DATABASE_URL=                 # Railway Postgres connection string
 JWT_SECRET=                   # openssl rand -hex 32

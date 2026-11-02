@@ -1,16 +1,18 @@
 /* ---------------------------------------------------------------------------
-   Backend client — every account call goes to the Railway backend
-   (Postgres lives there too). The base URL comes from the backend's own
-   /env.js at runtime (window.__ENV__), falls back to import.meta.env for
-   local dev, then to the known production URL.
+   Backend client — every account call is SAME-ORIGIN. The site proxies
+   /api/* (and /env.js) through its own host to the Express backend, so the
+   API domain never appears in page markup, in requests or in the address
+   bar, and the session cookie stays first-party.
+
+   `VITE_API_BASE_URL` still works for deliberately pointing at another host
+   (e.g. `http://127.0.0.1:8787` when running the frontend without the dev
+   proxy); empty means "this origin".
    --------------------------------------------------------------------------- */
 
 import { publicEnv } from "./runtimeEnv";
 
-export const DEFAULT_BACKEND_URL = "https://tourn-production.up.railway.app";
-
 export function apiBase(): string {
-  return publicEnv("VITE_API_BASE_URL") || DEFAULT_BACKEND_URL;
+  return publicEnv("VITE_API_BASE_URL").replace(/\/+$/, "");
 }
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: string };

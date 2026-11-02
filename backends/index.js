@@ -8,8 +8,8 @@
    Env it reads (all set in Railway):
      DATABASE_URL              Railway Postgres connection string
      JWT_SECRET                session signing key
-     FRONTEND_URL              https://tourn.lol (CORS + OAuth return)
-     BACKEND_URL               https://tourn-production.up.railway.app
+     FRONTEND_URL              https://tourn.lol (CORS + OAuth return)      BACKEND_URL               https://tourn-production.up.railway.app
+      OAUTH_REDIRECT_URI        optional; the exact Discord callback URL
     CLOUDINARY_*              media/file hosting — the only external besides
                               Postgres (declared here, wired per feature)
      VITE_OWNER_EMAIL          owner account email
@@ -38,12 +38,14 @@ const {
   JWT_SECRET,
   FRONTEND_URL = "http://127.0.0.1:5180",
   BACKEND_URL = "https://tourn-production.up.railway.app",
+  OAUTH_REDIRECT_URI = "",
   VITE_OWNER_EMAIL = "",
   ADMIN_EMAIL = "",
   ADMIN_PASSWORD = "",
   VITE_DISCORD_CLIENT_ID = "",
   DISCORD_CLIENT_SECRET = "",
   DISCORD_BOT_TOKEN = "",
+  DISCORD_GUILD_ID = "",
   VITE_SPOTIFY_CLIENT_ID = "",
   VITE_TURNSTILE_SITE_KEY = "",
   VITE_STRIPE_PUBLISHABLE_KEY = "",
@@ -69,6 +71,15 @@ const FRONTEND_ORIGINS = new Set([
   "http://localhost:5180",
 ]);
 const CANONICAL_FRONTEND_ORIGIN = CONFIGURED_FRONTEND_ORIGINS[0] ?? "http://127.0.0.1:5180";
+
+/* Discord sends the browser back to this exact URL, so it has to be the one
+   registered in the Discord portal. By default that is the backend host. Set
+   OAUTH_REDIRECT_URI to the branded callback (e.g.
+   https://www.tourn.lol/api/auth/discord/callback) once it is registered and
+   the site proxies /api/* — then visitors never see the API host at all. */
+const DISCORD_REDIRECT_URI =
+  OAUTH_REDIRECT_URI.trim() ||
+  `${BACKEND_URL.replace(/\/+$/, "")}/api/auth/discord/callback`;
 
 /* ── database ──────────────────────────────────────────────────────────── */
 
@@ -110,6 +121,24 @@ create table if not exists verification_codes (
   code_hash text not null,
   expires_at timestamptz not null,
   used boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists site_settings (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists invite_codes (
+  code text primary key,
+  created_by uuid references users(id) on delete set null,
+  premium boolean not null default false,
+  max_uses integer not null default 1,
+  uses integer not null default 0,
+  note text,
+  revoked boolean not null default false,
+  expires_at timestamptz,
   created_at timestamptz not null default now()
 );
 `;
@@ -249,6 +278,68 @@ async function claimTaken(clean, exceptUserId) {
   return rows.length > 0;
 }
 
+/* ── site settings & invite codes ─────────────────────────────────────── */
+
+const REGISTRATION_MODES = new Set(["open", "invite", "closed"]);
+
+async function readSetting(key, fallback) {
+  const { rows } = await pool.query("select value from site_settings where key = $1", [key]);
+  return rows[0]?.value ?? fallback;
+}
+
+async function writeSetting(key, value) {
+  await pool.query(
+    `insert into site_settings (key, value, updated_at) values ($1, $2, now())
+     on conflict (key) do update set value = excluded.value, updated_at = now()`,
+    [key, String(value)],
+  );
+}
+
+/** open = anyone with Discord, invite = code required, closed = no new accounts. */
+async function registrationMode() {
+  const value = await readSetting("registration_mode", "open");
+  return REGISTRATION_MODES.has(value) ? value : "open";
+}
+
+const cleanInviteCode = (input) =>
+  String(input ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]/g, "")
+    .slice(0, 40);
+
+function newInviteCode() {
+  return `TOURN-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+}
+
+async function usableInvite(code) {
+  const clean = cleanInviteCode(code);
+  if (!clean) return null;
+  const { rows } = await pool.query(
+    `select * from invite_codes
+     where code = $1 and not revoked
+       and (expires_at is null or expires_at > now())
+       and uses < max_uses`,
+    [clean],
+  );
+  return rows[0] ?? null;
+}
+
+function inviteOf(row) {
+  if (!row) return null;
+  return {
+    code: row.code,
+    premium: Boolean(row.premium),
+    maxUses: row.max_uses,
+    uses: row.uses,
+    note: row.note ?? null,
+    revoked: Boolean(row.revoked),
+    expiresAt: row.expires_at ?? null,
+    createdAt: row.created_at,
+    creator: row.creator ?? null,
+  };
+}
+
 async function uniqueUsername(base) {
   const root = cleanHandle(base) || "player";
   let candidate = root;
@@ -315,7 +406,9 @@ app.get("/env.js", (_req, res) => {
   res.set("Cache-Control", "public, max-age=60");
   res.send(
     `window.__ENV__ = ${JSON.stringify({
-      VITE_API_BASE_URL: BACKEND_URL,
+      // Empty = same origin. The site proxies /api/* and /env.js through its
+      // own host, so the API domain never shows up in markup or requests.
+      VITE_API_BASE_URL: "",
       VITE_OWNER_EMAIL: VITE_OWNER_EMAIL,
       VITE_DISCORD_CLIENT_ID: VITE_DISCORD_CLIENT_ID,
       VITE_SPOTIFY_CLIENT_ID: VITE_SPOTIFY_CLIENT_ID,
@@ -326,6 +419,16 @@ app.get("/env.js", (_req, res) => {
 });
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+/* Public site config — the sign-up dialog reads this before it opens Discord. */
+app.get("/api/site/config", async (_req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    res.json({ registration: await registrationMode(), discordOnly: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 /* ── auth ──────────────────────────────────────────────────────────────── */
 
@@ -393,11 +496,12 @@ app.post("/api/auth/signout-others", requireAuth, async (req, res) => {
 /* Discord OAuth — THE sign-up path.
    `state` is signed with JWT_SECRET and carries the site to return to, so the
    flow needs no cookie and survives the site/API domain split. */
-function signOAuthState(returnOrigin) {
+function signOAuthState(returnOrigin, invite = "") {
   const payload = Buffer.from(
     JSON.stringify({
       nonce: crypto.randomBytes(12).toString("hex"),
       returnOrigin,
+      invite: cleanInviteCode(invite) || null,
       issuedAt: Date.now(),
     }),
   ).toString("base64url");
@@ -420,7 +524,10 @@ function readOAuthState(state) {
     if (typeof data?.returnOrigin !== "string" || !FRONTEND_ORIGINS.has(data.returnOrigin)) {
       return null;
     }
-    return { returnOrigin: data.returnOrigin };
+    return {
+      returnOrigin: data.returnOrigin,
+      invite: cleanInviteCode(data.invite) || null,
+    };
   } catch {
     return null;
   }
@@ -439,10 +546,10 @@ app.get("/api/auth/discord", (req, res) => {
   }
   const params = new URLSearchParams({
     client_id: VITE_DISCORD_CLIENT_ID,
-    redirect_uri: `${BACKEND_URL}/api/auth/discord/callback`,
+    redirect_uri: DISCORD_REDIRECT_URI,
     response_type: "code",
     scope: "identify email",
-    state: signOAuthState(returnOrigin),
+    state: signOAuthState(returnOrigin, req.query?.invite),
     prompt: "consent",
   });
   const url = `https://discord.com/oauth2/authorize?${params.toString()}`;
@@ -469,7 +576,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
         client_secret: DISCORD_CLIENT_SECRET,
         grant_type: "authorization_code",
         code,
-        redirect_uri: `${BACKEND_URL}/api/auth/discord/callback`,
+        redirect_uri: DISCORD_REDIRECT_URI,
       }),
     });
     if (!tokenRes.ok) return res.redirect(`${returnOrigin}/#/?error=discord_token`);
@@ -512,15 +619,43 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       );
       user = updated.rows[0];
     } else {
-      const username = await uniqueUsername(displayName);
       const first = await pool.query("select count(*)::int as count from users");
       const isFirst = first.rows[0].count === 0;
+
+      // Registration policy. The very first account always gets in, otherwise
+      // nobody could ever configure the site.
+      let invite = null;
+      if (!isFirst) {
+        const mode = await registrationMode();
+        if (mode === "closed") {
+          return res.redirect(`${returnOrigin}/#/?error=registration_closed`);
+        }
+        if (mode === "invite") {
+          invite = await usableInvite(state.invite);
+          if (!invite) {
+            return res.redirect(`${returnOrigin}/#/?error=invite_required`);
+          }
+        }
+      }
+
+      const username = await uniqueUsername(displayName);
       const inserted = await pool.query(
-        `insert into users (username, email, discord_id, avatar_url, is_owner, is_admin)
-         values ($1, $2, $3, $4, $5, $6) returning *`,
-        [username, email, discordId, avatar, isOwner || isFirst, isAdmin || isFirst],
+        `insert into users (username, email, discord_id, avatar_url, is_owner, is_admin, premium)
+         values ($1, $2, $3, $4, $5, $6, $7) returning *`,
+        [
+          username,
+          email,
+          discordId,
+          avatar,
+          isOwner || isFirst,
+          isAdmin || isFirst,
+          Boolean(invite?.premium),
+        ],
       );
       user = inserted.rows[0];
+      if (invite) {
+        await pool.query("update invite_codes set uses = uses + 1 where code = $1", [invite.code]);
+      }
     }
 
     setSession(res, user);
@@ -831,16 +966,42 @@ app.post("/api/views/:username", async (req, res) => {
 
 /* ── admin directory ───────────────────────────────────────────────────── */
 
+const ADMIN_PROFILE_SELECT = `select u.id, u.username, u.alias, u.alias2, u.avatar_url,
+       u.premium, u.is_admin, u.created_at, coalesce(v.views, 0)::bigint as views
+from users u
+left join profile_views v on v.username = u.username`;
+
+app.get("/api/admin/summary", requireAdmin, async (_req, res) => {
+  const [users, views, premium, admins, invites] = await Promise.all([
+    pool.query("select count(*)::int as count from users"),
+    pool.query("select coalesce(sum(views), 0)::bigint as total from profile_views"),
+    pool.query("select count(*)::int as count from users where premium = true"),
+    pool.query("select count(*)::int as count from users where is_admin = true"),
+    pool.query(
+      `select count(*)::int as active from invite_codes
+       where not revoked and (expires_at is null or expires_at > now()) and uses < max_uses`,
+    ),
+  ]);
+  res.json({
+    users: users.rows[0].count,
+    views: Number(views.rows[0].total),
+    premium: premium.rows[0].count,
+    admins: admins.rows[0].count,
+    activeInvites: invites.rows[0].active,
+  });
+});
+
 app.get("/api/admin/profiles", requireAdmin, async (_req, res) => {
-  const { rows } = await pool.query(
-    `select id, username, alias, alias2, avatar_url, premium, is_admin, created_at
-     from users order by created_at desc limit 300`,
-  );
-  res.json({ profiles: rows });
+  const { rows } = await pool.query(`${ADMIN_PROFILE_SELECT} order by u.created_at desc limit 500`);
+  res.json({ profiles: rows.map((row) => ({ ...row, views: Number(row.views) })) });
 });
 
 app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
   try {
+    const target = await pool.query("select id, username from users where id = $1", [req.params.id]);
+    const account = target.rows[0];
+    if (!account) return res.status(404).json({ error: "No such account." });
+
     const patch = {};
     if (typeof req.body?.premium === "boolean") patch.premium = req.body.premium;
     if (typeof req.body?.is_admin === "boolean") {
@@ -849,16 +1010,218 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
       }
       patch.is_admin = req.body.is_admin;
     }
-    if (Object.keys(patch).length === 0) {
+
+    // Handles are unique across username + both claims, so an admin edit is
+    // validated exactly like a claim.
+    for (const field of ["alias", "alias2"]) {
+      if (!Object.prototype.hasOwnProperty.call(req.body ?? {}, field)) continue;
+      const clean = cleanHandle(req.body[field]);
+      if (clean) {
+        if (clean.length < 3) return res.status(400).json({ error: "Aliases need at least 3 characters." });
+        if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
+        if (RESERVED.has(clean)) return res.status(400).json({ error: `"${clean}" is reserved by the site.` });
+        const taken = await pool.query(
+          `select id from users where (username = $1 or alias = $1 or alias2 = $1) and id <> $2 limit 1`,
+          [clean, account.id],
+        );
+        if (taken.rowCount > 0) return res.status(400).json({ error: `@${clean} is already claimed.` });
+      }
+      patch[field] = clean || null;
+    }
+
+    let views = null;
+    if (req.body?.views !== undefined) {
+      const parsed = Number(req.body.views);
+      if (!Number.isFinite(parsed)) return res.status(400).json({ error: "Views must be a number." });
+      views = Math.max(0, Math.trunc(parsed));
+    }
+
+    if (Object.keys(patch).length === 0 && views === null) {
       return res.status(400).json({ error: "Nothing to update." });
     }
-    const sets = Object.keys(patch).map((key, index) => `${key} = $${index + 2}`);
+    if (Object.keys(patch).length > 0) {
+      const sets = Object.keys(patch).map((key, index) => `${key} = $${index + 2}`);
+      await pool.query(
+        `update users set ${sets.join(", ")} where id = $1`,
+        [account.id, ...Object.values(patch)],
+      );
+    }
+    if (views !== null) {
+      await pool.query(
+        `insert into profile_views (username, views) values ($1, $2)
+         on conflict (username) do update set views = excluded.views`,
+        [account.username, views],
+      );
+    }
+
+    const { rows } = await pool.query(`${ADMIN_PROFILE_SELECT} where u.id = $1`, [account.id]);
+    res.json({ profile: { ...rows[0], views: Number(rows[0].views) } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* ── admin: site settings ──────────────────────────────────────────────── */
+
+app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
+  res.json({ settings: { registration: await registrationMode() } });
+});
+
+app.patch("/api/admin/settings", requireAdmin, async (req, res) => {
+  try {
+    if (req.body?.registration !== undefined) {
+      const mode = String(req.body.registration);
+      if (!REGISTRATION_MODES.has(mode)) {
+        return res.status(400).json({ error: "Unknown registration mode." });
+      }
+      await writeSetting("registration_mode", mode);
+    }
+    res.json({ settings: { registration: await registrationMode() } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* ── admin: invite codes ───────────────────────────────────────────────── */
+
+app.get("/api/admin/invites", requireAdmin, async (_req, res) => {
+  const { rows } = await pool.query(
+    `select i.*, u.username as creator
+     from invite_codes i left join users u on u.id = i.created_by
+     order by i.created_at desc limit 300`,
+  );
+  res.json({ invites: rows.map(inviteOf) });
+});
+
+app.post("/api/admin/invites", requireAdmin, async (req, res) => {
+  try {
+    const count = Math.min(100, Math.max(1, Math.trunc(Number(req.body?.count) || 1)));
+    const maxUses = Math.min(10_000, Math.max(1, Math.trunc(Number(req.body?.maxUses) || 1)));
+    const premium = Boolean(req.body?.premium);
+    const note = String(req.body?.note ?? "").trim().slice(0, 80) || null;
+    const days = Number(req.body?.expiresInDays);
+    const expiresAt = Number.isFinite(days) && days > 0 ? new Date(Date.now() + days * 86_400_000) : null;
+
+    const created = [];
+    for (let index = 0; index < count; index += 1) {
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const code = newInviteCode();
+        try {
+          const { rows } = await pool.query(
+            `insert into invite_codes (code, created_by, premium, max_uses, note, expires_at)
+             values ($1, $2, $3, $4, $5, $6) returning *`,
+            [code, req.user.id, premium, maxUses, note, expiresAt],
+          );
+          created.push(inviteOf(rows[0]));
+          break;
+        } catch (error) {
+          if (error.code !== "23505") throw error;
+        }
+      }
+    }
+    res.status(201).json({ invites: created });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.patch("/api/admin/invites/:code", requireAdmin, async (req, res) => {
+  try {
+    const code = cleanInviteCode(req.params.code);
+    const revoked = Boolean(req.body?.revoked);
     const { rows } = await pool.query(
-      `update users set ${sets.join(", ")} where id = $1 returning id, username, alias, alias2, avatar_url, premium, is_admin, created_at`,
-      [req.params.id, ...Object.values(patch)],
+      `update invite_codes set revoked = $2 where code = $1 returning *`,
+      [code, revoked],
     );
-    if (!rows[0]) return res.status(404).json({ error: "No such account." });
-    res.json({ profile: rows[0] });
+    if (!rows[0]) return res.status(404).json({ error: "No such invite code." });
+    res.json({ invite: inviteOf(rows[0]) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* ── admin: Discord bot ────────────────────────────────────────────────── */
+
+async function discordBot() {
+  if (!DISCORD_BOT_TOKEN) return null;
+  try {
+    const meRes = await fetch("https://discord.com/api/v10/users/@me", {
+      headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
+    });
+    if (!meRes.ok) return null;
+    const me = await meRes.json();
+    return {
+      id: String(me.id),
+      username: me.username,
+      avatar: me.avatar
+        ? `https://cdn.discordapp.com/avatars/${me.id}/${me.avatar}.png?size=64`
+        : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+app.get("/api/admin/bot", requireAdmin, async (_req, res) => {
+  const [bot, pending, guild] = await Promise.all([
+    discordBot(),
+    pool.query(
+      `select count(*)::int as count from verification_codes
+       where used = false and expires_at > now()`,
+    ),
+    (async () => {
+      if (!DISCORD_BOT_TOKEN || !DISCORD_GUILD_ID) return null;
+      try {
+        const response = await fetch(`https://discord.com/api/v10/guilds/${DISCORD_GUILD_ID}`, {
+          headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        return {
+          id: String(data.id),
+          name: data.name,
+          icon: data.icon
+            ? `https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=64`
+            : null,
+        };
+      } catch {
+        return null;
+      }
+    })(),
+  ]);
+
+  res.json({
+    configured: Boolean(DISCORD_BOT_TOKEN),
+    tokenValid: Boolean(bot),
+    bot,
+    guildId: DISCORD_GUILD_ID || null,
+    guild,
+    pendingCodes: pending.rows[0].count,
+    inviteUrl: VITE_DISCORD_CLIENT_ID
+      ? `https://discord.com/oauth2/authorize?client_id=${VITE_DISCORD_CLIENT_ID}&scope=bot%20applications.commands&permissions=2048`
+      : null,
+  });
+});
+
+app.post("/api/admin/bot/test-dm", requireAdmin, async (req, res) => {
+  try {
+    const discordId = String(req.body?.discordId ?? "").trim();
+    if (!/^\d{16,20}$/.test(discordId)) {
+      return res.status(400).json({ error: "Enter a Discord user ID (17–20 digits)." });
+    }
+    if (!DISCORD_BOT_TOKEN) {
+      return res.status(400).json({ error: "No DISCORD_BOT_TOKEN is set on the backend." });
+    }
+    const message =
+      String(req.body?.message ?? "").trim().slice(0, 500) ||
+      "tourn.lol bot check — DMs are working.";
+    const sent = await sendDiscordDm(discordId, message);
+    if (!sent) {
+      return res.status(502).json({
+        error: "Discord rejected the DM. The bot must share a server with that user.",
+      });
+    }
+    res.json({ ok: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

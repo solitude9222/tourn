@@ -155,5 +155,34 @@ export default defineConfig({
   server: {
     port: 5180,
     host: "127.0.0.1",
+    // The app talks to its own origin in every environment; in development
+    // that origin forwards /api and /env.js to the local Express backend on
+    // :8787, exactly like the production host does.
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8787",
+        // Steam and Roblox widgets are served by the plugins above, never
+        // forwarded to the account backend.
+        bypass: (req) =>
+          /^\/api\/(steam-profile|roblox)(\/|\?|$)/.test(req.url ?? "")
+            ? req.url
+            : undefined,
+      },
+      "/env.js": { target: "http://127.0.0.1:8787" },
+    },
+  },
+  preview: {
+    port: 5180,
+    host: "127.0.0.1",
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8787",
+        bypass: (req) =>
+          /^\/api\/(steam-profile|roblox)(\/|\?|$)/.test(req.url ?? "")
+            ? req.url
+            : undefined,
+      },
+      "/env.js": { target: "http://127.0.0.1:8787" },
+    },
   },
 });

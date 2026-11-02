@@ -12,8 +12,42 @@ export type Route =
 
 const DEMO_PATH = "/demo";
 
+/** First path segments that are pages (or static files), never handles. */
+const RESERVED_PATHS = new Set([
+  "",
+  "demo",
+  "admin",
+  "about",
+  "shop",
+  "leaderboard",
+  "premium",
+  "dashboard",
+  "profile",
+  "login",
+  "signin",
+  "signup",
+  "help",
+  "support",
+  "api",
+  "assets",
+  "badges",
+]);
+
 function isDemoPath(): boolean {
   return window.location.pathname.replace(/\/+$/, "").toLowerCase() === DEMO_PATH;
+}
+
+/** `tourn.lol/trackdown` — the shareable profile URL. */
+function handleFromPath(): string | null {
+  const segment = window.location.pathname
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")[0]
+    .toLowerCase();
+  if (!segment || RESERVED_PATHS.has(segment)) return null;
+  // A dot is a file request (logo.png, favicon.ico), not a handle.
+  if (/\.[a-z0-9]+$/.test(segment)) return null;
+  const handle = segment.replace(/[^a-z0-9._-]/g, "");
+  return handle || null;
 }
 
 function readRoute(): Route {
@@ -24,7 +58,10 @@ function readRoute(): Route {
   }
   if (hash === "admin") return "admin";
   if (hash.startsWith("profile/")) return "profile";
-  if (!hash && isDemoPath()) return "demo";
+  if (!hash) {
+    if (isDemoPath()) return "demo";
+    if (handleFromPath()) return "profile";
+  }
   return "";
 }
 
@@ -34,6 +71,11 @@ export function profileHandleFromHash(): string | null {
   if (!hash.startsWith("profile/")) return null;
   const handle = decodeURIComponent(hash.slice("profile/".length)).trim().toLowerCase();
   return handle || null;
+}
+
+/** The handle in either `#/profile/<handle>` or the path URL `/<handle>`. */
+export function profileHandleFromLocation(): string | null {
+  return profileHandleFromHash() ?? handleFromPath();
 }
 
 /** Tiny hash router — the site is four static pages, no router dependency needed. */

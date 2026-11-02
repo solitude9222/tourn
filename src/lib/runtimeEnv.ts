@@ -1,19 +1,19 @@
 /* ---------------------------------------------------------------------------
    Runtime public env.
 
-   The frontend is a static bundle — env vars live ONLY in Railway. The
+   The frontend is a static bundle — env vars live ONLY on the backend. The
    backend serves a tiny public script at `/env.js` that does:
 
        window.__ENV__ = {
-         VITE_API_BASE_URL: "https://tourn-production.up.railway.app",
+         VITE_API_BASE_URL: "",
          VITE_OWNER_EMAIL: "you@example.com",
          VITE_DISCORD_CLIENT_ID: "…"
        };
 
-   index.html loads that script (classic, blocking) before the app bundle, so
-   by the time this module runs the values are on window. `import.meta.env`
-   stays as the fallback so local `.env` development works exactly as before.
-   The backend WHITELISTS which vars it exposes — secrets never appear here.
+   index.html loads it from this site's own `/env.js` (proxied to the API) so
+   no backend host is ever written into the page. `import.meta.env` stays as
+   the fallback so local `.env` development works exactly as before. The
+   backend WHITELISTS which vars it exposes — secrets never appear here.
    --------------------------------------------------------------------------- */
 
 export type PublicEnvKey =

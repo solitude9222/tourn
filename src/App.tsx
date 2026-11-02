@@ -23,7 +23,7 @@ import {
 import { loadIsPremium } from "./lib/premium";
 import { fetchLanyard } from "./lib/api";
 import { usePolled } from "./lib/hooks";
-import { useHashRoute, profileHandleFromHash } from "./lib/router";
+import { useHashRoute, profileHandleFromLocation } from "./lib/router";
 import { formatJoined } from "./lib/format";
 import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";
@@ -322,7 +322,7 @@ function Site() {
               <AdminDashboard />
             ) : route === "profile" ? (
               <ProfilePage
-                handle={profileHandleFromHash()}
+                handle={profileHandleFromLocation()}
                 user={user}
                 about={about}
                 widgets={widgets}

@@ -90,7 +90,7 @@ type AuthValue = {
   /** Email + password sign-in for accounts that added a password. */
   signIn: (input: { email: string; password: string }) => Promise<AuthResult>;
   /** Discord OAuth — the ONLY way to create an account. Redirects the page. */
-  signInWithDiscord: () => Promise<AuthResult>;
+  signInWithDiscord: (invite?: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
 };
 
@@ -139,11 +139,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   }, []);
 
-  const signInWithDiscord = useCallback<AuthValue["signInWithDiscord"]>(async () => {
+  const signInWithDiscord = useCallback<AuthValue["signInWithDiscord"]>(async (invite) => {
     // Ask the backend for the Discord authorize URL, then send the browser
     // straight to Discord. Navigating to the API host itself would expose the
     // Railway domain to visitors.
-    const result = await api<{ url?: string }>("/api/auth/discord");
+    const code = invite?.trim();
+    const result = await api<{ url?: string }>(
+      `/api/auth/discord${code ? `?invite=${encodeURIComponent(code)}` : ""}`,
+    );
     const url = result.ok ? result.data.url : null;
     if (!result.ok) return { error: result.error };
     if (!url) return { error: "Discord sign-in isn't available right now." };

@@ -26,13 +26,14 @@
       rel="stylesheet"
     />
     <!--
-      Runtime public env, served by the Railway backend. This is the ONLY
-      place the frontend gets its configuration on a static host — no env
-      vars are set in Vercel/Netlify. The backend whitelists what it exposes
-      (Supabase URL + anon key + owner email + public client ids) and
-      nothing secret ever appears here. Falls back to .env in local dev.
+      Runtime public env, served by the backend and proxied through this
+      site's own host (/env.js → API). This is the ONLY place the frontend
+      gets its configuration on a static host — no env vars are set in
+      Vercel. The backend whitelists what it exposes (owner email + public
+      client ids) and nothing secret ever appears here, and no backend URL
+      is written into this page. Falls back to .env in local dev.
     -->
-    <script src="https://tourn-production.up.railway.app/env.js"></script>
+    <script src="/env.js"></script>
   </head>
   <body>
     <noscript>

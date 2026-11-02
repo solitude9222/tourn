@@ -1,0 +1,497 @@
+/* ---------------------------------------------------------------------------
+   Admin console — a normal site page (fixed header offset, same panels as the
+   rest of the product) with tabs for members, invites, settings and the bot.
+   Base .adm* styles live in dashboard.css; this file adds the page shell and
+   the newer controls.
+   --------------------------------------------------------------------------- */
+
+.adm.adm-page {
+  padding: 140px 22px 84px;
+}
+
+.adm-page .adm-top {
+  margin-bottom: 18px;
+}
+
+.adm-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+}
+
+.adm-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted, #959da6);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.adm-tab:hover {
+  color: var(--text, #eff3f5);
+}
+
+.adm-tab.is-active {
+  border-color: rgba(143, 216, 255, 0.28);
+  background: rgba(143, 216, 255, 0.1);
+  color: var(--ice, #a8e0ff);
+}
+
+.adm-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: none;
+  color: var(--ice, #a8e0ff);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.adm-link:hover {
+  text-decoration: underline;
+}
+
+.adm-msg--ok {
+  border-color: rgba(120, 220, 160, 0.3);
+  background: rgba(120, 220, 160, 0.07);
+  color: #9fe6bd;
+}
+
+.adm-empty {
+  color: var(--muted-2, #6f7780);
+  font-size: 12.5px;
+}
+
+.adm-hint {
+  color: var(--muted-2, #6f7780);
+  font-size: 11.5px;
+}
+
+.adm-hint--block {
+  display: block;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+.adm-hint--error {
+  color: #ff9a9a;
+}
+
+/* ── overview ──────────────────────────────────────────────────────────── */
+
+.adm-recent {
+  display: grid;
+  gap: 2px;
+}
+
+.adm-recent li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.adm-recent li:last-child {
+  border-bottom: 0;
+}
+
+.adm-recent img,
+.adm-recent .adm-user-initial {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.adm-recent .adm-user-initial {
+  display: grid;
+  place-items: center;
+  background: rgba(143, 216, 255, 0.12);
+  color: var(--ice, #a8e0ff);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.adm-recent-id {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.adm-recent-id b {
+  font-size: 12.5px;
+}
+
+.adm-recent-id small {
+  color: var(--muted-2, #6f7780);
+  font-size: 10.5px;
+}
+
+.adm-recent-meta {
+  margin-left: auto;
+  color: var(--muted-2, #6f7780);
+  font-size: 11px;
+  text-align: right;
+}
+
+/* ── members ───────────────────────────────────────────────────────────── */
+
+.adm-claim--views {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  color: var(--muted-2, #6f7780);
+}
+
+.adm-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.adm-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.1));
+  border-radius: 7px;
+  background: none;
+  color: var(--muted, #959da6);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.adm-mini:hover {
+  color: var(--text, #eff3f5);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.adm-mini--save {
+  border-color: rgba(143, 216, 255, 0.35);
+  background: rgba(143, 216, 255, 0.1);
+  color: var(--ice, #a8e0ff);
+}
+
+.adm-mini--danger {
+  border-color: rgba(255, 138, 138, 0.25);
+  color: #ff9a9a;
+}
+
+.adm-mini:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.adm-edit-fields {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.adm-field {
+  display: grid;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--muted-2, #6f7780);
+}
+
+.adm-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.1));
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text, #eff3f5);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.adm-field input:focus {
+  border-color: rgba(143, 216, 255, 0.45);
+}
+
+.adm-field--wide {
+  min-width: 180px;
+}
+
+/* ── invites ───────────────────────────────────────────────────────────── */
+
+.adm-invite-form {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.adm-invite-form .adm-field {
+  width: 130px;
+}
+
+.adm-invite-form .adm-field--wide {
+  width: min(280px, 100%);
+  flex: 1;
+}
+
+.adm-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted, #959da6);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.adm-check input {
+  accent-color: rgba(143, 216, 255, 1);
+}
+
+.adm-invite-list {
+  display: grid;
+  gap: 8px;
+}
+
+.adm-invite {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 12px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.adm-invite.is-dead {
+  opacity: 0.62;
+}
+
+.adm-invite-main {
+  display: grid;
+  gap: 2px;
+  min-width: 210px;
+  flex: 1;
+}
+
+.adm-code {
+  color: var(--ice, #a8e0ff);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.adm-invite-meta {
+  color: var(--muted-2, #6f7780);
+  font-size: 10.5px;
+}
+
+.adm-invite-note {
+  color: var(--muted, #959da6);
+  font-size: 11px;
+}
+
+.adm-invite-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.adm-invite-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  border-radius: 999px;
+  color: var(--muted, #959da6);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.adm-badge--premium {
+  border-color: rgba(244, 114, 182, 0.4);
+  background: rgba(244, 114, 182, 0.1);
+  color: #f7a8d0;
+}
+
+.adm-badge--live {
+  border-color: rgba(120, 220, 160, 0.35);
+  background: rgba(120, 220, 160, 0.1);
+  color: #9fe6bd;
+}
+
+/* ── settings ──────────────────────────────────────────────────────────── */
+
+.adm-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.adm-mode {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted, #959da6);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.adm-mode:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.adm-mode.is-active {
+  border-color: rgba(143, 216, 255, 0.4);
+  background: rgba(143, 216, 255, 0.07);
+}
+
+.adm-mode-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.adm-mode-head b {
+  color: var(--text, #eff3f5);
+  font-size: 12.5px;
+}
+
+.adm-mode small {
+  color: var(--muted-2, #6f7780);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.adm-mode-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: var(--ice, #a8e0ff);
+  font-size: 11px;
+}
+
+/* ── bot ───────────────────────────────────────────────────────────────── */
+
+.adm-stats--bot {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.adm-bot-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-bot-identity img {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.adm-bot-identity b {
+  display: block;
+  font-size: 13px;
+}
+
+.adm-bot-identity small {
+  color: var(--muted-2, #6f7780);
+  font-size: 10.5px;
+}
+
+.adm-bot-form {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.adm-bot-form .adm-field {
+  width: 190px;
+}
+
+.adm-bot-form .adm-field--wide {
+  flex: 1;
+  width: auto;
+  min-width: 220px;
+}
+
+/* ── footer ────────────────────────────────────────────────────────────── */
+
+.adm-page .adm-foot {
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.adm-page .adm-signout {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .adm-settings-grid,
+  .adm-stats--bot {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-recent-meta {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .adm.adm-page {
+    padding: 118px 16px 64px;
+  }
+
+  .adm-invite,
+  .adm-invite-form,
+  .adm-bot-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .adm-invite-form .adm-field,
+  .adm-bot-form .adm-field {
+    width: 100%;
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../lib/auth";
+import { api } from "../lib/backend";
 import { ArrowRight, CloseIcon, DiscordIcon } from "./Icons";
 
 export type AuthMode = "signin" | "signup";
@@ -9,7 +10,9 @@ const OAUTH_ERRORS: Record<string, string> = {
   oauth_state: "That sign-in link expired — hit the button again.",
   discord_token: "Discord didn't accept the sign-in — try once more.",
   discord_profile: "Couldn't read your Discord profile — allow email sharing on the consent screen.",
-  oauth_failed: "Discord sign-in failed. Check the Discord env vars on the Railway backend.",
+  oauth_failed: "Discord sign-in failed. Try again in a moment.",
+  registration_closed: "New accounts are closed right now — existing members can still sign in.",
+  invite_required: "That invite code isn't valid or has already been used.",
 };
 
 function oauthErrorFromUrl(): string | null {
@@ -47,6 +50,8 @@ export function AuthDialog({
   const [busy, setBusy] = useState<"email" | "discord" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [invite, setInvite] = useState("");
+  const [registration, setRegistration] = useState<"open" | "invite" | "closed">("open");
 
   useEffect(() => {
     if (!open) return;
@@ -56,6 +61,21 @@ export function AuthDialog({
     setNotice(null);
     setPassword("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode]);
+
+  // The backend decides whether new accounts are open, invite-only or closed.
+  useEffect(() => {
+    if (!open || mode !== "signup") return;
+    let active = true;
+    void api<{ registration: "open" | "invite" | "closed" }>("/api/site/config").then(
+      (result) => {
+        if (!active) return;
+        setRegistration(result.ok ? result.data.registration : "open");
+      },
+    );
+    return () => {
+      active = false;
+    };
   }, [open, mode]);
 
   useEffect(() => {
@@ -92,8 +112,18 @@ export function AuthDialog({
     if (busy) return;
     setError(null);
     setNotice(null);
+    if (mode === "signup") {
+      if (registration === "closed") {
+        setError("New accounts are closed right now — existing members can still sign in.");
+        return;
+      }
+      if (registration === "invite" && !invite.trim()) {
+        setError("Enter your invite code to create an account.");
+        return;
+      }
+    }
     setBusy("discord");
-    const result = await signInWithDiscord();
+    const result = await signInWithDiscord(invite.trim() || undefined);
     if (result.error) {
       setBusy(null);
       setError(result.error);
@@ -143,7 +173,34 @@ export function AuthDialog({
             </div>
           ) : null}
 
-          <button type="button" className="btn btn-discord" onClick={handleDiscord} disabled={busy !== null}>
+          {mode === "signup" && registration === "closed" ? (
+            <div className="auth-demo">
+              <p>
+                New accounts are closed right now. If you already have an account, switch to
+                sign in — existing members are unaffected.
+              </p>
+            </div>
+          ) : null}
+
+          {mode === "signup" && registration === "invite" ? (
+            <label className="field auth-invite">
+              <span>Invite code</span>
+              <input
+                value={invite}
+                onChange={(event) => setInvite(event.target.value.toUpperCase())}
+                placeholder="TOURN-XXXXXXXX"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </label>
+          ) : null}
+
+          <button
+            type="button"
+            className="btn btn-discord"
+            onClick={handleDiscord}
+            disabled={busy !== null || (mode === "signup" && registration === "closed")}
+          >
             {busy === "discord" ? <span className="spinner" /> : <DiscordIcon size={16} />}
             {mode === "signup" ? "Sign up with Discord" : "Continue with Discord"}
           </button>
