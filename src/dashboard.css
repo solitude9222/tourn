@@ -4307,3 +4307,184 @@ body:has(.dash) {
 .dash-save.is-saved:hover {
   transform: none;
 }
+/* ── leaderboard, inside the dashboard ─────────────────────────────── */
+
+.dash-board {
+  display: grid;
+  gap: 14px;
+}
+
+.dash-board-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+}
+
+.dash-board-summary-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.dash-board-trophy {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(143, 216, 255, 0.06);
+  color: #a8e0ff;
+}
+
+.dash-board-rank {
+  display: block;
+  margin-top: 2px;
+  color: #f2f7fa;
+  font-size: 26px;
+  font-weight: 720;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.dash-board-summary small {
+  display: block;
+  margin-top: 3px;
+  color: #7d858d;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.dash-board-summary-side {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.dash-board-list {
+  padding: 18px 20px 22px;
+}
+
+.board--dash {
+  margin-top: 15px;
+}
+
+.board--dash .board-row {
+  gap: 13px;
+  padding: 11px 13px;
+  border-radius: 11px;
+}
+
+.board--dash .board-row.is-you {
+  border-color: rgba(143, 216, 255, 0.34);
+  background: linear-gradient(180deg, rgba(143, 216, 255, 0.09), rgba(143, 216, 255, 0.025));
+}
+
+.board--dash .board-row.is-you .board-rank {
+  color: #a8e0ff;
+}
+
+.board--dash .board-id p {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+}
+
+.board--dash .board-id span {
+  font-size: 10.5px;
+}
+
+.dash-board-you {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(143, 216, 255, 0.14);
+  color: #a8e0ff;
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dash-board-empty {
+  margin: 16px 0 0;
+  color: #7d858d;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .dash-board-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+/* ── settings · connections ────────────────────────────────────────── */
+
+.settings-connection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-connection.is-connected {
+  border-color: rgba(88, 101, 242, 0.34);
+  background: rgba(88, 101, 242, 0.07);
+}
+
+.settings-connection-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(88, 101, 242, 0.14);
+  color: #a5b1ff;
+}
+
+.settings-connection-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+
+.settings-connection-copy b {
+  color: #eef2f4;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.settings-connection-copy small {
+  color: #7d858d;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.settings-connection-state {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.1);
+  color: #9ff0bb;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .settings-connection {
+    flex-wrap: wrap;
+  }
+}

@@ -6,6 +6,7 @@ import {
   BoltIcon,
   CheckIcon,
   CloseIcon,
+  DiscordIcon,
   GridIcon,
   KeyIcon,
   LinkIcon,
@@ -28,7 +29,19 @@ export function SettingsPage({
 }: {
   onNavigate?: (page: SettingsNavigateTarget) => void;
 }) {
-  const { user, isPremiumUser, setAlias, setAlias2, security, configured, isAdmin } = useAuth();
+  const { user, isPremiumUser, setAlias, setAlias2, security, configured, isAdmin, linkDiscord } =
+    useAuth();
+  const [linkBusy, setLinkBusy] = useState(false);
+  // The Discord link flow returns here with its result in the hash.
+  const [linkMsg, setLinkMsg] = useState<string | null>(() => {
+    const hash = window.location.hash;
+    if (hash.includes("linked=discord")) return "Discord is now connected to this account.";
+    if (hash.includes("error=discord_taken")) {
+      return "That Discord account is already attached to a different tourn.lol account.";
+    }
+    if (hash.includes("error=link_expired")) return "That link expired — sign in and connect again.";
+    return null;
+  });
   const [aliasDraft, setAliasDraft] = useState("");
   const [alias2Draft, setAlias2Draft] = useState("");
   const [aliasMsg, setAliasMsg] = useState<string | null>(null);
@@ -108,6 +121,62 @@ export function SettingsPage({
           ) : null}
         </div>
       </header>
+
+      <section className="dash-panel about-panel" data-reveal data-reveal-delay="30">
+        <header className="about-panel-head">
+          <div>
+            <h2>Connections</h2>
+            <p>Attach Discord to this account so widgets and the server can find you.</p>
+          </div>
+          <span className="dash-section-icon dash-section-icon--small">
+            <DiscordIcon size={13} />
+          </span>
+        </header>
+
+        <div className="settings-page-body">
+          <div className={`settings-connection${user?.discordLinked ? " is-connected" : ""}`}>
+            <span className="settings-connection-icon">
+              <DiscordIcon size={18} />
+            </span>
+            <span className="settings-connection-copy">
+              <b>Discord</b>
+              <small>
+                {user?.discordLinked
+                  ? "Connected — your Discord ID is available to the Discord widget and server tools."
+                  : "Not connected. Link it to use your Discord profile without a separate account."}
+              </small>
+            </span>
+            {user?.discordLinked ? (
+              <span className="settings-connection-state">
+                <CheckIcon size={12} />
+                Connected
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => {
+                  setLinkBusy(true);
+                  setLinkMsg(null);
+                  void linkDiscord().then((result) => {
+                    setLinkBusy(false);
+                    if (result.error) setLinkMsg(result.error);
+                  });
+                }}
+                disabled={linkBusy || configured === false}
+              >
+                <DiscordIcon size={13} />
+                {linkBusy ? "Opening Discord…" : "Connect Discord"}
+              </button>
+            )}
+          </div>
+          {linkMsg ? <p className="settings-note">{linkMsg}</p> : null}
+          <p className="settings-note">
+            Signing in with Discord attaches it automatically when the Discord email matches this
+            account. Use the button above when they don't match.
+          </p>
+        </div>
+      </section>
 
       <section className="dash-panel about-panel" data-reveal>
         <header className="about-panel-head">

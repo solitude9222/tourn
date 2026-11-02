@@ -73,9 +73,11 @@ function readRoute(): Route {
   if (hash === "demo") return "demo";
   // The admin console lives inside the dashboard — old #/admin links land there.
   if (hash === "admin" || hash === "dashboard/admin") return "dashboard";
-  if (hash === "leaderboard" || hash === "shop" || hash === "dashboard" || hash === "premium") {
+  if (hash === "leaderboard" || hash === "shop" || hash === "premium") {
     return hash;
   }
+  // `#/dashboard`, `#/dashboard/settings`, `#/dashboard/admin` — all the dashboard.
+  if (hash === "dashboard" || hash.startsWith("dashboard/")) return "dashboard";
   if (hash.startsWith("profile/")) return "profile";
   if (!hash) {
     // `#/` is an explicit "home" link; only a hash-less URL falls back to the

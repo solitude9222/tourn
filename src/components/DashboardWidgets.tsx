@@ -420,7 +420,7 @@ export function DashboardWidgets({
                           <span className={`platform-card-live${widgetSupportsLive(item.id) ? " is-live" : ""}`}>
                             {widgetSupportsLive(item.id)
                               ? "Live data from the public API"
-                              : "No public API yet — shows your profile link"}
+                              : `Profile card — opens your ${item.name} profile`}
                           </span>
                         </span>
                       </button>

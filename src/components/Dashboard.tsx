@@ -18,6 +18,7 @@ import { DashboardSlideshow } from "./DashboardSlideshow";
 import { DashboardEntry } from "./DashboardEntry";
 import { DashboardBadges } from "./DashboardBadges";
 import { DashboardLinks } from "./DashboardLinks";
+import { DashboardLeaderboard } from "./DashboardLeaderboard";
 import { SettingsPage } from "./SettingsPage";
 import { AdminDashboard } from "./AdminDashboard";
 import {
@@ -64,6 +65,7 @@ type DashPage =
   | "entry"
   | "badges"
   | "links"
+  | "leaderboard"
   | "settings"
   | "admin";
 
@@ -170,6 +172,17 @@ export function Dashboard({
     window.addEventListener("hashchange", apply);
     return () => window.removeEventListener("hashchange", apply);
   }, [isAdmin]);
+
+  // `#/dashboard/settings` deep-links the settings page (the Discord link flow
+  // returns there with a result in the query string).
+  useEffect(() => {
+    const apply = () => {
+      if (window.location.hash.includes("/settings")) setPage("settings");
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
 
   useEffect(() => {
     try {
@@ -374,6 +387,7 @@ export function Dashboard({
     entry: { title: "Entry screen", subtitle: "A short intro before visitors reach your profile." },
     badges: { title: "Badges", subtitle: "Equip badges and customise how they look on your card." },
     links: { title: "Links", subtitle: "Social links and buttons on your profile card." },
+    leaderboard: { title: "Leaderboard", subtitle: "Every claimed handle, and where you sit on the board." },
     settings: { title: "Settings", subtitle: "Your claims, account security and plan." },
     admin: { title: "Admin", subtitle: "Members, invites, site settings and the Discord bot." },
   }[page];
@@ -511,10 +525,16 @@ export function Dashboard({
                 Analytics
                 <span className="dash-soon">Soon</span>
               </button>
-              <a className="dash-nav-item" href="#/leaderboard">
+              <button
+                type="button"
+                className={`dash-nav-item${page === "leaderboard" ? " is-active" : ""}`}
+                onClick={() => setPage("leaderboard")}
+                aria-current={page === "leaderboard" ? "page" : undefined}
+              >
                 <TrophyIcon size={15} />
                 Leaderboard
-              </a>
+                {page === "leaderboard" ? <i className="dash-nav-dot" /> : null}
+              </button>
               {about.design.cardStyle === "slideshow" ? (
                 <button
                   type="button"
@@ -747,6 +767,8 @@ export function Dashboard({
             isPremium={isPremium}
             onChange={onSaveLinks}
           />
+        ) : page === "leaderboard" ? (
+          <DashboardLeaderboard />
         ) : page === "settings" ? (
           <SettingsPage onNavigate={(target) => setPage(target)} />
         ) : (

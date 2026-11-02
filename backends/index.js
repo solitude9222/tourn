@@ -231,6 +231,8 @@ function accountOf(row) {
     premium: Boolean(row.premium),
     isAdmin: Boolean(row.is_admin),
     isOwner: Boolean(row.is_owner),
+    /** True once a Discord account is attached (sign-up or linked later). */
+    discordLinked: Boolean(row.discord_id),
   };
 }
 
@@ -571,6 +573,75 @@ app.get("/env.js", (_req, res) => {
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
+/* ── widget data proxies ────────────────────────────────────────────────
+   Roblox and Steam send no CORS headers, so the browser can never call them
+   directly. These two routes are deliberately narrow: GET only, a fixed host
+   allowlist, a browser-like user agent and a short public cache. */
+
+const WIDGET_PROXY_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36";
+const ROBLOX_HOSTS = new Set([
+  "users.roblox.com",
+  "thumbnails.roblox.com",
+  "friends.roblox.com",
+  "apis.roblox.com",
+]);
+
+app.get("/api/roblox", async (req, res) => {
+  let target;
+  try {
+    target = new URL(String(req.query.url ?? ""));
+  } catch {
+    return res.status(400).json({ error: "Missing url" });
+  }
+  if (target.protocol !== "https:" || !ROBLOX_HOSTS.has(target.hostname)) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  try {
+    const upstream = await fetch(target, {
+      headers: { accept: "application/json", "accept-language": "en-US,en;q=0.9", "user-agent": WIDGET_PROXY_UA },
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await upstream.text();
+    res.status(upstream.status);
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.set("Cache-Control", "public, max-age=60");
+    res.send(body);
+  } catch (error) {
+    console.warn("[roblox-proxy]", error?.message ?? error);
+    res.status(502).json({ error: "Roblox proxy error" });
+  }
+});
+
+app.get("/api/steam-profile", async (req, res) => {
+  let target;
+  try {
+    target = new URL(String(req.query.url ?? ""));
+  } catch {
+    return res.status(400).send("Missing url");
+  }
+  if (target.protocol !== "https:" || !/(^|\.)steamcommunity\.com$/i.test(target.hostname)) {
+    return res.status(403).send("Forbidden");
+  }
+  try {
+    const upstream = await fetch(target, {
+      headers: {
+        "user-agent": WIDGET_PROXY_UA,
+        accept: "text/xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await upstream.text();
+    res.status(upstream.status);
+    res.set("Content-Type", "text/xml; charset=utf-8");
+    res.set("Cache-Control", "public, max-age=120");
+    res.send(body);
+  } catch (error) {
+    console.warn("[steam-proxy]", error?.message ?? error);
+    res.status(502).send("Steam proxy error");
+  }
+});
+
 /* Public site config — the sign-up dialog reads this before it opens Discord. */
 app.get("/api/site/config", async (_req, res) => {
   try {
@@ -647,12 +718,14 @@ app.post("/api/auth/signout-others", requireAuth, async (req, res) => {
 /* Discord OAuth — THE sign-up path.
    `state` is signed with JWT_SECRET and carries the site to return to, so the
    flow needs no cookie and survives the site/API domain split. */
-function signOAuthState(returnOrigin, invite = "") {
+function signOAuthState(returnOrigin, invite = "", linkUserId = null) {
   const payload = Buffer.from(
     JSON.stringify({
       nonce: crypto.randomBytes(12).toString("hex"),
       returnOrigin,
       invite: cleanInviteCode(invite) || null,
+      // Set when an already signed-in account is attaching Discord to itself.
+      linkUserId: linkUserId || null,
       issuedAt: Date.now(),
     }),
   ).toString("base64url");
@@ -678,6 +751,7 @@ function readOAuthState(state) {
     return {
       returnOrigin: data.returnOrigin,
       invite: cleanInviteCode(data.invite) || null,
+      linkUserId: typeof data.linkUserId === "string" ? data.linkUserId : null,
     };
   } catch {
     return null;
@@ -708,6 +782,26 @@ app.get("/api/auth/discord", (req, res) => {
   // never land on the Railway API host.
   if (wantsJson(req)) return res.json({ url });
   res.redirect(url);
+});
+
+/* Attach Discord to an account that is already signed in — the email/password
+   path. The signed state carries the user id, so the callback links instead of
+   creating a second account. */
+app.get("/api/auth/discord/link", requireAuth, (req, res) => {
+  const returnOrigin = returnOriginFromReferer(req);
+  if (!VITE_DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
+    console.error("[discord link] not configured — set VITE_DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET");
+    return res.status(503).json({ error: "Discord linking isn't configured yet." });
+  }
+  const params = new URLSearchParams({
+    client_id: VITE_DISCORD_CLIENT_ID,
+    redirect_uri: DISCORD_REDIRECT_URI,
+    response_type: "code",
+    scope: "identify email",
+    state: signOAuthState(returnOrigin, "", req.auth.sub),
+    prompt: "consent",
+  });
+  res.json({ url: `https://discord.com/oauth2/authorize?${params.toString()}` });
 });
 
 app.get("/api/auth/discord/callback", async (req, res) => {
@@ -760,6 +854,30 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     const isAdmin = Boolean(
       (adminEmail && email && email === adminEmail) || isOwner,
     );
+
+    // Linking flow: attach this Discord account to the signed-in user and stop
+    // — no new account, no username collision, no invite check.
+    if (state.linkUserId) {
+      const target = await userById(state.linkUserId);
+      if (!target) {
+        return res.redirect(`${returnOrigin}/#/dashboard/settings?error=link_expired`);
+      }
+      const clash = await pool.query(
+        "select id from users where discord_id = $1 and id <> $2",
+        [discordId, target.id],
+      );
+      if (clash.rowCount > 0) {
+        return res.redirect(`${returnOrigin}/#/dashboard/settings?error=discord_taken`);
+      }
+      const linked = await pool.query(
+        `update users set discord_id = $1, avatar_url = coalesce($2, avatar_url),
+           is_owner = is_owner or $3, is_admin = is_admin or $4
+         where id = $5 returning *`,
+        [discordId, avatar, isOwner, isAdmin, target.id],
+      );
+      setSession(res, linked.rows[0]);
+      return res.redirect(`${returnOrigin}/#/dashboard/settings?linked=discord`);
+    }
 
     if (user) {
       const updated = await pool.query(

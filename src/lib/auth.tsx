@@ -28,6 +28,8 @@ export type Account = {
   isAdmin?: boolean;
   /** Set by the backend when the account email matches the owner email. */
   isOwner?: boolean;
+  /** True once a Discord account is attached to this account. */
+  discordLinked?: boolean;
 };
 
 type AuthResult = { error?: string; needsConfirmation?: boolean };
@@ -89,6 +91,11 @@ type AuthValue = {
   signIn: (input: { email: string; password: string }) => Promise<AuthResult>;
   /** Discord OAuth — the ONLY way to create an account. Redirects the page. */
   signInWithDiscord: (invite?: string) => Promise<AuthResult>;
+  /**
+   * Attach Discord to the signed-in account (email/password sign-ups).
+   * Redirects the page to Discord and returns to Settings when done.
+   */
+  linkDiscord: () => Promise<AuthResult>;
   signOut: () => Promise<void>;
 };
 
@@ -151,6 +158,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = url;
     return {};
   }, []);
+
+  const linkDiscord = useCallback<AuthValue["linkDiscord"]>(async () => {
+    if (!user) return { error: "Sign in to connect Discord." };
+    const result = await api<{ url?: string }>("/api/auth/discord/link");
+    if (!result.ok) return { error: result.error };
+    const url = result.data.url;
+    if (!url) return { error: "Discord linking isn't available right now." };
+    window.location.href = url;
+    return {};
+  }, [user]);
 
   const signOut = useCallback(async () => {
     await post("/api/auth/logout");
@@ -276,6 +293,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       configured: true,
       signIn,
       signInWithDiscord,
+      linkDiscord,
       signOut,
     }),
     [
@@ -290,6 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signIn,
       signInWithDiscord,
+      linkDiscord,
       signOut,
     ],
   );

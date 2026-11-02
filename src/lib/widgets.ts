@@ -25,6 +25,89 @@ export type WidgetInstance = {
   options: Record<string, boolean | string>;
 };
 
+/**
+ * The real destination behind a widget, so every card opens the profile it is
+ * describing — even the platforms with no public data API.
+ */
+export function widgetProfileUrl(platformId: string, content: string): string | null {
+  const raw = content.trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const handle = raw.replace(/^@/, "").replace(/^\/+|\/+$/g, "");
+  if (!handle) return null;
+  const enc = (value: string) => encodeURIComponent(value);
+
+  switch (platformId) {
+    case "roblox":
+      return /^\d+$/.test(handle) ? `https://www.roblox.com/users/${handle}/profile` : null;
+    case "github":
+      return `https://github.com/${enc(handle)}`;
+    case "steam":
+      if (/^\d{17}$/.test(handle)) return `https://steamcommunity.com/profiles/${handle}`;
+      return `https://steamcommunity.com/id/${enc(handle)}`;
+    case "lastfm":
+      return `https://www.last.fm/user/${enc(handle)}`;
+    case "statsfm":
+      return `https://stats.fm/${enc(handle)}`;
+    case "valorant": {
+      const [name, tag] = handle.split("#");
+      return tag ? `https://tracker.gg/valorant/profile/riot/${enc(name)}%23${enc(tag)}/overview` : null;
+    }
+    case "twitch":
+      return `https://twitch.tv/${enc(handle)}`;
+    case "kick":
+      return `https://kick.com/${enc(handle)}`;
+    case "x":
+      return `https://x.com/${enc(handle)}`;
+    case "instagram":
+      return `https://instagram.com/${enc(handle)}`;
+    case "tiktok":
+      return `https://tiktok.com/@${enc(handle)}`;
+    case "reddit":
+      return `https://reddit.com/user/${enc(handle)}`;
+    case "telegram":
+      return `https://t.me/${enc(handle)}`;
+    case "soundcloud":
+      return `https://soundcloud.com/${enc(handle)}`;
+    case "applemusic":
+      return `https://music.apple.com/us/artist/${enc(handle)}`;
+    case "osu":
+      return `https://osu.ppy.sh/users/${enc(handle)}`;
+    case "chess":
+      return `https://www.chess.com/member/${enc(handle)}`;
+    case "hypixel":
+      return `https://hypixel.net/player/${enc(handle)}`;
+    case "fortnite":
+      return `https://fortnitetracker.com/profile/all/${enc(handle)}`;
+    case "league": {
+      const [name, tag] = handle.split("#");
+      return tag ? `https://op.gg/summoners/${enc(name)}-${enc(tag)}` : `https://op.gg/summoners/${enc(handle)}`;
+    }
+    case "rocketleague":
+      return `https://rocketleague.tracker.network/rocket-league/profile/steam/${enc(handle)}/overview`;
+    case "clashofclans": {
+      const tag = handle.replace(/^#/, "");
+      return /^[0-9A-Z]{5,12}$/i.test(tag)
+        ? `https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${enc(tag)}`
+        : null;
+    }
+    case "clashroyale": {
+      const tag = handle.replace(/^#/, "");
+      return /^[0-9A-Z]{5,12}$/i.test(tag) ? `https://link.clashroyale.com/en?playerInfo?id=${enc(tag)}` : null;
+    }
+    case "brawlstars": {
+      const tag = handle.replace(/^#/, "");
+      return /^[0-9A-Z]{5,12}$/i.test(tag) ? `https://link.brawlstars.com/en?action=openPlayerProfile&tag=${enc(tag)}` : null;
+    }
+    case "timezone":
+    case "weather":
+    case "minecraft":
+      return null;
+    default:
+      return null;
+  }
+}
+
 export type WidgetBackground = "frosted" | "gradient" | "rgb" | "solid" | "art";
 
 export type WidgetDesign = {

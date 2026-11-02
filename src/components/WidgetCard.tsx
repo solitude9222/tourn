@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { hexToRgba } from "../lib/about";
 import {
   WIDGET_PLATFORM_BY_ID,
+  widgetProfileUrl,
   type WidgetDesign,
   type WidgetInstance,
   type WidgetPlatform,
@@ -98,6 +99,7 @@ function WidgetCardSurface({
   const hasArt = design.backgroundStyle === "art" && Boolean(live?.art);
   const background = hasArt ? "art" : design.backgroundStyle === "art" ? "frosted" : design.backgroundStyle;
   const compact = widget.options.compact === true;
+  const profileHref = widgetProfileUrl(platform.id, content);
 
   const title = live?.title?.trim() || (configured ? content : platform.name);
   const subtitle =
@@ -109,7 +111,9 @@ function WidgetCardSurface({
           ? "Reading public profile…"
           : supported
             ? "Live data unavailable"
-            : "Saved profile"
+            : profileHref
+              ? `Open on ${platform.name}`
+              : "Saved profile"
       : `Add ${platform.contentLabel.toLowerCase()}`);
   const meta = live?.meta.filter(Boolean).slice(0, 2) ?? [];
 
@@ -208,10 +212,24 @@ function WidgetCardSurface({
               </span>
             ))}
           </span>
-          <span className="widget-card-mark" style={{ color: platform.color }}>
-            <PlatformIcon id={platform.id} size={13} />
-            <b>{platform.name}</b>
-          </span>
+          {profileHref && !preview ? (
+            <a
+              className="widget-card-mark widget-card-mark--link"
+              style={{ color: platform.color }}
+              href={profileHref}
+              target="_blank"
+              rel="noreferrer noopener"
+              title={`Open on ${platform.name}`}
+            >
+              <PlatformIcon id={platform.id} size={13} />
+              <b>{platform.name}</b>
+            </a>
+          ) : (
+            <span className="widget-card-mark" style={{ color: platform.color }}>
+              <PlatformIcon id={platform.id} size={13} />
+              <b>{platform.name}</b>
+            </span>
+          )}
         </span>
       </span>
 
