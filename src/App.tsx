@@ -24,7 +24,7 @@ import { loadIsPremium } from "./lib/premium";
 import { fetchLanyard } from "./lib/api";
 import { usePolled } from "./lib/hooks";
 import { useHashRoute, profileHandleFromLocation } from "./lib/router";
-import { formatJoined } from "./lib/format";
+import { formatJoinDate } from "./lib/format";
 import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
@@ -38,7 +38,7 @@ import { CopyIcon, ExternalIcon, MailIcon, UserIcon } from "./components/Icons";
    tourn.lol/<handle>. Splitting them keeps a profile visit down to the profile
    bundle instead of parsing the whole dashboard first. */
 const Dashboard = lazy(() =>
-  import("./components/Dashboard").then((module) => ({ default: module.Dashboard })),
+  import("./dash/DashboardApp").then((module) => ({ default: module.Dashboard })),
 );
 const DemoPage = lazy(() =>
   import("./components/DemoPage").then((module) => ({ default: module.DemoPage })),
@@ -373,7 +373,7 @@ function ProfilePage({
           links={links}
           interactive
           views={views}
-          joined={formatJoined(new Date(user.joinedAt))}
+          joined={formatJoinDate(new Date(user.joinedAt), about.metadata.joinFormat)}
         />
       </section>
     );
@@ -406,7 +406,10 @@ function ProfilePage({
           links={document.links}
           interactive
           views={views}
-          joined={formatJoined(new Date(remote.data.account.joinedAt))}
+          joined={formatJoinDate(
+            new Date(remote.data.account.joinedAt),
+            document.about.metadata.joinFormat,
+          )}
         />
       </section>
     );
@@ -503,7 +506,7 @@ function Site() {
   // people pressed twice.
   useEffect(() => {
     const preload = () => {
-      void import("./components/Dashboard");
+      void import("./dash/DashboardApp");
       void import("./components/Sections");
       void import("./components/Pages");
     };

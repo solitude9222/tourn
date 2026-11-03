@@ -23,6 +23,8 @@ export type WidgetInstance = {
   platform: string;
   content: string;
   options: Record<string, boolean | string>;
+  /** false hides the widget on the public page without deleting it. */
+  visible?: boolean;
 };
 
 /**
@@ -784,6 +786,7 @@ export function createWidgetInstance(platform: WidgetPlatform): WidgetInstance {
     platform: platform.id,
     content: "",
     options: defaultWidgetOptions(platform),
+    visible: true,
   };
 }
 
@@ -834,6 +837,7 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
               platform: item.platform,
               content: typeof item.content === "string" ? item.content.slice(0, 300) : "",
               options: { ...defaultWidgetOptions(platform), ...(item.options ?? {}) },
+              visible: item.visible !== false,
             };
           })
       : [];

@@ -267,9 +267,9 @@ export function LinkerPreview({
       : undefined,
   } as CSSProperties;
 
-  const widgetStack = widgets.widgets.length ? (
+  const widgetStack = widgets.widgets.some((widget) => widget.visible !== false) ? (
     <div className="lkr-widgets">
-      {widgets.widgets.map((widget) => (
+      {widgets.widgets.filter((widget) => widget.visible !== false).map((widget) => (
         <WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker" />
       ))}
     </div>

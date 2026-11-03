@@ -23,9 +23,15 @@ export type LocationPosition = "top" | "under-name" | "footer" | "hidden";
 /** Browser-tab behaviour for the public page. */
 export type TabAnimation = "none" | "cycle" | "typewriter";
 
+export type JoinDateFormat = "relative" | "us" | "eu";
+
 export type AboutMetadata = {
   /** Custom tab title. Empty = the account's name + tourn.lol. */
   title: string;
+  /** How the join date reads on the public page. */
+  joinFormat?: JoinDateFormat;
+  /** How dates are written across the dashboard. */
+  dateFormat?: "us" | "eu";
   /** Custom favicon. Empty = the account's profile picture. */
   faviconUrl: string;
   animation: TabAnimation;
@@ -348,6 +354,8 @@ function loadMetadata(input: unknown): AboutMetadata {
     : [];
   return {
     title: textIn(raw.title, DEFAULT_METADATA.title, 60),
+    joinFormat: oneOf(raw.joinFormat, ["relative", "us", "eu"] as const, "relative"),
+    dateFormat: raw.dateFormat === "eu" ? "eu" : "us",
     faviconUrl: textIn(raw.faviconUrl, DEFAULT_METADATA.faviconUrl, 250_000),
     animation: oneOf(raw.animation, TAB_ANIMATIONS, DEFAULT_METADATA.animation),
     messages,

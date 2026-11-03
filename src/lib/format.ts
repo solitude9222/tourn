@@ -28,6 +28,30 @@ export function formatJoined(date: Date): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
+/** Join date in the format chosen in Customize › Profile. */
+export function formatJoinDate(
+  date: Date,
+  format: "relative" | "us" | "eu" = "relative",
+): string {
+  if (format === "relative") {
+    const months = Math.max(
+      0,
+      Math.round((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24 * 30.44)),
+    );
+    if (months < 1) return "just now";
+    if (months < 12) return `${months} ${months === 1 ? "month" : "months"} ago`;
+    const years = Math.floor(months / 12);
+    const rest = months % 12;
+    return rest
+      ? `${years}y ${rest}m ago`
+      : `${years} ${years === 1 ? "year" : "years"} ago`;
+  }
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  return format === "us" ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
+}
+
 /** "1,204" below 10k, "12.4K" / "3.1M" above it — for stats where a long
  *  exact number would just add noise (site-wide totals, view counts). */
 export function formatCompactNumber(value: number): string {
