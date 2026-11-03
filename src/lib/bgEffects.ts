@@ -103,7 +103,7 @@ type Splash = { x: number; y: number; vx: number; vy: number; l: number };
 
 export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxApi {
   assets();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
   if (getComputedStyle(container).position === "static") container.style.position = "relative";
   container.style.isolation = "isolate";
 
@@ -629,17 +629,21 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     if (document.visibilityState === "visible") start();
   };
   document.addEventListener("visibilitychange", onVisible);
+  // Overlay canvases sit under `pointer-events: none`, so the host itself
+  // never hears the mouse. Listen on the document and decide from the box:
+  // that is what makes overlays follow the cursor at all.
   const pt = (e: PointerEvent) => {
     const r = container.getBoundingClientRect();
     mx = e.clientX - r.left;
     my = e.clientY - r.top;
-    has = true;
+    has =
+      e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
   };
   const lv = () => {
     has = false;
   };
-  container.addEventListener("pointermove", pt);
-  container.addEventListener("pointerdown", pt);
+  document.addEventListener("pointermove", pt, { passive: true });
+  document.addEventListener("pointerdown", pt, { passive: true });
   container.addEventListener("pointerleave", lv);
 
   const api: BgFxApi = {
@@ -666,8 +670,8 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       stop();
       ro.disconnect();
       io.disconnect();
-      container.removeEventListener("pointermove", pt);
-      container.removeEventListener("pointerdown", pt);
+      document.removeEventListener("pointermove", pt);
+      document.removeEventListener("pointerdown", pt);
       container.removeEventListener("pointerleave", lv);
       document.removeEventListener("visibilitychange", onVisible);
       cv.remove();

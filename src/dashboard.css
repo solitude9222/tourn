@@ -4264,6 +4264,58 @@ body:has(.dash) {
 .dash-page > *:nth-child(6) { animation-delay: 0.27s; }
 .dash-page > *:nth-child(n + 7) { animation-delay: 0.3s; }
 
+/* Every page used to animate as a single block because its whole body is one
+   wrapper element. Reach inside the wrappers so each panel, stat and card
+   rises on its own beat — the header does the same below. */
+.dash-page section,
+.dash-page .dash-panel,
+.dash-page .dash-stat,
+.dash-page .dash-stat-grid > *,
+.dash-page .about-panel,
+.dash-page .lp-panel {
+  animation: dashRise 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dash-page section:nth-child(1),
+.dash-page .dash-panel:nth-child(1),
+.dash-page .dash-stat:nth-child(1) { animation-delay: 0.02s; }
+.dash-page section:nth-child(2),
+.dash-page .dash-panel:nth-child(2),
+.dash-page .dash-stat:nth-child(2) { animation-delay: 0.07s; }
+.dash-page section:nth-child(3),
+.dash-page .dash-panel:nth-child(3),
+.dash-page .dash-stat:nth-child(3) { animation-delay: 0.12s; }
+.dash-page section:nth-child(4),
+.dash-page .dash-panel:nth-child(4),
+.dash-page .dash-stat:nth-child(4) { animation-delay: 0.17s; }
+.dash-page section:nth-child(5),
+.dash-page .dash-panel:nth-child(5),
+.dash-page .dash-stat:nth-child(5) { animation-delay: 0.22s; }
+.dash-page section:nth-child(n + 6),
+.dash-page .dash-panel:nth-child(n + 6),
+.dash-page .dash-stat:nth-child(n + 6) { animation-delay: 0.27s; }
+
+/* The header is outside .dash-page, so it needs its own run — it carries a
+   page key in the markup so the entries replay on every page change. */
+.dash-top > * {
+  animation: dashRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dash-top > *:nth-child(2) {
+  animation-delay: 0.09s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-page section,
+  .dash-page .dash-panel,
+  .dash-page .dash-stat,
+  .dash-page .about-panel,
+  .dash-page .lp-panel,
+  .dash-top > * {
+    animation: none;
+  }
+}
+
 @keyframes dashPageIn {
   from {
     opacity: 0;

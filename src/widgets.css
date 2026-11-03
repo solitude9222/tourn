@@ -727,11 +727,11 @@
 
 .widget-card-decoration {
   position: absolute;
-  top: -13%;
-  left: -13%;
+  top: -4%;
+  left: -4%;
   z-index: 2;
-  width: 126%;
-  height: 126%;
+  width: 108%;
+  height: 108%;
   object-fit: contain;
   pointer-events: none;
   user-select: none;

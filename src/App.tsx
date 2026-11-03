@@ -57,6 +57,12 @@ const PremiumPage = lazy(() =>
   import("./components/Pages").then((m) => ({ default: m.PremiumPage })),
 );
 const LegalPage = lazy(() => import("./components/Pages").then((m) => ({ default: m.LegalPage })));
+
+/* The hero card (and its canvas effects) lives in the marketing chunk. Waiting
+   for the first render to ask for that chunk added a whole round-trip before
+   the card could paint, which read as the card "loading slowly". Start the
+   download with the bundle instead. */
+void import("./components/Sections");
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
 import {

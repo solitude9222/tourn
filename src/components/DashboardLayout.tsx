@@ -163,22 +163,9 @@ const BIO_POSITIONS = [
   { value: "right", label: "Right-aligned" },
 ];
 
-const LOCATION_POSITIONS = [
-  { value: "under-name", label: "Under the username" },
-  { value: "top", label: "Beside the avatar" },
-  { value: "footer", label: "Card footer" },
-  { value: "hidden", label: "Hidden" },
-];
-
 const VIEW_POSITIONS = [
   { value: "top-right", label: "Top-right corner" },
   { value: "footer", label: "Bottom-right" },
-  { value: "hidden", label: "Hidden" },
-];
-
-const JOIN_POSITIONS = [
-  { value: "footer", label: "Bottom-left" },
-  { value: "under-name", label: "Under the username" },
   { value: "hidden", label: "Hidden" },
 ];
 
@@ -403,7 +390,7 @@ export function DashboardLayout({
         <section className="dash-panel lp-panel" data-reveal data-reveal-delay="100">
           <header className="lp-section-head">
             <h2>Element positioning</h2>
-            <p>Control where the profile picture, badges, name and bio sit on the card.</p>
+            <p>Control where the profile picture, badges, name and bio sit. Location and join date now live in About me → Customization.</p>
           </header>
 
           <div className="lp-dropdown-grid">
@@ -431,24 +418,14 @@ export function DashboardLayout({
               options={BIO_POSITIONS}
               onChange={(v) => update({ bioPosition: v as typeof design.bioPosition })}
             />
-            <LayoutSelect
-              label="Location"
-              value={design.locationPosition}
-              options={LOCATION_POSITIONS}
-              onChange={(v) => update({ locationPosition: v as typeof design.locationPosition })}
-            />
+
             <LayoutSelect
               label="View count"
               value={design.viewPosition}
               options={VIEW_POSITIONS}
               onChange={(v) => update({ viewPosition: v as typeof design.viewPosition })}
             />
-            <LayoutSelect
-              label="Join date"
-              value={design.joinPosition}
-              options={JOIN_POSITIONS}
-              onChange={(v) => update({ joinPosition: v as typeof design.joinPosition })}
-            />
+
           </div>
         </section>
       </div>

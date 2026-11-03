@@ -92,9 +92,11 @@ export function BackgroundEffectLayer({
 export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettings }) {
   return (
     <span className="profile-fx-overlay profile-fx-overlay--canvas" style={{ "--fx-opacity": settings.opacity } as CSSProperties} aria-hidden="true">
+      {/* The overlay is a wash over the card, not a second background: capping
+          the density keeps the same look for a fraction of the particles. */}
       <CanvasEffectLayer
         effect={settings.id}
-        intensity={settings.intensity}
+        intensity={Math.min(settings.intensity, 65)}
         speed={settings.speed}
         color={settings.color}
         amount={settings.params.amount}

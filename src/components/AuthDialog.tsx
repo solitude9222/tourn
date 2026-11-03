@@ -6,13 +6,16 @@ import { ArrowRight, CloseIcon, DiscordIcon } from "./Icons";
 export type AuthMode = "signin" | "signup";
 
 const OAUTH_ERRORS: Record<string, string> = {
-  oauth_config: "Discord sign-in isn't available right now.",
-  oauth_state: "That sign-in link expired — hit the button again.",
-  discord_token: "Discord didn't finish the sign-in. Try once more — if it keeps happening, sign in with your email and password instead.",
-  discord_profile: "Couldn't read your Discord profile — allow email sharing on the consent screen.",
-  oauth_failed: "Discord sign-in failed. Try again in a moment.",
+  oauth_config: "Discord sign-in isn't set up on this deployment — create an account with an email and password instead.",
+  oauth_state: "That Discord link expired before it finished. Press Continue with Discord again.",
+  discord_token:
+    "Discord stopped before the handshake finished. Press Continue with Discord once more — if it keeps happening, create an account with an email and password instead.",
+  discord_profile: "Discord didn't share a profile — allow email sharing on the consent screen and try again.",
+  oauth_failed: "Discord sign-in failed. Try again, or use an email and password.",
   registration_closed: "New accounts are closed right now — existing members can still sign in.",
   invite_required: "That invite code isn't valid or has already been used.",
+  discord_taken: "That Discord account is already linked to another profile.",
+  link_expired: "That linking link expired — start again from Settings.",
 };
 
 function oauthErrorFromUrl(): string | null {
@@ -44,7 +47,7 @@ export function AuthDialog({
   onSwitch: (mode: AuthMode) => void;
   onDone: () => void;
 }) {
-  const { signIn, signInWithDiscord, configured } = useAuth();
+  const { signIn, signUp, signInWithDiscord, configured } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState<"email" | "discord" | null>(null);
@@ -97,13 +100,24 @@ export function AuthDialog({
 
   if (!open) return null;
 
+  const signingUp = mode === "signup";
+  const closed = signingUp && registration === "closed";
+  const needsInvite = signingUp && registration === "invite";
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
     setError(null);
     setNotice(null);
+    if (needsInvite && !invite.trim()) {
+      setError("Enter your invite code to create an account.");
+      return;
+    }
     setBusy("email");
-    const result = await signIn({ email: email.trim(), password });
+    const payload = { email: email.trim(), password };
+    const result = signingUp
+      ? await signUp({ ...payload, invite: invite.trim() || undefined })
+      : await signIn(payload);
     setBusy(null);
     if (result.error) {
       setError(result.error);
@@ -116,15 +130,13 @@ export function AuthDialog({
     if (busy) return;
     setError(null);
     setNotice(null);
-    if (mode === "signup") {
-      if (registration === "closed") {
-        setError("New accounts are closed right now — existing members can still sign in.");
-        return;
-      }
-      if (registration === "invite" && !invite.trim()) {
-        setError("Enter your invite code to create an account.");
-        return;
-      }
+    if (closed) {
+      setError("New accounts are closed right now — existing members can still sign in.");
+      return;
+    }
+    if (needsInvite && !invite.trim()) {
+      setError("Enter your invite code to create an account.");
+      return;
     }
     setBusy("discord");
     const result = await signInWithDiscord(invite.trim() || undefined);
@@ -137,8 +149,7 @@ export function AuthDialog({
       setBusy(null);
       onDone();
     }
-    // With Supabase configured the browser redirects to Discord — nothing
-    // else to do here.
+    // With Discord configured the browser redirects — nothing else to do here.
   };
 
   return (
@@ -153,10 +164,10 @@ export function AuthDialog({
         <header className="dialog-head">
           <div>
             <img className="auth-logo" src="/logo.png" alt="" width={34} height={34} />
-            <h2 id="auth-title">{mode === "signup" ? "Claim your link" : "Welcome back"}</h2>
+            <h2 id="auth-title">{signingUp ? "Claim your link" : "Welcome back"}</h2>
             <p>
-              {mode === "signup"
-                ? "Accounts are created with Discord. Once you're in, you can add an email and a password in Settings."
+              {signingUp
+                ? "Create an account with an email and password — you can connect Discord in Settings later."
                 : "Sign in with your email and password, or with Discord."}
             </p>
           </div>
@@ -169,12 +180,12 @@ export function AuthDialog({
           {!configured ? (
             <div className="auth-demo">
               <p>
-                Sign-in is unavailable right now. Give it a few minutes and try again.
+                Accounts aren't available right now. Give it a few minutes and try again.
               </p>
             </div>
           ) : null}
 
-          {mode === "signup" && registration === "closed" ? (
+          {closed ? (
             <div className="auth-demo">
               <p>
                 New accounts are closed right now. If you already have an account, switch to
@@ -183,7 +194,7 @@ export function AuthDialog({
             </div>
           ) : null}
 
-          {mode === "signup" && registration === "invite" ? (
+          {needsInvite ? (
             <label className="field auth-invite">
               <span>Invite code</span>
               <input
@@ -196,78 +207,74 @@ export function AuthDialog({
             </label>
           ) : null}
 
+          <form onSubmit={handleSubmit} className="auth-form">
+            <label className="field">
+              <span>Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+                autoFocus
+              />
+            </label>
+
+            <label className="field">
+              <span>Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder={signingUp ? "At least 8 characters" : "Your password"}
+                autoComplete={signingUp ? "new-password" : "current-password"}
+                required
+                minLength={8}
+              />
+            </label>
+
+            {error ? <p className="auth-error">{error}</p> : null}
+            {notice ? <p className="auth-notice">{notice}</p> : null}
+
+            <button
+              type="submit"
+              className="btn btn-primary auth-submit"
+              disabled={busy !== null || closed}
+            >
+              {busy === "email" ? <span className="spinner" /> : null}
+              {signingUp ? "Create account" : "Sign in"}
+              {busy === "email" ? null : <ArrowRight size={14} />}
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span>or use Discord</span>
+          </div>
+
           <button
             type="button"
             className="btn btn-discord"
             onClick={handleDiscord}
-            disabled={busy !== null || (mode === "signup" && registration === "closed")}
+            disabled={busy !== null || closed}
           >
             {busy === "discord" ? <span className="spinner" /> : <DiscordIcon size={16} />}
-            {mode === "signup" ? "Sign up with Discord" : "Continue with Discord"}
+            {signingUp ? "Sign up with Discord" : "Continue with Discord"}
           </button>
 
-          {mode === "signin" ? (
-            <>
-              <div className="auth-divider">
-                <span>or use email</span>
-              </div>
-
-              <form onSubmit={handleSubmit} className="auth-form">
-                <label className="field">
-                  <span>Email</span>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    required
-                    autoFocus
-                  />
-                </label>
-
-                <label className="field">
-                  <span>Password</span>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Your password"
-                    autoComplete="current-password"
-                    required
-                    minLength={8}
-                  />
-                </label>
-
-                {error ? <p className="auth-error">{error}</p> : null}
-                {notice ? <p className="auth-notice">{notice}</p> : null}
-
-                <button type="submit" className="btn btn-primary auth-submit" disabled={busy !== null}>
-                  {busy === "email" ? <span className="spinner" /> : null}
-                  Sign in
-                  {busy === "email" ? null : <ArrowRight size={14} />}
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              {error ? <p className="auth-error">{error}</p> : null}
-              {notice ? <p className="auth-notice">{notice}</p> : null}
-              <p className="auth-note">
-                One click — Discord sets up your account and handle for you.
-                <br />
-                Want a password too? Add one anytime in <b>Settings → Security</b>.
-              </p>
-            </>
-          )}
+          <p className="auth-note">
+            {signingUp
+              ? "Discord fills in your avatar and handle for you. Email accounts can connect it later in Settings."
+              : "Email sign-in works on any account that has a password set. Discord-only accounts can add one in Settings → Security."}
+          </p>
 
           <p className="auth-switch">
-            {mode === "signup" ? "Already have an account?" : "New here?"}{" "}
+            {signingUp ? "Already have an account?" : "New here?"}{" "}
             <button
               type="button"
-              onClick={() => onSwitch(mode === "signup" ? "signin" : "signup")}
+              onClick={() => onSwitch(signingUp ? "signin" : "signup")}
             >
-              {mode === "signup" ? "Sign in" : "Create an account"}
+              {signingUp ? "Sign in" : "Create an account"}
             </button>
           </p>
         </div>

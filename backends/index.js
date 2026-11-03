@@ -722,6 +722,72 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+/* Email + password sign-up. Discord used to be the only door in, so a broken
+   Discord handshake meant nobody could create an account at all. */
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    const password = String(req.body?.password ?? "");
+    const inviteCode = cleanInviteCode(req.body?.invite);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: "Enter a valid email address." });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: "Use a password with at least 8 characters." });
+    }
+    const existing = await pool.query("select id from users where email = $1", [email]);
+    if (existing.rowCount > 0) {
+      return res.status(409).json({ error: "An account with that email already exists — sign in instead." });
+    }
+
+    const first = await pool.query("select count(*)::int as count from users");
+    const isFirst = first.rows[0].count === 0;
+    let invite = null;
+    if (!isFirst) {
+      const mode = await registrationMode();
+      if (mode === "closed") {
+        return res.status(403).json({ error: "New accounts are closed right now." });
+      }
+      if (mode === "invite") {
+        invite = await usableInvite(inviteCode);
+        if (!invite) {
+          return res.status(403).json({ error: "That invite code isn't valid or has already been used." });
+        }
+      }
+    }
+
+    const username = await uniqueUsername(email.split("@")[0]);
+    const hash = await bcrypt.hash(password, 12);
+    const ownerEmail = VITE_OWNER_EMAIL.trim().toLowerCase();
+    const adminEmail = ADMIN_EMAIL.trim().toLowerCase();
+    const isOwner = Boolean(ownerEmail && email === ownerEmail);
+    const isAdmin = Boolean((adminEmail && email === adminEmail) || isOwner);
+
+    const inserted = await pool.query(
+      `insert into users (username, email, password_hash, is_owner, is_admin, premium)
+       values ($1, $2, $3, $4, $5, $6) returning *`,
+      [
+        username,
+        email,
+        hash,
+        isOwner || isFirst,
+        isAdmin || isFirst,
+        Boolean(invite?.premium),
+      ],
+    );
+    if (invite) {
+      await pool.query("update invite_codes set uses = uses + 1 where code = $1", [invite.code]);
+    }
+
+    const user = await withUid(inserted.rows[0]);
+    setSession(res, user);
+    res.json({ account: accountOf(user) });
+  } catch (error) {
+    console.error("[register]", error?.message ?? error);
+    res.status(500).json({ error: "Couldn't create the account. Try again in a moment." });
+  }
+});
+
 app.post("/api/auth/logout", (req, res) => {
   clearSession(res);
   res.json({ ok: true });

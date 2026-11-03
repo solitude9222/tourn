@@ -28,6 +28,19 @@ import {
 } from "./Icons";
 import "../about.css";
 
+const LOCATION_POSITIONS = [
+  { value: "under-name", label: "Under the username" },
+  { value: "top", label: "Beside the avatar" },
+  { value: "footer", label: "Card footer" },
+  { value: "hidden", label: "Hidden" },
+];
+
+const JOIN_POSITIONS = [
+  { value: "footer", label: "Bottom-left" },
+  { value: "under-name", label: "Under the username" },
+  { value: "hidden", label: "Hidden" },
+];
+
 const COLOR_FIELDS: { key: keyof ProfileColors; label: string }[] = [
   { key: "accent", label: "Accent" },
   { key: "text", label: "Primary text" },
@@ -440,6 +453,30 @@ export function DashboardAbout({
                   />
                 </div>
               </label>
+
+              <div className="about-field">
+                <span>Location placement</span>
+                <Select
+                  value={draft.design.locationPosition}
+                  ariaLabel="Location placement"
+                  options={LOCATION_POSITIONS}
+                  onChange={(value) =>
+                    updateDesign({ locationPosition: value as AboutDesign["locationPosition"] })
+                  }
+                />
+              </div>
+
+              <div className="about-field">
+                <span>Join date placement</span>
+                <Select
+                  value={draft.design.joinPosition}
+                  ariaLabel="Join date placement"
+                  options={JOIN_POSITIONS}
+                  onChange={(value) =>
+                    updateDesign({ joinPosition: value as AboutDesign["joinPosition"] })
+                  }
+                />
+              </div>
 
               <div className="about-field">
                 <span>Theme</span>

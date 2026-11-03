@@ -93,6 +93,8 @@ type AuthValue = {
   configured: boolean;
   /** Email + password sign-in for accounts that added a password. */
   signIn: (input: { email: string; password: string }) => Promise<AuthResult>;
+  /** Email + password account creation — works without Discord. */
+  signUp: (input: { email: string; password: string; invite?: string }) => Promise<AuthResult>;
   /** Discord OAuth — the ONLY way to create an account. Redirects the page. */
   signInWithDiscord: (invite?: string) => Promise<AuthResult>;
   /**
@@ -145,6 +147,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await post<{ account: Account }>("/api/auth/login", {
       email: email.trim(),
       password,
+    });
+    if (!result.ok) return { error: result.error };
+    setUser(result.data.account);
+    return {};
+  }, []);
+
+  const signUp = useCallback<AuthValue["signUp"]>(async ({ email, password, invite }) => {
+    const result = await post<{ account: Account }>("/api/auth/register", {
+      email: email.trim(),
+      password,
+      invite: invite?.trim() || undefined,
     });
     if (!result.ok) return { error: result.error };
     setUser(result.data.account);
@@ -301,6 +314,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       retryAuth,
       configured: true,
       signIn,
+      signUp,
       signInWithDiscord,
       linkDiscord,
       signOut,
@@ -318,6 +332,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unavailable,
       retryAuth,
       signIn,
+      signUp,
       signInWithDiscord,
       linkDiscord,
       signOut,

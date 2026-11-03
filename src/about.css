@@ -764,8 +764,10 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 128%;
-  height: 128%;
+  /* Discord's presets already carry padding around the art, so 128% read as a
+     hoop floating off the avatar. 104% hugs the photo like Discord does. */
+  width: 104%;
+  height: 104%;
   translate: -50% -50%;
   object-fit: contain;
   pointer-events: none;
@@ -2924,8 +2926,19 @@
 }
 
 .profile-fx-overlay--vhs {
-  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 3px);
+  overflow: hidden;
   mix-blend-mode: overlay;
+  contain: paint;
+}
+
+/* The scanlines sit on one oversized layer that only translates: animating
+   background-position repainted the entire card every frame. */
+.profile-fx-overlay--vhs::before {
+  content: "";
+  position: absolute;
+  inset: -40% 0;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 3px);
+  will-change: transform;
   animation: fxScan var(--fx-speed) linear infinite;
 }
 
@@ -2946,36 +2959,52 @@
 }
 
 .profile-fx-overlay--grain {
+  overflow: hidden;
+  mix-blend-mode: overlay;
+  contain: paint;
+}
+
+.profile-fx-overlay--grain::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.78'/%3E%3C/svg%3E");
-  /* Larger grain-size scales the noise tile up, so each fleck reads bigger
-     and coarser; smaller values compress it for a finer grain. */
   background-size: calc(75px * var(--fx-scale) * var(--fx-grain-size, 2))
     calc(75px * var(--fx-scale) * var(--fx-grain-size, 2));
-  mix-blend-mode: overlay;
+  will-change: transform;
   animation: fxGrain var(--fx-speed) steps(4) infinite;
 }
 
 .profile-fx-overlay--dotters {
+  overflow: hidden;
+  mix-blend-mode: overlay;
+  contain: paint;
+}
+
+.profile-fx-overlay--dotters::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.92) calc(var(--fx-dot-size, 1px) * 0.8), transparent calc(var(--fx-dot-size, 1px) * 1.1 + 0.3px));
   background-size: calc(6px * var(--fx-scale)) calc(6px * var(--fx-scale));
-  mix-blend-mode: overlay;
+  will-change: transform;
   animation: fxDots var(--fx-speed) linear infinite;
 }
 
 @keyframes fxScan {
-  to { background-position: 0 12px; }
+  to { transform: translate3d(0, 12px, 0); }
 }
 
 @keyframes fxGrain {
-  0% { background-position: 0 0; }
-  25% { background-position: -18px 9px; }
-  50% { background-position: 12px -14px; }
-  75% { background-position: -9px -7px; }
-  100% { background-position: 0 0; }
+  0% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-18px, 9px, 0); }
+  50% { transform: translate3d(12px, -14px, 0); }
+  75% { transform: translate3d(-9px, -7px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 @keyframes fxDots {
-  to { background-position: 12px 12px; }
+  to { transform: translate3d(12px, 12px, 0); }
 }
 
 /* cursor */
