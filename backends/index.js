@@ -72,6 +72,23 @@ const FRONTEND_ORIGINS = new Set([
 ]);
 const CANONICAL_FRONTEND_ORIGIN = CONFIGURED_FRONTEND_ORIGINS[0] ?? "http://127.0.0.1:5180";
 
+/* Sign-in started on www.tourn.lol used to come back to www.tourn.lol while the
+   canonical site (and its session cookie) lives on the apex, so a visitor could
+   finish OAuth and still look signed out. Return to the apex when the visitor
+   started on the www sibling of a configured origin. */
+function canonicalReturnOrigin(origin) {
+  try {
+    const url = new URL(origin);
+    if (url.hostname.startsWith("www.")) {
+      const apex = `${url.protocol}//${url.hostname.slice(4)}`;
+      if (FRONTEND_ORIGINS.has(apex)) return apex;
+    }
+  } catch {
+    /* not a URL — the caller's value is used as-is */
+  }
+  return origin;
+}
+
 /* Discord sends the browser back to this exact URL, so it has to be the one
    registered in the Discord portal. By default that is the backend host. Set
    OAUTH_REDIRECT_URI to the branded callback (e.g.
@@ -821,7 +838,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     if (!code || !state) {
       return res.redirect(`${CANONICAL_FRONTEND_ORIGIN}/#/?error=oauth_state`);
     }
-    const returnOrigin = state.returnOrigin;
+    const returnOrigin = canonicalReturnOrigin(state.returnOrigin);
 
     const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
       method: "POST",
@@ -834,7 +851,16 @@ app.get("/api/auth/discord/callback", async (req, res) => {
         redirect_uri: DISCORD_REDIRECT_URI,
       }),
     });
-    if (!tokenRes.ok) return res.redirect(`${returnOrigin}/#/?error=discord_token`);
+    if (!tokenRes.ok) {
+      // Discord says exactly what is wrong (invalid_client, invalid_grant,
+      // redirect_uri mismatch); keep it in the deploy log so the next attempt
+      // can be diagnosed instead of guessing. The secret is never logged.
+      const detail = await tokenRes.text().catch(() => "");
+      console.error(
+        `[discord token] ${tokenRes.status} ${detail.slice(0, 400)} | redirect_uri=${DISCORD_REDIRECT_URI}`,
+      );
+      return res.redirect(`${returnOrigin}/#/?error=discord_token`);
+    }
     const token = await tokenRes.json();
 
     const meRes = await fetch("https://discord.com/api/v10/users/@me", {

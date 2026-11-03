@@ -8,7 +8,8 @@ export type AuthMode = "signin" | "signup";
 const OAUTH_ERRORS: Record<string, string> = {
   oauth_config: "Discord sign-in isn't available right now.",
   oauth_state: "That sign-in link expired — hit the button again.",
-  discord_token: "Discord didn't accept the sign-in — try once more.",
+  discord_token:
+    "Discord rejected the sign-in. That usually means the callback URL or client secret in the Discord app doesn't match the API — try once more, and if it repeats the server log has the exact Discord error.",
   discord_profile: "Couldn't read your Discord profile — allow email sharing on the consent screen.",
   oauth_failed: "Discord sign-in failed. Try again in a moment.",
   registration_closed: "New accounts are closed right now — existing members can still sign in.",
@@ -56,8 +57,12 @@ export function AuthDialog({
   useEffect(() => {
     if (!open) return;
     setBusy(null);
-    setError(oauthErrorFromUrl());
-    if (error) clearOAuthError();
+    // Read and clean up in the same pass. Checking the state variable meant the
+    // URL kept its ?error= on the first open, so the message came back every
+    // time the dialog was reopened.
+    const urlError = oauthErrorFromUrl();
+    setError(urlError);
+    if (urlError) clearOAuthError();
     setNotice(null);
     setPassword("");
     // eslint-disable-next-line react-hooks/exhaustive-deps

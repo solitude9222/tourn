@@ -28,6 +28,8 @@ export function ProfilePreview({
   joined,
   /** The entry screen is still covering the page — hold the audio. */
   entryActive = false,
+  /** Marketing previews (the home hero) show the card, not the player. */
+  hideAudio = false,
   children,
 }: {
   user: Pick<Account, "id" | "uid" | "username" | "avatarUrl">;
@@ -44,6 +46,8 @@ export function ProfilePreview({
   joined?: string;
   /** True while the entry overlay is up, so the track starts after entering. */
   entryActive?: boolean;
+  /** Hide the audio player entirely — used by the home page preview. */
+  hideAudio?: boolean;
   children?: ReactNode;
 }) {
   const design = about.design;
@@ -240,7 +244,7 @@ export function ProfilePreview({
 
         <ProfileLinks links={links} design={linkDesign ?? DEFAULT_LINK_DESIGN} />
 
-        <AudioPlayer settings={assets.audio} enabled={!entryActive} />
+        {hideAudio ? null : <AudioPlayer settings={assets.audio} enabled={!entryActive} />}
 
         {children}
 

@@ -409,6 +409,16 @@ function Site() {
 
   useReveal([route, user?.id]);
 
+  // Coming back from Discord with ?error=… used to land on the home page with
+  // the message silently dropped: the dialog reads the URL only when it opens,
+  // and nothing opened it. Open it here so the failure is actually explained.
+  useEffect(() => {
+    const raw =
+      window.location.hash.match(/[?&]error=([^&]+)/)?.[1] ??
+      window.location.search.match(/[?&]error=([^&]+)/)?.[1];
+    if (raw) setAuthMode("signin");
+  }, []);
+
   // Site-wide totals for the landing page — public data, independent of
   // whichever account (if any) is signed in.
   useEffect(() => {

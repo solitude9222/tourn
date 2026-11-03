@@ -117,6 +117,8 @@ export function ProfileCard() {
         linkDesign={live?.linkDesign ?? FALLBACK_LINK_DESIGN}
         views={views}
         joined={live?.joined ?? "Nov 2026"}
+        // The hero is a preview: no music, no widget stack, no player chrome.
+        hideAudio
       />
       <a className="hero-profile-link" href={`/${encodeURIComponent(live?.username ?? HOME_HANDLE)}`}>
         tourn.lol/{live?.username ?? HOME_HANDLE}
