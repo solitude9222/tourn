@@ -44,6 +44,7 @@ import {
   LayoutIcon,
   LinkIcon,
   LogoutIcon,
+  PaletteIcon,
   SaveIcon,
   SettingsIcon,
   SignalIcon,
@@ -107,18 +108,26 @@ type Signal = {
   icon: ReactNode;
 };
 
-type NavGroups = { profile: boolean; extra: boolean };
+type NavGroups = { content: boolean; appearance: boolean };
 
-const NAV_GROUPS_KEY = "tourn.lol/dashboard/nav-groups/v1";
+const NAV_GROUPS_KEY = "tourn.lol/dashboard/nav-groups/v2";
 
 function loadNavGroups(): NavGroups {
   try {
     const raw = localStorage.getItem(NAV_GROUPS_KEY);
-    if (!raw) return { profile: true, extra: true };
+    if (!raw) {
+      // Carry the old Profile/Extra collapse choice across the regroup.
+      const legacy = localStorage.getItem("tourn.lol/dashboard/nav-groups/v1");
+      if (legacy) {
+        const old = JSON.parse(legacy) as { profile?: boolean; extra?: boolean };
+        return { content: old.profile !== false, appearance: old.extra !== false };
+      }
+      return { content: true, appearance: true };
+    }
     const parsed = JSON.parse(raw) as Partial<NavGroups>;
-    return { profile: parsed.profile !== false, extra: parsed.extra !== false };
+    return { content: parsed.content !== false, appearance: parsed.appearance !== false };
   } catch {
-    return { profile: true, extra: true };
+    return { content: true, appearance: true };
   }
 }
 
@@ -158,7 +167,7 @@ export function Dashboard({
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const editRef = useRef<HTMLDivElement>(null);
 
-  const toggleGroup = (group: "profile" | "extra") => {
+  const toggleGroup = (group: "content" | "appearance") => {
     setGroups((current) => ({ ...current, [group]: !current[group] }));
   };
 
@@ -468,7 +477,7 @@ export function Dashboard({
       subtitle: "Here's how your profile and live data are doing.",
     },
     about: { title: "About me", subtitle: "The details visitors see on your bio card." },
-    assets: { title: "Assets", subtitle: "Avatar, cursor, background, banner and the effects over them." },
+    assets: { title: "Background & effects", subtitle: "Avatar, cursor, background, banner and the effects over them." },
     widgets: { title: "Widgets", subtitle: "Build the stack visitors see on your profile." },
     layout: { title: "Card/layout", subtitle: "Choose how your public page is laid out." },
     slideshow: { title: "Slideshow", subtitle: "Full-height sections and how they scroll." },
@@ -504,23 +513,23 @@ export function Dashboard({
             </button>
           </nav>
 
-          <section className={`dash-group${groups.profile ? "" : " is-collapsed"}`}>
+          <section className={`dash-group${groups.content ? "" : " is-collapsed"}`}>
             <button
               type="button"
               className="dash-group-head"
-              onClick={() => toggleGroup("profile")}
-              aria-expanded={groups.profile}
-              aria-controls="dash-profile-nav"
+              onClick={() => toggleGroup("content")}
+              aria-expanded={groups.content}
+              aria-controls="dash-content-nav"
             >
-              <UserIcon size={13} />
-              Profile
+              <GridIcon size={13} />
+              Content
               <ChevronIcon size={13} className="dash-group-chevron" />
             </button>
             <nav
               className="dash-nav dash-group-body"
-              id="dash-profile-nav"
-              aria-label="Profile"
-              aria-hidden={!groups.profile}
+              id="dash-content-nav"
+              aria-label="Content"
+              aria-hidden={!groups.content}
             >
               <button
                 type="button"
@@ -534,26 +543,6 @@ export function Dashboard({
               </button>
               <button
                 type="button"
-                className={`dash-nav-item${page === "assets" ? " is-active" : ""}`}
-                onClick={() => setPage("assets")}
-                aria-current={page === "assets" ? "page" : undefined}
-              >
-                <BagIcon size={15} />
-                Assets
-                {page === "assets" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              <button
-                type="button"
-                className={`dash-nav-item${page === "widgets" ? " is-active" : ""}`}
-                onClick={() => setPage("widgets")}
-                aria-current={page === "widgets" ? "page" : undefined}
-              >
-                <GridIcon size={15} />
-                Widgets
-                {page === "widgets" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              <button
-                type="button"
                 className={`dash-nav-item${page === "links" ? " is-active" : ""}`}
                 onClick={() => setPage("links")}
                 aria-current={page === "links" ? "page" : undefined}
@@ -564,13 +553,13 @@ export function Dashboard({
               </button>
               <button
                 type="button"
-                className={`dash-nav-item${page === "layout" ? " is-active" : ""}`}
-                onClick={() => setPage("layout")}
-                aria-current={page === "layout" ? "page" : undefined}
+                className={`dash-nav-item${page === "widgets" ? " is-active" : ""}`}
+                onClick={() => setPage("widgets")}
+                aria-current={page === "widgets" ? "page" : undefined}
               >
-                <LayoutIcon size={15} />
-                Card/layout
-                {page === "layout" ? <i className="dash-nav-dot" /> : null}
+                <GridIcon size={15} />
+                Widgets
+                {page === "widgets" ? <i className="dash-nav-dot" /> : null}
               </button>
               <button
                 type="button"
@@ -585,33 +574,53 @@ export function Dashboard({
             </nav>
           </section>
 
-          <section className={`dash-group${groups.extra ? "" : " is-collapsed"}`}>
+          <section className={`dash-group${groups.appearance ? "" : " is-collapsed"}`}>
             <button
               type="button"
               className="dash-group-head"
-              onClick={() => toggleGroup("extra")}
-              aria-expanded={groups.extra}
-              aria-controls="dash-extra-nav"
+              onClick={() => toggleGroup("appearance")}
+              aria-expanded={groups.appearance}
+              aria-controls="dash-appearance-nav"
             >
-              <GridIcon size={13} />
-              Extra
+              <PaletteIcon size={13} />
+              Appearance
               <ChevronIcon size={13} className="dash-group-chevron" />
             </button>
             <nav
               className="dash-nav dash-group-body"
-              id="dash-extra-nav"
-              aria-label="Extra"
-              aria-hidden={!groups.extra}
+              id="dash-appearance-nav"
+              aria-label="Appearance"
+              aria-hidden={!groups.appearance}
             >
               <button
                 type="button"
-                className={`dash-nav-item${page === "leaderboard" ? " is-active" : ""}`}
-                onClick={() => setPage("leaderboard")}
-                aria-current={page === "leaderboard" ? "page" : undefined}
+                className={`dash-nav-item${page === "layout" ? " is-active" : ""}`}
+                onClick={() => setPage("layout")}
+                aria-current={page === "layout" ? "page" : undefined}
               >
-                <TrophyIcon size={15} />
-                Leaderboard
-                {page === "leaderboard" ? <i className="dash-nav-dot" /> : null}
+                <LayoutIcon size={15} />
+                Card/layout
+                {page === "layout" ? <i className="dash-nav-dot" /> : null}
+              </button>
+              <button
+                type="button"
+                className={`dash-nav-item${page === "assets" ? " is-active" : ""}`}
+                onClick={() => setPage("assets")}
+                aria-current={page === "assets" ? "page" : undefined}
+              >
+                <PaletteIcon size={15} />
+                Background & effects
+                {page === "assets" ? <i className="dash-nav-dot" /> : null}
+              </button>
+              <button
+                type="button"
+                className={`dash-nav-item${page === "entry" ? " is-active" : ""}`}
+                onClick={() => setPage("entry")}
+                aria-current={page === "entry" ? "page" : undefined}
+              >
+                <ExpandIcon size={15} />
+                Entry screen
+                {page === "entry" ? <i className="dash-nav-dot" /> : null}
               </button>
               {about.design.cardStyle === "slideshow" ? (
                 <button
@@ -625,20 +634,19 @@ export function Dashboard({
                   {page === "slideshow" ? <i className="dash-nav-dot" /> : null}
                 </button>
               ) : null}
-              <button
-                type="button"
-                className={`dash-nav-item${page === "entry" ? " is-active" : ""}`}
-                onClick={() => setPage("entry")}
-                aria-current={page === "entry" ? "page" : undefined}
-              >
-                <ExpandIcon size={15} />
-                Entry screen
-                {page === "entry" ? <i className="dash-nav-dot" /> : null}
-              </button>
             </nav>
           </section>
 
           <div className="dash-rail-links">
+            <button
+              type="button"
+              className={`dash-rail-link${page === "leaderboard" ? " dash-rail-link--active" : ""}`}
+              onClick={() => setPage("leaderboard")}
+              aria-current={page === "leaderboard" ? "page" : undefined}
+            >
+              <TrophyIcon size={14} />
+              Leaderboard
+            </button>
             <button
               type="button"
               className={`dash-rail-link${page === "settings" ? " dash-rail-link--active" : ""}`}

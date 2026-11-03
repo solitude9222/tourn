@@ -31,7 +31,7 @@
 .widgets-catalog-head p {
   margin: 4px 0 0;
   color: #7c848c;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -68,7 +68,7 @@
   border-radius: 4px;
   background: rgba(74, 222, 128, 0.13);
   color: #6ee7a3;
-  font-size: 6.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -87,7 +87,7 @@
 
 .widgets-platform-tile-name {
   color: #c0c8cf;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 580;
   text-align: center;
   white-space: nowrap;
@@ -124,7 +124,7 @@
 .widgets-shell-head p {
   margin: 5px 0 0;
   color: #7f8790;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -179,7 +179,7 @@
   max-width: 62ch;
   margin: 5px 0 0;
   color: #7c848c;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -198,7 +198,7 @@
   background: #111214;
   color: #8d959d;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 11px;
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
@@ -235,12 +235,12 @@
   justify-content: space-between;
   gap: 8px;
   color: #838b93;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .wg-slider-head b {
   color: #dbe2e7;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -286,7 +286,7 @@
   gap: 5px;
   min-width: 0;
   color: #838b93;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .wg-color-row {
@@ -330,7 +330,7 @@
   background: transparent;
   color: #c9d1d7;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: -0.02em;
 }
 
@@ -369,7 +369,7 @@
 .widgets-side-head p {
   margin: 4px 0 0;
   color: #737b83;
-  font-size: 8.5px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -384,7 +384,7 @@
   border-radius: 999px;
   background: rgba(143, 216, 255, 0.07);
   color: #a8e0ff;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
@@ -418,7 +418,7 @@
 
 .widgets-preview-label {
   color: #7d858d;
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -447,7 +447,7 @@
 
 .widgets-empty b {
   color: #cfd7dd;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -455,13 +455,13 @@
   max-width: 25ch;
   margin: 0;
   color: #6d757d;
-  font-size: 8.5px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
 .widgets-empty .dash-secondary {
   margin-top: 8px;
-  font-size: 8.5px;
+  font-size: 11px;
 }
 
 /* ------------------------------------------------------------- backgrounds */
@@ -480,14 +480,14 @@
 
 .wg-backgrounds-head > span {
   color: #838b93;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .wg-backgrounds-head p {
   max-width: 52ch;
   margin: 0;
   color: #626a72;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
   text-align: right;
 }
@@ -529,7 +529,7 @@
 .wg-background b {
   overflow: hidden;
   color: #cbd4db;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 620;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -543,7 +543,7 @@
   grid-column: 2;
   overflow: hidden;
   color: #626a72;
-  font-size: 7.5px;
+  font-size: 11px;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1030,7 +1030,7 @@
 .widgets-modal-head p {
   margin: 4px 0 0;
   color: #7a828a;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -1163,7 +1163,7 @@
 .platform-card-copy .platform-card-live {
   -webkit-line-clamp: 1;
   color: #6b7680;
-  font-size: 7.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -1183,7 +1183,7 @@
   display: -webkit-box;
   overflow: hidden;
   color: #747c84;
-  font-size: 8.5px;
+  font-size: 11px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -1217,7 +1217,7 @@
 
 .widget-tip > span {
   color: #a8e0ff;
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1226,7 +1226,7 @@
 .widget-tip p {
   margin: 4px 0 0;
   color: #8395a1;
-  font-size: 9.5px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -1250,7 +1250,7 @@
 
 .widget-options-head span {
   color: #aab3ba;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1258,7 +1258,7 @@
 
 .widget-options-head small {
   color: #5e666d;
-  font-size: 8.5px;
+  font-size: 11px;
 }
 
 .widget-option {
@@ -1281,14 +1281,14 @@
 .widget-option b {
   display: block;
   color: #dde3e7;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .widget-option p {
   margin: 3px 0 0;
   color: #747c84;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -1338,7 +1338,7 @@
   border-radius: 7px;
   background: #0d0d0e;
   color: #e5eaed;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .widgets-delete-widget {
@@ -1352,7 +1352,7 @@
   background: rgba(248, 113, 113, 0.05);
   color: #f0a1a1;
   font-family: inherit;
-  font-size: 8.5px;
+  font-size: 11px;
   cursor: pointer;
   transition: background 0.16s ease, border-color 0.16s ease;
 }
@@ -1568,7 +1568,7 @@
 .platform-card-copy .platform-card-live {
   margin-top: 2px;
   color: #6b7580;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 /* Widget cards on a profile share the same dark surface. */
@@ -1670,4 +1670,60 @@
     position: static;
     max-height: none;
   }
+}
+
+
+/* ------------------------------------------------------- rail drag order */
+/* The grip only appears on hover so the rail still reads as a preview. */
+.wg-sort {
+  position: relative;
+}
+
+.wg-sort[draggable="true"] {
+  cursor: grab;
+}
+
+.wg-sort.is-dragging {
+  opacity: 0.45;
+}
+
+.wg-sort.is-drop-target::before {
+  content: "";
+  position: absolute;
+  inset: -6px 0 auto;
+  z-index: 3;
+  height: 2px;
+  border-radius: 2px;
+  background: #a8e0ff;
+  box-shadow: 0 0 10px rgba(168, 224, 255, 0.6);
+}
+
+.wg-sort-grip {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 5;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(8, 9, 11, 0.72);
+  color: #8b959d;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+  backdrop-filter: blur(8px);
+}
+
+.wg-sort:hover .wg-sort-grip,
+.wg-sort-grip:focus-visible {
+  opacity: 1;
+}
+
+.wg-sort-grip:hover {
+  border-color: rgba(143, 216, 255, 0.3);
+  color: #e7f9ff;
 }

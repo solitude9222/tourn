@@ -142,6 +142,17 @@ export function DashboardBadges({
     onChange({ ...badges, equipped: next });
   };
 
+  /** Keyboard equivalent of dragging — one step up or down. */
+  const nudgeEquipped = (id: string, direction: -1 | 1) => {
+    const next = [...badges.equipped];
+    const from = next.findIndex((b) => b.id === id);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= next.length) return;
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange({ ...badges, equipped: next });
+  };
+
   const catalogue = filter === "all"
     ? BADGE_CATALOGUE
     : BADGE_CATALOGUE.filter((b) => b.group === filter);
@@ -220,9 +231,19 @@ export function DashboardBadges({
                     setOverId(null);
                   }}
                 >
-                  <span className="bdg-drag" aria-hidden="true">
+                  <button
+                    type="button"
+                    className="bdg-drag"
+                    aria-label={`Reorder ${def.name}`}
+                    title="Drag, or use the arrow keys, to reorder"
+                    onKeyDown={(event) => {
+                      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                      event.preventDefault();
+                      nudgeEquipped(inst.id, event.key === "ArrowUp" ? -1 : 1);
+                    }}
+                  >
                     <GripIcon size={12} />
-                  </span>
+                  </button>
                   <BadgeChip badge={inst} style={style} />
                   <div className="bdg-equipped-meta">
                     <b>{def.name}</b>

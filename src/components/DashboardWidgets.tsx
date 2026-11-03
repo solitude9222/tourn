@@ -23,6 +23,7 @@ import {
   CheckIcon,
   CloseIcon,
   PlusIcon,
+  GripIcon,
   TrashIcon,
 } from "./Icons";
 import "../widgets.css";
@@ -92,6 +93,8 @@ export function DashboardWidgets({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftContent, setDraftContent] = useState("");
   const [draftOptions, setDraftOptions] = useState<Record<string, boolean | string>>({});
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   const widgetCount = store.widgets.length;
 
@@ -177,6 +180,29 @@ export function DashboardWidgets({
 
   const removeWidget = (widget: WidgetInstance) => {
     onChange({ ...store, widgets: store.widgets.filter((item) => item.id !== widget.id) });
+  };
+
+  /** Drop `fromId` where `toId` sits, keeping every other widget in place. */
+  const reorderWidgets = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const next = [...store.widgets];
+    const from = next.findIndex((item) => item.id === fromId);
+    const to = next.findIndex((item) => item.id === toId);
+    if (from < 0 || to < 0) return;
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange({ ...store, widgets: next });
+  };
+
+  /** Keyboard equivalent of dragging — one step up or down. */
+  const nudgeWidget = (id: string, direction: -1 | 1) => {
+    const next = [...store.widgets];
+    const from = next.findIndex((item) => item.id === id);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= next.length) return;
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange({ ...store, widgets: next });
   };
 
   return (
@@ -351,22 +377,67 @@ export function DashboardWidgets({
             <div className="widgets-side-head">
               <div>
                 <h2>Your widgets</h2>
-                <p>tourn.lol/{user.username}</p>
+                <p>tourn.lol/{user.username} · drag to reorder</p>
               </div>
               <span className="widgets-count">{widgetCount}</span>
             </div>
 
             {widgetCount ? (
               <div className="widgets-scroll">
-                {store.widgets.map((widget) => (
-                  <WidgetCard
-                    key={widget.id}
-                    widget={widget}
-                    design={store.design}
-                    onConfigure={editWidget}
-                    onRemove={removeWidget}
-                  />
-                ))}
+                {store.widgets.map((widget) => {
+                  const name = WIDGET_PLATFORM_BY_ID.get(widget.platform)?.name ?? widget.platform;
+                  return (
+                    <div
+                      key={widget.id}
+                      className={`wg-sort${dragId === widget.id ? " is-dragging" : ""}${
+                        overId === widget.id && dragId !== widget.id ? " is-drop-target" : ""
+                      }`}
+                      draggable
+                      onDragStart={(event) => {
+                        setDragId(widget.id);
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData("text/plain", widget.id);
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        event.dataTransfer.dropEffect = "move";
+                        if (overId !== widget.id) setOverId(widget.id);
+                      }}
+                      onDragLeave={() => setOverId((id) => (id === widget.id ? null : id))}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        const from = event.dataTransfer.getData("text/plain") || dragId;
+                        if (from) reorderWidgets(from, widget.id);
+                        setDragId(null);
+                        setOverId(null);
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setOverId(null);
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="wg-sort-grip"
+                        aria-label={`Reorder ${name}`}
+                        title="Drag, or use the arrow keys, to reorder"
+                        onKeyDown={(event) => {
+                          if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                          event.preventDefault();
+                          nudgeWidget(widget.id, event.key === "ArrowUp" ? -1 : 1);
+                        }}
+                      >
+                        <GripIcon size={12} />
+                      </button>
+                      <WidgetCard
+                        widget={widget}
+                        design={store.design}
+                        onConfigure={editWidget}
+                        onRemove={removeWidget}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="widgets-empty">

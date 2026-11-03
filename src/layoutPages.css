@@ -41,7 +41,7 @@
 .lp-head p {
   margin: 5px 0 0;
   color: #7c848c;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -53,7 +53,7 @@
   padding: 5px 7px;
   border-radius: 6px;
   color: #8d969e;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .lp-view:hover {
@@ -72,7 +72,7 @@
   background: #111214;
   color: #99a2aa;
   font-family: inherit;
-  font-size: 9.5px;
+  font-size: 11px;
   cursor: pointer;
   transition: border-color 0.16s ease, color 0.16s ease;
 }
@@ -225,13 +225,13 @@
 
 .lp-option-copy b {
   color: #e9eef2;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 620;
 }
 
 .lp-option-copy small {
   color: #6f777f;
-  font-size: 8.5px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -253,7 +253,7 @@
   padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   color: #7e8790;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 /* ── section heads ──────────────────────────────────────── */
@@ -275,7 +275,7 @@
 .lp-section-head p {
   margin: 5px 0 0;
   color: #7c848c;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -299,12 +299,12 @@
   justify-content: space-between;
   gap: 8px;
   color: #838b93;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .lp-slider-head b {
   color: #dbe2e7;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -360,7 +360,7 @@
   display: block;
   margin-bottom: 12px;
   color: #c2cad1;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 620;
 }
 
@@ -385,7 +385,7 @@
 
 .lp-select > span {
   color: #a0aab2;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -444,7 +444,7 @@
 .lp-preview-kicker {
   display: block;
   color: #8fd8ff;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -461,13 +461,13 @@
   border-radius: 999px;
   background: rgba(143, 216, 255, 0.06);
   color: #8eabbb;
-  font-size: 8.5px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .lp-preview-head span {
   color: #616a72;
-  font-size: 8.5px;
+  font-size: 11px;
 }
 
 .lp-preview-stage {
@@ -497,7 +497,7 @@
   max-width: 26ch;
   margin: 0;
   color: #6c747c;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.55;
   text-align: center;
 }
@@ -525,14 +525,14 @@
 .lp-toggle b {
   display: block;
   color: #dde3e7;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .lp-toggle p {
   margin: 3px 0 0;
   color: #6f777f;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -551,7 +551,7 @@
 .lp-notice p {
   margin: 0;
   color: #93a1aa;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .lp-segment-row {
@@ -565,7 +565,7 @@
 
 .lp-label {
   color: #aab3ba;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 550;
 }
 
@@ -586,7 +586,7 @@
   background: none;
   color: #7f888f;
   font-family: inherit;
-  font-size: 9.5px;
+  font-size: 11px;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
@@ -599,7 +599,7 @@
 .entry-hint {
   margin: -4px 0 0;
   color: #6f777f;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -677,12 +677,12 @@
   justify-content: space-between;
   gap: 8px;
   color: #8a939b;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .lp-slider-head b {
   color: #dbe2e7;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 550;
   font-variant-numeric: tabular-nums;
 }
