@@ -79,6 +79,8 @@ function readRoute(): Route {
   if (hash === "leaderboard" || hash === "shop" || hash === "premium" || hash === "legal") {
     return hash;
   }
+  // `#/legal/terms` is a section of the legal page, not a different route.
+  if (hash.startsWith("legal/")) return "legal";
   // `#/dashboard`, `#/dashboard/settings`, `#/dashboard/admin` — all the dashboard.
   if (hash === "dashboard" || hash.startsWith("dashboard/")) return "dashboard";
   if (hash.startsWith("profile/")) return "profile";

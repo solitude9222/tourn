@@ -464,6 +464,24 @@ const LEGAL_SECTIONS: LegalSection[] = [
 ];
 
 export function LegalPage() {
+  // `#/legal/privacy` keeps the legal page mounted and scrolls to that section
+  // instead of routing home.
+  useEffect(() => {
+    const scrollToSection = () => {
+      const raw = window.location.hash.replace(/^#\/?/, "");
+      if (!raw.startsWith("legal/")) return;
+      const id = decodeURIComponent(raw.slice("legal/".length));
+      const target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    const timer = window.setTimeout(scrollToSection, 120);
+    window.addEventListener("hashchange", scrollToSection);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("hashchange", scrollToSection);
+    };
+  }, []);
+
   return (
     <section className="page legal-page">
       <div className="wrap page-head" data-reveal>
