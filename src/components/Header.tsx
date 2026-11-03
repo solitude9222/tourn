@@ -10,10 +10,11 @@ import {
   SettingsIcon,
 } from "./Icons";
 
+/* The site header is three links: the site, the legal pages and the plan.
+   Leaderboard, shop and the admin console live in the dashboard instead. */
 const LINKS: { label: string; route: Route }[] = [
   { label: "Home", route: "" },
-  { label: "Leaderboard", route: "leaderboard" },
-  { label: "Shop", route: "shop" },
+  { label: "Legal", route: "legal" },
   { label: "Premium", route: "premium" },
 ];
 
@@ -21,6 +22,7 @@ export function Header({
   route,
   user,
   loading,
+  avatar,
   onSignIn,
   onSignUp,
   onSignOut,
@@ -28,15 +30,15 @@ export function Header({
   route: Route;
   user: Account | null;
   loading: boolean;
+  /** The avatar the owner uploaded on their profile, so the header shows the
+      real picture even when the account has no platform avatar. */
+  avatar?: string;
   onSignIn: () => void;
   onSignUp: () => void;
   onSignOut: () => void;
 }) {
-  const { isOwner, isAdmin, setAlias, user: viewer } = useAuth();
-  // Admins reach the console through the dashboard, where it lives.
-  const links: { label: string; route: Route; href?: string }[] = isAdmin
-    ? [...LINKS, { label: "Admin", route: "dashboard", href: "#/dashboard/admin" }]
-    : LINKS;
+  const { isOwner, setAlias, user: viewer } = useAuth();
+  const avatarUrl = (avatar || user?.avatarUrl || "").trim();
   const [menuOpen, setMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -91,10 +93,10 @@ export function Header({
         </a>
 
         <nav className="head-links" aria-label="Main">
-          {links.map((link) => (
+          {LINKS.map((link) => (
             <a
               key={link.label}
-              href={link.href ?? hrefFor(link.route)}
+              href={hrefFor(link.route)}
               className={`head-link${route === link.route ? " is-active" : ""}`}
               aria-current={route === link.route ? "page" : undefined}
             >
@@ -113,8 +115,8 @@ export function Header({
                 href={hrefFor("dashboard")}
                 aria-label="Open your dashboard"
               >
-                {user.avatarUrl ? (
-                  <img className="avatar avatar--xs" src={user.avatarUrl} alt="" />
+                {avatarUrl ? (
+                  <img className="avatar avatar--xs" src={avatarUrl} alt="" />
                 ) : (
                   <span className="avatar avatar--xs avatar--initial">
                     {user.username.slice(0, 1).toUpperCase()}
@@ -213,10 +215,10 @@ export function Header({
 
       {navOpen ? (
         <div className="head-mobile" id="mobile-nav">
-          {links.map((link) => (
+          {LINKS.map((link) => (
             <a
               key={link.label}
-              href={link.href ?? hrefFor(link.route)}
+              href={hrefFor(link.route)}
               className={`head-mobile-link${route === link.route ? " is-active" : ""}`}
             >
               {link.label}

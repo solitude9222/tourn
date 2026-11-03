@@ -103,6 +103,7 @@ create table if not exists users (
   premium boolean not null default false,
   is_admin boolean not null default false,
   is_owner boolean not null default false,
+  badges jsonb not null default '[]'::jsonb,
   totp_secret text,
   totp_pending text,
   token_version integer not null default 0,
@@ -151,6 +152,10 @@ create table if not exists invite_codes (
 
 async function initDb() {
   await pool.query(SCHEMA);
+  // Databases created before admin-granted badges existed.
+  await pool.query(
+    "alter table users add column if not exists badges jsonb not null default '[]'::jsonb",
+  );
   // Seed the backend admin account if configured and not present yet.
   if (ADMIN_EMAIL && ADMIN_PASSWORD) {
     const existing = await pool.query("select id from users where email = $1", [ADMIN_EMAIL.toLowerCase()]);
@@ -374,7 +379,6 @@ async function earnedBadges(user, profile) {
   if (user.is_owner) earned.push("owner");
   if (user.is_admin) earned.push("staff");
   if (user.premium) earned.push("premium");
-  if (rank <= 100) earned.push("founder");
   if (ageDays < 7) earned.push("newbie");
   if (ageDays >= 30 && bio.length >= 20) earned.push("user");
   if (/github/i.test(document)) earned.push("coder");
@@ -385,6 +389,12 @@ async function earnedBadges(user, profile) {
   if (year === 2026 && month === 11) earned.push("christmas_2026");
 
   if ((await discordGuildMember(user.discord_id)) === true) earned.push("dc_indiscord");
+
+  // Badges an admin granted by hand sit alongside the earned ones.
+  const granted = Array.isArray(user.badges) ? user.badges : [];
+  for (const id of granted) {
+    if (typeof id === "string" && !earned.includes(id)) earned.push(id);
+  }
 
   return earned;
 }
@@ -1271,7 +1281,8 @@ app.post("/api/views/:username", async (req, res) => {
 /* ── admin directory ───────────────────────────────────────────────────── */
 
 const ADMIN_PROFILE_SELECT = `select u.id, u.username, u.alias, u.alias2, u.avatar_url,
-       u.premium, u.is_admin, u.created_at, coalesce(v.views, 0)::bigint as views
+       u.premium, u.is_admin, u.is_owner, coalesce(u.badges, '[]'::jsonb) as badges,
+       u.created_at, coalesce(v.views, 0)::bigint as views
 from users u
 left join profile_views v on v.username = u.username`;
 
@@ -1315,6 +1326,33 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
       patch.is_admin = req.body.is_admin;
     }
 
+    // Roles bundle the two flags so the console offers one control:
+    // member < staff (admin) < owner (admin + owner).
+    if (typeof req.body?.role === "string") {
+      const role = req.body.role;
+      if (!["member", "staff", "owner"].includes(role)) {
+        return res.status(400).json({ error: "Unknown role." });
+      }
+      if (role !== "owner" && req.params.id === req.user.id) {
+        return res.status(400).json({ error: "You can't demote your own account." });
+      }
+      if (role === "owner" && req.user.is_owner !== true) {
+        return res.status(403).json({ error: "Only an owner can grant owner." });
+      }
+      patch.is_owner = role === "owner";
+      patch.is_admin = role !== "member";
+    }
+
+    // Hand-granted badges: jsonb, merged into the earned list on read.
+    if (Array.isArray(req.body?.badges)) {
+      const ids = [...new Set(
+        req.body.badges
+          .map((value) => String(value))
+          .filter((value) => /^[a-z0-9_]{2,32}$/.test(value)),
+      )].slice(0, 40);
+      patch.badges = JSON.stringify(ids);
+    }
+
     // Handles are unique across username + both claims, so an admin edit is
     // validated exactly like a claim.
     for (const field of ["alias", "alias2"]) {
@@ -1344,7 +1382,9 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
       return res.status(400).json({ error: "Nothing to update." });
     }
     if (Object.keys(patch).length > 0) {
-      const sets = Object.keys(patch).map((key, index) => `${key} = $${index + 2}`);
+      const sets = Object.keys(patch).map((key, index) =>
+        key === "badges" ? `${key} = $${index + 2}::jsonb` : `${key} = $${index + 2}`,
+      );
       await pool.query(
         `update users set ${sets.join(", ")} where id = $1`,
         [account.id, ...Object.values(patch)],

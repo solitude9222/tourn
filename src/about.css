@@ -3774,3 +3774,345 @@
 /* Hovering used to pause every badge in the row, which read as "the
    animation is broken" whenever the cursor rested on a card. Hover now
    only lifts the badge (see .badge-chip:hover) instead of stopping it. */
+
+/* --- entry screen: owner-editable backdrop, type and image sizing --- */
+
+.lkr-entry-dim {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--lkr-entry-dim, 0.45);
+  pointer-events: none;
+}
+
+.lkr-entry--top { place-items: start center; padding-top: 12vh; }
+.lkr-entry--bottom { place-items: end center; padding-bottom: 12vh; }
+
+.lkr-entry .lkr-entry-title { font-size: var(--lkr-entry-title, 22px); }
+
+.lkr-entry .lkr-entry-visual {
+  width: var(--lkr-entry-image, 82px);
+  height: var(--lkr-entry-image, 82px);
+}
+
+.lkr-entry .lkr-entry-visual img,
+.lkr-entry .lkr-image-half { object-fit: var(--lkr-entry-fit, cover); }
+
+.lkr-entry-hint {
+  margin: 2px 0 0;
+  color: color-mix(in srgb, var(--pv-text) 58%, transparent);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* --- badges: shimmer now actually moves the art --- */
+
+.badge-anim--shimmer .badge-chip-art,
+.badge-anim--shimmer .badge-chip-mono {
+  animation: badgeSheenPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes badgeSheenPulse {
+  0%, 100% { transform: scale(1); filter: brightness(1) saturate(1); }
+  50% { transform: scale(1.09) rotate(-2deg); filter: brightness(1.25) saturate(1.2); }
+}
+
+/* --- dashboard entry preview + wider hero card --- */
+
+.entry-stage {
+  position: relative;
+  height: 420px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: #05060a;
+}
+
+.entry-stage .lkr-page { height: 100%; min-height: 0; }
+
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.hero-profile .profile-preview { width: min(100%, 500px); }
+
+/* Long tooltip text wraps instead of running off screen. */
+.tt {
+  max-width: min(320px, 70vw);
+  white-space: normal;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Exact sizing + positioning pass.
+
+   Every value below comes straight from the layout settings, with no hidden
+   multipliers: what the slider says is what the card renders.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* The hero card keeps the saved width instead of being pinned to 500px. */
+.hero-profile .profile-preview {
+  width: min(100%, var(--pv-width));
+}
+
+.hero-profile {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.hero-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 5px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #98a2b3;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.hero-profile-link:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Card styles must not silently scale the numbers the owner chose. */
+.pv-card-compact .pv-body,
+.profile-preview--compact .pv-body {
+  padding: var(--pv-pad);
+}
+
+.pv-card-compact .pv-id h3,
+.profile-preview--compact .pv-id h3 {
+  font-size: var(--pv-name);
+}
+
+/* ── element positioning: one explicit rule per option ───────────── */
+
+.profile-preview[data-pfp="left"] .pv-topline {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.profile-preview[data-pfp="left"] .pv-location {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.profile-preview[data-pfp="center"] .pv-topline {
+  flex-direction: row;
+  justify-content: center;
+}
+
+.profile-preview[data-pfp="center"] .pv-location {
+  margin-left: 0;
+}
+
+.profile-preview[data-pfp="right"] .pv-topline,
+.profile-preview[data-pfp="top-right"] .pv-topline {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.profile-preview[data-pfp="right"] .pv-location,
+.profile-preview[data-pfp="top-right"] .pv-location {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.profile-preview[data-pfp="above"] .pv-topline {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.profile-preview[data-pfp="above"] .pv-location {
+  margin: 0;
+}
+
+.profile-preview[data-badges="beside-avatar"] .pv-topline {
+  align-items: center;
+}
+
+.profile-preview[data-badges="beside-avatar"] .pv-badges,
+.profile-preview[data-badges="beside-avatar"] .pv-badges .badge-row {
+  margin: 0;
+  justify-content: flex-start;
+}
+
+.profile-preview[data-badges="top-right"] .pv-badges {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 3;
+  margin: 0;
+}
+
+/* The corner view counter owns the top-right corner — badges sit below it. */
+.profile-preview[data-views="top-right"][data-badges="top-right"] .pv-badges {
+  top: 38px;
+}
+
+.profile-preview[data-badges="above-name"] .pv-badges {
+  margin: 12px auto 8px;
+}
+
+.profile-preview[data-name="left"][data-badges="above-name"] .pv-badges,
+.profile-preview[data-name="default"][data-badges="above-name"] .pv-badges {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.profile-preview[data-name="right"][data-badges="above-name"] .pv-badges {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.profile-preview[data-badges="bottom"] .pv-badges {
+  margin-top: 18px;
+}
+
+.profile-preview[data-name="left"] .pv-badges {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.profile-preview[data-name="center"] .pv-badges {
+  margin-inline: auto;
+}
+
+.profile-preview[data-name="right"] .pv-badges {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.profile-preview[data-name="left"] .pv-id,
+.profile-preview[data-name="left"] .pv-handle,
+.profile-preview[data-name="left"] .pv-joined-inline {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.profile-preview[data-name="center"] .pv-id,
+.profile-preview[data-name="center"] .pv-handle,
+.profile-preview[data-name="center"] .pv-joined-inline {
+  text-align: center;
+  justify-content: center;
+}
+
+.profile-preview[data-name="right"] .pv-id,
+.profile-preview[data-name="right"] .pv-handle,
+.profile-preview[data-name="right"] .pv-joined-inline {
+  text-align: right;
+  justify-content: flex-end;
+}
+
+/* ── badge art fallback ──────────────────────────────────────────── */
+
+.badge-chip--monogram {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--badge-tint, #b4bffa) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--badge-tint, #b4bffa) 22%, rgba(255, 255, 255, 0.04));
+  color: var(--badge-tint, #b4bffa);
+}
+
+.badge-chip-initial {
+  font-size: 10px;
+  font-weight: 760;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Entry screen — every option in the dashboard maps to one of these vars.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lkr-entry-bg-image {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.lkr-entry-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    125% 125% at 50% 50%,
+    transparent 52%,
+    rgba(0, 0, 0, var(--lkr-entry-vignette, 0)) 100%
+  );
+}
+
+.lkr-entry-content {
+  max-width: var(--lkr-entry-width, 84%);
+  gap: var(--lkr-entry-gap, 10px);
+}
+
+.lkr-entry--split .lkr-entry-content {
+  gap: var(--lkr-entry-gap, 8px);
+}
+
+.lkr-entry-content--panel {
+  padding: 22px 26px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--lkr-entry-panel-radius, 22px);
+  background: rgba(9, 11, 15, var(--lkr-entry-panel-opacity, 0.34));
+  backdrop-filter: blur(var(--lkr-entry-panel-blur, 12px));
+}
+
+.lkr-entry-visual {
+  width: var(--lkr-entry-image, 82px);
+  height: var(--lkr-entry-image, 82px);
+  border-radius: var(--lkr-entry-image-radius, 20px);
+  box-shadow: 0 26px 60px -28px rgba(0, 0, 0, var(--lkr-entry-image-shadow, 0.55));
+}
+
+.lkr-entry-title {
+  color: var(--lkr-entry-title-color, var(--pv-text));
+  font-size: var(--lkr-entry-title, 22px);
+  letter-spacing: var(--lkr-entry-tracking, -0.04em);
+}
+
+.lkr-entry-sub {
+  color: var(--lkr-entry-sub-color, var(--pv-muted));
+  font-size: var(--lkr-entry-sub-size, 10.5px);
+}
+
+.lkr-entry-hint {
+  margin: 0;
+  color: var(--lkr-entry-hint-color, var(--pv-muted));
+  font-size: var(--lkr-entry-hint-size, 10px);
+  opacity: 0.8;
+}
+
+/* The click animation honours the duration slider (default 760ms). */
+.lkr-entry.is-leaving {
+  animation-duration: var(--lkr-entry-duration, 760ms);
+}
+
+.lkr-entry.is-leaving .lkr-entry-content {
+  animation-duration: calc(var(--lkr-entry-duration, 760ms) * 0.85);
+}
+
+.lkr-entry.is-leaving .lkr-entry-bg {
+  animation-duration: calc(var(--lkr-entry-duration, 760ms) * 0.9);
+}

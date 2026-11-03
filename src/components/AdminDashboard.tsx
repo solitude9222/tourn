@@ -12,6 +12,7 @@ import { useAuth } from "../lib/auth";
 import { api } from "../lib/backend";
 import { formatJoined } from "../lib/format";
 import { profileHref } from "../lib/router";
+import { BADGE_CATALOGUE } from "../lib/badges";
 import {
   ArrowUpRight,
   BoltIcon,
@@ -47,9 +48,15 @@ type AdminProfile = {
   avatar_url: string | null;
   premium: boolean;
   is_admin: boolean;
+  is_owner: boolean;
+  /** Badges granted by an admin, merged with the earned ones on read. */
+  badges: string[];
   created_at: string;
   views: number;
 };
+
+/** What the member popup may send — flags, hand-granted badges and a role. */
+type MemberPatch = Partial<AdminProfile> & { role?: "owner" | "staff" | "member" };
 
 type Summary = {
   users: number;
@@ -149,43 +156,100 @@ function errorText(message: string): string {
 
 type MemberDraft = { alias: string; alias2: string; views: string };
 
+type AdminRole = "owner" | "staff" | "member";
+
+const ROLE_OPTIONS: { value: AdminRole; label: string }[] = [
+  { value: "member", label: "Member" },
+  { value: "staff", label: "Staff — admin access" },
+  { value: "owner", label: "Owner — full control" },
+];
+
+/* One popup for everything about a member: claims, views, role, flags and
+   hand-granted badges. Nothing here expands the table row behind it. */
+
 function MemberEditor({
   row,
   busy,
   isSelf,
+  canGrantOwner,
   onClose,
   onSave,
   onToggle,
 }: {
   row: AdminProfile;
   busy: boolean;
-  /** Your own account can't lose the admin flag from here. */
+  /** Your own account can't lose admin or owner from here. */
   isSelf: boolean;
+  /** Only owners can hand out owner. */
+  canGrantOwner: boolean;
   onClose: () => void;
   onSave: (fields: { alias: string | null; alias2: string | null; views: number }) => Promise<boolean>;
-  onToggle: (fields: Partial<AdminProfile>, label: string) => Promise<boolean>;
+  onToggle: (fields: MemberPatch, label: string) => Promise<boolean>;
 }) {
   const [draft, setDraft] = useState<MemberDraft>({
     alias: row.alias ?? "",
     alias2: row.alias2 ?? "",
     views: String(row.views),
   });
+  const [badges, setBadges] = useState<string[]>(row.badges ?? []);
+  const [copied, setCopied] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const firstField = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setBadges(row.badges ?? []);
+  }, [row.id, row.badges]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Lock the page without the table behind it resizing: the scrollbar's
+    // width is handed back as padding, so nothing shifts when it disappears.
+    const { body } = document;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    const previousOverflow = body.style.overflow;
+    const previousPadding = body.style.paddingRight;
+    body.style.overflow = "hidden";
+    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
     firstField.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previousOverflow;
+      body.style.overflow = previousOverflow;
+      body.style.paddingRight = previousPadding;
     };
   }, [onClose]);
+
+  const role: AdminRole = row.is_owner ? "owner" : row.is_admin ? "staff" : "member";
+  const publicUrl = `${window.location.origin}/${row.alias?.trim() || row.username}`;
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setLocalError("The clipboard is blocked here — copy the address from the browser.");
+    }
+  };
+
+  const changeRole = (next: AdminRole) => {
+    if (next === role) return;
+    const label =
+      next === "owner"
+        ? `@${row.username} is now an owner.`
+        : next === "staff"
+          ? `@${row.username} is now staff.`
+          : `@${row.username} is back to member.`;
+    void onToggle({ role: next }, label);
+  };
+
+  const toggleBadge = (id: string) => {
+    const next = badges.includes(id) ? badges.filter((badge) => badge !== id) : [...badges, id];
+    setBadges(next);
+    void onToggle({ badges: next }, `Badges for @${row.username} updated.`);
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -231,6 +295,14 @@ function MemberEditor({
           </span>
           <button
             type="button"
+            className={`adm-copy-link${copied ? " is-done" : ""}`}
+            onClick={() => void copyLink()}
+          >
+            <CopyIcon size={12} />
+            {copied ? "Copied" : "Copy link"}
+          </button>
+          <button
+            type="button"
             className="adm-modal-close"
             onClick={onClose}
             aria-label="Close member editor"
@@ -260,60 +332,126 @@ function MemberEditor({
                 spellCheck={false}
               />
             </label>
-            <label className="adm-field">
+            <div className="adm-field">
               <span>Profile views</span>
-              <input
-                value={draft.views}
-                onChange={(event) => setDraft({ ...draft, views: event.target.value })}
-                inputMode="numeric"
-                placeholder="0"
-              />
-            </label>
+              <span className="adm-field-row">
+                <input
+                  value={draft.views}
+                  onChange={(event) => setDraft({ ...draft, views: event.target.value })}
+                  inputMode="numeric"
+                  placeholder="0"
+                />
+                <button
+                  type="button"
+                  className="adm-mini"
+                  onClick={() => setDraft({ ...draft, views: "0" })}
+                >
+                  Reset
+                </button>
+              </span>
+            </div>
           </div>
 
           {localError ? <p className="adm-modal-error">{localError}</p> : null}
 
-          <div className="adm-modal-toggles">
-            <div className="adm-toggle-row">
+          <div className="adm-modal-group">
+            <h4>Role</h4>
+            <div className="adm-role-row">
               <div>
-                <b>Premium</b>
-                <small>Grants premium perks and the premium badge.</small>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={row.premium}
-                aria-label="Premium"
-                className={`adm-switch${row.premium ? " is-on" : ""}`}
-                disabled={busy}
-                onClick={() =>
-                  void onToggle({ premium: !row.premium }, "Premium updated.")
-                }
-              >
-                <span />
-              </button>
-            </div>
-            <div className="adm-toggle-row">
-              <div>
-                <b>Admin</b>
+                <b>{role === "owner" ? "Owner" : role === "staff" ? "Staff" : "Member"}</b>
                 <small>
-                  {isSelf
-                    ? "You can't remove the admin flag from your own account."
-                    : "Full access to members, invites and site settings."}
+                  Staff can manage members, invites and settings. Owners can also hand out owner.
                 </small>
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={row.is_admin}
-                aria-label="Admin"
-                className={`adm-switch${row.is_admin ? " is-on" : ""}`}
-                disabled={busy || isSelf}
-                title={isSelf ? "You can't demote yourself" : undefined}
-                onClick={() => void onToggle({ is_admin: !row.is_admin }, "Admin flag updated.")}
-              >
-                <span />
-              </button>
+              <div className="adm-role-select">
+                <Select
+                  value={role}
+                  ariaLabel="Role"
+                  options={ROLE_OPTIONS.filter(
+                    (option) => option.value !== "owner" || canGrantOwner || role === "owner",
+                  )}
+                  onChange={(value) => changeRole(value as AdminRole)}
+                />
+              </div>
+            </div>
+            {isSelf ? (
+              <p className="adm-modal-note">You can't demote your own account from the console.</p>
+            ) : null}
+          </div>
+
+          <div className="adm-modal-group">
+            <h4>Flags</h4>
+            <div className="adm-modal-toggles">
+              <div className="adm-toggle-row">
+                <div>
+                  <b>Premium</b>
+                  <small>Grants premium perks and the premium badge.</small>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={row.premium}
+                  aria-label="Premium"
+                  className={`adm-switch${row.premium ? " is-on" : ""}`}
+                  disabled={busy}
+                  onClick={() => void onToggle({ premium: !row.premium }, "Premium updated.")}
+                >
+                  <span />
+                </button>
+              </div>
+              <div className="adm-toggle-row">
+                <div>
+                  <b>Admin</b>
+                  <small>
+                    {isSelf
+                      ? "You can't remove the admin flag from your own account."
+                      : "Full access to members, invites and site settings."}
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={row.is_admin}
+                  aria-label="Admin"
+                  className={`adm-switch${row.is_admin ? " is-on" : ""}`}
+                  disabled={busy || isSelf}
+                  title={isSelf ? "You can't demote yourself" : undefined}
+                  onClick={() => void onToggle({ is_admin: !row.is_admin }, "Admin flag updated.")}
+                >
+                  <span />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="adm-modal-group">
+            <h4>
+              Badges
+              <span className="adm-badge-count">
+                {badges.length === 0 ? "none granted" : `${badges.length} granted`}
+              </span>
+            </h4>
+            <p className="adm-modal-note">
+              Granted badges appear next to the ones the account earned. Tap to grant or revoke.
+            </p>
+            <div className="adm-badge-grid">
+              {BADGE_CATALOGUE.map((badge) => {
+                const active = badges.includes(badge.id);
+                return (
+                  <button
+                    key={badge.id}
+                    type="button"
+                    className={`adm-badge-pick${active ? " is-on" : ""}`}
+                    aria-pressed={active}
+                    disabled={busy}
+                    onClick={() => toggleBadge(badge.id)}
+                    title={`${badge.description} — ${badge.requirement}`}
+                  >
+                    <img src={badge.art} alt="" width={18} height={18} loading="lazy" />
+                    <span>{badge.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -444,7 +582,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
     if (tab === "bot" && bot === null) void loadBot();
   }, [tab, isAdmin, invites, registration, bot, loadInvites, loadSettings, loadBot]);
 
-  const patch = async (id: string, fields: Partial<AdminProfile>, label: string) => {
+  const patch = async (id: string, fields: MemberPatch, label: string) => {
     setBusy(id);
     setError(null);
     setMsg(null);
@@ -832,6 +970,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
 
           {editing ? (
             <MemberEditor
+              canGrantOwner={isOwner}
               key={editing.id}
               row={editing}
               busy={busy === editing.id}

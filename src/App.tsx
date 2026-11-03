@@ -56,6 +56,7 @@ const ShopPage = lazy(() => import("./components/Pages").then((m) => ({ default:
 const PremiumPage = lazy(() =>
   import("./components/Pages").then((m) => ({ default: m.PremiumPage })),
 );
+const LegalPage = lazy(() => import("./components/Pages").then((m) => ({ default: m.LegalPage })));
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
 import {
@@ -420,6 +421,25 @@ function Site() {
     };
   }, []);
 
+  // Warm the route bundles in the background. Without this the first click on
+  // "Dashboard" had to wait for the chunk, so the click looked ignored and
+  // people pressed twice.
+  useEffect(() => {
+    const preload = () => {
+      void import("./components/Dashboard");
+      void import("./components/Sections");
+      void import("./components/Pages");
+    };
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number })
+      .requestIdleCallback;
+    if (idle) {
+      idle(preload);
+      return;
+    }
+    const timer = window.setTimeout(preload, 900);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   // Landing pages should always open at the top, not at a restored scroll offset.
   useEffect(() => {
     if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
@@ -593,6 +613,7 @@ function Site() {
           route={route}
           user={user}
           loading={loading}
+          avatar={about.assets.avatarUrl}
           onSignIn={() => setAuthMode("signin")}
           onSignUp={() => setAuthMode("signup")}
           onSignOut={() => void handleSignOut()}
@@ -660,6 +681,8 @@ function Site() {
               <ShopPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "premium" ? (
               <PremiumPage onSignUp={() => setAuthMode("signup")} />
+            ) : route === "legal" ? (
+              <LegalPage />
             ) : (
               <>
                 <Hero

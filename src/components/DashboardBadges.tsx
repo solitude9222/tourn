@@ -359,16 +359,22 @@ export function DashboardBadges({
                 aria-disabled={!owned}
                 onClick={() => (equipped ? unequip(def.id) : equip(def.id))}
               >
-                <img
-                  src={def.art}
-                  alt={def.name}
-                  className="bdg-cat-art"
-                  width={28}
-                  height={28}
-                  loading="lazy"
-                  decoding="async"
-                  fetchPriority="low"
-                />
+                {def.art ? (
+                  <img
+                    src={def.art}
+                    alt=""
+                    className="bdg-cat-art"
+                    width={28}
+                    height={28}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                  />
+                ) : (
+                  <span className="bdg-cat-art bdg-cat-art--monogram" aria-hidden="true">
+                    {def.name.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
                 <span className="bdg-cat-name">{def.name}</span>
                 <span className="bdg-cat-req">{def.requirement}</span>
                 {equipped ? (

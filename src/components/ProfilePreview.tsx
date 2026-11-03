@@ -53,6 +53,9 @@ export function ProfilePreview({
   const hasBanner = design.cardStyle === "banner" && banner.enabled;
   const bioEffect = assets.effects.text.bio;
   const cardFx = assets.card;
+  // One tooltip design for the whole card — badges and the avatar used to be
+  // hardcoded to "dark", which made the tooltip settings look broken.
+  const tooltipDesign = linkDesign ?? DEFAULT_LINK_DESIGN;
   const uid = accountUid(user);
   const tiltEnabled = (design.tilt ?? 0) > 0;
   const tilt = useTilt(design.tilt ?? 0);
@@ -65,7 +68,12 @@ export function ProfilePreview({
   const badgeRow =
     badges.length > 0 && design.badgePosition !== "hidden" ? (
       <div className={`pv-badges pv-badges--${design.badgePosition}`}>
-        <BadgeRow badges={badges} style={badgeStyle ?? DEFAULT_BADGE_STYLE} />
+        <BadgeRow
+          badges={badges}
+          style={badgeStyle ?? DEFAULT_BADGE_STYLE}
+          tooltipStyle={tooltipDesign.tooltipStyle}
+          tooltipEnabled={tooltipDesign.tooltipEnabled}
+        />
       </div>
     ) : null;
 
@@ -164,7 +172,10 @@ export function ProfilePreview({
       <div className="pv-body">
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
-            <Tooltip text={`#${uid}`} style="dark">
+            <Tooltip
+              text={tooltipDesign.tooltipEnabled ? `#${uid}` : ""}
+              style={tooltipDesign.tooltipStyle}
+            >
               <span className="pv-avatar" aria-hidden="true">
                 {avatar ? (
                   <img src={avatar} alt="" />

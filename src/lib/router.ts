@@ -5,6 +5,7 @@ export type Route =
   | "leaderboard"
   | "shop"
   | "premium"
+  | "legal"
   | "dashboard"
   | "profile"
   | "admin"
@@ -21,6 +22,7 @@ const RESERVED_PATHS = new Set([
   "shop",
   "leaderboard",
   "premium",
+  "legal",
   "dashboard",
   "profile",
   "login",
@@ -57,6 +59,7 @@ const PATH_ROUTES: Record<string, Route> = {
   leaderboard: "leaderboard",
   shop: "shop",
   premium: "premium",
+  legal: "legal",
 };
 
 function routeFromPath(): Route | null {
@@ -73,7 +76,7 @@ function readRoute(): Route {
   if (hash === "demo") return "demo";
   // The admin console lives inside the dashboard — old #/admin links land there.
   if (hash === "admin" || hash === "dashboard/admin") return "dashboard";
-  if (hash === "leaderboard" || hash === "shop" || hash === "premium") {
+  if (hash === "leaderboard" || hash === "shop" || hash === "premium" || hash === "legal") {
     return hash;
   }
   // `#/dashboard`, `#/dashboard/settings`, `#/dashboard/admin` — all the dashboard.

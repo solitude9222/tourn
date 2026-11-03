@@ -1,6 +1,7 @@
 import { type CSSProperties } from "react";
 import type { Account } from "../lib/auth";
 import { CARD_STYLES, type About, type AboutDesign, type CardStyle } from "../lib/about";
+import { CARD_EFFECTS, type CardEffectSettings } from "../lib/profileAssets";
 import type { WidgetStore } from "../lib/widgets";
 import { CheckIcon } from "./Icons";
 import { Select } from "./Select";
@@ -65,6 +66,63 @@ function LayoutSelect({
       <span>{label}</span>
       <Select value={value} options={options} onChange={onChange} ariaLabel={label} />
     </div>
+  );
+}
+
+/* ── card effects ──────────────────────────────────────────── */
+
+function CardEffectPanel({
+  about,
+  onChange,
+}: {
+  about: About;
+  onChange: (about: About) => void;
+}) {
+  const card = about.assets.card;
+  const update = (patch: Partial<CardEffectSettings>) =>
+    onChange({ ...about, assets: { ...about.assets, card: { ...card, ...patch } } });
+
+  return (
+    <>
+      <div className="lp-dropdown-grid" style={{ marginBottom: 12 }}>
+        <LayoutSelect
+          label="Card effect"
+          value={card.id}
+          options={CARD_EFFECTS.map((effect) => ({ value: effect.id, label: effect.name }))}
+          onChange={(v) => update({ id: v as CardEffectSettings["id"] })}
+        />
+      </div>
+
+      <div className="lp-slider-grid">
+        <LayoutSlider
+          label="Effect intensity"
+          value={card.intensity}
+          min={0}
+          max={100}
+          step={1}
+          unit="%"
+          onChange={(v) => update({ intensity: v })}
+        />
+        <LayoutSlider
+          label="Effect speed"
+          value={card.speed}
+          min={1.5}
+          max={20}
+          step={0.5}
+          unit="s"
+          onChange={(v) => update({ speed: v })}
+        />
+        <label className="lp-field">
+          <span className="lp-label">Effect colour</span>
+          <input
+            type="color"
+            className="lp-color"
+            value={card.color}
+            onChange={(event) => update({ color: event.target.value })}
+          />
+        </label>
+      </div>
+    </>
   );
 }
 
@@ -207,7 +265,7 @@ export function DashboardLayout({
               label="Card width"
               value={design.cardWidth}
               min={320}
-              max={900}
+              max={1100}
               step={1}
               unit="px"
               onChange={(v) => update({ cardWidth: v })}
@@ -216,7 +274,7 @@ export function DashboardLayout({
               label="Corner radius"
               value={design.cardRadius}
               min={0}
-              max={36}
+              max={72}
               step={1}
               unit="px"
               onChange={(v) => update({ cardRadius: v })}
@@ -224,8 +282,8 @@ export function DashboardLayout({
             <LayoutSlider
               label="Card padding"
               value={design.cardPadding}
-              min={12}
-              max={40}
+              min={8}
+              max={64}
               step={1}
               unit="px"
               onChange={(v) => update({ cardPadding: v })}
@@ -234,7 +292,7 @@ export function DashboardLayout({
               label="Border width"
               value={design.borderWidth}
               min={0}
-              max={6}
+              max={12}
               step={1}
               unit="px"
               onChange={(v) => update({ borderWidth: v })}
@@ -259,7 +317,7 @@ export function DashboardLayout({
               label="Background blur"
               value={design.backgroundBlur}
               min={0}
-              max={30}
+              max={40}
               step={1}
               unit="px"
               onChange={(v) => update({ backgroundBlur: v })}
@@ -267,8 +325,8 @@ export function DashboardLayout({
             <LayoutSlider
               label="Widget gap"
               value={design.widgetGap}
-              min={4}
-              max={28}
+              min={0}
+              max={48}
               step={1}
               unit="px"
               onChange={(v) => update({ widgetGap: v })}
@@ -277,7 +335,7 @@ export function DashboardLayout({
               label="Card tilt"
               value={design.tilt}
               min={0}
-              max={16}
+              max={24}
               step={1}
               unit="°"
               onChange={(v) => update({ tilt: v })}
@@ -285,6 +343,15 @@ export function DashboardLayout({
           </div>
 
           <p className="lp-hint">Tilt follows the pointer when you set it above 0°.</p>
+        </section>
+
+        {/* Card effects */}
+        <section className="dash-panel lp-panel" data-reveal data-reveal-delay="60">
+          <header className="lp-section-head">
+            <h2>Card effects</h2>
+            <p>The light treatment on the card itself — beams, sheen or a quiet edge glow.</p>
+          </header>
+          <CardEffectPanel about={about} onChange={onChange} />
         </section>
 
         {/* Typography & avatar */}
@@ -307,8 +374,8 @@ export function DashboardLayout({
             <LayoutSlider
               label="Avatar size"
               value={design.avatarSize}
-              min={44}
-              max={132}
+              min={40}
+              max={200}
               step={1}
               unit="px"
               onChange={(v) => update({ avatarSize: v })}
@@ -316,8 +383,8 @@ export function DashboardLayout({
             <LayoutSlider
               label="Name size"
               value={design.nameSize}
-              min={16}
-              max={34}
+              min={12}
+              max={48}
               step={1}
               unit="px"
               onChange={(v) => update({ nameSize: v })}
@@ -325,8 +392,8 @@ export function DashboardLayout({
             <LayoutSlider
               label="Bio size"
               value={design.bioSize}
-              min={9}
-              max={16}
+              min={8}
+              max={24}
               step={0.5}
               unit="px"
               onChange={(v) => update({ bioSize: v })}

@@ -292,9 +292,9 @@ export function Footer({
           <div>
             <h4>Product</h4>
             <a href="#/">Home</a>
-            <a href="#/leaderboard">Leaderboard</a>
-            <a href="#/shop">Shop</a>
             <a href="#/premium">Premium</a>
+            <a href="#/legal">Legal</a>
+            <a href="#/leaderboard">Leaderboard</a>
           </div>
           <div>
             <h4>Account</h4>
@@ -311,9 +311,8 @@ export function Footer({
           <div>
             <h4>Contact</h4>
             <a href="mailto:hello@tourn.lol">hello@tourn.lol</a>
-            <a href="https://docs.lanyard.rest/" target="_blank" rel="noreferrer">
-              Presence API
-            </a>
+            <a href="mailto:legal@tourn.lol">legal@tourn.lol</a>
+            <a href="#/legal">Terms &amp; privacy</a>
           </div>
         </div>
       </div>

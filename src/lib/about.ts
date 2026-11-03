@@ -51,6 +51,50 @@ export type EntrySettings = {
   imageUrl: string;
   animation: EntryAnimation;
   blur: number;
+  /** Solid backdrop painted behind the entry content. */
+  background: string;
+  /** Optional photo behind the entry content, over the solid colour. */
+  backgroundImageUrl: string;
+  /** 0–100 darkening over the backdrop so light text always reads. */
+  dim: number;
+  /** 0–100 corner darkening over the whole screen. */
+  vignette: number;
+  titleSize: number;
+  subtitleSize: number;
+  hintSize: number;
+  imageSize: number;
+  imageFit: "cover" | "contain";
+  /** Small line under the subtitle — "click anywhere", etc. */
+  hint: string;
+  align: "center" | "top" | "bottom";
+  /** Show the entry screen once per browser session instead of every visit. */
+  oncePerSession: boolean;
+
+  /* ── type ───────────────────────────────────────────────── */
+  titleColor: string;
+  subtitleColor: string;
+  hintColor: string;
+  /** Negative tightens the title, positive opens it up (em). */
+  letterSpacing: number;
+
+  /* ── layout ─────────────────────────────────────────────── */
+  /** Gap between the image, title, subtitle and hint. */
+  contentGap: number;
+  /** Content width as a percentage of the screen. */
+  contentWidth: number;
+  /** Corner radius of the entry image. */
+  imageRadius: number;
+  /** Drop-shadow strength under the entry image, 0–100. */
+  imageShadow: number;
+
+  /* ── glass panel ────────────────────────────────────────── */
+  panel: boolean;
+  panelOpacity: number; // 0–100
+  panelBlur: number; // px
+  panelRadius: number; // px
+
+  /** How long the click-to-enter animation runs, in milliseconds. */
+  animationDuration: number;
 };
 
 export type ProfileColors = {
@@ -142,23 +186,50 @@ export const DEFAULT_ENTRY: EntrySettings = {
   imageUrl: "",
   animation: "split",
   blur: 8,
+  background: "#07070a",
+  backgroundImageUrl: "",
+  dim: 45,
+  vignette: 0,
+  titleSize: 22,
+  subtitleSize: 11,
+  hintSize: 10,
+  imageSize: 82,
+  imageFit: "cover",
+  hint: "",
+  align: "center",
+  oncePerSession: false,
+  titleColor: "#f4f6fb",
+  subtitleColor: "#98a2b3",
+  hintColor: "#8b93a1",
+  letterSpacing: -0.04,
+  contentGap: 10,
+  contentWidth: 84,
+  imageRadius: 20,
+  imageShadow: 55,
+  panel: false,
+  panelOpacity: 34,
+  panelBlur: 12,
+  panelRadius: 22,
+  animationDuration: 760,
 };
 
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   theme: "default",
   layout: "classic",
   cardStyle: "default",
-  cardWidth: 460,
-  cardRadius: 24,
+  cardWidth: 643,
+  cardRadius: 22,
   borderWidth: 0,
   borderOpacity: 0.1,
   backgroundOpacity: 0.08,
   backgroundBlur: 0,
-  avatarSize: 88,
+  // A 72px avatar reads as a thumbnail on a 643px card — the profile picture is
+  // the thing people look at first, so the default is large enough to see.
+  avatarSize: 104,
   widgetGap: 12,
-  cardPadding: 24,
-  nameSize: 23,
-  bioSize: 12.5,
+  cardPadding: 20,
+  nameSize: 21,
+  bioSize: 11.5,
   tilt: 0,
   tiltGlare: false,
   pfpPosition: "above",
@@ -276,7 +347,33 @@ function loadEntry(input: unknown): EntrySettings {
     subtitle: textIn(raw.subtitle, DEFAULT_ENTRY.subtitle, 96),
     imageUrl: textIn(raw.imageUrl, DEFAULT_ENTRY.imageUrl, 2_500_000),
     animation,
-    blur: numberIn(raw.blur, DEFAULT_ENTRY.blur, 0, 24),
+    blur: numberIn(raw.blur, DEFAULT_ENTRY.blur, 0, 40),
+    background: validColor(raw.background, DEFAULT_ENTRY.background),
+    backgroundImageUrl: textIn(raw.backgroundImageUrl, DEFAULT_ENTRY.backgroundImageUrl, 2_500_000),
+    dim: numberIn(raw.dim, DEFAULT_ENTRY.dim, 0, 100),
+    vignette: numberIn(raw.vignette, DEFAULT_ENTRY.vignette, 0, 100),
+    titleSize: numberIn(raw.titleSize, DEFAULT_ENTRY.titleSize, 12, 96),
+    subtitleSize: numberIn(raw.subtitleSize, DEFAULT_ENTRY.subtitleSize, 8, 32),
+    hintSize: numberIn(raw.hintSize, DEFAULT_ENTRY.hintSize, 8, 24),
+    imageSize: numberIn(raw.imageSize, DEFAULT_ENTRY.imageSize, 32, 400),
+    imageFit: raw.imageFit === "contain" ? "contain" : "cover",
+    hint: textIn(raw.hint, DEFAULT_ENTRY.hint, 60),
+    align:
+      raw.align === "top" || raw.align === "bottom" ? raw.align : "center",
+    oncePerSession: boolIn(raw.oncePerSession, DEFAULT_ENTRY.oncePerSession),
+    titleColor: validColor(raw.titleColor, DEFAULT_ENTRY.titleColor),
+    subtitleColor: validColor(raw.subtitleColor, DEFAULT_ENTRY.subtitleColor),
+    hintColor: validColor(raw.hintColor, DEFAULT_ENTRY.hintColor),
+    letterSpacing: numberIn(raw.letterSpacing, DEFAULT_ENTRY.letterSpacing, -0.12, 0.32),
+    contentGap: numberIn(raw.contentGap, DEFAULT_ENTRY.contentGap, 0, 48),
+    contentWidth: numberIn(raw.contentWidth, DEFAULT_ENTRY.contentWidth, 40, 100),
+    imageRadius: numberIn(raw.imageRadius, DEFAULT_ENTRY.imageRadius, 0, 120),
+    imageShadow: numberIn(raw.imageShadow, DEFAULT_ENTRY.imageShadow, 0, 100),
+    panel: boolIn(raw.panel, DEFAULT_ENTRY.panel),
+    panelOpacity: numberIn(raw.panelOpacity, DEFAULT_ENTRY.panelOpacity, 0, 100),
+    panelBlur: numberIn(raw.panelBlur, DEFAULT_ENTRY.panelBlur, 0, 40),
+    panelRadius: numberIn(raw.panelRadius, DEFAULT_ENTRY.panelRadius, 0, 48),
+    animationDuration: numberIn(raw.animationDuration, DEFAULT_ENTRY.animationDuration, 200, 2000),
   };
 }
 
@@ -296,24 +393,24 @@ function loadDesign(input: unknown): AboutDesign {
     theme,
     layout,
     cardStyle,
-    cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 900),
-    cardRadius: numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 36),
+    cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 1100),
+    cardRadius: numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 72),
     borderWidth: legacyLayout
       ? DEFAULT_ABOUT_DESIGN.borderWidth
-      : numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 6),
+      : numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 12),
     borderOpacity: legacyLayout
       ? DEFAULT_ABOUT_DESIGN.borderOpacity
       : numberIn(raw.borderOpacity, DEFAULT_ABOUT_DESIGN.borderOpacity, 0, 1),
     backgroundOpacity: legacyLayout
       ? DEFAULT_ABOUT_DESIGN.backgroundOpacity
       : numberIn(raw.backgroundOpacity, DEFAULT_ABOUT_DESIGN.backgroundOpacity, 0, 1),
-    backgroundBlur: numberIn(raw.backgroundBlur, DEFAULT_ABOUT_DESIGN.backgroundBlur, 0, 30),
-    avatarSize: numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 44, 132),
-    widgetGap: numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 4, 28),
-    cardPadding: numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 12, 40),
-    nameSize: numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 16, 34),
-    bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 9, 16),
-    tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 16),
+    backgroundBlur: numberIn(raw.backgroundBlur, DEFAULT_ABOUT_DESIGN.backgroundBlur, 0, 40),
+    avatarSize: numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 40, 200),
+    widgetGap: numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 0, 48),
+    cardPadding: numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 8, 64),
+    nameSize: numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 48),
+    bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 24),
+    tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),
     tiltGlare: boolIn(raw.tiltGlare, DEFAULT_ABOUT_DESIGN.tiltGlare),
     pfpPosition: legacyLayout
       ? DEFAULT_ABOUT_DESIGN.pfpPosition

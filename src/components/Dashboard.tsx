@@ -401,6 +401,9 @@ export function Dashboard({
   }
 
   const displayName = about.displayName.trim() || user.username;
+  // The account avatar is often empty (Discord does not always expose one), so
+  // the dashboard shows the picture uploaded on the profile instead of initials.
+  const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
   const handle = `tourn.lol/${user.username}`;
   const joined = formatJoined(new Date(user.joinedAt));
   const accountDays = Math.max(
@@ -688,8 +691,8 @@ export function Dashboard({
               <div className="dash-user-pop" role="menu" aria-label="Account menu">
                 <div className="dash-user-pop-head">
                   <span className="dash-user-avatar">
-                    {user.avatarUrl ? (
-                      <img src={user.avatarUrl} alt="" />
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" />
                     ) : (
                       displayName.slice(0, 1).toUpperCase()
                     )}
@@ -776,8 +779,8 @@ export function Dashboard({
               aria-expanded={menuOpen}
             >
               <span className="dash-user-avatar">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="" />
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" />
                 ) : (
                   displayName.slice(0, 1).toUpperCase()
                 )}

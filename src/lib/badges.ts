@@ -3,7 +3,9 @@
    customisation (glow, monochrome, overlay colour, animation).
 
    All art is served from /public/badges — local files, not third-party CDN
-   URLs — so a badge can never silently fail to load.
+   URLs — so a badge can never silently fail to load. A badge whose art has
+   not been uploaded yet still renders as a tinted monogram (see BadgeRow),
+   instead of a broken image.
    --------------------------------------------------------------------------- */
 
 /* ── types ─────────────────────────────────────────────────── */
@@ -18,7 +20,7 @@ export type BadgeDef = {
   /** How the badge is earned — shown to the account in the dashboard. */
   requirement: string;
   group: BadgeGroup;
-  /** Local SVG path under /public/badges */
+  /** Local file under /public/badges. Empty = monogram fallback. */
   art: string;
   /** Default tint colour for monochrome mode */
   color: string;
@@ -80,33 +82,41 @@ export const BADGE_ANIMATIONS: { id: BadgeAnimationStyle; name: string; hint: st
   { id: "bounce", name: "Bounce", hint: "Small hop in place" },
 ];
 
+/* ── icon files ────────────────────────────────────────────────
+   The art lives in public/badges/icons/norm. The catalogue below is the
+   single source of truth for what exists there — every path is a real file.
+   ------------------------------------------------------------------------- */
+
+const ICON = "/badges/icons/norm";
+
 /* ── platform badges (tourn.lol's own) ─────────────────────── */
 
 const PLATFORM: BadgeDef[] = [
-  { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: "/badges/icons/norm/owner.png", color: "#b4bffa" },
-  { id: "founder", name: "Founder", description: "Founded the platform", requirement: "Automatic: one of the first 100 accounts ever created.", group: "platform", art: "/badges/icons/norm/founder.svg", color: "#ffc94d" },
-  { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: "/badges/icons/norm/staffteam.png", color: "#38bdf8" },
-  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: "/badges/icons/norm/verifed.png", color: "#b4bffa" },
-  { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: "/badges/icons/norm/premium.png", color: "#f472b6" },
-  { id: "booster", name: "Booster", description: "Server booster", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: "/badges/icons/norm/booster.png", color: "#f472b6" },
-  { id: "partner", name: "Partner", description: "Official platform partner", requirement: "Granted by staff to official partners.", group: "platform", art: "/badges/icons/norm/parnter.png", color: "#60a5fa" },
-  { id: "donator", name: "Donator", description: "Donated to keep the site running", requirement: "Granted by staff after a donation.", group: "platform", art: "/badges/icons/norm/donator.png", color: "#fbbf24" },
-  { id: "coder", name: "Coder", description: "Contributed code", requirement: "Automatic: publish a profile with a GitHub link or GitHub widget.", group: "platform", art: "/badges/icons/norm/coder.png", color: "#22c55e" },
-  { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: "/badges/icons/norm/newbie.png", color: "#b4bffa" },
-  { id: "user", name: "Active User", description: "Long-time active member", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: "/badges/icons/norm/iverauser.png", color: "#b4bffa" },
+  { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: `${ICON}/owner.gif`, color: "#b4bffa" },
+  { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/staffteam.png`, color: "#38bdf8" },
+  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: `${ICON}/verifed.png`, color: "#b4bffa" },
+  { id: "partner", name: "Partner", description: "Official platform partner", requirement: "Granted by staff to official partners.", group: "platform", art: `${ICON}/parnter.png`, color: "#60a5fa" },
+  { id: "donator", name: "Donator", description: "Donated to keep the site running", requirement: "Granted by staff after a donation.", group: "platform", art: `${ICON}/donator.gif`, color: "#fbbf24" },
+  { id: "coder", name: "Coder", description: "Contributed code", requirement: "Automatic: publish a profile with a GitHub link or GitHub widget.", group: "platform", art: `${ICON}/coder.gif`, color: "#22c55e" },
+  { id: "bughunter", name: "Bug Hunter", description: "Found and reported a real bug", requirement: "Granted by staff for a reproducible bug report.", group: "platform", art: `${ICON}/bughunter.png`, color: "#a3e635" },
+  { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: `${ICON}/newbie.png`, color: "#b4bffa" },
+  { id: "user", name: "Active User", description: "Long-time active member", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: `${ICON}/iverauser.gif`, color: "#b4bffa" },
+  // Art not uploaded yet — these render as a tinted monogram until it is.
+  { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: "", color: "#f472b6" },
+  { id: "booster", name: "Booster", description: "Server booster", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: "", color: "#f472b6" },
 ];
 
 /* ── seasonal badges ───────────────────────────────────────── */
 
 const SEASONAL: BadgeDef[] = [
-  { id: "halloween_2026", name: "Halloween 2026", description: "Celebrated Halloween 2026", requirement: "Automatic: your account was created during October 2026.", group: "seasonal", art: "/badges/icons/norm/hallowen.png", color: "#f97316" },
-  { id: "christmas_2026", name: "Christmas 2026", description: "Celebrated Christmas 2026", requirement: "Automatic: your account was created during December 2026.", group: "seasonal", art: "/badges/icons/norm/christmas.png", color: "#dc2626" },
+  { id: "halloween_2026", name: "Halloween 2026", description: "Celebrated Halloween 2026", requirement: "Automatic: your account was created during October 2026.", group: "seasonal", art: `${ICON}/hallowen.gif`, color: "#f97316" },
+  { id: "christmas_2026", name: "Christmas 2026", description: "Celebrated Christmas 2026", requirement: "Automatic: your account was created during December 2026.", group: "seasonal", art: `${ICON}/christmas.gif`, color: "#dc2626" },
 ];
 
-/* ── Discord badges — local SVG art (reliable, never 404s) ─── */
+/* ── Discord badges — local art (reliable, never 404s) ─────── */
 
 const DISCORD: BadgeDef[] = [
-  { id: "dc_indiscord", name: "Discord Member", description: "Member of the Discord community", requirement: "Automatic: the bot sees your Discord account in the tourn.lol server.", group: "discord", art: "/badges/icons/norm/indiscord.png", color: "#5865f2" },
+  { id: "dc_indiscord", name: "Discord Member", description: "Member of the Discord community", requirement: "Automatic: the bot sees your Discord account in the tourn.lol server.", group: "discord", art: `${ICON}/discord.gif`, color: "#5865f2" },
 ];
 
 /* ── full catalogue ────────────────────────────────────────── */

@@ -34,8 +34,11 @@ function EntryOverlay({
     if (leavingRef.current) return;
     leavingRef.current = true;
     setLeaving(true);
-    timerRef.current = window.setTimeout(() => onEnterRef.current(), 760);
-  }, []);
+    // The screen is gone as soon as it is clicked, not after a fixed 760ms — a
+    // long fixed delay made the first click look ignored, so people clicked
+    // twice.
+    timerRef.current = window.setTimeout(() => onEnterRef.current(), entry.animationDuration);
+  }, [entry.animationDuration]);
 
   useEffect(() => {
     return () => {
@@ -87,10 +90,11 @@ function EntryOverlay({
 
   return (
     <div
-      className={`lkr-entry lkr-entry--${entry.animation}${leaving ? " is-leaving" : ""}`}
+      className={`lkr-entry lkr-entry--${entry.animation} lkr-entry--${entry.align}${leaving ? " is-leaving" : ""}`}
       role="button"
       tabIndex={0}
       aria-label="Enter profile"
+      onPointerDown={beginLeave}
       onClick={beginLeave}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -101,12 +105,44 @@ function EntryOverlay({
       style={{
         "--lkr-entry-accent": accent,
         "--lkr-entry-blur": `${entry.blur}px`,
+        "--lkr-entry-bg": entry.background,
+        "--lkr-entry-dim": entry.dim / 100,
+        "--lkr-entry-title": `${entry.titleSize}px`,
+        "--lkr-entry-sub-size": `${entry.subtitleSize}px`,
+        "--lkr-entry-hint-size": `${entry.hintSize}px`,
+        "--lkr-entry-title-color": entry.titleColor,
+        "--lkr-entry-sub-color": entry.subtitleColor,
+        "--lkr-entry-hint-color": entry.hintColor,
+        "--lkr-entry-tracking": `${entry.letterSpacing}em`,
+        "--lkr-entry-gap": `${entry.contentGap}px`,
+        "--lkr-entry-width": `${entry.contentWidth}%`,
+        "--lkr-entry-image": `${entry.imageSize}px`,
+        "--lkr-entry-image-radius": `${entry.imageRadius}px`,
+        "--lkr-entry-image-shadow": entry.imageShadow / 100,
+        "--lkr-entry-panel-opacity": entry.panelOpacity / 100,
+        "--lkr-entry-panel-blur": `${entry.panelBlur}px`,
+        "--lkr-entry-panel-radius": `${entry.panelRadius}px`,
+        "--lkr-entry-vignette": entry.vignette / 100,
+        "--lkr-entry-duration": `${entry.animationDuration}ms`,
+        "--lkr-entry-fit": entry.imageFit,
       } as CSSProperties}
     >
-      <div className="lkr-entry-bg" aria-hidden="true" />
-      <div className="lkr-entry-content">
+      <div className="lkr-entry-bg" aria-hidden="true">
+        {entry.backgroundImageUrl ? (
+          <span
+            className="lkr-entry-bg-image"
+            style={{
+              backgroundImage: `url("${entry.backgroundImageUrl.replace(/"/g, '\\"')}")`,
+            }}
+          />
+        ) : null}
+      </div>
+      <div className="lkr-entry-dim" aria-hidden="true" />
+      {entry.vignette > 0 ? <div className="lkr-entry-vignette" aria-hidden="true" /> : null}
+      <div className={`lkr-entry-content${entry.panel ? " lkr-entry-content--panel" : ""}`}>
         {content}
         {entry.subtitle ? <p className="lkr-entry-sub">{entry.subtitle}</p> : null}
+        {entry.hint ? <p className="lkr-entry-hint">{entry.hint}</p> : null}
       </div>
     </div>
   );
@@ -159,7 +195,16 @@ export function LinkerPreview({
 }) {
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
-  const [entryOpen, setEntryOpen] = useState(showEntry && design.entry.enabled);
+  const entrySeenKey = `tourn.lol/entry-seen/v1/${user.username}`;
+  const [entryOpen, setEntryOpen] = useState(() => {
+    if (!showEntry || !design.entry.enabled) return false;
+    if (!design.entry.oncePerSession) return true;
+    try {
+      return sessionStorage.getItem(entrySeenKey) === null;
+    } catch {
+      return true;
+    }
+  });
   const [active, setActive] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -169,6 +214,13 @@ export function LinkerPreview({
   useEffect(() => {
     setEntryOpen(showEntry && design.entry.enabled);
   }, [showEntry, design.entry.enabled, user.username]);
+
+  // "Replay" in the dashboard bumps the token: reopen the screen, then let
+  // EntryOverlay play it out on its own.
+  useEffect(() => {
+    if (entryPlayToken <= 0) return;
+    setEntryOpen(showEntry && design.entry.enabled);
+  }, [entryPlayToken, showEntry, design.entry.enabled]);
 
   useEffect(() => {
     if (!slideshow) return;
@@ -364,7 +416,16 @@ export function LinkerPreview({
       {entryOpen ? (
         <EntryOverlay
           about={about}
-          onEnter={() => setEntryOpen(false)}
+          onEnter={() => {
+            setEntryOpen(false);
+            if (design.entry.oncePerSession) {
+              try {
+                sessionStorage.setItem(entrySeenKey, "1");
+              } catch {
+                /* private mode */
+              }
+            }
+          }}
           playToken={entryPlayToken}
         />
       ) : null}

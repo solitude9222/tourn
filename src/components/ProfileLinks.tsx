@@ -103,7 +103,7 @@ export function ProfileLinks({
               design.tooltipEnabled
                 ? href
                   ? link.tooltip || link.label
-                  : `Click to copy · ${link.url.trim()}`
+                  : link.tooltip || "Copy"
                 : ""
             }
             style={design.tooltipStyle}

@@ -3113,13 +3113,14 @@ button {
   }
 }
 
+/* Movement only. The old keyframe started at opacity 0, so every route change
+   painted a blank frame and then faded the page in — that double paint is the
+   flash people saw when loading a page. */
 @keyframes pageIn {
   from {
-    opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }
@@ -4536,8 +4537,18 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   width: min(100%, var(--pv-width));
 }
 
-/* The demo card should never answer the pointer with a tilt or a glare —
-   it is a static example, not the visitor's own page. */
-.hero-profile .profile-preview {
-  transform: none !important;
+/* The hero card tilts like a real profile card — it is the same component. */
+
+/* The hero gives the card column enough room for the saved card width, so a
+   643px card actually renders at 643px instead of being squeezed to the
+   column. The profile page itself is uncapped up to the saved width. */
+@media (min-width: 1081px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 660px);
+    gap: 48px;
+  }
+
+  .hero-card-slot {
+    justify-content: center;
+  }
 }
