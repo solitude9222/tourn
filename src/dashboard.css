@@ -512,6 +512,9 @@
 }
 
 .dash-top {
+  /* Keep the sticky header in its own stacking context so page layers that
+     animate with a transform can never paint over it as ghost headers. */
+  isolation: isolate;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -4249,11 +4252,11 @@ body:has(.dash) {
 .dash-page {
   display: grid;
   gap: 12px;
-  animation: dashPageIn 0.32s var(--ease-out) both;
+  animation: dashPageIn 0.32s var(--ease-out) backwards;
 }
 
 .dash-page > * {
-  animation: dashRise 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: dashRise 0.46s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .dash-page > *:nth-child(1) { animation-delay: 0.02s; }
@@ -4273,7 +4276,7 @@ body:has(.dash) {
 .dash-page .dash-stat-grid > *,
 .dash-page .about-panel,
 .dash-page .lp-panel {
-  animation: dashRise 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: dashRise 0.46s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .dash-page section:nth-child(1),
@@ -4298,7 +4301,7 @@ body:has(.dash) {
 /* The header is outside .dash-page, so it needs its own run — it carries a
    page key in the markup so the entries replay on every page change. */
 .dash-top > * {
-  animation: dashRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: dashRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .dash-top > *:nth-child(2) {
