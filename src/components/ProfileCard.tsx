@@ -84,7 +84,22 @@ export function ProfileCard() {
 
   // The saved design is used as-is: width, radius, padding, avatar size, gap
   // and tilt on the home card are the same numbers as on tourn.lol/tourn.
-  const about = live?.about ?? FALLBACK_ABOUT;
+  // The one deliberate exception is the beam ring — the hero always shows it,
+  // so the effect that circles the card edge is what a first-time visitor sees.
+  const about: About = live
+    ? {
+        ...live.about,
+        assets: {
+          ...live.about.assets,
+          card: {
+            id: "beam",
+            color: live.about.assets.card.color || "#b4bffa",
+            intensity: Math.max(70, live.about.assets.card.intensity),
+            speed: live.about.assets.card.speed || 6,
+          },
+        },
+      }
+    : FALLBACK_ABOUT;
 
   return (
     <aside className="hero-profile" aria-label="The live tourn.lol profile card">

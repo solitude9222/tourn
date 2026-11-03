@@ -26,6 +26,8 @@ export function ProfilePreview({
   compact = false,
   views,
   joined,
+  /** The entry screen is still covering the page — hold the audio. */
+  entryActive = false,
   children,
 }: {
   user: Pick<Account, "id" | "uid" | "username" | "avatarUrl">;
@@ -40,6 +42,8 @@ export function ProfilePreview({
   views?: number | null;
   /** Already-formatted join date, e.g. "Nov 2026". */
   joined?: string;
+  /** True while the entry overlay is up, so the track starts after entering. */
+  entryActive?: boolean;
   children?: ReactNode;
 }) {
   const design = about.design;
@@ -236,7 +240,7 @@ export function ProfilePreview({
 
         <ProfileLinks links={links} design={linkDesign ?? DEFAULT_LINK_DESIGN} />
 
-        <AudioPlayer settings={assets.audio} />
+        <AudioPlayer settings={assets.audio} enabled={!entryActive} />
 
         {children}
 

@@ -119,34 +119,11 @@ export function useHashRoute(): Route {
       window.scrollTo({ top: 0, behavior: "auto" });
     };
 
-    const onChange = () => {
-      const doc = document as Document & {
-        startViewTransition?: (callback: () => void) => unknown;
-      };
-      if (!doc.startViewTransition) {
-        apply();
-        return;
-      }
-
-      // A view transition can be skipped entirely (for example when the tab is
-      // backgrounded), which aborts the callback. Always apply the route, even
-      // when the transition never runs.
-      let applied = false;
-      const run = () => {
-        if (applied) return;
-        applied = true;
-        apply();
-      };
-
-      try {
-        const transition = doc.startViewTransition(run) as
-          | { finished?: Promise<unknown> }
-          | undefined;
-        void transition?.finished?.catch(run);
-      } catch {
-        run();
-      }
-    };
+    // Route changes apply straight away. The old document.startViewTransition
+    // wrapper cross-faded a snapshot of the previous page over the new one,
+    // which read as the page flickering (and, with a tilted card, flashing a
+    // stale tilted frame) on every navigation.
+    const onChange = () => apply();
 
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);

@@ -63,7 +63,14 @@ function LyricsPanel({
  * Lyrics come from the owner first (pasted or uploaded LRC/plain text) and
  * optionally fall back to a synced lookup for the Lyrics style.
  */
-export function AudioPlayer({ settings }: { settings: AudioSettings }) {
+export function AudioPlayer({
+  settings,
+  enabled = true,
+}: {
+  settings: AudioSettings;
+  /** False while the entry screen covers the page — the track starts after it. */
+  enabled?: boolean;
+}) {
   const title = settings.title.trim() || "Untitled track";
   const artist = settings.artist.trim();
   const cover = settings.coverUrl.trim() || null;
@@ -89,12 +96,20 @@ export function AudioPlayer({ settings }: { settings: AudioSettings }) {
     setDuration(0);
   }, [settings.fileUrl]);
 
-  // Autoplay: try immediately, and if the browser blocks it, replay on the
-  // visitor's first click or keypress (the entry screen is usually that click).
+  // Autoplay is held while the entry screen is up: the song starts when the
+  // visitor actually enters, not while the intro is still covering the page.
+  // If the browser blocks it, it replays on the next click or keypress.
   const retryCleanup = useRef<(() => void) | null>(null);
   useEffect(() => {
     const el = audioRef.current;
     if (!el || !settings.fileUrl || !settings.autoplay) return;
+
+    if (!enabled) {
+      el.pause();
+      if (el.currentTime !== 0) el.currentTime = 0;
+      return;
+    }
+
     let cancelled = false;
 
     const armRetry = () => {
@@ -120,7 +135,7 @@ export function AudioPlayer({ settings }: { settings: AudioSettings }) {
       cancelled = true;
       retryCleanup.current?.();
     };
-  }, [settings.fileUrl, settings.autoplay]);
+  }, [settings.fileUrl, settings.autoplay, enabled]);
 
   const togglePlay = () => {
     const el = audioRef.current;

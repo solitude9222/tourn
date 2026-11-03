@@ -4552,3 +4552,14 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
     justify-content: center;
   }
 }
+
+/* The hero card settles without an opacity/blur fade — the blur-in was the
+   second half of the "page flickers on load" effect. */
+@keyframes heroCard {
+  from {
+    transform: translateY(14px) scale(0.995);
+  }
+  to {
+    transform: none;
+  }
+}

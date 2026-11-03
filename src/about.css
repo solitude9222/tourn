@@ -4116,3 +4116,22 @@
 .lkr-entry.is-leaving .lkr-entry-bg {
   animation-duration: calc(var(--lkr-entry-duration, 760ms) * 0.9);
 }
+
+/* ── load flicker: entrances move, they don't fade ──────────────────
+   pvSettle used to start at opacity 0, so the card (and every widget and
+   link) painted invisible and then faded in — a visible flash on each load.
+   The card now only slides into place. */
+@keyframes pvSettle {
+  from {
+    translate: 0 10px;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* The beam ring is a border-only effect; keep it out of the hit-box. */
+.pv-card-fx--beam,
+.pv-beam-glow {
+  pointer-events: none;
+}

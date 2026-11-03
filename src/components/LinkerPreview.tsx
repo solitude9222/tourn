@@ -288,6 +288,7 @@ export function LinkerPreview({
       className={slideshow ? "profile-preview--slide" : "profile-preview--with-widgets"}
       views={views}
       joined={joined}
+      entryActive={entryOpen}
     >
       {insideCard && widgets.widgets.length ? widgetStack : null}
     </ProfilePreview>
