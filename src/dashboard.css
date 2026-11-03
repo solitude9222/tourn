@@ -4857,3 +4857,145 @@ body:has(.dash) {
 .dash-lower {
   grid-template-columns: minmax(0, 1fr);
 }
+
+
+/* ── saved accounts (rail, bottom-left) ─────────────────────── */
+
+.dash-accounts {
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: #0a0a0b;
+}
+
+.dash-accounts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #7f8797;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.dash-accounts-add {
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  background: transparent;
+  color: #c9d3db;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+
+.dash-accounts-add:hover {
+  border-color: rgba(143, 216, 255, 0.38);
+  color: #eaf7ff;
+}
+
+.dash-accounts-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dash-account-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dash-account {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #c9d2da;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.dash-account:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dash-account-avatar {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #141619;
+  color: #d8e8f2;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dash-account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dash-account-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.dash-account-copy b {
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-account-copy small {
+  color: #77828a;
+  font-size: 11px;
+}
+
+.dash-account-remove {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b757d;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dash-account-remove:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e6edf2;
+}
+
+.dash-accounts-hint {
+  margin: 0;
+  color: #66717a;
+  font-size: 11px;
+  line-height: 1.45;
+}

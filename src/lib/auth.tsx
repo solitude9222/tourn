@@ -10,6 +10,14 @@ import {
 import { api, post } from "./backend";
 import { publicEnv } from "./runtimeEnv";
 import { loadIsPremium } from "./premium";
+import {
+  forgetAccount as forgetStoredAccount,
+  loadAccounts,
+  requestAccountTicket,
+  switchSession,
+  upsertAccount,
+  type StoredAccount,
+} from "./accounts";
 
 export type Account = {
   id: string;
@@ -103,6 +111,12 @@ type AuthValue = {
    */
   linkDiscord: () => Promise<AuthResult>;
   signOut: () => Promise<void>;
+  /** Accounts saved on this device, most recent first. */
+  accounts: StoredAccount[];
+  /** Re-establishes a stored account without a password. */
+  switchAccount: (id: string) => Promise<AuthResult>;
+  /** Drops a saved account from this device only. */
+  forgetAccount: (id: string) => void;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -118,6 +132,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [first, setFirst] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
+  const [accounts, setAccounts] = useState<StoredAccount[]>(() => loadAccounts());
+
+  // Save a pass for the account that just signed in, so the rail can offer it
+  // later without another password prompt.
+  const rememberAccount = useCallback(async (account: Account) => {
+    if (loadAccounts().some((item) => item.id === account.id)) return;
+    const ticket = await requestAccountTicket();
+    if (!ticket) return;
+    setAccounts(
+      upsertAccount({
+        id: account.id,
+        username: account.username,
+        name: account.alias?.trim() || account.username,
+        avatarUrl: account.avatarUrl,
+        ticket,
+      }),
+    );
+  }, []);
 
   // Restore the session (JWT cookie) from the backend on load. A failed request
   // is NOT the same as a signed-out visitor: "unavailable" keeps the dashboard
@@ -126,9 +158,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const result = await api<{ account: Account | null }>("/api/auth/me");
     setUser(result.ok ? result.data.account : null);
+    if (result.ok && result.data.account) void rememberAccount(result.data.account);
     setUnavailable(!result.ok);
     setLoading(false);
-  }, []);
+  }, [rememberAccount]);
 
   useEffect(() => {
     void retryAuth();
@@ -150,8 +183,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (!result.ok) return { error: result.error };
     setUser(result.data.account);
+    void rememberAccount(result.data.account);
     return {};
-  }, []);
+  }, [rememberAccount]);
 
   const signUp = useCallback<AuthValue["signUp"]>(async ({ email, password, invite }) => {
     const result = await post<{ account: Account }>("/api/auth/register", {
@@ -161,8 +195,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (!result.ok) return { error: result.error };
     setUser(result.data.account);
+    void rememberAccount(result.data.account);
     return {};
-  }, []);
+  }, [rememberAccount]);
 
   const signInWithDiscord = useCallback<AuthValue["signInWithDiscord"]>(async (invite) => {
     // Ask the backend for the Discord authorize URL, then send the browser
@@ -191,7 +226,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await post("/api/auth/logout");
+    if (user) setAccounts(forgetStoredAccount(user.id));
     setUser(null);
+  }, [user]);
+
+  const switchAccount = useCallback<AuthValue["switchAccount"]>(
+    async (id) => {
+      const entry = loadAccounts().find((item) => item.id === id);
+      if (!entry) return { error: "That account is no longer saved on this device." };
+      const result = await switchSession(entry.ticket);
+      if (!result.ok) {
+        if (result.status === 401) setAccounts(forgetStoredAccount(id));
+        return { error: result.error };
+      }
+      setUser(result.data.account as Account);
+      void refreshFirst();
+      return {};
+    },
+    [refreshFirst],
+  );
+
+  const forgetAccount = useCallback((id: string) => {
+    setAccounts(forgetStoredAccount(id));
   }, []);
 
   const setAlias = useCallback<AuthValue["setAlias"]>(
@@ -318,6 +374,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithDiscord,
       linkDiscord,
       signOut,
+      accounts,
+      switchAccount,
+      forgetAccount,
     }),
     [
       accountWithProfile,
@@ -336,6 +395,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithDiscord,
       linkDiscord,
       signOut,
+      accounts,
+      switchAccount,
+      forgetAccount,
     ],
   );
 

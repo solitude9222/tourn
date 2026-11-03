@@ -693,6 +693,7 @@ function Site() {
           badges={badges}
           isPremium={isPremium}
           isAdmin={isAdmin}
+          onAddAccount={() => setAuthMode("signin")}
           authLoading={loading}
           authUnavailable={unavailable}
           onRetryAuth={() => void retryAuth()}

@@ -794,6 +794,45 @@ app.post("/api/auth/register", async (req, res) => {
 
 /* Trades the OAuth handoff ticket for a session cookie on the site's own
    origin (the callback ran on the API host, so its cookie never reached it). */
+/** A device-local pass that can re-establish this session later. */
+function switchTicket(user) {
+  return jwt.sign({ sub: user.id, v: user.token_version, account: true }, JWT_SECRET, {
+    expiresIn: "30d",
+  });
+}
+
+/* Issued to the signed-in account so this device can list and switch back to
+   it without asking for a password again. */
+app.post("/api/auth/ticket", requireAuth, async (req, res) => {
+  try {
+    const user = await userById(req.auth.sub);
+    if (!user) return res.status(401).json({ error: "Sign in again." });
+    res.json({ ticket: switchTicket(user) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* Swaps the session cookie for a stored account pass. */
+app.post("/api/auth/switch", async (req, res) => {
+  try {
+    const ticket = String(req.body?.ticket ?? "");
+    if (!ticket) return res.status(400).json({ error: "Pick an account first." });
+    const payload = jwt.verify(ticket, JWT_SECRET);
+    if (!payload?.account) {
+      return res.status(401).json({ error: "That account link expired — sign in again." });
+    }
+    const user = await userById(payload.sub);
+    if (!user || user.token_version !== payload.v) {
+      return res.status(401).json({ error: "That account link expired — sign in again." });
+    }
+    setSession(res, user);
+    res.json({ account: accountOf(user) });
+  } catch {
+    res.status(401).json({ error: "That account link expired — sign in again." });
+  }
+});
+
 app.post("/api/auth/session", async (req, res) => {
   try {
     const ticket = String(req.body?.ticket ?? "");

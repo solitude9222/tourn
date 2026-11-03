@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
+import { useAuth } from "../lib/auth";
 import type { About } from "../lib/about";
 import type { Settings } from "../config";
 import { inviteCode } from "../config";
@@ -98,6 +99,8 @@ type DashboardProps = {
   onSignIn: () => void;
   onSignUp: () => void;
   onSignOut: () => void;
+  /** Opens the sign-in dialog so a second account can be added. */
+  onAddAccount: () => void;
 };
 
 type Signal = {
@@ -153,7 +156,9 @@ export function Dashboard({
   onSignIn,
   onSignUp,
   onSignOut,
+  onAddAccount,
 }: DashboardProps) {
+  const { accounts, switchAccount, forgetAccount } = useAuth();
   const [page, setPage] = useState<DashPage>(() =>
     isAdmin && window.location.hash.includes("/admin") ? "admin" : "overview",
   );
@@ -750,7 +755,55 @@ export function Dashboard({
               </div>
             ) : null}
 
-            <div className="dash-share">
+            <div className="dash-accounts">
+          <div className="dash-accounts-head">
+            <span>Accounts</span>
+            <button type="button" className="dash-accounts-add" onClick={onAddAccount}>
+              + Add account
+            </button>
+          </div>
+
+          {accounts.filter((entry) => entry.id !== user.id).length > 0 ? (
+            <ul className="dash-accounts-list">
+              {accounts
+                .filter((entry) => entry.id !== user.id)
+                .map((entry) => (
+                  <li className="dash-account-row" key={entry.id}>
+                    <button
+                      type="button"
+                      className="dash-account"
+                      onClick={() => void switchAccount(entry.id)}
+                      title={`Switch to @${entry.username}`}
+                    >
+                      <span className="dash-account-avatar">
+                        {entry.avatarUrl ? (
+                          <img src={entry.avatarUrl} alt="" />
+                        ) : (
+                          entry.name.slice(0, 1).toUpperCase()
+                        )}
+                      </span>
+                      <span className="dash-account-copy">
+                        <b>{entry.name}</b>
+                        <small>@{entry.username}</small>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="dash-account-remove"
+                      onClick={() => forgetAccount(entry.id)}
+                      aria-label={`Remove @${entry.username} from this device`}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <p className="dash-accounts-hint">Add a second account and switch with one click.</p>
+          )}
+        </div>
+
+        <div className="dash-share">
               <span className="dash-share-icon">
                 <LinkIcon size={14} />
               </span>
