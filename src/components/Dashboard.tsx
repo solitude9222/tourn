@@ -42,11 +42,13 @@ import {
   EyeIcon,
   GridIcon,
   HomeIcon,
+  ImageIcon,
   LayoutIcon,
   LinkIcon,
   LogoutIcon,
   PaletteIcon,
   SaveIcon,
+  SearchIcon,
   SettingsIcon,
   SignalIcon,
   ShieldIcon,
@@ -58,6 +60,7 @@ import {
   UserIcon,
 } from "./Icons";
 import "../dashboard.css";
+import "../dashboard2.css";
 
 type DashPage =
   | "overview"
@@ -111,26 +114,29 @@ type Signal = {
   icon: ReactNode;
 };
 
-type NavGroups = { content: boolean; appearance: boolean };
+type NavGroupKey = "account" | "customize" | "links" | "assets" | "settings";
 
-const NAV_GROUPS_KEY = "tourn.lol/dashboard/nav-groups/v2";
+type NavGroups = Record<NavGroupKey, boolean>;
+
+const NAV_GROUPS_KEY = "tourn.lol/dashboard/nav-groups/v3";
 
 function loadNavGroups(): NavGroups {
   try {
     const raw = localStorage.getItem(NAV_GROUPS_KEY);
     if (!raw) {
       // Carry the old Profile/Extra collapse choice across the regroup.
-      const legacy = localStorage.getItem("tourn.lol/dashboard/nav-groups/v1");
-      if (legacy) {
-        const old = JSON.parse(legacy) as { profile?: boolean; extra?: boolean };
-        return { content: old.profile !== false, appearance: old.extra !== false };
-      }
-      return { content: true, appearance: true };
+      return { account: true, customize: true, links: true, assets: true, settings: true };
     }
     const parsed = JSON.parse(raw) as Partial<NavGroups>;
-    return { content: parsed.content !== false, appearance: parsed.appearance !== false };
+    return {
+      account: parsed.account !== false,
+      customize: parsed.customize !== false,
+      links: parsed.links !== false,
+      assets: parsed.assets !== false,
+      settings: parsed.settings !== false,
+    };
   } catch {
-    return { content: true, appearance: true };
+    return { account: true, customize: true, links: true, assets: true, settings: true };
   }
 }
 
@@ -166,14 +172,26 @@ export function Dashboard({
   const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
   const [groups, setGroups] = useState<NavGroups>(loadNavGroups);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navQuery, setNavQuery] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [profileViews, setProfileViews] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const editRef = useRef<HTMLDivElement>(null);
 
-  const toggleGroup = (group: "content" | "appearance") => {
-    setGroups((current) => ({ ...current, [group]: !current[group] }));
+  // One section open at a time, like the reference: opening a group closes the
+  // rest so the rail never turns into a wall of links.
+  const toggleGroup = (group: NavGroupKey) => {
+    setGroups((current) => {
+      const opening = !current[group];
+      const next = { ...current, [group]: opening };
+      if (opening) {
+        (Object.keys(next) as NavGroupKey[]).forEach((key) => {
+          if (key !== group) next[key] = false;
+        });
+      }
+      return next;
+    });
   };
 
   useReveal([page, user?.id]);
@@ -494,6 +512,87 @@ export function Dashboard({
     admin: { title: "Admin", subtitle: "Members, invites, site settings and the Discord bot." },
   }[page];
 
+  // The rail mirrors the reference: Home, then one section per area, with each
+  // existing page kept under the closest matching heading.
+  const navSections: {
+    id: NavGroupKey;
+    label: string;
+    icon: ReactNode;
+    items: { page: DashPage; label: string }[];
+  }[] = [
+    {
+      id: "account",
+      label: "Account",
+      icon: <UserIcon size={16} />,
+      items: [
+        { page: "about", label: "Profile" },
+        { page: "badges", label: "Badges" },
+        { page: "leaderboard", label: "Leaderboard" },
+      ],
+    },
+    {
+      id: "customize",
+      label: "Customize",
+      icon: <PaletteIcon size={16} />,
+      items: [
+        { page: "assets", label: "Appearance" },
+        { page: "layout", label: "Layout" },
+        { page: "entry", label: "Entry Screen" },
+        ...(about.design.cardStyle === "slideshow"
+          ? [{ page: "slideshow" as DashPage, label: "Portfolio" }]
+          : []),
+      ],
+    },
+    {
+      id: "links",
+      label: "Links",
+      icon: <LinkIcon size={16} />,
+      items: [
+        { page: "links", label: "Social Links" },
+        { page: "widgets", label: "Widgets" },
+      ],
+    },
+    {
+      id: "assets",
+      label: "Assets",
+      icon: <ImageIcon size={16} />,
+      items: [{ page: "assets", label: "Asset Browser" }],
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <SettingsIcon size={16} />,
+      items: [
+        { page: "settings", label: "Account Settings" },
+        ...(isAdmin ? [{ page: "admin" as DashPage, label: "Admin" }] : []),
+      ],
+    },
+  ];
+
+  const pageIcon: Record<DashPage, ReactNode> = {
+    overview: <HomeIcon size={26} />,
+    about: <UserIcon size={26} />,
+    assets: <PaletteIcon size={26} />,
+    widgets: <GridIcon size={26} />,
+    layout: <LayoutIcon size={26} />,
+    slideshow: <SlidersIcon size={26} />,
+    entry: <ExpandIcon size={26} />,
+    badges: <BoltIcon size={26} />,
+    links: <LinkIcon size={26} />,
+    leaderboard: <TrophyIcon size={26} />,
+    settings: <SettingsIcon size={26} />,
+    admin: <ShieldIcon size={26} />,
+  };
+
+  const crumb =
+    navSections
+      .flatMap((section) =>
+        section.items
+          .filter((item) => item.page === page)
+          .map((item) => ({ section: section.label, label: item.label })),
+      )
+      .at(0) ?? null;
+
   return (
     <div className="dash">
       <aside className="dash-rail">
@@ -504,183 +603,84 @@ export function Dashboard({
           </span>
         </a>
 
+        <label className="dash-search">
+          <SearchIcon size={14} />
+          <input
+            type="search"
+            value={navQuery}
+            onChange={(event) => setNavQuery(event.target.value)}
+            placeholder="search dashboard..."
+            aria-label="Search dashboard"
+          />
+        </label>
+
         <div className="dash-rail-scroll">
-          <nav className="dash-nav dash-nav--top" aria-label="Dashboard">
+          <nav className="dash-nav" aria-label="Dashboard">
             <button
               type="button"
               className={`dash-nav-item${page === "overview" ? " is-active" : ""}`}
               onClick={() => setPage("overview")}
               aria-current={page === "overview" ? "page" : undefined}
             >
-              <HomeIcon size={15} />
-              Overview
-              {page === "overview" ? <i className="dash-nav-dot" /> : null}
+              <HomeIcon size={16} />
+              Home
             </button>
+
+            {navSections.map((section) => {
+              const items = section.items.filter((item) =>
+                item.label.toLowerCase().includes(navQuery.trim().toLowerCase()),
+              );
+              if (!items.length) return null;
+              const open = navQuery.trim() ? true : groups[section.id];
+              return (
+                <section
+                  className={`dash-group${open ? "" : " is-collapsed"}`}
+                  key={section.id}
+                >
+                  <button
+                    type="button"
+                    className="dash-group-head"
+                    onClick={() => toggleGroup(section.id)}
+                    aria-expanded={open}
+                    aria-controls={`dash-nav-${section.id}`}
+                  >
+                    {section.icon}
+                    {section.label}
+                    <ChevronIcon size={13} className="dash-group-chevron" />
+                  </button>
+                  <nav
+                    className="dash-nav dash-group-body"
+                    id={`dash-nav-${section.id}`}
+                    aria-label={section.label}
+                    aria-hidden={!open}
+                  >
+                    {items.map((item) => (
+                      <button
+                        key={item.page}
+                        type="button"
+                        className={`dash-nav-item${page === item.page ? " is-active" : ""}`}
+                        onClick={() => setPage(item.page)}
+                        aria-current={page === item.page ? "page" : undefined}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </nav>
+                </section>
+              );
+            })}
           </nav>
 
-          <section className={`dash-group${groups.content ? "" : " is-collapsed"}`}>
-            <button
-              type="button"
-              className="dash-group-head"
-              onClick={() => toggleGroup("content")}
-              aria-expanded={groups.content}
-              aria-controls="dash-content-nav"
-            >
-              <GridIcon size={13} />
-              Content
-              <ChevronIcon size={13} className="dash-group-chevron" />
-            </button>
-            <nav
-              className="dash-nav dash-group-body"
-              id="dash-content-nav"
-              aria-label="Content"
-              aria-hidden={!groups.content}
-            >
-              <button
-                type="button"
-                className={`dash-nav-item${page === "about" ? " is-active" : ""}`}
-                onClick={() => setPage("about")}
-                aria-current={page === "about" ? "page" : undefined}
-              >
-                <UserIcon size={15} />
-                About me
-                {page === "about" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              <button
-                type="button"
-                className={`dash-nav-item${page === "links" ? " is-active" : ""}`}
-                onClick={() => setPage("links")}
-                aria-current={page === "links" ? "page" : undefined}
-              >
-                <LinkIcon size={15} />
-                Links
-                {page === "links" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              <button
-                type="button"
-                className={`dash-nav-item${page === "widgets" ? " is-active" : ""}`}
-                onClick={() => setPage("widgets")}
-                aria-current={page === "widgets" ? "page" : undefined}
-              >
-                <GridIcon size={15} />
-                Widgets
-                {page === "widgets" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              <button
-                type="button"
-                className={`dash-nav-item${page === "badges" ? " is-active" : ""}`}
-                onClick={() => setPage("badges")}
-                aria-current={page === "badges" ? "page" : undefined}
-              >
-                <BoltIcon size={15} />
-                Badges
-                {page === "badges" ? <i className="dash-nav-dot" /> : null}
-              </button>
-            </nav>
-          </section>
-
-          <section className={`dash-group${groups.appearance ? "" : " is-collapsed"}`}>
-            <button
-              type="button"
-              className="dash-group-head"
-              onClick={() => toggleGroup("appearance")}
-              aria-expanded={groups.appearance}
-              aria-controls="dash-appearance-nav"
-            >
-              <PaletteIcon size={13} />
-              Appearance
-              <ChevronIcon size={13} className="dash-group-chevron" />
-            </button>
-            <nav
-              className="dash-nav dash-group-body"
-              id="dash-appearance-nav"
-              aria-label="Appearance"
-              aria-hidden={!groups.appearance}
-            >
-              <button
-                type="button"
-                className={`dash-nav-item${page === "layout" ? " is-active" : ""}`}
-                onClick={() => setPage("layout")}
-                aria-current={page === "layout" ? "page" : undefined}
-              >
-                <LayoutIcon size={15} />
-                Card/layout
-                {page === "layout" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              <button
-                type="button"
-                className={`dash-nav-item${page === "assets" ? " is-active" : ""}`}
-                onClick={() => setPage("assets")}
-                aria-current={page === "assets" ? "page" : undefined}
-              >
-                <PaletteIcon size={15} />
-                Background & effects
-                {page === "assets" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              <button
-                type="button"
-                className={`dash-nav-item${page === "entry" ? " is-active" : ""}`}
-                onClick={() => setPage("entry")}
-                aria-current={page === "entry" ? "page" : undefined}
-              >
-                <ExpandIcon size={15} />
-                Entry screen
-                {page === "entry" ? <i className="dash-nav-dot" /> : null}
-              </button>
-              {about.design.cardStyle === "slideshow" ? (
-                <button
-                  type="button"
-                  className={`dash-nav-item${page === "slideshow" ? " is-active" : ""}`}
-                  onClick={() => setPage("slideshow")}
-                  aria-current={page === "slideshow" ? "page" : undefined}
-                >
-                  <SlidersIcon size={15} />
-                  Slideshow
-                  {page === "slideshow" ? <i className="dash-nav-dot" /> : null}
-                </button>
-              ) : null}
-            </nav>
-          </section>
-
           <div className="dash-rail-links">
-            <button
-              type="button"
-              className={`dash-rail-link${page === "leaderboard" ? " dash-rail-link--active" : ""}`}
-              onClick={() => setPage("leaderboard")}
-              aria-current={page === "leaderboard" ? "page" : undefined}
-            >
-              <TrophyIcon size={14} />
-              Leaderboard
-            </button>
-            <button
-              type="button"
-              className={`dash-rail-link${page === "settings" ? " dash-rail-link--active" : ""}`}
-              onClick={() => setPage("settings")}
-              aria-current={page === "settings" ? "page" : undefined}
-            >
-              <SettingsIcon size={14} />
-              Settings
-            </button>
-            {isAdmin ? (
-              <button
-                type="button"
-                className={`dash-rail-link dash-rail-link--admin${page === "admin" ? " dash-rail-link--active" : ""}`}
-                onClick={() => setPage("admin")}
-                aria-current={page === "admin" ? "page" : undefined}
-              >
-                <ShieldIcon size={14} />
-                Admin
-              </button>
-            ) : null}
             {isPremium ? (
-              <span className="dash-rail-link dash-rail-link--active" aria-current="true">
-                <BoltIcon size={14} />
+              <span className="dash-rail-link dash-rail-link--active">
+                <BoltIcon size={16} />
                 Premium active
                 <CheckIcon size={12} />
               </span>
             ) : (
               <a className="dash-rail-link" href="#/premium">
-                <BoltIcon size={14} />
+                <BoltIcon size={16} />
                 Premium
                 <ArrowUpRight size={12} />
               </a>
@@ -849,7 +849,20 @@ export function Dashboard({
       </aside>
 
       <main className="dash-main">
+        <nav className="dash-crumbs" aria-label="Breadcrumb">
+          <HomeIcon size={14} />
+          <ChevronIcon size={12} className="dash-crumbs-sep" />
+          {crumb ? (
+            <>
+              <span>{crumb.section}</span>
+              <ChevronIcon size={12} className="dash-crumbs-sep" />
+            </>
+          ) : null}
+          <span className="dash-crumbs-current">{crumb?.label ?? pageMeta.title}</span>
+        </nav>
+
         <header className="dash-top">
+          <span className="dash-top-icon">{pageIcon[page]}</span>
           <div>
             <h1>{pageMeta.title}</h1>
             <p>{pageMeta.subtitle}</p>

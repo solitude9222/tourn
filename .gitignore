@@ -10,3 +10,6 @@ uploads
 # large local-only assets
 example.mp4
 *.mp4
+
+# extracted reference frames (local only)
+.ref/
