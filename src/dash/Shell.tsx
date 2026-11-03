@@ -117,7 +117,9 @@ export function Shell({
   children,
 }: ShellProps) {
   const { user, about, settings, dirty, save, discard, isPremium, isAdmin, profileViews, go } = useDash();
-  const [openGroups, setOpenGroups] = useState<NavGroup["key"][]>([]);
+  const [openGroups, setOpenGroups] = useState<NavGroup["key"][]>(() => [
+    PAGE_GROUP[page] ?? "account",
+  ]);
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -165,6 +167,8 @@ export function Shell({
 
   const isChildActive = (child: NavChild) =>
     child.page === page && (child.tab ? child.tab === activeTab : true);
+
+  const showSectionCrumb = crumb !== (breadcrumbLabel ?? title);
 
   const groups = useMemo(() => GROUPS, []);
 
@@ -294,7 +298,7 @@ export function Shell({
             </button>
           )}
 
-          <div className="tw-user" ref={menuRef} style={{ position: "relative" }}>
+          <div className="tw-user" ref={menuRef}>
             {menuOpen ? (
               <div className="tw-user-pop" role="menu" aria-label="Account menu">
                 <a
@@ -333,32 +337,35 @@ export function Shell({
               </div>
             ) : null}
 
-            <button
-              type="button"
-              className="tw-user-row"
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-            >
-              <span className="tw-avatar">
-                {avatarUrl ? <img src={avatarUrl} alt="" /> : displayName.slice(0, 1).toUpperCase()}
-                <i className={settings.discordUserId ? "is-on" : ""} />
-              </span>
-              <span className="tw-user-meta">
-                <b>{displayName}</b>
-                <small>@{user.username}</small>
-              </span>
-              <Icon name="chevron-down" size={14} className="tw-chevron" />
-            </button>
+            <div className="tw-user-foot">
+              <button
+                type="button"
+                className="tw-user-row"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+              >
+                <span className="tw-avatar">
+                  {avatarUrl ? <img src={avatarUrl} alt="" /> : displayName.slice(0, 1).toUpperCase()}
+                  <i className={settings.discordUserId ? "is-on" : ""} />
+                </span>
+                <span className="tw-user-meta">
+                  <b>{displayName}</b>
+                  <small>@{user.username}</small>
+                </span>
+                <Icon name="chevron-down" size={14} className="tw-chevron" />
+              </button>
 
-            <button
-              type="button"
-              className="tw-user-bell"
-              aria-label="Notifications"
-              onClick={() => setNotes((open) => !open)}
-            >
-              <Icon name="bell" size={15} />
-            </button>
+              <button
+                type="button"
+                className="tw-user-bell"
+                aria-label="Notifications"
+                aria-expanded={notes}
+                onClick={() => setNotes((open) => !open)}
+              >
+                <Icon name="bell" size={15} />
+              </button>
+            </div>
 
             {notes ? (
               <div className="tw-note-pop" role="status">
@@ -369,6 +376,26 @@ export function Shell({
           </div>
         </div>
       </aside>
+
+      {mobileOpen ? (
+        <button
+          type="button"
+          className="tw-scrim"
+          aria-label="Close navigation"
+          onClick={() => setMobileOpen(false)}
+        />
+      ) : null}
+
+      <button
+        type="button"
+        className={`tw-menu-fab${mobileOpen ? " is-open" : ""}`}
+        onClick={() => setMobileOpen((open) => !open)}
+        aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+        aria-expanded={mobileOpen}
+      >
+        <Icon name={mobileOpen ? "x" : "layout"} size={16} />
+        Menu
+      </button>
 
       <main className="tw-main">
         <div className="tw-topline">
@@ -382,20 +409,16 @@ export function Shell({
               <Icon name="home" size={14} />
             </button>
             <Icon name="chevron-right" size={12} className="tw-crumb-sep" />
-            <span>{crumb}</span>
-            <Icon name="chevron-right" size={12} className="tw-crumb-sep" />
+            {showSectionCrumb ? (
+              <>
+                <span>{crumb}</span>
+                <Icon name="chevron-right" size={12} className="tw-crumb-sep" />
+              </>
+            ) : null}
             <b>{breadcrumbLabel ?? title}</b>
           </div>
 
           <div className="tw-row">
-            <button
-              type="button"
-              className="tw-eye-btn tw-menu-btn"
-              onClick={() => setMobileOpen((open) => !open)}
-              aria-label="Open menu"
-            >
-              <Icon name="layout" size={16} />
-            </button>
             {actions}
             <a
               className="tw-eye-btn"

@@ -8,15 +8,27 @@
   width: calc(100% - 14px);
 }
 
-.tw-user-bell {
-  position: absolute;
-  top: 50%;
-  right: 9px;
-  transform: translateY(-50%);
+.tw-user {
+  position: relative;
 }
 
-.tw-user-row .tw-chevron {
-  margin-right: 32px;
+.tw-user-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.tw-user-foot .tw-user-row {
+  flex: 1;
+  min-width: 0;
+  border-top: 0;
+}
+
+.tw-user-bell {
+  position: static;
+  flex: none;
 }
 
 .tw-premium-card > span:nth-child(2) {
@@ -106,7 +118,9 @@
 
 .tw-periods {
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
+  max-width: 100%;
   padding: 3px;
   border: 2px solid var(--border);
   border-radius: 10px;

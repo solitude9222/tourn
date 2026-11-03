@@ -31,8 +31,10 @@
   --r-bar: 14px;
   --font: "Lexend", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 
+  --rail-w: 320px;
+
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
   background: var(--page);
@@ -87,6 +89,7 @@
 .tw-rail {
   display: flex;
   flex-direction: column;
+  width: var(--rail-w);
   height: 100vh;
   min-height: 0;
   border-right: 2px solid var(--border);
@@ -598,6 +601,7 @@
 .tw-card-head {
   display: flex;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -643,6 +647,8 @@
 .tw-card-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 8px;
   margin-left: auto;
 }
@@ -1455,9 +1461,13 @@
 
 /* --------------------------------------------------------------- unsaved */
 
+.tw-scrim {
+  display: none;
+}
+
 .tw-unsaved {
   position: fixed;
-  left: calc(320px + (100vw - 320px) / 2);
+  left: calc(var(--rail-w) + (100vw - var(--rail-w)) / 2);
   bottom: 28px;
   z-index: 60;
   display: flex;
@@ -2367,6 +2377,11 @@
 }
 
 @media (max-width: 1280px) {
+  .tw-card-actions {
+    flex: 1 0 100%;
+    margin-left: 0;
+  }
+
   .tw-grid--3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2380,9 +2395,16 @@
   }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1200px) {
   .tw-dash {
-    grid-template-columns: 1fr;
+    --rail-w: 280px;
+  }
+}
+
+@media (max-width: 900px) {
+  .tw-dash {
+    --rail-w: 320px;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .tw-rail {
@@ -2401,12 +2423,36 @@
     transform: none;
   }
 
-  .tw-menu-btn {
-    display: grid;
+  .tw-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 65;
+    display: block;
+    border: 0;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .tw-menu-fab {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 75;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 12px;
+    border: 2px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--card);
+    color: #e7e9ee;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
   }
 
   .tw-main {
-    padding: 16px 16px 140px;
+    padding: 62px 16px 140px;
   }
 
   .tw-unsaved {
@@ -2419,13 +2465,18 @@
   }
 }
 
-@media (min-width: 1081px) {
-  .tw-menu-btn {
+@media (min-width: 901px) {
+  .tw-menu-fab {
     display: none;
   }
 }
 
 @media (max-width: 760px) {
+  .tw-card-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
   .tw-page-copy h1 {
     font-size: 26px;
   }
