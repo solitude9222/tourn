@@ -16,6 +16,7 @@ import { BADGE_CATALOGUE } from "../lib/badges";
 import {
   ArrowUpRight,
   BoltIcon,
+  CheckIcon,
   ChevronIcon,
   CloseIcon,
   CopyIcon,
@@ -355,24 +356,32 @@ function MemberEditor({
           {localError ? <p className="adm-modal-error">{localError}</p> : null}
 
           <div className="adm-modal-group">
-            <h4>Role</h4>
-            <div className="adm-role-row">
-              <div>
-                <b>{role === "owner" ? "Owner" : role === "staff" ? "Staff" : "Member"}</b>
-                <small>
-                  Staff can manage members, invites and settings. Owners can also hand out owner.
-                </small>
-              </div>
-              <div className="adm-role-select">
-                <Select
-                  value={role}
-                  ariaLabel="Role"
-                  options={ROLE_OPTIONS.filter(
-                    (option) => option.value !== "owner" || canGrantOwner || role === "owner",
-                  )}
-                  onChange={(value) => changeRole(value as AdminRole)}
-                />
-              </div>
+            <h4>
+              Role
+              <span className="adm-badge-count">{role === "owner" ? "owner" : role === "staff" ? "staff" : "member"}</span>
+            </h4>
+            <div className="adm-role-seg" role="group" aria-label="Member role">
+              {ROLE_OPTIONS.filter(
+                (option) => option.value !== "owner" || canGrantOwner || role === "owner",
+              ).map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`adm-role-btn${role === option.value ? " is-active" : ""}`}
+                  aria-pressed={role === option.value}
+                  disabled={busy}
+                  onClick={() => changeRole(option.value)}
+                >
+                  <b>{option.label.split(" — ")[0]}</b>
+                  <small>
+                    {option.value === "member"
+                      ? "No console access"
+                      : option.value === "staff"
+                        ? "Members, invites, settings"
+                        : "Everything + owner grants"}
+                  </small>
+                </button>
+              ))}
             </div>
             {isSelf ? (
               <p className="adm-modal-note">You can't demote your own account from the console.</p>
@@ -447,8 +456,15 @@ function MemberEditor({
                     onClick={() => toggleBadge(badge.id)}
                     title={`${badge.description} — ${badge.requirement}`}
                   >
-                    <img src={badge.art} alt="" width={18} height={18} loading="lazy" />
+                    {badge.art ? (
+                      <img src={badge.art} alt="" width={18} height={18} loading="lazy" />
+                    ) : (
+                      <span className="adm-badge-initial" aria-hidden="true">
+                        {badge.name.slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
                     <span>{badge.name}</span>
+                    {active ? <CheckIcon size={10} className="adm-badge-check" /> : null}
                   </button>
                 );
               })}

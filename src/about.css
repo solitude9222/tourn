@@ -4135,3 +4135,34 @@
 .pv-beam-glow {
   pointer-events: none;
 }
+
+/* Shimmer, fixed: the later "background" shorthand reset background-size and
+   background-position back to auto/0 0, which killed the sweep. Only the
+   image is overridden now, so the 260% band actually travels. */
+.badge-anim--shimmer::after {
+  inset: -2%;
+  background-image: linear-gradient(
+    115deg,
+    transparent 26%,
+    rgba(255, 255, 255, 0.85) 44%,
+    #ffffff 51%,
+    rgba(255, 255, 255, 0.9) 58%,
+    transparent 76%
+  );
+  background-size: 260% 260%;
+  background-position: -120% -120%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6));
+  animation: badgeShimmer 2.4s ease-in-out infinite;
+}
+
+.badge-anim--shimmer {
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+@keyframes badgeShimmer {
+  0% { background-position: -120% -120%; }
+  55%, 100% { background-position: 120% 120%; }
+}

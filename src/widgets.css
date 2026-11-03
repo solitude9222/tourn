@@ -1622,3 +1622,52 @@
 .widgets-catalog-grid .platform-card {
   height: 100%;
 }
+
+/* Customization on the left, small live previews on the right. */
+.widgets-workspace {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.widgets-workspace > .widgets-customization {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.widgets-workspace > .widgets-side {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 84px;
+  max-height: calc(100vh - 108px);
+  padding: 12px;
+}
+
+.widgets-side .widgets-scroll {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* The rail is a preview, not the page — cards scale down to fit it. */
+.widgets-side .widget-card {
+  transform: scale(0.94);
+  transform-origin: top center;
+}
+
+.widgets-preview-box {
+  margin-top: 10px;
+  padding: 8px;
+}
+
+@media (max-width: 1100px) {
+  .widgets-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .widgets-workspace > .widgets-side {
+    grid-column: 1;
+    grid-row: 2;
+    position: static;
+    max-height: none;
+  }
+}

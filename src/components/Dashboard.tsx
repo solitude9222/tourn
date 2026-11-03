@@ -603,16 +603,6 @@ export function Dashboard({
               aria-label="Extra"
               aria-hidden={!groups.extra}
             >
-              <button type="button" className="dash-nav-item" disabled title="Coming soon">
-                <CopyIcon size={15} />
-                Templates
-                <span className="dash-soon">Soon</span>
-              </button>
-              <button type="button" className="dash-nav-item" disabled title="Coming soon">
-                <SignalIcon size={15} />
-                Analytics
-                <span className="dash-soon">Soon</span>
-              </button>
               <button
                 type="button"
                 className={`dash-nav-item${page === "leaderboard" ? " is-active" : ""}`}
@@ -1055,60 +1045,6 @@ export function Dashboard({
             </div>
 
             <div className="dash-lower">
-              <section className="dash-panel dash-account-card" data-reveal data-reveal-delay="100">
-                <div className="dash-panel-head">
-                  <div>
-                    <h2>Account details</h2>
-                  </div>
-                  <span className="dash-section-icon dash-section-icon--small">
-                    <UserIcon size={13} />
-                  </span>
-                </div>
-
-                <ul className="dash-stat-rows">
-                  <li>
-                    <span className="dash-stat-row-label">Public link</span>
-                    <span className="dash-stat-row-value">{handle}</span>
-                    <button
-                      type="button"
-                      className="dash-copy"
-                      onClick={() => void copyLink(`https://tourn.lol/${user.username}`)}
-                      aria-label="Copy public link"
-                    >
-                      {copied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
-                    </button>
-                  </li>
-                  <li>
-                    <span className="dash-stat-row-label">Handle</span>
-                    <span className="dash-stat-row-value">@{user.username}</span>
-                  </li>
-                  <li>
-                    <span className="dash-stat-row-label">Member since</span>
-                    <span className="dash-stat-row-value">{joined}</span>
-                  </li>
-                  <li>
-                    <span className="dash-stat-row-label">Account age</span>
-                    <span className="dash-stat-row-value">{accountDays.toLocaleString()} days</span>
-                  </li>
-                  <li>
-                    <span className="dash-stat-row-label">Live sources</span>
-                    <span className="dash-stat-row-value">{cardsLinked}/4 configured</span>
-                  </li>
-                  <li>
-                    <span className="dash-stat-row-label">Live cards</span>
-                    <span className="dash-stat-row-value">{liveCards}/4 with data</span>
-                  </li>
-                </ul>
-
-                <div className="dash-account-foot">
-                  <span>Profile details are stored in this browser.</span>
-                  <button type="button" className="dash-link" onClick={() => setPage("about")}>
-                    Edit details
-                    <ArrowRight size={11} />
-                  </button>
-                </div>
-              </section>
-
               <section className="dash-panel dash-signals" data-reveal data-reveal-delay="140">
                 <div className="dash-panel-head">
                   <div>

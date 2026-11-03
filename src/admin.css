@@ -1910,3 +1910,153 @@
     flex: 1 1 auto;
   }
 }
+
+/* ── member editor: wider, segmented, easier to scan ─────────────── */
+
+.adm-modal-card {
+  width: min(720px, 100%);
+  background: #0b0b0c;
+  background-image: none;
+  border-color: #1e1e22;
+  box-shadow: 0 40px 90px -44px #000;
+}
+
+.adm-modal-head {
+  padding: 18px 20px;
+}
+
+.adm-modal-body {
+  padding: 20px;
+  gap: 16px;
+}
+
+.adm-modal-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.adm-modal-grid .adm-field:last-child {
+  grid-column: auto;
+}
+
+.adm-modal-group {
+  padding: 14px;
+  border: 1px solid #191919;
+  border-radius: 14px;
+  background: #070708;
+}
+
+.adm-modal-group h4 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #f2f4f7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Segmented role picker — three clear choices instead of a dropdown. */
+.adm-role-seg {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.adm-role-btn {
+  display: grid;
+  gap: 3px;
+  padding: 10px 11px;
+  border: 1px solid #1c1c20;
+  border-radius: 11px;
+  background: #0d0d0f;
+  color: #b9c0c9;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.adm-role-btn b {
+  font-size: 11.5px;
+  font-weight: 680;
+  color: #e8edf3;
+}
+
+.adm-role-btn small {
+  font-size: 9px;
+  line-height: 1.35;
+  color: #6f7780;
+}
+
+.adm-role-btn:hover:not(:disabled) {
+  border-color: #2b2b31;
+  background: #111114;
+}
+
+.adm-role-btn.is-active {
+  border-color: rgba(180, 191, 250, 0.55);
+  background: rgba(180, 191, 250, 0.09);
+  color: #dfe4ff;
+}
+
+.adm-role-btn.is-active b {
+  color: #fff;
+}
+
+.adm-role-btn.is-active small {
+  color: #9aa3b8;
+}
+
+.adm-role-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.adm-badge-grid {
+  gap: 6px;
+}
+
+.adm-badge-pick {
+  position: relative;
+  padding: 6px 9px;
+  border-color: #1b1b1f;
+  background: #0b0b0d;
+}
+
+.adm-badge-pick span {
+  font-size: 10px;
+}
+
+.adm-badge-pick.is-on {
+  border-color: rgba(180, 191, 250, 0.5);
+  background: rgba(180, 191, 250, 0.1);
+}
+
+.adm-badge-initial {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid rgba(180, 191, 250, 0.35);
+  border-radius: 5px;
+  color: #b4bffa;
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.adm-badge-check {
+  margin-left: auto;
+  color: #b4bffa;
+}
+
+@media (max-width: 640px) {
+  .adm-modal-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .adm-role-seg {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
