@@ -19,10 +19,23 @@ const OAUTH_ERRORS: Record<string, string> = {
 };
 
 function oauthErrorFromUrl(): string | null {
-  const fromHash = window.location.hash.match(/[?&]error=([^&]+)/);
-  const fromSearch = window.location.search.match(/[?&]error=([^&]+)/);
-  const raw = decodeURIComponent(fromHash?.[1] ?? fromSearch?.[1] ?? "");
-  return raw ? (OAUTH_ERRORS[raw] ?? "Sign-in failed — try again.") : null;
+  const hashQuery = window.location.hash.split("?")[1] ?? "";
+  const params = new URLSearchParams(hashQuery || window.location.search.replace(/^\?/, ""));
+  const raw = params.get("error");
+  if (!raw) return null;
+  const detail = params.get("detail");
+  if (raw === "discord_token") {
+    if (detail === "invalid_client") {
+      return "Discord rejected the app credentials. On Railway, DISCORD_CLIENT_SECRET doesn't match this Discord app — or it picked up a space or newline when pasted. Fix it, redeploy, then press Continue with Discord again.";
+    }
+    if (detail === "invalid_grant") {
+      return "Discord rejected the sign-in code. Either the callback URL registered on the Discord app doesn't match this deployment, or the code was already used. Check the redirect URL, then press Continue with Discord again.";
+    }
+    if (detail === "rate_limited") {
+      return "Discord is rate-limiting sign-ins right now — wait a minute, then press Continue with Discord again.";
+    }
+  }
+  return OAUTH_ERRORS[raw] ?? "Sign-in failed — try again.";
 }
 
 function clearOAuthError() {

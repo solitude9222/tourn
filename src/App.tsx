@@ -30,6 +30,7 @@ import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
 import { SiteBackdrop } from "./components/Chrome";
+import { post } from "./lib/backend";
 
 import { CopyIcon, ExternalIcon, MailIcon, UserIcon } from "./components/Icons";
 
@@ -424,6 +425,22 @@ function Site() {
       window.location.search.match(/[?&]error=([^&]+)/)?.[1];
     if (raw) setAuthMode("signin");
   }, []);
+
+  // Discord's callback runs on the API host, so its cookie belongs there and
+  // never reaches the site. The callback hands back a one-time ticket; trading
+  // it here sets the session cookie first-party on tourn.lol.
+  useEffect(() => {
+    const [path, query] = window.location.hash.split("?");
+    const params = new URLSearchParams(query ?? "");
+    const ticket = params.get("login");
+    if (!ticket) return;
+    params.delete("login");
+    const rest = params.toString();
+    window.history.replaceState(null, "", `${path}${rest ? `?${rest}` : ""}`);
+    void post("/api/auth/session", { ticket }).then((result) => {
+      if (result.ok) void retryAuth();
+    });
+  }, [retryAuth]);
 
   // Site-wide totals for the landing page — public data, independent of
   // whichever account (if any) is signed in.

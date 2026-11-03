@@ -52,6 +52,10 @@ const {
   PORT = 8787,
 } = process.env;
 
+const DISCORD_CLIENT_ID = VITE_DISCORD_CLIENT_ID.trim();
+const DISCORD_CLIENT_SECRET_KEY = DISCORD_CLIENT_SECRET.trim();
+const OAUTH_REDIRECT = OAUTH_REDIRECT_URI.trim();
+
 if (!DATABASE_URL) {
   console.error("DATABASE_URL is required (Railway → Postgres → connection string)");
 }
@@ -95,7 +99,7 @@ function canonicalReturnOrigin(origin) {
    https://www.tourn.lol/api/auth/discord/callback) once it is registered and
    the site proxies /api/* — then visitors never see the API host at all. */
 const DISCORD_REDIRECT_URI =
-  OAUTH_REDIRECT_URI.trim() ||
+  OAUTH_REDIRECT ||
   `${BACKEND_URL.replace(/\/+$/, "")}/api/auth/discord/callback`;
 
 /* ── database ──────────────────────────────────────────────────────────── */
@@ -788,6 +792,27 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
+/* Trades the OAuth handoff ticket for a session cookie on the site's own
+   origin (the callback ran on the API host, so its cookie never reached it). */
+app.post("/api/auth/session", async (req, res) => {
+  try {
+    const ticket = String(req.body?.ticket ?? "");
+    if (!ticket) return res.status(400).json({ error: "That sign-in link is incomplete — try again." });
+    const payload = jwt.verify(ticket, JWT_SECRET);
+    if (!payload?.login) {
+      return res.status(401).json({ error: "That sign-in link expired — press Continue with Discord again." });
+    }
+    const user = await userById(payload.sub);
+    if (!user || user.token_version !== payload.v) {
+      return res.status(401).json({ error: "That sign-in link expired — press Continue with Discord again." });
+    }
+    setSession(res, user);
+    res.json({ account: accountOf(user) });
+  } catch {
+    res.status(401).json({ error: "That sign-in link expired — press Continue with Discord again." });
+  }
+});
+
 app.post("/api/auth/logout", (req, res) => {
   clearSession(res);
   res.json({ ok: true });
@@ -811,6 +836,13 @@ app.post("/api/auth/signout-others", requireAuth, async (req, res) => {
 /* Discord OAuth — THE sign-up path.
    `state` is signed with JWT_SECRET and carries the site to return to, so the
    flow needs no cookie and survives the site/API domain split. */
+/** One-time handoff for a completed OAuth sign-in (2 minutes, session shape). */
+function loginTicket(user) {
+  return jwt.sign({ sub: user.id, v: user.token_version, login: true }, JWT_SECRET, {
+    expiresIn: "2m",
+  });
+}
+
 function signOAuthState(returnOrigin, invite = "", linkUserId = null) {
   const payload = Buffer.from(
     JSON.stringify({
@@ -853,7 +885,7 @@ function readOAuthState(state) {
 
 app.get("/api/auth/discord", (req, res) => {
   const returnOrigin = returnOriginFromReferer(req);
-  if (!VITE_DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
+  if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET_KEY) {
     console.error(
       "[discord oauth] not configured — set VITE_DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET in Railway",
     );
@@ -863,7 +895,7 @@ app.get("/api/auth/discord", (req, res) => {
     return res.redirect(`${returnOrigin}/#/?error=oauth_config`);
   }
   const params = new URLSearchParams({
-    client_id: VITE_DISCORD_CLIENT_ID,
+    client_id: DISCORD_CLIENT_ID,
     redirect_uri: DISCORD_REDIRECT_URI,
     response_type: "code",
     scope: "identify email",
@@ -882,12 +914,12 @@ app.get("/api/auth/discord", (req, res) => {
    creating a second account. */
 app.get("/api/auth/discord/link", requireAuth, (req, res) => {
   const returnOrigin = returnOriginFromReferer(req);
-  if (!VITE_DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
+  if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET_KEY) {
     console.error("[discord link] not configured — set VITE_DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET");
     return res.status(503).json({ error: "Discord linking isn't configured yet." });
   }
   const params = new URLSearchParams({
-    client_id: VITE_DISCORD_CLIENT_ID,
+    client_id: DISCORD_CLIENT_ID,
     redirect_uri: DISCORD_REDIRECT_URI,
     response_type: "code",
     scope: "identify email",
@@ -896,6 +928,45 @@ app.get("/api/auth/discord/link", requireAuth, (req, res) => {
   });
   res.json({ url: `https://discord.com/oauth2/authorize?${params.toString()}` });
 });
+
+/** Discord's own error code, so the site can explain the real cause. */
+function discordErrorCode(body) {
+  try {
+    return String(JSON.parse(body)?.error ?? "unknown");
+  } catch {
+    return "unknown";
+  }
+}
+
+async function exchangeDiscordCode(code) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const response = await fetch("https://discord.com/api/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: DISCORD_CLIENT_ID,
+        client_secret: DISCORD_CLIENT_SECRET_KEY,
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: DISCORD_REDIRECT_URI,
+      }),
+    });
+    const text = await response.text();
+    if (response.ok) {
+      try {
+        return { ok: true, token: JSON.parse(text) };
+      } catch {
+        return { ok: false, status: response.status, text: "unreadable token response" };
+      }
+    }
+    const retryable = response.status === 429 || response.status >= 500;
+    if (!retryable || attempt === 1) {
+      return { ok: false, status: response.status, text };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 450));
+  }
+  return { ok: false, status: 0, text: "" };
+}
 
 app.get("/api/auth/discord/callback", async (req, res) => {
   try {
@@ -906,28 +977,20 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     }
     const returnOrigin = canonicalReturnOrigin(state.returnOrigin);
 
-    const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: VITE_DISCORD_CLIENT_ID,
-        client_secret: DISCORD_CLIENT_SECRET,
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: DISCORD_REDIRECT_URI,
-      }),
-    });
-    if (!tokenRes.ok) {
-      // Discord says exactly what is wrong (invalid_client, invalid_grant,
-      // redirect_uri mismatch); keep it in the deploy log so the next attempt
-      // can be diagnosed instead of guessing. The secret is never logged.
-      const detail = await tokenRes.text().catch(() => "");
+    const exchange = await exchangeDiscordCode(code);
+    if (!exchange.ok) {
+      // Discord names the cause (invalid_client, invalid_grant, redirect_uri
+      // mismatch); log it and pass the code back so the dialog can say what to
+      // fix instead of asking people to press the button again.
       console.error(
-        `[discord token] ${tokenRes.status} ${detail.slice(0, 400)} | redirect_uri=${DISCORD_REDIRECT_URI}`,
+        `[discord token] ${exchange.status} ${exchange.text.slice(0, 400)} | redirect_uri=${DISCORD_REDIRECT_URI}`,
       );
-      return res.redirect(`${returnOrigin}/#/?error=discord_token`);
+      const reason = discordErrorCode(exchange.text);
+      return res.redirect(
+        `${returnOrigin}/#/?error=discord_token&detail=${encodeURIComponent(reason)}`,
+      );
     }
-    const token = await tokenRes.json();
+    const token = exchange.token;
 
     const meRes = await fetch("https://discord.com/api/v10/users/@me", {
       headers: { Authorization: `Bearer ${token.access_token}` },
@@ -978,7 +1041,9 @@ app.get("/api/auth/discord/callback", async (req, res) => {
         [discordId, avatar, isOwner, isAdmin, target.id],
       );
       setSession(res, linked.rows[0]);
-      return res.redirect(`${returnOrigin}/#/dashboard/settings?linked=discord`);
+      return res.redirect(
+        `${returnOrigin}/#/dashboard/settings?linked=discord&login=${encodeURIComponent(loginTicket(linked.rows[0]))}`,
+      );
     }
 
     if (user) {
@@ -1030,7 +1095,9 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     }
 
     setSession(res, user);
-    res.redirect(`${returnOrigin}/#/dashboard`);
+    // The callback normally runs on the API host, where the cookie is useless
+    // to the site; hand back a ticket the site trades for a first-party one.
+    res.redirect(`${returnOrigin}/#/?login=${encodeURIComponent(loginTicket(user))}`);
   } catch (error) {
     console.error("[discord callback]", error);
     res.redirect(`${CANONICAL_FRONTEND_ORIGIN}/#/?error=oauth_failed`);
