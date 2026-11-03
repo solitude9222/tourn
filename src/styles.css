@@ -544,20 +544,27 @@ button {
   color: #ff9ca5;
 }
 
+/* The account control is bare: no pill, no fill. Only the name brightens on
+   hover, so the header's right edge stays as quiet as its left. */
 .profile-menu {
   position: relative;
   display: flex;
   align-items: center;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(125, 211, 252, 0.045);
+  border: 1px solid transparent;
+  background: none;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .profile-menu:hover,
 .profile-menu.is-open {
-  background: rgba(125, 211, 252, 0.09);
-  border-color: var(--line-strong);
+  background: none;
+  border-color: transparent;
+}
+
+.profile-menu:hover .profile-trigger-name,
+.profile-menu.is-open .profile-trigger-name {
+  color: #fff;
 }
 
 .profile-trigger {
@@ -597,12 +604,11 @@ button {
 }
 
 .profile-more {
-  width: 30px;
+  width: 28px;
   height: 34px;
   display: grid;
   place-items: center;
   border: none;
-  border-left: 1px solid var(--line);
   background: none;
   color: #9bb7c9;
   cursor: pointer;
@@ -629,8 +635,12 @@ button {
   padding: 6px;
   border-radius: 16px;
   border: 1px solid var(--line-strong);
-  background: linear-gradient(180deg, #0a1a29, #040c15);
-  box-shadow: 0 34px 80px -36px #000;
+  background: rgba(7, 16, 25, 0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 34px 80px -36px #000,
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   animation: menuIn 0.22s var(--ease-out) both;
   z-index: 70;
 }
@@ -1477,6 +1487,28 @@ button {
   justify-content: center;
   align-items: start;
   padding: 4px 0;
+  perspective: 1500px;
+}
+
+/* The stack angles gently toward its centre line, so the two columns read as
+   one tilted object instead of four flat panels. */
+.bento-grid:not(.bento-grid--user) > .bcard {
+  transform: rotateY(var(--bcard-tilt, 0deg));
+  transform-origin: 50% 50%;
+}
+
+.bento-grid:not(.bento-grid--user) > .bcard:nth-child(odd) {
+  --bcard-tilt: 4deg;
+}
+
+.bento-grid:not(.bento-grid--user) > .bcard:nth-child(even) {
+  --bcard-tilt: -4deg;
+}
+
+@media (max-width: 900px) {
+  .bento-grid:not(.bento-grid--user) > .bcard {
+    --bcard-tilt: 0deg;
+  }
 }
 
 /* 350 × 100, translucent with a blue, heavily blurred avatar/banner bleed. */
@@ -1520,7 +1552,7 @@ button {
 
 .bcard:hover {
   border-color: rgba(125, 211, 252, 0.38);
-  transform: translateY(-3px);
+  transform: rotateY(var(--bcard-tilt, 0deg)) translateY(-3px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 0 0 1px rgba(56, 189, 248, 0.08),
@@ -3664,10 +3696,15 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   color: #b9c1c8;
 }
 
-.app--site .head-burger,
-.app--site .profile-menu {
+.app--site .head-burger {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
+}
+
+/* The account control stays bare on the dark site theme too. */
+.app--site .profile-menu {
+  border-color: transparent;
+  background: none;
 }
 
 .app--site .head-mobile {
@@ -3677,7 +3714,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .app--site .menu {
   border-color: rgba(255, 255, 255, 0.1);
-  background: linear-gradient(180deg, #16171b, #0e0f12);
+  background: rgba(13, 14, 17, 0.78);
 }
 
 .app--site .menu-head,

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/backend";
 import { useAuth } from "../lib/auth";
 import { formatJoined } from "../lib/format";
-import { ArrowUpRight, TrophyIcon } from "./Icons";
+import { ArrowUpRight } from "./Icons";
 import "../dashboard.css";
 
 type BoardRow = {
@@ -46,53 +46,50 @@ export function DashboardLeaderboard() {
     [rows, handle],
   );
 
+  const joined = myIndex >= 0 ? formatJoined(new Date(rows[myIndex].joinedAt)) : "";
+
   return (
     <div className="dash-board">
-      <section className="dash-panel dash-board-summary" data-reveal>
-        <div className="dash-board-summary-main">
-          <span className="dash-board-trophy" aria-hidden="true">
-            <TrophyIcon size={17} />
-          </span>
-          <div>
-            <span className="eyebrow eyebrow--sm">Your position</span>
-            <b className="dash-board-rank">
-              {loading ? "—" : myIndex >= 0 ? `#${myIndex + 1}` : "Unranked"}
-            </b>
-            <small>
-              {loading
-                ? "Reading the board…"
-                : myIndex >= 0
-                  ? `of ${rows.length} ${rows.length === 1 ? "player" : "players"} · joined ${formatJoined(new Date(rows[myIndex].joinedAt))}`
-                  : error ?? "You are not on the board yet"}
-            </small>
-          </div>
+      <section className="dash-panel dash-rank-card" data-reveal>
+        <div className="dash-rank-figure">
+          <span>Your rank</span>
+          <b>{loading ? "—" : myIndex >= 0 ? `#${myIndex + 1}` : "—"}</b>
         </div>
 
-        <div className="dash-board-summary-side">
-          <a className="btn btn-ghost btn-sm" href="#/leaderboard">
-            Public board
-            <ArrowUpRight size={12} />
-          </a>
+        <div className="dash-rank-body">
+          <p className="dash-rank-name">
+            {handle ? `tourn.lol/${handle}` : "No handle claimed"}
+          </p>
+          <small>
+            {loading
+              ? "Reading the board…"
+              : myIndex >= 0
+                ? `${myIndex + 1} of ${rows.length} ${rows.length === 1 ? "player" : "players"} · claimed ${joined}`
+                : error ?? "You are not on the board yet"}
+          </small>
         </div>
+
+        <a className="dash-rank-link" href="#/leaderboard">
+          Public board
+          <ArrowUpRight size={11} />
+        </a>
       </section>
 
       <section className="dash-panel dash-board-list" data-reveal data-reveal-delay="60">
-        <header className="about-panel-head">
+        <header className="dash-board-head">
           <div>
-            <h2>Everyone on tourn.lol</h2>
-            <p>Ranked by the moment a handle was claimed — first claim, highest rank.</p>
+            <h2>Leaderboard</h2>
+            <p>Earliest claim takes the top.</p>
           </div>
-          <span className="dash-section-icon dash-section-icon--small">
-            <TrophyIcon size={13} />
-          </span>
+          <span className="dash-board-count">{rows.length}</span>
         </header>
 
         {loading ? (
           <div className="board board--dash">
             {[0, 1, 2, 3].map((index) => (
               <div className="board-row" key={index}>
-                <span className="skeleton" style={{ width: 30, height: 13 }} />
-                <span className="skeleton" style={{ width: 36, height: 36, borderRadius: 12 }} />
+                <span className="skeleton" style={{ width: 26, height: 11 }} />
+                <span className="skeleton" style={{ width: 34, height: 34, borderRadius: 10 }} />
                 <span className="skeleton" style={{ width: 160, height: 12 }} />
               </div>
             ))}
@@ -105,6 +102,8 @@ export function DashboardLeaderboard() {
           <div className="board board--dash">
             {rows.map((row, index) => {
               const isYou = handle && row.username.toLowerCase() === handle;
+              const display = row.alias?.trim() || row.username;
+              const showsHandle = display !== row.username;
               return (
                 <div
                   className={`board-row${isYou ? " is-you" : ""}`}
@@ -122,14 +121,12 @@ export function DashboardLeaderboard() {
                   )}
                   <div className="board-id">
                     <p>
-                      {row.alias?.trim() || row.username}
+                      {display}
                       {isYou ? <span className="dash-board-you">you</span> : null}
                     </p>
-                    <span>tourn.lol/{row.alias?.trim() || row.username}</span>
+                    {showsHandle ? <span>tourn.lol/{row.username}</span> : null}
                   </div>
-                  <span className="board-joined">
-                    Joined {formatJoined(new Date(row.joinedAt))}
-                  </span>
+                  <span className="board-joined">{formatJoined(new Date(row.joinedAt))}</span>
                 </div>
               );
             })}

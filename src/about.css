@@ -997,23 +997,25 @@
   z-index: 3;
 }
 
-/* glow halo — a blurred radial blob behind the art, not a drop-shadow hugging
-   the silhouette, so it reads as genuine light rather than a dark outline. */
+/* Glow is light coming off the art itself: two tight drop-shadows that follow
+   the badge silhouette, plus a small halo that never grows past the icon. */
 .badge-chip.has-glow::before {
   content: "";
   position: absolute;
-  inset: -65%;
+  inset: -12%;
   z-index: -1;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--badge-glow-color) 0%, transparent 72%);
-  filter: blur(calc(var(--badge-glow-radius) * 0.6));
-  opacity: var(--badge-glow-opacity);
+  background: radial-gradient(circle, var(--badge-glow-color) 0%, transparent 70%);
+  filter: blur(calc(var(--badge-glow-radius) * 0.35));
+  opacity: calc(var(--badge-glow-opacity) * 0.5);
   pointer-events: none;
 }
 
 .badge-chip.has-glow .badge-chip-art,
 .badge-chip.has-glow .badge-chip-mono {
-  filter: drop-shadow(0 0 calc(var(--badge-glow-radius) * 0.45) var(--badge-glow-color));
+  filter:
+    drop-shadow(0 0 calc(var(--badge-glow-radius) * 0.35) var(--badge-glow-color))
+    drop-shadow(0 0 calc(var(--badge-glow-radius) * 0.8) var(--badge-glow-color));
 }
 
 .badge-chip.glow-pulse::before {
@@ -2710,8 +2712,10 @@
   overflow: hidden;
 }
 
+/* Overlays are a wash over the card, never a lid on it: the authored opacity
+   is kept, but capped so text and links underneath stay readable. */
 .profile-fx-overlay--canvas {
-  opacity: var(--fx-opacity, 1);
+  opacity: min(var(--fx-opacity, 1), 0.55);
 }
 
 .profile-fx-bg i {
@@ -2916,7 +2920,7 @@
   inset: 0;
   z-index: 4;
   pointer-events: none;
-  opacity: var(--fx-opacity);
+  opacity: min(var(--fx-opacity, 1), 0.55);
 }
 
 .profile-fx-overlay--vhs {

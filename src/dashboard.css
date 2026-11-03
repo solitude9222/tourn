@@ -4314,97 +4314,177 @@ body:has(.dash) {
   gap: 14px;
 }
 
-.dash-board-summary {
+.dash-rank-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 18px;
-  padding: 18px 20px;
+  padding: 16px 18px;
 }
 
-.dash-board-summary-main {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+.dash-rank-figure {
+  display: grid;
+  flex: none;
+  gap: 2px;
+  padding-right: 18px;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.dash-rank-figure span {
+  color: #6f7880;
+  font-size: 8px;
+  font-weight: 620;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.dash-rank-figure b {
+  color: #f1f6f9;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-rank-body {
+  flex: 1;
   min-width: 0;
 }
 
-.dash-board-trophy {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  flex: none;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background: rgba(143, 216, 255, 0.06);
-  color: #a8e0ff;
+.dash-rank-name {
+  margin: 0;
+  overflow: hidden;
+  color: #e9eff3;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.dash-board-rank {
-  display: block;
-  margin-top: 2px;
-  color: #f2f7fa;
-  font-size: 26px;
-  font-weight: 720;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-}
-
-.dash-board-summary small {
+.dash-rank-body small {
   display: block;
   margin-top: 3px;
-  color: #7d858d;
-  font-size: 10.5px;
+  color: #757e86;
+  font-size: 10px;
   line-height: 1.5;
 }
 
-.dash-board-summary-side {
-  display: flex;
+.dash-rank-link {
+  display: inline-flex;
   flex: none;
-  gap: 8px;
+  align-items: center;
+  gap: 4px;
+  color: #8b959d;
+  font-size: 10.5px;
+  font-weight: 550;
+  transition: color 0.16s ease;
+}
+
+.dash-rank-link:hover {
+  color: #a8e0ff;
 }
 
 .dash-board-list {
-  padding: 18px 20px 22px;
+  padding: 16px 18px 14px;
+}
+
+.dash-board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dash-board-head h2 {
+  margin: 0;
+  color: #edf2f5;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.dash-board-head p {
+  margin: 3px 0 0;
+  color: #6f7880;
+  font-size: 9.5px;
+}
+
+.dash-board-count {
+  display: grid;
+  min-width: 24px;
+  height: 21px;
+  flex: none;
+  place-items: center;
+  padding: 0 7px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  color: #8b959d;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
 }
 
 .board--dash {
-  margin-top: 15px;
+  gap: 2px;
+  margin-top: 6px;
 }
 
 .board--dash .board-row {
-  gap: 13px;
-  padding: 11px 13px;
-  border-radius: 11px;
+  gap: 11px;
+  padding: 8px 10px;
+  border-color: transparent;
+  border-radius: 9px;
+  background: none;
+}
+
+.board--dash .board-row:hover {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  transform: none;
 }
 
 .board--dash .board-row.is-you {
-  border-color: rgba(143, 216, 255, 0.34);
-  background: linear-gradient(180deg, rgba(143, 216, 255, 0.09), rgba(143, 216, 255, 0.025));
+  border-color: rgba(143, 216, 255, 0.16);
+  background: rgba(143, 216, 255, 0.055);
 }
 
 .board--dash .board-row.is-you .board-rank {
   color: #a8e0ff;
 }
 
+.board--dash .board-rank {
+  width: 24px;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+}
+
 .board--dash .board-id p {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12.5px;
+  gap: 6px;
+  font-size: 12px;
 }
 
 .board--dash .board-id span {
-  font-size: 10.5px;
+  margin-top: 1px;
+  color: #6b747c;
+  font-size: 9.5px;
+}
+
+.board--dash .board-joined {
+  color: #6b747c;
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
 }
 
 .dash-board-you {
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 999px;
-  background: rgba(143, 216, 255, 0.14);
+  background: rgba(143, 216, 255, 0.13);
   color: #a8e0ff;
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 650;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4418,11 +4498,19 @@ body:has(.dash) {
 }
 
 @media (max-width: 760px) {
-  .dash-board-summary {
-    align-items: flex-start;
-    flex-direction: column;
+  .dash-rank-card {
+    flex-wrap: wrap;
+  }
+
+  .dash-rank-link {
+    margin-left: auto;
+  }
+
+  .board--dash .board-joined {
+    display: none;
   }
 }
+
 /* ── settings · connections ────────────────────────────────────────── */
 
 .settings-connection {

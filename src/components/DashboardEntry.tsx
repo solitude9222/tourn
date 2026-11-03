@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import type { Account } from "../lib/auth";
 import { ENTRY_ANIMATIONS, type About, type EntrySettings } from "../lib/about";
 import type { WidgetStore } from "../lib/widgets";
+import { ColorField } from "./ColorPicker";
 import { ImageUpload } from "./ImageUpload";
 import { LinkerPreview } from "./LinkerPreview";
 import { Select } from "./Select";
@@ -225,15 +226,12 @@ export function DashboardEntry({
                 onChange={(value) => update({ imageFit: value as EntrySettings["imageFit"] })}
               />
             </div>
-            <label className="lp-field">
-              <span className="lp-label">Background</span>
-              <input
-                type="color"
-                className="lp-color"
-                value={entry.background}
-                onChange={(event) => update({ background: event.target.value })}
-              />
-            </label>
+            <ColorField
+              label="Background"
+              value={entry.background}
+              onChange={(value) => update({ background: value })}
+              compact
+            />
           </div>
 
           <h3 className="lp-subhead">Typography</h3>
@@ -249,33 +247,24 @@ export function DashboardEntry({
           </div>
 
           <div className="lp-dropdown-grid">
-            <label className="lp-field">
-              <span className="lp-label">Title colour</span>
-              <input
-                type="color"
-                className="lp-color"
-                value={entry.titleColor}
-                onChange={(event) => update({ titleColor: event.target.value })}
-              />
-            </label>
-            <label className="lp-field">
-              <span className="lp-label">Subtitle colour</span>
-              <input
-                type="color"
-                className="lp-color"
-                value={entry.subtitleColor}
-                onChange={(event) => update({ subtitleColor: event.target.value })}
-              />
-            </label>
-            <label className="lp-field">
-              <span className="lp-label">Hint colour</span>
-              <input
-                type="color"
-                className="lp-color"
-                value={entry.hintColor}
-                onChange={(event) => update({ hintColor: event.target.value })}
-              />
-            </label>
+            <ColorField
+              label="Title colour"
+              value={entry.titleColor}
+              onChange={(value) => update({ titleColor: value })}
+              compact
+            />
+            <ColorField
+              label="Subtitle colour"
+              value={entry.subtitleColor}
+              onChange={(value) => update({ subtitleColor: value })}
+              compact
+            />
+            <ColorField
+              label="Hint colour"
+              value={entry.hintColor}
+              onChange={(value) => update({ hintColor: value })}
+              compact
+            />
           </div>
 
           <h3 className="lp-subhead">Background photo</h3>

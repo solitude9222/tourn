@@ -11,7 +11,7 @@ import {
 } from "../lib/badges";
 import { BadgeChip, BadgeRow } from "./BadgeRow";
 import { ColorField } from "./ColorPicker";
-import { CheckIcon, PlusIcon, TrashIcon } from "./Icons";
+import { CheckIcon, GripIcon, PlusIcon, TrashIcon } from "./Icons";
 import "../about.css";
 
 function BadgeSlider({
@@ -101,6 +101,8 @@ export function DashboardBadges({
   onChange: (store: BadgeStore) => void;
 }) {
   const [filter, setFilter] = useState<string>("all");
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const style = badges.style;
   const earnedSet = new Set(earned);
 
@@ -126,6 +128,18 @@ export function DashboardBadges({
         b.id === id ? { ...b, visible: !b.visible } : b,
       ),
     });
+  };
+
+  /** Drop `fromId` where `toId` sits, keeping every other badge in place. */
+  const reorderEquipped = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const next = [...badges.equipped];
+    const from = next.findIndex((b) => b.id === fromId);
+    const to = next.findIndex((b) => b.id === toId);
+    if (from < 0 || to < 0) return;
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange({ ...badges, equipped: next });
   };
 
   const catalogue = filter === "all"
@@ -165,8 +179,8 @@ export function DashboardBadges({
         <header className="bdg-section-head">
           <h2>Your badges</h2>
           <p>
-            You've earned {earned.length} badge{earned.length === 1 ? "" : "s"}. Equipped badges show on
-            your profile card — toggle one off with the bin icon.
+            You've earned {earned.length} badge{earned.length === 1 ? "" : "s"}. Drag a badge to reorder
+            it — the circle toggles visibility, the bin removes it.
           </p>
         </header>
 
@@ -176,7 +190,39 @@ export function DashboardBadges({
               const def = badgeDef(inst.id);
               if (!def) return null;
               return (
-                <div className={`bdg-equipped-item${inst.visible ? "" : " is-hidden"}`} key={inst.id}>
+                <div
+                  className={`bdg-equipped-item${inst.visible ? "" : " is-hidden"}${
+                    dragId === inst.id ? " is-dragging" : ""
+                  }${overId === inst.id && dragId !== inst.id ? " is-drop-target" : ""}`}
+                  key={inst.id}
+                  draggable
+                  title="Drag to reorder"
+                  onDragStart={(event) => {
+                    setDragId(inst.id);
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", inst.id);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    if (overId !== inst.id) setOverId(inst.id);
+                  }}
+                  onDragLeave={() => setOverId((id) => (id === inst.id ? null : id))}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const from = event.dataTransfer.getData("text/plain") || dragId;
+                    if (from) reorderEquipped(from, inst.id);
+                    setDragId(null);
+                    setOverId(null);
+                  }}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setOverId(null);
+                  }}
+                >
+                  <span className="bdg-drag" aria-hidden="true">
+                    <GripIcon size={12} />
+                  </span>
                   <BadgeChip badge={inst} style={style} />
                   <div className="bdg-equipped-meta">
                     <b>{def.name}</b>

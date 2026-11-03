@@ -872,9 +872,13 @@ export function DashboardLinks({
               <div className="lnk-option-row">
                 {TOOLTIP_STYLES.map((s) => (
                   <button key={s.id} type="button"
-                    className={`lnk-style-btn lnk-style-btn--sm${design.tooltipStyle === s.id ? " is-active" : ""}`}
+                    aria-label={`Tooltip style: ${s.name}`}
+                    className={`lnk-style-btn lnk-style-btn--sm lnk-style-btn--preview${design.tooltipStyle === s.id ? " is-active" : ""}`}
                     onClick={() => updateDesign({ tooltipStyle: s.id })}>
                     {s.name}
+                    <span className={`tt tt--${s.id} lnk-tooltip-preview`} aria-hidden="true">
+                      Hover preview
+                    </span>
                   </button>
                 ))}
               </div>

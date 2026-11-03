@@ -2422,6 +2422,36 @@
   opacity: 0.4;
 }
 
+/* Reorder by dragging — the whole row is the handle, and the row under the
+   pointer is the drop target. */
+.bdg-equipped-item[draggable="true"] {
+  cursor: grab;
+}
+
+.bdg-equipped-item.is-dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.bdg-equipped-item.is-drop-target {
+  border-color: rgba(143, 216, 255, 0.45);
+  background: rgba(143, 216, 255, 0.06);
+}
+
+.bdg-drag {
+  display: grid;
+  width: 14px;
+  flex: none;
+  place-items: center;
+  color: #4f585f;
+  cursor: grab;
+  transition: color 0.16s ease;
+}
+
+.bdg-equipped-item:hover .bdg-drag {
+  color: #949da4;
+}
+
 .bdg-equipped-meta {
   flex: 1;
   min-width: 0;
@@ -3252,6 +3282,39 @@
   height: 26px;
   padding: 0 9px;
   font-size: 9px;
+}
+
+/* Tooltip-style picker: hovering an option floats a sample bubble above it,
+   rendered in the style it selects, so the choice is visible before saving. */
+.lnk-style-btn--preview {
+  position: relative;
+  overflow: visible;
+}
+
+.lnk-style-btn--preview .lnk-tooltip-preview {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  z-index: 40;
+  padding: 5px 10px;
+  border-radius: 8px;
+  color: #e0e4e8;
+  font-size: 10px;
+  font-weight: 550;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(3px);
+  animation: none;
+  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s ease;
+  pointer-events: none;
+}
+
+.lnk-style-btn--preview:hover .lnk-tooltip-preview,
+.lnk-style-btn--preview:focus-visible .lnk-tooltip-preview {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 .lnk-style-btn b {

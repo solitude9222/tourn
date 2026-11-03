@@ -3,6 +3,7 @@ import type { Account } from "../lib/auth";
 import { CARD_STYLES, type About, type AboutDesign, type CardStyle } from "../lib/about";
 import { CARD_EFFECTS, type CardEffectSettings } from "../lib/profileAssets";
 import type { WidgetStore } from "../lib/widgets";
+import { ColorField } from "./ColorPicker";
 import { CheckIcon } from "./Icons";
 import { Select } from "./Select";
 import "../layoutPages.css";
@@ -112,15 +113,12 @@ function CardEffectPanel({
           unit="s"
           onChange={(v) => update({ speed: v })}
         />
-        <label className="lp-field">
-          <span className="lp-label">Effect colour</span>
-          <input
-            type="color"
-            className="lp-color"
-            value={card.color}
-            onChange={(event) => update({ color: event.target.value })}
-          />
-        </label>
+        <ColorField
+          label="Effect colour"
+          value={card.color}
+          onChange={(value) => update({ color: value })}
+          compact
+        />
       </div>
     </>
   );

@@ -131,8 +131,24 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   let last = 0;
   let clock = 0;
 
-  const [cr, cg, cb] = hexToRgb(s.color);
+  let [cr, cg, cb] = hexToRgb(s.color);
   const tint = (a: number) => `rgba(${cr},${cg},${cb},${a})`;
+
+  /* Pointer influence. Effects that can react call pushAway() on each
+     particle, so the cursor parts snow, rain and embers instead of the
+     effect ignoring the mouse entirely. */
+  const PUSH = 170;
+  const pushAway = (p: { x: number; y: number }, strength = 1.6) => {
+    if (!has) return;
+    const dx = p.x - mx;
+    const dy = p.y - my;
+    const d2 = dx * dx + dy * dy;
+    if (d2 > PUSH * PUSH || d2 < 1) return;
+    const d = Math.sqrt(d2);
+    const force = (1 - d / PUSH) * strength;
+    p.x += (dx / d) * force;
+    p.y += (dy / d) * force;
+  };
 
   const mkStars = (n: number) => {
     P = [];
@@ -165,6 +181,16 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     v.addColorStop(1, `rgba(0,0,0,${a})`);
     ctx.fillStyle = v;
     ctx.fillRect(0, 0, W, H);
+  };
+  /* A soft light that follows the cursor — gives the sparse effects (stars,
+     night) something to answer the pointer with. */
+  const pointerGlow = (alpha: number, radius: number) => {
+    if (!has) return;
+    const g = ctx.createRadialGradient(mx, my, 0, mx, my, radius);
+    g.addColorStop(0, tint(alpha));
+    g.addColorStop(1, tint(0));
+    ctx.fillStyle = g;
+    ctx.fillRect(mx - radius, my - radius, radius * 2, radius * 2);
   };
 
   function init() {
@@ -201,6 +227,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       ctx.lineCap = "round";
       for (let i = 0; i < n; i++) {
         const p = P[i];
+        pushAway(p, 1.5);
         const vx = wind * (p.z ?? 0.5) * (0.9 + 0.2 * Math.sin(t / 700 + i));
         const vy = 2 + (p.z ?? 0.5) * 4;
         ctx.strokeStyle = tint(0.25 + (p.z ?? 0.5) * 0.55);
@@ -241,6 +268,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       for (let i = 0; i < n; i++) {
         const p = P[i];
         const q = S[p.L ?? 1];
+        pushAway(p, 0.9);
         p.ph += 0.015;
         p.y += q.v;
         p.x += Math.sin(p.ph) * q.sw * drift + gust * q.v * 1.2 * drift;
@@ -271,6 +299,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const n = Math.floor(300 * Math.min(1, f * 2));
       for (let i = 0; i < n; i++) {
         const p = P[i];
+        pushAway(p, 1.3);
         const v = 9 + (p.z ?? 0.5) * 15;
         const l = 8 + (p.z ?? 0.5) * 20;
         ctx.strokeStyle = tint(0.15 + (p.z ?? 0.5) * 0.45);
@@ -308,6 +337,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const rate = 0.4 + s.amount / 100 * 1.6;
       twinkles(t, Math.floor(200 * (0.3 + f * 0.7)));
+      pointerGlow(0.05 + f * 0.1, 150 + f * 90);
       const meteors = X as Meteor[];
       if (meteors.length < 1 + Math.ceil(f * 4) && Math.random() < (0.004 + f * 0.05) * rate) {
         const sp = 11 + R(6);
@@ -353,6 +383,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       ctx.fillStyle = `rgba(${Math.round(cr * 0.1)},${Math.round(cg * 0.15)},${Math.round(cb * 0.4)},${0.1 + f * 0.5})`;
       ctx.fillRect(0, 0, W, H);
       twinkles(t, Math.floor(240 * (0.2 + f * 0.8)));
+      pointerGlow(0.04 + f * 0.08, 140 + f * 80);
       vig((0.2 + f * 0.4) * (0.5 + s.amount / 100));
     },
 
@@ -395,21 +426,37 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const img = T.img as ImageData;
       const d = img.data;
       const k = 0.25 + f * 2.2;
+      // The pointer works in the same low-res grid as the dither cells, so the
+      // ripple folds into the pattern instead of sitting on top of it.
+      const px = has ? (mx / Math.max(1, W)) * w : -9999;
+      const py = has ? (my / Math.max(1, H)) * h : -9999;
+      const reach = Math.max(8, Math.min(w, h) * 0.42);
+      const reach2 = reach * reach;
+      // Alpha is deliberately partial: the pattern reads as light on the page,
+      // never as an opaque panel covering it.
+      const alpha = Math.round(70 + f * 120);
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
+          const dx = x - px;
+          const dy = y - py;
+          const d2 = dx * dx + dy * dy;
+          const near = has && d2 < reach2 ? 1 - d2 / reach2 : 0;
+          const ripple = near ? Math.sin(Math.sqrt(d2) * 0.85 - t * 0.004) * near * 0.4 : 0;
           const v =
             (Math.sin(x * 0.07 + t * 0.0006) +
               Math.sin(y * 0.09 - t * 0.0005) +
               Math.sin((x + y) * 0.05 + t * 0.0004) +
               Math.sin(Math.hypot(x - w / 2, y - h / 2) * 0.09 - t * 0.001)) *
               0.125 +
-            0.5;
+            0.5 +
+            ripple +
+            near * 0.18;
           const on = v * k > B[(y & 3) * 4 + (x & 3)] / 16 + 0.02;
           const o = (y * w + x) * 4;
           d[o] = cr;
           d[o + 1] = cg;
           d[o + 2] = cb;
-          d[o + 3] = on ? 230 : 0;
+          d[o + 3] = on ? alpha : 0;
         }
       }
       (T.x as CanvasRenderingContext2D).putImageData(img, 0, 0);
@@ -601,6 +648,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const pixelSizeChanged =
         (next.effect === "dither" || next.effect === "fuzzy") && next.amount !== s.amount;
       s = { ...next };
+      // Re-read the tint: the colour used to be captured at mount, so moving
+      // the colour slider never changed snow, dust or the dither.
+      [cr, cg, cb] = hexToRgb(s.color);
       speedMul = 9 / Math.min(24, Math.max(2, s.speed));
       if (effectChanged) {
         mode = s.effect;

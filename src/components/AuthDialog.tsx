@@ -8,8 +8,7 @@ export type AuthMode = "signin" | "signup";
 const OAUTH_ERRORS: Record<string, string> = {
   oauth_config: "Discord sign-in isn't available right now.",
   oauth_state: "That sign-in link expired — hit the button again.",
-  discord_token:
-    "Discord rejected the sign-in. That usually means the callback URL or client secret in the Discord app doesn't match the API — try once more, and if it repeats the server log has the exact Discord error.",
+  discord_token: "Discord didn't finish the sign-in. Try once more — if it keeps happening, sign in with your email and password instead.",
   discord_profile: "Couldn't read your Discord profile — allow email sharing on the consent screen.",
   oauth_failed: "Discord sign-in failed. Try again in a moment.",
   registration_closed: "New accounts are closed right now — existing members can still sign in.",
@@ -170,10 +169,7 @@ export function AuthDialog({
           {!configured ? (
             <div className="auth-demo">
               <p>
-                Sign-in isn't wired up on this deployment — the backend at
-                /env.js isn't reachable. Make sure the Railway backend is running with its
-                /env.js endpoint (see SETUP.md). Locally: run npm run server alongside
-                npm run dev.
+                Sign-in is unavailable right now. Give it a few minutes and try again.
               </p>
             </div>
           ) : null}
@@ -260,8 +256,7 @@ export function AuthDialog({
               <p className="auth-note">
                 One click — Discord sets up your account and handle for you.
                 <br />
-                Want a password too? Add one anytime in <b>Settings → Security</b> and you can
-                sign in without Discord.
+                Want a password too? Add one anytime in <b>Settings → Security</b>.
               </p>
             </>
           )}

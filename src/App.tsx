@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { DEFAULT_SETTINGS, EMPTY_SETTINGS, loadSettings, type Settings } from "./config";
 import { EMPTY_ABOUT, loadAbout, saveAbout, type About } from "./lib/about";
@@ -456,7 +456,9 @@ function Site() {
     window.scrollTo(0, 0);
   }, []);
 
-  useEffect(() => {
+  // Hydrate the saved profile before paint. A plain effect painted one frame
+  // of empty defaults first — the flash the preview showed on sign-in.
+  useLayoutEffect(() => {
     setAbout(user ? loadAbout(user.id) : EMPTY_ABOUT);
     setWidgets(user ? loadWidgetStore(user.id) : EMPTY_WIDGET_STORE);
     setBadges(user ? loadBadgeStore(user.id) : EMPTY_BADGE_STORE);

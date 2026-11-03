@@ -20,7 +20,7 @@ export function BadgeChip({
 
   const px = size ?? style.size;
   const glowAlpha = Math.round((style.glowIntensity / 100) * 255).toString(16).padStart(2, "0");
-  const glowRadius = 3 + (style.glowIntensity / 100) * 10;
+  const glowRadius = 2 + (style.glowIntensity / 100) * 6;
   const art = !artBroken ? def.art : "";
   const tint = style.monochrome ? style.monoColor : def.color;
 
