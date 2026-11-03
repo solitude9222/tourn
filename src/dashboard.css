@@ -552,16 +552,15 @@
   color: #698799;
 }
 
+/* One solid rule: the stacked gradient + background-clip copies left the
+     title (and everything inheriting it) looking glitched. */
 .dash-top h1 {
   margin: 4px 0 0;
-  font-size: clamp(26px, 3vw, 36px);
+  font-size: clamp(24px, 2.3vw, 30px);
   line-height: 1.05;
   font-weight: 780;
   letter-spacing: -0.045em;
-  background: linear-gradient(180deg, #ffffff 25%, #c3eafa 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #f5f7f8;
 }
 
 .dash-top p {
@@ -2377,12 +2376,7 @@
   color: #7c838b;
 }
 
-.dash-top h1 {
-  background: linear-gradient(180deg, #ffffff 30%, #c9ced3 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+
 
 .dash-top p {
   color: #868e96;
@@ -2774,12 +2768,7 @@ body:has(.dash) {
   border-top-color: rgba(255, 255, 255, 0.065);
 }
 
-.dash-top h1 {
-  background: none;
-  color: #f5f7f8;
-  -webkit-text-fill-color: currentColor;
-  font-size: clamp(24px, 2.3vw, 30px);
-}
+
 
 .dash-top p {
   color: #858c93;

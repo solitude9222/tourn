@@ -1,6 +1,13 @@
 import { type CSSProperties } from "react";
 import type { Account } from "../lib/auth";
-import { CARD_STYLES, type About, type AboutDesign, type CardStyle } from "../lib/about";
+import {
+  CARD_STYLES,
+  DEFAULT_ABOUT_DESIGN,
+  type About,
+  type AboutDesign,
+  type CardStyle,
+  type ProfileColors,
+} from "../lib/about";
 import { CARD_EFFECTS, type CardEffectSettings } from "../lib/profileAssets";
 import type { WidgetStore } from "../lib/widgets";
 import { ColorField } from "./ColorPicker";
@@ -163,6 +170,26 @@ const BIO_POSITIONS = [
   { value: "right", label: "Right-aligned" },
 ];
 
+const THEME_OPTIONS = [
+  { value: "portfolio", label: "Portfolio" },
+  { value: "modern", label: "Modern" },
+  { value: "default", label: "Default" },
+];
+
+const PORTFOLIO_LAYOUTS = [
+  { value: "classic", label: "Classic" },
+  { value: "modern", label: "Modern" },
+];
+
+const COLOR_FIELDS: { key: keyof ProfileColors; label: string }[] = [
+  { key: "accent", label: "Accent" },
+  { key: "text", label: "Primary text" },
+  { key: "muted", label: "Secondary text" },
+  { key: "background", label: "Page background" },
+  { key: "card", label: "Card background" },
+  { key: "border", label: "Border color" },
+];
+
 const VIEW_POSITIONS = [
   { value: "top-right", label: "Top-right corner" },
   { value: "footer", label: "Bottom-right" },
@@ -234,7 +261,7 @@ export function DashboardLayout({
           </div>
 
           {selected === "slideshow" ? (
-            <p className="lp-hint">Slideshow settings are in Extra → Slideshow.</p>
+            <p className="lp-hint">Slideshow settings are in Appearance → Slideshow.</p>
           ) : null}
         </section>
 
@@ -384,6 +411,50 @@ export function DashboardLayout({
               onChange={(v) => update({ bioSize: v })}
             />
           </div>
+        </section>
+
+        {/* Colors & theme — moved here from About me so all card editing lives in one place. */}
+        <section className="dash-panel lp-panel" data-reveal data-reveal-delay="90">
+          <header className="lp-section-head">
+            <h2>Colors &amp; theme</h2>
+            <p>The palette, theme preset and portfolio layout for your card.</p>
+          </header>
+
+          <div className="lp-dropdown-grid">
+            <LayoutSelect
+              label="Theme"
+              value={design.theme}
+              options={THEME_OPTIONS}
+              onChange={(v) => update({ theme: v as AboutDesign["theme"] })}
+            />
+            <LayoutSelect
+              label="Portfolio layout"
+              value={design.layout}
+              options={PORTFOLIO_LAYOUTS}
+              onChange={(v) => update({ layout: v as AboutDesign["layout"] })}
+            />
+          </div>
+
+          <div className="lp-color-grid">
+            {COLOR_FIELDS.map((color) => (
+              <ColorField
+                key={color.key}
+                label={color.label}
+                value={design.colors[color.key]}
+                onChange={(value) =>
+                  update({ colors: { ...design.colors, [color.key]: value } })
+                }
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="lp-reset"
+            onClick={() => onChange({ ...about, design: DEFAULT_ABOUT_DESIGN })}
+          >
+            Reset card design
+          </button>
         </section>
 
         {/* Element positioning — dropdowns */}

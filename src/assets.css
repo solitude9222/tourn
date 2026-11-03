@@ -2694,9 +2694,26 @@
 }
 
 /* An unearned badge stays visible with its unlock rule instead of vanishing. */
+/* Locked badges keep their art readable instead of washing the whole tile
+     out; the dashed edge plus the lock pill is what says "not yet". */
 .bdg-cat-tile.is-locked {
   cursor: not-allowed;
-  opacity: 0.62;
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.006);
+}
+
+.bdg-cat-tile.is-locked .bdg-cat-art {
+  filter: grayscale(1) brightness(0.62);
+  opacity: 0.85;
+}
+
+.bdg-cat-tile.is-locked .bdg-cat-name {
+  color: #8d979f;
+}
+
+.bdg-cat-tile.is-locked .bdg-cat-req {
+  color: #6b757d;
 }
 
 .bdg-cat-tile.is-locked:hover {
@@ -2720,13 +2737,42 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #7c868e;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(8, 10, 12, 0.86);
+  color: #a6b0b8;
   font-size: 11px;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  backdrop-filter: blur(6px);
+}
+
+/* A tiny padlock drawn in CSS — no icon font, no emoji. */
+.bdg-cat-lock::before {
+  content: "";
+  width: 5px;
+  height: 4px;
+  border: 1.4px solid currentColor;
+  border-radius: 1px;
+  box-shadow: inset 0 1.5px 0 transparent;
+  position: relative;
+}
+
+.bdg-cat-lock::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 20px;
+  width: 4px;
+  height: 4px;
+  border: 1.4px solid currentColor;
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
 }
 
 .bdg-cat-art {

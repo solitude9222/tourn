@@ -796,7 +796,7 @@ export function Dashboard({
       </aside>
 
       <main className="dash-main">
-        <header className="dash-top" data-reveal key={page}>
+        <header className="dash-top" key={page}>
           <div>
             <h1>{pageMeta.title}</h1>
             <p>{pageMeta.subtitle}</p>

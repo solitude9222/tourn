@@ -12,7 +12,6 @@ import {
 import { ImageUpload } from "./ImageUpload";
 import { Select } from "./Select";
 import type { WidgetStore } from "../lib/widgets";
-import { ColorField } from "./ColorPicker";
 import { RichText } from "./RichText";
 import {
   CalendarIcon,
@@ -41,128 +40,6 @@ const JOIN_POSITIONS = [
   { value: "hidden", label: "Hidden" },
 ];
 
-const COLOR_FIELDS: { key: keyof ProfileColors; label: string }[] = [
-  { key: "accent", label: "Accent" },
-  { key: "text", label: "Primary text" },
-  { key: "muted", label: "Secondary text" },
-  { key: "background", label: "Page background" },
-  { key: "card", label: "Card background" },
-  { key: "border", label: "Border color" },
-];
-
-const SLIDERS: {
-  key: keyof Pick<
-    AboutDesign,
-    | "cardWidth"
-    | "cardPadding"
-    | "cardRadius"
-    | "borderWidth"
-    | "borderOpacity"
-    | "backgroundOpacity"
-    | "backgroundBlur"
-    | "avatarSize"
-    | "nameSize"
-    | "bioSize"
-    | "widgetGap"
-  >;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string;
-}[] = [
-  { key: "cardWidth", label: "Card width", min: 320, max: 900, step: 1, unit: "px" },
-  { key: "cardPadding", label: "Card padding", min: 12, max: 40, step: 1, unit: "px" },
-  { key: "cardRadius", label: "Corner radius", min: 0, max: 36, step: 1, unit: "px" },
-  { key: "borderWidth", label: "Border width", min: 0, max: 6, step: 1, unit: "px" },
-  { key: "borderOpacity", label: "Border opacity", min: 0, max: 1, step: 0.01 },
-  { key: "backgroundOpacity", label: "Background opacity", min: 0.2, max: 1, step: 0.01 },
-  { key: "backgroundBlur", label: "Background blur", min: 0, max: 30, step: 1, unit: "px" },
-  { key: "avatarSize", label: "Avatar size", min: 44, max: 132, step: 1, unit: "px" },
-  { key: "nameSize", label: "Name size", min: 16, max: 34, step: 1, unit: "px" },
-  { key: "bioSize", label: "Bio size", min: 9, max: 16, step: 0.5, unit: "px" },
-  { key: "widgetGap", label: "Widget gap", min: 4, max: 28, step: 1, unit: "px" },
-];
-
-function Slider({
-  label,
-  value,
-  min,
-  max,
-  step,
-  unit = "",
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string;
-  onChange: (value: number) => void;
-}) {
-  const display = step < 1 ? value.toFixed(2) : value.toString();
-  const fill = ((value - min) / (max - min)) * 100;
-  return (
-    <label className="about-slider">
-      <span className="about-slider-head">
-        <span>{label}</span>
-        <b>
-          {display}
-          {unit}
-        </b>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        style={{ "--slider-fill": `${fill}%` } as CSSProperties}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-    </label>
-  );
-}
-
-function RangeRow({
-  label,
-  value,
-  min,
-  max,
-  step,
-  unit = "",
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string;
-  onChange: (value: number) => void;
-}) {
-  const fill = ((value - min) / (max - min)) * 100;
-  const display = step < 1 ? `${Math.round(value * 100)}%` : `${value}${unit}`;
-  return (
-    <label className="about-range-row">
-      <span className="about-range-head">
-        <span>{label}</span>
-        <b>{display}</b>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        style={{ "--slider-fill": `${fill}%` } as CSSProperties}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-    </label>
-  );
-}
-
 export function DashboardAbout({
   user,
   about,
@@ -177,8 +54,6 @@ export function DashboardAbout({
   const [draft, setDraft] = useState<About>(about);
   const [saved, setSaved] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const advancedRef = useRef<HTMLDetailsElement>(null);
-  const advancedBodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setDraft(about);
@@ -198,14 +73,6 @@ export function DashboardAbout({
 
   const updateDesign = (patch: Partial<AboutDesign>) => {
     setDraft((current) => ({ ...current, design: { ...current.design, ...patch } }));
-    setSaved(false);
-  };
-
-  const updateColor = (key: keyof ProfileColors, color: string) => {
-    setDraft((current) => ({
-      ...current,
-      design: { ...current.design, colors: { ...current.design.colors, [key]: color } },
-    }));
     setSaved(false);
   };
 
@@ -259,44 +126,6 @@ export function DashboardAbout({
     });
   };
 
-  const toggleAdvanced = (event: React.MouseEvent<HTMLElement>) => {
-    event.preventDefault();
-    const panel = advancedRef.current;
-    const content = advancedBodyRef.current;
-    if (!panel || !content) return;
-
-    content.getAnimations().forEach((animation) => animation.cancel());
-    content.style.overflow = "hidden";
-
-    if (panel.open) {
-      const height = content.getBoundingClientRect().height;
-      const animation = content.animate(
-        [
-          { height: `${height}px`, opacity: 1 },
-          { height: "0px", opacity: 0 },
-        ],
-        { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" },
-      );
-      animation.onfinish = () => {
-        panel.open = false;
-        content.style.overflow = "";
-      };
-    } else {
-      panel.open = true;
-      const height = content.getBoundingClientRect().height;
-      const animation = content.animate(
-        [
-          { height: "0px", opacity: 0 },
-          { height: `${height}px`, opacity: 1 },
-        ],
-        { duration: 280, easing: "cubic-bezier(.2,.8,.2,1)" },
-      );
-      animation.onfinish = () => {
-        content.style.overflow = "";
-      };
-    }
-  };
-
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const next: About = {
@@ -318,7 +147,7 @@ export function DashboardAbout({
             <header className="about-panel-head">
               <div>
                 <h2>Customization</h2>
-                <p>Profile description and location, plus opacity and blur applied to the whole profile.</p>
+                <p>Your name, description, location and where the location and join date sit. Card styling lives in Card/layout.</p>
               </div>
             </header>
 
@@ -478,105 +307,8 @@ export function DashboardAbout({
                 />
               </div>
 
-              <div className="about-field">
-                <span>Theme</span>
-                <Select
-                  value={draft.design.theme}
-                  ariaLabel="Theme"
-                  options={[
-                    { value: "portfolio", label: "Portfolio" },
-                    { value: "modern", label: "Modern" },
-                    { value: "default", label: "Default" },
-                  ]}
-                  onChange={(value) => updateDesign({ theme: value as AboutDesign["theme"] })}
-                />
-              </div>
+                                        </div>
 
-              <div className="about-field">
-                <span>Portfolio layout</span>
-                <Select
-                  value={draft.design.layout}
-                  ariaLabel="Portfolio layout"
-                  options={[
-                    { value: "classic", label: "Classic" },
-                    { value: "modern", label: "Modern" },
-                  ]}
-                  onChange={(value) => updateDesign({ layout: value as AboutDesign["layout"] })}
-                />
-              </div>
-            </div>
-
-            <div className="about-ranges">
-              <RangeRow
-                label="Profile opacity"
-                value={draft.design.backgroundOpacity}
-                min={0.2}
-                max={1}
-                step={0.01}
-                onChange={(value) => updateDesign({ backgroundOpacity: value })}
-              />
-              <RangeRow
-                label="Profile blur"
-                value={draft.design.backgroundBlur}
-                min={0}
-                max={30}
-                step={1}
-                unit="px"
-                onChange={(value) => updateDesign({ backgroundBlur: value })}
-              />
-            </div>
-
-            <details className="about-advanced" ref={advancedRef}>
-              <summary onClick={toggleAdvanced}>
-                <span className="about-advanced-label">
-                  <SlidersIcon size={13} />
-                  Advanced card design
-                </span>
-                <ChevronIcon size={13} className="about-advanced-chevron" />
-              </summary>
-
-              <div className="about-advanced-body" ref={advancedBodyRef}>
-                <div className="about-slider-grid">
-                  {SLIDERS.map((slider) => (
-                    <Slider
-                      key={slider.key}
-                      label={slider.label}
-                      value={draft.design[slider.key]}
-                      min={slider.min}
-                      max={slider.max}
-                      step={slider.step}
-                      unit={slider.unit}
-                      onChange={(value) => updateDesign({ [slider.key]: value })}
-                    />
-                  ))}
-                </div>
-
-                <div className="about-advanced-head">
-                  <span>
-                    <PaletteIcon size={12} />
-                    Profile colors
-                  </span>
-                  <button
-                    type="button"
-                    className="about-reset"
-                    onClick={() => updateDesign(DEFAULT_ABOUT_DESIGN)}
-                  >
-                    Reset design
-                  </button>
-                </div>
-
-                <div className="about-color-grid">
-                  {COLOR_FIELDS.map((color) => (
-                    <ColorField
-                      key={color.key}
-                      label={color.label}
-                      value={draft.design.colors[color.key]}
-                      onChange={(value) => updateColor(color.key, value)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </details>
           </section>
 
           <section className="dash-panel about-panel" data-reveal data-reveal-delay="60">
