@@ -2037,13 +2037,14 @@
   content: "";
   position: absolute;
   inset: 0;
+  /* Built from the chosen colour instead of a fixed rainbow. */
   background: linear-gradient(
     115deg,
-    rgba(255, 128, 190, 0.22),
-    rgba(120, 210, 255, 0.2),
-    rgba(170, 255, 190, 0.18),
-    rgba(255, 210, 140, 0.2),
-    rgba(255, 128, 190, 0.22)
+    color-mix(in srgb, var(--pv-card-fx-color) 34%, transparent),
+    color-mix(in srgb, var(--pv-card-fx-color) 58%, #7ad4ff),
+    color-mix(in srgb, var(--pv-card-fx-color) 40%, #ffd28c),
+    color-mix(in srgb, var(--pv-card-fx-color) 58%, #ff80be),
+    color-mix(in srgb, var(--pv-card-fx-color) 34%, transparent)
   );
   background-size: 300% 100%;
   mix-blend-mode: screen;
@@ -2097,7 +2098,10 @@
 }
 
 .pv-card-fx--frost {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--pv-card-fx-color) 55%, #ffffff) 1px,
+    transparent 1px
+  );
   background-size: 4px 4px;
   opacity: calc(var(--pv-card-fx-strength, 0.55) * 0.4);
   mix-blend-mode: overlay;
@@ -3697,15 +3701,15 @@
   background: conic-gradient(
     from 0deg,
     transparent 0deg 44deg,
-    color-mix(in srgb, var(--pv-accent) 42%, transparent) 74deg,
-    color-mix(in srgb, var(--pv-accent) 96%, transparent) 88deg,
+    color-mix(in srgb, var(--pv-card-fx-color, var(--pv-accent)) 42%, transparent) 74deg,
+    color-mix(in srgb, var(--pv-card-fx-color, var(--pv-accent)) 96%, transparent) 88deg,
     #ffffff 93deg,
-    color-mix(in srgb, var(--pv-accent) 96%, transparent) 98deg,
+    color-mix(in srgb, var(--pv-card-fx-color, var(--pv-accent)) 96%, transparent) 98deg,
     transparent 128deg 224deg,
-    color-mix(in srgb, var(--pv-accent) 42%, transparent) 254deg,
-    color-mix(in srgb, var(--pv-accent) 96%, transparent) 268deg,
+    color-mix(in srgb, var(--pv-card-fx-color, var(--pv-accent)) 42%, transparent) 254deg,
+    color-mix(in srgb, var(--pv-card-fx-color, var(--pv-accent)) 96%, transparent) 268deg,
     #ffffff 273deg,
-    color-mix(in srgb, var(--pv-accent) 96%, transparent) 278deg,
+    color-mix(in srgb, var(--pv-card-fx-color, var(--pv-accent)) 96%, transparent) 278deg,
     transparent 308deg 360deg
   );
   animation: pvBeamSpin var(--pv-card-fx-speed, 6s) linear infinite;
@@ -3725,7 +3729,7 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--pv-accent) 62%, transparent),
+    color-mix(in srgb, var(--pv-card-fx-color, var(--pv-accent)) 62%, transparent),
     transparent 68%
   );
   filter: blur(38px);

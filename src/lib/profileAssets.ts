@@ -407,9 +407,20 @@ function textIn(value: unknown, fallback: string, max: number): string {
   return typeof value === "string" ? value.slice(0, max) : fallback;
 }
 
-function colorIn(value: unknown, fallback: string): string {
-  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+
+function normalizeHexColor(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const raw = value.trim().toLowerCase().replace(/^#/, "");
+  if (/^[0-9a-f]{3}$/.test(raw)) return "#" + raw.split("").map((part) => part + part).join("");
+  if (/^[0-9a-f]{8}$/.test(raw)) return "#" + raw.slice(0, 6);
+  if (/^[0-9a-f]{6}$/.test(raw)) return "#" + raw;
+  return null;
 }
+
+function colorIn(value: unknown, fallback: string): string {
+  return normalizeHexColor(value) ?? fallback;
+}
+
 
 function choiceIn<T extends string>(value: unknown, choices: readonly T[], fallback: T): T {
   return choices.includes(value as T) ? (value as T) : fallback;
