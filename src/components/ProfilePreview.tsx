@@ -124,6 +124,10 @@ export function ProfilePreview({
     "--pv-card-fx-color": cardFx.color,
     "--pv-card-fx-strength": cardFx.intensity / 100,
     "--pv-card-fx-speed": `${Math.max(1.5, cardFx.speed)}s`,
+    "--pv-pill-bg": hexToRgba(design.pills.background, design.pills.opacity),
+    "--pv-pill-border": hexToRgba(design.colors.accent, design.pills.borderOpacity),
+    "--pv-pill-radius": `${design.pills.radius}px`,
+    "--pv-pill-blur": `${design.pills.blur}px`,
     "--pv-zoom": decoration.zoom ?? 1,
     "--pv-rotate": `${decoration.rotate ?? 0}deg`,
   } as CSSProperties;

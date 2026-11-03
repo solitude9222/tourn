@@ -106,6 +106,23 @@ export type ProfileColors = {
   border: string;
 };
 
+/** Surface styling for the small pills on a profile (location, views, join). */
+export type PillStyle = {
+  background: string;
+  opacity: number;
+  borderOpacity: number;
+  radius: number;
+  blur: number;
+};
+
+export const DEFAULT_PILL_STYLE: PillStyle = {
+  background: "#ffffff",
+  opacity: 0.05,
+  borderOpacity: 0.1,
+  radius: 999,
+  blur: 6,
+};
+
 export type AboutDesign = {
   theme: AboutTheme;
   layout: AboutLayout;
@@ -136,6 +153,7 @@ export type AboutDesign = {
   slideshow: SlideshowSettings;
   entry: EntrySettings;
   colors: ProfileColors;
+  pills: PillStyle;
   /** Avatar position offset from default */
   avatarX?: number;
   avatarY?: number;
@@ -243,6 +261,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   slideshow: DEFAULT_SLIDESHOW,
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
+  pills: DEFAULT_PILL_STYLE,
 };
 
 export const EMPTY_ABOUT: About = {
@@ -390,6 +409,7 @@ function loadEntry(input: unknown): EntrySettings {
 function loadDesign(input: unknown): AboutDesign {
   const raw = (input ?? {}) as Partial<AboutDesign>;
   const rawColors = (raw.colors ?? {}) as Partial<ProfileColors>;
+  const rawPills = (raw.pills ?? {}) as Partial<PillStyle>;
   const theme = raw.theme === "modern" || raw.theme === "portfolio" ? raw.theme : "default";
   const layout = raw.layout === "modern" ? "modern" : "classic";
   const cardStyle = CARD_STYLES.some((item) => item.id === raw.cardStyle)
@@ -453,6 +473,13 @@ function loadDesign(input: unknown): AboutDesign {
       background: validColor(rawColors.background, DEFAULT_PROFILE_COLORS.background),
       card: validColor(rawColors.card, DEFAULT_PROFILE_COLORS.card),
       border: validColor(rawColors.border, DEFAULT_PROFILE_COLORS.border),
+    },
+    pills: {
+      background: validColor(rawPills.background, DEFAULT_PILL_STYLE.background),
+      opacity: numberIn(rawPills.opacity, DEFAULT_PILL_STYLE.opacity, 0, 1),
+      borderOpacity: numberIn(rawPills.borderOpacity, DEFAULT_PILL_STYLE.borderOpacity, 0, 1),
+      radius: numberIn(rawPills.radius, DEFAULT_PILL_STYLE.radius, 0, 999),
+      blur: numberIn(rawPills.blur, DEFAULT_PILL_STYLE.blur, 0, 30),
     },
   };
 }

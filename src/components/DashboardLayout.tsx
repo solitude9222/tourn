@@ -457,6 +457,61 @@ export function DashboardLayout({
           </button>
         </section>
 
+        {/* Bubbles — the pills around location, views, join date and badges. */}
+        <section className="dash-panel lp-panel" data-reveal data-reveal-delay="95">
+          <header className="lp-section-head">
+            <h2>Bubbles</h2>
+            <p>Background, edge, corner roundness and blur for every pill on the card.</p>
+          </header>
+
+          <div className="lp-color-grid">
+            <ColorField
+              label="Bubble background"
+              value={design.pills.background}
+              onChange={(value) => update({ pills: { ...design.pills, background: value } })}
+            />
+          </div>
+
+          <div className="lp-slider-grid">
+            <LayoutSlider
+              label="Bubble opacity"
+              value={Math.round(design.pills.opacity * 100)}
+              min={0}
+              max={100}
+              step={1}
+              unit="%"
+              onChange={(v) => update({ pills: { ...design.pills, opacity: v / 100 } })}
+            />
+            <LayoutSlider
+              label="Bubble edge"
+              value={Math.round(design.pills.borderOpacity * 100)}
+              min={0}
+              max={100}
+              step={1}
+              unit="%"
+              onChange={(v) => update({ pills: { ...design.pills, borderOpacity: v / 100 } })}
+            />
+            <LayoutSlider
+              label="Bubble roundness"
+              value={design.pills.radius}
+              min={0}
+              max={999}
+              step={1}
+              unit="px"
+              onChange={(v) => update({ pills: { ...design.pills, radius: v } })}
+            />
+            <LayoutSlider
+              label="Bubble blur"
+              value={design.pills.blur}
+              min={0}
+              max={30}
+              step={1}
+              unit="px"
+              onChange={(v) => update({ pills: { ...design.pills, blur: v } })}
+            />
+          </div>
+        </section>
+
         {/* Element positioning — dropdowns */}
         <section className="dash-panel lp-panel" data-reveal data-reveal-delay="100">
           <header className="lp-section-head">

@@ -29,6 +29,7 @@ function CanvasEffectLayer({
   amount,
   flag,
   hostClass,
+  maxFps,
 }: {
   effect: string;
   intensity: number;
@@ -37,6 +38,7 @@ function CanvasEffectLayer({
   amount: number;
   flag: boolean;
   hostClass: string;
+  maxFps?: number;
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const apiRef = useRef<ReturnType<typeof mountBgEffect> | null>(null);
@@ -44,7 +46,7 @@ function CanvasEffectLayer({
   useEffect(() => {
     const host = hostRef.current;
     if (!host || effect === "none") return;
-    apiRef.current = mountBgEffect(host, { effect, intensity, speed, color, amount, flag });
+    apiRef.current = mountBgEffect(host, { effect, intensity, speed, color, amount, flag, maxFps });
     return () => {
       apiRef.current?.destroy();
       apiRef.current = null;
@@ -55,7 +57,7 @@ function CanvasEffectLayer({
 
   useEffect(() => {
     if (effect === "none") return;
-    apiRef.current?.update({ effect, intensity, speed, color, amount, flag });
+    apiRef.current?.update({ effect, intensity, speed, color, amount, flag, maxFps });
   }, [effect, intensity, speed, color, amount, flag]);
 
   if (effect === "none") return null;
@@ -102,6 +104,7 @@ export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettin
         amount={settings.params.amount}
         flag={settings.params.flag}
         hostClass="profile-fx-canvas profile-fx-canvas--fill"
+        maxFps={30}
       />
     </span>
   );

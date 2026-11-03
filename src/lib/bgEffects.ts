@@ -14,6 +14,9 @@
    --------------------------------------------------------------------------- */
 
 export type BgFxInput = {
+  /** Cap the canvas refresh — the overlay layer uses 30 so the page keeps its
+   *  frame budget while the wash still reads as moving. */
+  maxFps?: number;
   effect: string;
   /** 0–100 */
   intensity: number;
@@ -103,7 +106,9 @@ type Splash = { x: number; y: number; vx: number; vy: number; l: number };
 
 export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxApi {
   assets();
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  // Overlays cover the whole card, so they render below native resolution —
+  // the pattern hides it and the GPU gets a much smaller surface.
+  const dpr = Math.min(window.devicePixelRatio || 1, initial.maxFps ? 1.25 : 1.75);
   if (getComputedStyle(container).position === "static") container.style.position = "relative";
   container.style.isolation = "isolate";
 
@@ -588,12 +593,20 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     if (fn) fn(t);
   }
 
+  let lastDrawn = 0;
   function loop(now: number) {
     raf = 0;
     if (!visible) return;
     const dt = Math.min(64, now - last);
     last = now;
+    // The clock always advances; only the paint is throttled.
     clock += dt * speedMul;
+    const budget = s.maxFps ? 1000 / s.maxFps : 0;
+    if (budget && lastDrawn && now - lastDrawn < budget - 1) {
+      raf = requestAnimationFrame(loop);
+      return;
+    }
+    lastDrawn = now;
     draw(clock);
     raf = requestAnimationFrame(loop);
   }

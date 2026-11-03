@@ -63,7 +63,15 @@ const CACHE_MAX_AGE = 1000 * 60 * 60 * 12;
 /** Big pages (data-URL backgrounds) would blow the storage quota — skip those. */
 const CACHE_MAX_BYTES = 320_000;
 
+/* A payload already seen in this session never touches storage again — the
+   path stays synchronous either way, but a Map lookup cannot be blocked by a
+   quota error or a slow localStorage. */
+const memoryCache = new Map<string, ProfilePayload>();
+const inflight = new Map<string, Promise<void>>();
+
 export function readCachedProfile(handle: string): ProfilePayload | null {
+  const memo = memoryCache.get(handle.toLowerCase());
+  if (memo) return memo;
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + handle.toLowerCase());
     if (!raw) return null;
@@ -71,13 +79,29 @@ export function readCachedProfile(handle: string): ProfilePayload | null {
     if (!parsed?.savedAt || Date.now() - parsed.savedAt > CACHE_MAX_AGE) return null;
     const data = withDocument(parsed.data as ProfilePayload);
     if (!data.account?.username) return null;
+    memoryCache.set(handle.toLowerCase(), data);
     return data;
   } catch {
     return null;
   }
 }
 
+/** Warm a profile before the visitor commits to the link, so the click paints
+ *  the real card instead of a black screen. Failures stay silent. */
+export function preloadProfile(handle: string): void {
+  const key = handle.trim().toLowerCase();
+  if (!key || memoryCache.has(key) || inflight.has(key)) return;
+  const run = fetchPublicProfile(key)
+    .then(() => undefined)
+    .catch(() => undefined)
+    .finally(() => {
+      inflight.delete(key);
+    });
+  inflight.set(key, run);
+}
+
 function writeCachedProfile(handle: string, data: ProfilePayload): void {
+  memoryCache.set(handle.toLowerCase(), data);
   try {
     const serialized = JSON.stringify({ savedAt: Date.now(), data });
     if (serialized.length > CACHE_MAX_BYTES) return;
@@ -102,6 +126,7 @@ export async function fetchPublicProfile(
 
 /** Drop a cached page, e.g. right after the owner publishes an edit. */
 export function clearCachedProfile(handle: string): void {
+  memoryCache.delete(handle.toLowerCase());
   try {
     localStorage.removeItem(CACHE_PREFIX + handle.toLowerCase());
   } catch {

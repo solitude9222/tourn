@@ -69,13 +69,57 @@ import { LinkerPreview } from "./components/LinkerPreview";
 import {
   fetchOwnProfile,
   fetchPublicProfile,
+  preloadProfile,
   readCachedProfile,
   saveProfile,
   type ProfilePayload,
 } from "./lib/serverProfile";
 import { getViewCount, recordView } from "./lib/views";
 
+/* Route names that are never a handle, so hovering the nav never fires a
+   pointless profile request. */
+const RESERVED_PATHS = new Set([
+  "",
+  "dashboard",
+  "leaderboard",
+  "shop",
+  "premium",
+  "legal",
+  "demo",
+  "settings",
+  "admin",
+]);
+
+function handleFromHref(href: string): string | null {
+  const hashAt = href.indexOf("#");
+  if (hashAt === -1) return null;
+  const path = href.slice(hashAt + 1).replace(/^\/+/, "").split(/[?#]/)[0];
+  const first = path.split("/")[0]?.toLowerCase() ?? "";
+  if (!first || RESERVED_PATHS.has(first) || first.includes(".")) return null;
+  return first;
+}
+
 export default function App() {
+  // Warm the profile the pointer is heading for. By the time the click lands
+  // the document is already in memory, so the page paints on its first frame.
+  useEffect(() => {
+    const warm = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const handle = handleFromHref(anchor.getAttribute("href") ?? "");
+      if (handle) preloadProfile(handle);
+    };
+    document.addEventListener("pointerover", warm, { passive: true });
+    document.addEventListener("pointerdown", warm, { passive: true });
+    document.addEventListener("focusin", warm);
+    return () => {
+      document.removeEventListener("pointerover", warm);
+      document.removeEventListener("pointerdown", warm);
+      document.removeEventListener("focusin", warm);
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <Site />
@@ -267,7 +311,7 @@ function ProfilePage({
   // A cached copy paints the real page — entry screen included — on the very
   // first frame. The fetch below only refreshes it in the background.
   const cached = useMemo(
-    () => (handle && !isOwn ? readCachedProfile(handle) : null),
+    () => (handle ? readCachedProfile(handle) : null),
     [handle, isOwn],
   );
   const [remote, setRemote] = useState<
@@ -670,7 +714,7 @@ function Site() {
           }}
         />
       ) : route === "profile" ? (
-        <main className="page-enter">
+        <main>
           <ProfilePage
             key={profileHandleFromLocation() ?? "none"}
             handle={profileHandleFromLocation()}
