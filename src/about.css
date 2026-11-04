@@ -4250,3 +4250,15 @@
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
   will-change: transform;
 }
+
+/* Location, views and join date are plain text now — no pill chrome. */
+.pv-location,
+.pv-views,
+.pv-foot-item {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

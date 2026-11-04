@@ -115,7 +115,9 @@ function WidgetCardSurface({
               ? `Open on ${platform.name}`
               : "Saved profile"
       : `Add ${platform.contentLabel.toLowerCase()}`);
-  const meta = live?.meta.filter(Boolean).slice(0, 2) ?? [];
+  // Discord exposes a lot of raw presence fields; one line keeps the card
+  // readable instead of turning it into a wall of labels.
+  const meta = live?.meta.filter(Boolean).slice(0, platform.id === "discord" ? 1 : 2) ?? [];
 
   const style = {
     "--wg-border-color": hexToRgba(design.borderColor, design.borderOpacity),

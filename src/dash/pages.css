@@ -914,3 +914,22 @@
   color: var(--sub);
   font-size: 12px;
 }
+
+/* Real platform marks on neutral tiles — no invented colour blocks. */
+.tw-widget-icon--brand {
+  background: #161619 !important;
+  border: 1px solid #2a2a2e;
+  color: #fff;
+}
+
+.tw-widget-icon--brand svg {
+  width: 60%;
+  height: 60%;
+}
+
+/* Every popover uses the same entrance so nothing snaps into place. */
+.tw-user-pop,
+.tw-note-pop {
+  animation: tw-pop 170ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: bottom center;
+}

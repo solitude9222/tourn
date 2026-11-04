@@ -98,13 +98,13 @@ export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettin
           the density keeps the same look for a fraction of the particles. */}
       <CanvasEffectLayer
         effect={settings.id}
-        intensity={Math.min(settings.intensity, 65)}
+        intensity={Math.min(settings.intensity, 45)}
         speed={settings.speed}
         color={settings.color}
         amount={settings.params.amount}
         flag={settings.params.flag}
         hostClass="profile-fx-canvas profile-fx-canvas--fill"
-        maxFps={30}
+        maxFps={20}
       />
     </span>
   );

@@ -14,6 +14,7 @@ import { DEFAULT_BADGE_STYLE } from "../../lib/badges";
 import { DEFAULT_LINK_DESIGN } from "../../lib/links";
 import { formatJoinDate } from "../../lib/format";
 import { useAuth } from "../../lib/auth";
+import { PlatformIcon } from "../../components/PlatformIcons";
 import { useDash, type ProfileTab } from "../context";
 import {
   Button,
@@ -141,8 +142,8 @@ function DiscordPresenceCard() {
       />
 
       <div className="tw-discord-connect">
-        <span className="tw-widget-icon" style={{ background: "#5865f2", width: 34, height: 34 }}>
-          <Icon name="discord" size={17} />
+        <span className="tw-widget-icon" style={{ width: 34, height: 34 }}>
+          <PlatformIcon id="discord" size={18} />
         </span>
         <span>
           <b>{linked ? "Discord account connected" : "Connect your Discord account"}</b>
@@ -272,6 +273,12 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 
   const updateEntry = (patch: Partial<typeof entry>) =>
     updateDesign({ entry: { ...entry, ...patch } });
+
+  const updateCard = (patch: Partial<typeof about.assets.card>) =>
+    setAbout((current) => ({
+      ...current,
+      assets: { ...current.assets, card: { ...current.assets.card, ...patch } },
+    }));
 
   const updateMetadata = (patch: Partial<typeof about.metadata>) =>
     setAbout((current) => ({ ...current, metadata: { ...current.metadata, ...patch } }));
@@ -445,7 +452,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 
   if (tab === "appearance") {
     const gradientOn = about.assets.card.id === "aurora";
-    const glowOn = about.assets.card.id === "edgeGlow";
 
     return (
       <>
@@ -572,44 +578,45 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
         </Card>
 
         <Card>
-          <CardHead icon="sparkles" title="Card Gradient" />
+          <CardHead
+            icon="sparkles"
+            title="Card Gradient"
+            subtitle="Colour and motion of the gradient that travels around your card."
+          />
+          <div className="tw-form-grid">
+            <ColorField
+              label="Gradient colour"
+              value={about.assets.card.color}
+              onChange={(value) => updateCard({ color: value })}
+            />
+            <Slider
+              label="Intensity"
+              value={about.assets.card.intensity}
+              min={0}
+              max={100}
+              suffix="%"
+              onChange={(value) => updateCard({ intensity: value })}
+            />
+            <Slider
+              label="Speed"
+              value={about.assets.card.speed}
+              min={1.5}
+              max={20}
+              step={0.5}
+              suffix="s"
+              onChange={(value) => updateCard({ speed: value })}
+            />
+          </div>
           <Button
-            variant="primary"
+            variant={gradientOn ? "ghost" : "primary"}
             wide
             icon="sparkles"
             onClick={() => {
-              setAbout((current) => ({
-                ...current,
-                assets: {
-                  ...current.assets,
-                  card: { ...current.assets.card, id: gradientOn ? "none" : "aurora" },
-                },
-              }));
+              updateCard({ id: gradientOn ? "none" : "aurora" });
               notify("Card Gradient", gradientOn ? "Gradient turned off." : "Gradient activated.");
             }}
           >
             {gradientOn ? "Disable Card Gradient" : "Activate Card Gradient"}
-          </Button>
-        </Card>
-
-        <Card>
-          <CardHead icon="bolt" title="Glow Settings" />
-          <Button
-            variant="primary"
-            wide
-            icon="sparkles"
-            onClick={() => {
-              setAbout((current) => ({
-                ...current,
-                assets: {
-                  ...current.assets,
-                  card: { ...current.assets.card, id: glowOn ? "none" : "edgeGlow" },
-                },
-              }));
-              notify("Glow", glowOn ? "Glow turned off." : "Glow activated.");
-            }}
-          >
-            {glowOn ? "Disable Glow" : "Activate Glow"}
           </Button>
         </Card>
       </>

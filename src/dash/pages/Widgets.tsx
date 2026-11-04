@@ -12,6 +12,7 @@ import {
   type WidgetInstance,
   type WidgetPlatform,
 } from "../../lib/widgets";
+import { PlatformIcon } from "../../components/PlatformIcons";
 import { useDash } from "../context";
 import {
   Button,
@@ -127,8 +128,8 @@ export function WidgetsPage() {
               style={{ ["--widget-color" as string]: platform.color }}
               onClick={() => openAdd(platform)}
             >
-              <span className="tw-widget-icon" style={{ background: platform.color }}>
-                {platform.name.slice(0, 2).toUpperCase()}
+              <span className="tw-widget-icon tw-widget-icon--brand">
+                <PlatformIcon id={platform.id} size={22} />
               </span>
               <span className="tw-widget-copy">
                 <b>{platform.name}</b>
@@ -175,11 +176,8 @@ export function WidgetsPage() {
                   <span className="tw-drag">
                     <Icon name="drag" size={14} />
                   </span>
-                  <span
-                    className="tw-widget-icon"
-                    style={{ background: platform?.color ?? "#333", width: 30, height: 30 }}
-                  >
-                    {platform?.name.slice(0, 2).toUpperCase()}
+                  <span className="tw-widget-icon tw-widget-icon--brand" style={{ width: 30, height: 30 }}>
+                    <PlatformIcon id={instance.platform} size={16} />
                   </span>
                   <span className="tw-widget-row-copy">
                     <b>{platform?.name ?? instance.platform}</b>
