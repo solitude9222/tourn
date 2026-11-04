@@ -22,6 +22,7 @@ export type Page =
   | "customize-profile"
   | "layout"
   | "portfolio"
+  | "effects"
   | "premium"
   | "links"
   | "widgets"

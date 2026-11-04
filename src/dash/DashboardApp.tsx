@@ -23,6 +23,7 @@ import { HomePage } from "./pages/Home";
 import { AccountProfilePage, AffiliatesPage, AnalyticsPage } from "./pages/Account";
 import { CustomizeProfilePage } from "./pages/Customize";
 import { LayoutPage } from "./pages/Layout";
+import { EffectsPage } from "./pages/Effects";
 import { BadgesPage } from "./pages/Badges";
 import { LinksPage } from "./pages/Links";
 import { WidgetsPage } from "./pages/Widgets";
@@ -108,6 +109,12 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     title: "Portfolio",
     subtitle: "Full-height sections and how they scroll.",
     icon: "layers",
+    crumb: "Customize",
+  },
+  effects: {
+    title: "Effects",
+    subtitle: "Background, overlay, text and cursor motion.",
+    icon: "sparkles",
     crumb: "Customize",
   },
   premium: {
@@ -415,6 +422,9 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "portfolio":
       content = <PortfolioPage />;
+      break;
+    case "effects":
+      content = <EffectsPage />;
       break;
     case "premium":
       content = <PremiumPage />;
