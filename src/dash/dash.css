@@ -3264,3 +3264,131 @@
   z-index: 40;
   isolation: isolate;
 }
+
+/* ── card effect + avatar decoration pickers ───────────────────────────── */
+.tw-effect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+  gap: 8px;
+}
+
+.tw-effect-tile {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--bar);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.tw-effect-tile:hover {
+  border-color: #34343a;
+  background: var(--tile);
+}
+
+.tw-effect-tile.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tw-effect-tile b {
+  color: var(--title);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-effect-tile small {
+  color: var(--nav);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.tw-effect-dot {
+  width: 22px;
+  height: 22px;
+  margin-bottom: 3px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--tile);
+}
+
+.tw-effect-dot--beam {
+  background: conic-gradient(from 200deg, #ffffff, #7aa2ff 40%, transparent 62%);
+}
+
+.tw-effect-dot--aurora {
+  background: linear-gradient(140deg, #7aa2ff, #c58bff 55%, #6ee7ff);
+}
+
+.tw-effect-dot--shimmer {
+  background: linear-gradient(100deg, #2a2f3a, #eef3fb 45%, #2a2f3a);
+}
+
+.tw-effect-dot--sheen {
+  background: linear-gradient(180deg, #eef3fb, #3a3f4a 62%);
+}
+
+.tw-effect-dot--hologram {
+  background: conic-gradient(from 0deg, #ff9de2, #9df2ff, #fff6a8, #b39dff, #ff9de2);
+}
+
+.tw-effect-dot--edgeGlow {
+  background: radial-gradient(circle at 50% 50%, #141821 38%, #7aa2ff 100%);
+}
+
+.tw-effect-dot--frost {
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.18));
+}
+
+.tw-effect-dot--none {
+  background: var(--bar);
+}
+
+.tw-deco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 6px;
+  max-height: 268px;
+  overflow-y: auto;
+  padding: 2px;
+  scrollbar-width: thin;
+}
+
+.tw-deco {
+  display: grid;
+  aspect-ratio: 1;
+  padding: 4px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bar);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.tw-deco:hover {
+  border-color: #34343a;
+  background: var(--tile);
+}
+
+.tw-deco.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tw-deco img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tw-deco--none {
+  color: var(--nav);
+  font-size: 11px;
+  font-weight: 550;
+}
