@@ -10,6 +10,7 @@ import { ProfileLinks } from "./ProfileLinks";
 import { ProfileMetadata } from "./ProfileMetadata";
 import { BackgroundEffectLayer, OverlayEffectLayer, ProfileCursor } from "./ProfileEffects";
 import { WidgetCard } from "./WidgetCard";
+import { AudioPlayer } from "./AudioPlayer";
 import { ChevronIcon } from "./Icons";
 import "../about.css";
 
@@ -305,6 +306,7 @@ export function LinkerPreview({
       views={views}
       joined={joined}
       entryActive={entryOpen}
+      hideAudio={design.layout === "stacked"}
     >
       {insideCard && widgets.widgets.length ? widgetStack : null}
     </ProfilePreview>
@@ -313,12 +315,21 @@ export function LinkerPreview({
   // The card stays in the middle of the page for every layout; the layouts
   // rearrange what is inside it. `stacked` is the exception: it lifts every
   // widget out into its own card underneath, so they stack down the page.
-  const stackedWidgets = design.layout === "stacked" && orderedWidgets.length > 0;
+  // Stacked gives the widgets and the player their own cards under the profile
+  // card, so the page is a column of separate bubbles instead of one block.
+  const stacked = design.layout === "stacked";
 
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
-      {profileCard(!stackedWidgets)}
-      {stackedWidgets ? <div className="lkr-stack">{widgetStack}</div> : null}
+      {profileCard(!stacked)}
+      {stacked ? (
+        <div className="lkr-stack">
+          {orderedWidgets.length ? widgetStack : null}
+          <div className="lkr-audio">
+            <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 

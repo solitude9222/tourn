@@ -6,7 +6,6 @@ import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
 import { useTilt } from "../lib/useTilt";
-import { loadGoogleFont } from "../lib/fonts";
 import { EffectText, SparkleLayer, textEffectClass, textEffectStyle } from "./ProfileEffects";
 import { BadgeRow } from "./BadgeRow";
 import { ProfileLinks } from "./ProfileLinks";
@@ -131,18 +130,12 @@ export function ProfilePreview({
   // Every size in the card is expressed against a 726px reference card, so a
   // narrower card shrinks its type, avatar and spacing with it instead of
   // keeping full-size text in a small box.
-  const cardFont = design.font.trim();
-  useEffect(() => {
-    if (cardFont) loadGoogleFont(cardFont);
-  }, [cardFont]);
-
   const narrow = useNarrowCard();
   const renderedWidth = narrow ? Math.min(design.cardWidth, 400) : design.cardWidth;
   const scale = Math.max(0.45, Math.min(1.6, renderedWidth / 726));
 
   const style = {
     "--pv-scale": scale,
-    fontFamily: cardFont ? `"${cardFont}", var(--font)` : undefined,
     "--pv-accent": design.colors.accent,
     "--pv-text": design.colors.text,
     "--pv-muted": design.colors.muted,
@@ -203,7 +196,6 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
-      <div className="pv-ambient" aria-hidden="true" />
       <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" />
       {cardFx.id === "beam" ? (
         <>

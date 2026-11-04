@@ -7,7 +7,6 @@
 import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
 import decorations from "../../lib/decorations.json";
 import type { CardEffectId } from "../../lib/profileAssets";
-import { FontPicker } from "../../components/FontPicker";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
@@ -75,20 +74,6 @@ const PAGE_LAYOUTS: {
     viewPosition: "top-right",
     joinPosition: "footer",
   },
-];
-
-/** Colour pairs that set the accent, card and border together. */
-const PALETTES: { name: string; accent: string; card: string; border: string }[] = [
-  { name: "Ice", accent: "#b4bffa", card: "#12141a", border: "#ffffff" },
-  { name: "Violet", accent: "#a78bfa", card: "#15121f", border: "#b79cff" },
-  { name: "Ocean", accent: "#60c8ff", card: "#0d1620", border: "#8fdcff" },
-  { name: "Mint", accent: "#6ee7b7", card: "#0f1a16", border: "#9ff5d2" },
-  { name: "Ember", accent: "#ff9d6e", card: "#1d1210", border: "#ffc09a" },
-  { name: "Rose", accent: "#ff8fc7", card: "#1e1016", border: "#ffb3d8" },
-  { name: "Gold", accent: "#ffd479", card: "#1a1509", border: "#ffe6a8" },
-  { name: "Cyan", accent: "#67e8f9", card: "#08181c", border: "#a5f3fc" },
-  { name: "Lime", accent: "#c4f16b", card: "#12170b", border: "#dcff9c" },
-  { name: "Slate", accent: "#cbd5e1", card: "#14171c", border: "#e2e8f0" },
 ];
 
 export function LayoutPage() {
@@ -245,30 +230,6 @@ export function LayoutPage() {
           subtitle="Colours, surface and size of the card itself."
         />
 
-        <div className="tw-subhead">Colour presets</div>
-        <div className="tw-palettes">
-          {PALETTES.map((palette) => {
-            const active =
-              palette.accent.toLowerCase() === design.colors.accent.toLowerCase() &&
-              palette.card.toLowerCase() === design.colors.card.toLowerCase();
-            return (
-              <button
-                key={palette.name}
-                type="button"
-                className={`tw-palette${active ? " is-active" : ""}`}
-                onClick={() => updateColors({ accent: palette.accent, card: palette.card, border: palette.border })}
-              >
-                <span className="tw-palette-dots">
-                  <i style={{ background: palette.accent }} />
-                  <i style={{ background: palette.card }} />
-                  <i style={{ background: palette.border }} />
-                </span>
-                {palette.name}
-              </button>
-            );
-          })}
-        </div>
-
         <div className="tw-split" style={{ marginTop: 20 }}>
           <div className="tw-split-col">
             <span className="tw-split-label">Colours</span>
@@ -363,26 +324,6 @@ export function LayoutPage() {
               />
             </div>
           </div>
-        </div>
-      </Card>
-
-      <Card>
-        <CardHead
-          icon="edit"
-          title="Font"
-          subtitle="Pick the typeface for your name, bio and card text."
-        />
-
-        <div className="tw-field">
-          <FontPicker
-            value={design.font}
-            onChange={(family) => updateDesign({ font: family })}
-            label="Card font"
-          />
-          <span className="tw-field-hint">
-            Theme font is the default. Every family here loads on its own, so a
-            chosen font still shows for visitors on first paint.
-          </span>
         </div>
       </Card>
 

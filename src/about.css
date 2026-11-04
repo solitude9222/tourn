@@ -762,15 +762,6 @@
   display: none;
 }
 
-.pv-ambient {
-  position: absolute;
-  inset: -55% -20% auto;
-  height: 180px;
-  background: radial-gradient(circle at 50% 50%, var(--pv-accent), transparent 68%);
-  opacity: 0.16;
-  pointer-events: none;
-}
-
 .pv-theme-modern .pv-ambient {
   opacity: 0.3;
 }
@@ -976,8 +967,8 @@
   margin: 0;
   overflow: hidden;
   color: var(--pv-text);
-  font-size: var(--pv-name, 21px);
-  font-weight: 740;
+  font-size: var(--pv-name, 36px);
+  font-weight: 700;
   letter-spacing: -0.045em;
   line-height: 1.05;
   text-overflow: ellipsis;
@@ -1000,18 +991,14 @@
   -webkit-backdrop-filter: none;
 }
 
-.profile-preview.pv-clear .pv-ambient {
-  display: none;
-}
-
 .pv-bio {
   /* Contains the sparkle layer, which is absolutely positioned. Without this
      the sparkles were placed against the whole card instead of the bio. */
   position: relative;
   margin-top: calc(20px * var(--pv-scale, 1));
   color: var(--pv-text);
-  font-size: max(11px, var(--pv-bio-size, 11.5px));
-  line-height: 1.45;
+  font-size: max(12px, var(--pv-bio-size, 20px));
+  line-height: 1.4;
   opacity: 0.92;
 }
 
@@ -1476,15 +1463,35 @@
 }
 
 .lkr-widgets {
-  display: flex;
+  display: grid;
   width: 100%;
-  flex-direction: column;
-  align-items: center;
+  /* Two widget cards to a row, as on the reference card. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--lkr-gap);
 }
 
+@media (max-width: 640px) {
+  .lkr-widgets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .lkr-widgets .widget-card {
-  width: min(var(--pv-width, 350px), 100%);
+  width: 100%;
+}
+
+/* In the stacked layout each widget is already its own card, so they go one
+   per row instead of pairing up. */
+.lkr-stack .lkr-widgets {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lkr-audio {
+  width: min(var(--pv-width), 100%);
+}
+
+.lkr-audio .ap {
+  margin-top: 0;
 }
 
 .lkr-empty {
@@ -3521,8 +3528,8 @@
   display: block;
   margin-top: calc(6px * var(--pv-scale, 1));
   color: var(--pv-muted);
-  font-size: max(11px, calc(17px * var(--pv-scale, 1)));
-  font-weight: 550;
+  font-size: max(12px, calc(18px * var(--pv-scale, 1)));
+  font-weight: 500;
   letter-spacing: 0.01em;
   line-height: 1.3;
 }
