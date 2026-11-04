@@ -3623,16 +3623,87 @@
   backdrop-filter: blur(var(--pv-pill-blur, 6px));
 }
 
-/* Badges sit in a single soft rail, like a status strip under the name. */
+/* Badges sit in one rail: a 34px pill, 20px art, 10px between them. */
 .pv-badges {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: inherit;
   width: fit-content;
+  height: calc(34px * var(--pv-scale, 1));
   margin: calc(14px * var(--pv-scale, 1)) auto 0;
-  padding: calc(8px * var(--pv-scale, 1)) calc(14px * var(--pv-scale, 1));
-  border: 1px solid var(--pv-pill-border, rgba(255, 255, 255, 0.07));
+  padding: 0 calc(10px * var(--pv-scale, 1));
+  gap: calc(10px * var(--pv-scale, 1));
+  border: 1px solid var(--pv-pill-border, rgba(255, 255, 255, 0.12));
   border-radius: var(--pv-pill-radius, 999px);
-  background: var(--pv-pill-bg, rgba(255, 255, 255, 0.035));
+  background: var(--pv-pill-bg, rgba(255, 255, 255, 0.07));
   backdrop-filter: blur(var(--pv-pill-blur, 6px));
+}
+
+.pv-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(10px * var(--pv-scale, 1));
+}
+
+/* A small arrow on the rail, so the badges can explain themselves. */
+.pv-badge-more {
+  display: grid;
+  width: calc(14px * var(--pv-scale, 1));
+  height: calc(14px * var(--pv-scale, 1));
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.pv-badge-more svg {
+  transition: transform 0.18s ease;
+}
+
+.pv-badge-more:hover,
+.pv-badge-more.is-open {
+  color: #ffffff;
+}
+
+.pv-badge-more.is-open svg {
+  transform: rotate(180deg);
+}
+
+.pv-badge-list {
+  display: grid;
+  width: 100%;
+  gap: calc(7px * var(--pv-scale, 1));
+  margin-top: calc(10px * var(--pv-scale, 1));
+  padding: calc(11px * var(--pv-scale, 1)) calc(13px * var(--pv-scale, 1));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: calc(12px * var(--pv-scale, 1));
+  background: rgba(10, 12, 18, 0.72);
+  backdrop-filter: blur(10px);
+  text-align: left;
+}
+
+.pv-badge-list-row {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(8px * var(--pv-scale, 1));
+  color: var(--pv-muted);
+  font-size: max(10px, calc(12px * var(--pv-scale, 1)));
+  line-height: 1.45;
+}
+
+.pv-badge-list-row b {
+  margin-right: 2px;
+  color: var(--pv-text);
+  font-weight: 600;
+}
+
+.pv-badge-list-row > span:only-child {
+  min-width: 0;
 }
 
 .profile-preview[data-name="left"] .pv-badges,

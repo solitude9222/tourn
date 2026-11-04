@@ -13,3 +13,6 @@ example.mp4
 
 # extracted reference frames (local only)
 .ref/
+
+# local design reference, not part of the app
+linker-bio/

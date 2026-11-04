@@ -3,16 +3,16 @@ import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
 import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
-import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
+import { DEFAULT_BADGE_STYLE, badgeDef, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
 import { useTilt } from "../lib/useTilt";
 import { EffectText, SparkleLayer, textEffectClass, textEffectStyle } from "./ProfileEffects";
-import { BadgeRow } from "./BadgeRow";
+import { BadgeChip, BadgeRow } from "./BadgeRow";
 import { ProfileLinks } from "./ProfileLinks";
 import { AudioPlayer } from "./AudioPlayer";
 import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
-import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
+import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
 
 /** The card is full-bleed on phones, so its type has to follow the screen. */
@@ -82,6 +82,7 @@ export function ProfilePreview({
   // never show a tooltip; only these two do.
   const tooltips = design.tooltips ?? DEFAULT_ABOUT_DESIGN.tooltips;
   const uid = accountUid(user);
+  const [badgeInfo, setBadgeInfo] = useState(false);
   const tiltEnabled = (design.tilt ?? 0) > 0;
   const tilt = useTilt(design.tilt ?? 0, Boolean(design.tiltInvert));
   const viewPosition = design.viewPosition ?? "top-right";
@@ -90,15 +91,50 @@ export function ProfilePreview({
   const viewCount = typeof views === "number" ? views : null;
   const showViews = viewCount !== null && viewPosition !== "hidden";
   const showJoined = Boolean(joined) && joinPosition !== "hidden";
+  const wornBadges = badges.filter((badge) => badge.visible && badgeDef(badge.id));
   const badgeRow =
     badges.length > 0 && design.badgePosition !== "hidden" ? (
       <div className={`pv-badges pv-badges--${design.badgePosition}`}>
-        <BadgeRow
-          badges={badges}
-          style={badgeStyle ?? DEFAULT_BADGE_STYLE}
-          tooltipStyle={tooltips.style}
-          tooltipEnabled={tooltips.enabled}
-        />
+        <span className="pv-badge-pill">
+          <BadgeRow
+            badges={badges}
+            style={badgeStyle ?? DEFAULT_BADGE_STYLE}
+            size={20}
+            tooltipStyle={tooltips.style}
+            tooltipEnabled={tooltips.enabled}
+          />
+          {wornBadges.length ? (
+            <button
+              type="button"
+              className={`pv-badge-more${badgeInfo ? " is-open" : ""}`}
+              aria-expanded={badgeInfo}
+              aria-label="What these badges mean"
+              onClick={(event) => {
+                event.stopPropagation();
+                setBadgeInfo((open) => !open);
+              }}
+            >
+              <ChevronIcon size={10} />
+            </button>
+          ) : null}
+        </span>
+
+        {badgeInfo && wornBadges.length ? (
+          <div className="pv-badge-list">
+            {wornBadges.map((badge) => {
+              const def = badgeDef(badge.id);
+              if (!def) return null;
+              return (
+                <div className="pv-badge-list-row" key={badge.id}>
+                  <BadgeChip badge={badge} style={badgeStyle ?? DEFAULT_BADGE_STYLE} size={16} />
+                  <span>
+                    <b>{def.name}</b> {def.requirement}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     ) : null;
 
