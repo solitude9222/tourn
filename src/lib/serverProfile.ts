@@ -61,8 +61,11 @@ function withDocument(payload: Omit<ProfilePayload, "profile"> & { profile: unkn
 const CACHE_PREFIX = "tourn.lol/profile-cache/v2/";
 /** Cached copies older than this are ignored so a stale page never sticks. */
 const CACHE_MAX_AGE = 1000 * 60 * 60 * 12;
-/** Big pages (data-URL backgrounds) would blow the storage quota — skip those. */
-const CACHE_MAX_BYTES = 320_000;
+/** A real card often carries a data-URL background, which alone can run to a
+ *  few hundred kilobytes. The cap is set so those still cache — the point of
+ *  the cache is that the card is already on screen when you come back — while
+ *  a pathological document still can't fill the quota. */
+const CACHE_MAX_BYTES = 1_200_000;
 
 /* A payload already seen in this session never touches storage again — the
    path stays synchronous either way, but a Map lookup cannot be blocked by a

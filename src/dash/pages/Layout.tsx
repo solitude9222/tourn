@@ -4,7 +4,7 @@
    its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { CARD_STYLES, type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
+import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
 import { FontPicker } from "../../components/FontPicker";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
@@ -124,35 +124,6 @@ export function LayoutPage() {
               </div>
               <b>{preset.name}</b>
               <small>{preset.description}</small>
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        <CardHead
-          icon="layers"
-          title="Card size"
-          subtitle="Only the spacing and the widget sizes change — never your colours."
-        />
-
-        <div className="tw-layout-cards">
-          {CARD_STYLES.map((layout) => (
-            <button
-              key={layout.id}
-              type="button"
-              className={`tw-layout-card${design.cardStyle === layout.id ? " is-active" : ""}`}
-              onClick={() => updateDesign({ cardStyle: layout.id })}
-            >
-              <div className={`tw-layout-thumb tw-layout-thumb--${layout.id}`}>
-                <div className={`tw-layout-wire tw-layout-wire--${layout.id}`}>
-                  <i />
-                  <i style={{ width: 52 }} />
-                  <i style={{ width: 38 }} />
-                </div>
-              </div>
-              <b>{layout.name}</b>
-              <small>{layout.description}</small>
             </button>
           ))}
         </div>

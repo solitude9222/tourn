@@ -797,7 +797,8 @@ button {
 .hero-card-slot {
   display: flex;
   justify-content: flex-end;
-  animation: heroCard 0.45s var(--ease-out) both;
+  /* The card is already painted with its real content, so it appears in place
+     on the first frame instead of sliding up for half a second. */
 }
 
 /* ----------------------------------------------------------- stats band */

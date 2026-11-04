@@ -5,7 +5,7 @@ import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib
 import { DEFAULT_LINK_DESIGN, type LinkInstance, type LinkStore } from "../lib/links";
 import { formatJoined } from "../lib/format";
 import { getViewCount } from "../lib/views";
-import { fetchPublicProfile } from "../lib/serverProfile";
+import { fetchPublicProfile, readCachedProfile, type ProfilePayload } from "../lib/serverProfile";
 import { ArrowUpRight } from "./Icons";
 import { ProfilePreview } from "./ProfilePreview";
 
@@ -49,8 +49,32 @@ type LiveCard = {
   joined: string;
 };
 
+function toLiveCard(data: ProfilePayload): LiveCard | null {
+  const document = data.profile;
+  if (!document) return null;
+  return {
+    about: document.about,
+    // Unknown earned list (no server field) must not empty the row.
+    badges: data.earned
+      ? document.badges.equipped.filter((badge) => data.earned!.includes(badge.id))
+      : document.badges.equipped,
+    badgeStyle: document.badges.style ?? DEFAULT_BADGE_STYLE,
+    links: document.links.links,
+    linkDesign: document.links.design ?? DEFAULT_LINK_DESIGN,
+    username: data.account.username,
+    avatar: data.account.avatarUrl || "/logo.png",
+    joined: formatJoined(new Date(data.account.joinedAt)),
+  };
+}
+
 export function ProfileCard() {
-  const [live, setLive] = useState<LiveCard | null>(null);
+  // The card paints from the copy cached on the last visit (or from a payload
+  // already fetched this session) on the very first frame, then quietly
+  // refreshes — so the hero never starts as a placeholder and swaps later.
+  const [live, setLive] = useState<LiveCard | null>(() => {
+    const cached = readCachedProfile(HOME_HANDLE);
+    return cached ? toLiveCard(cached) : null;
+  });
   const [views, setViews] = useState<number | null>(null);
 
   useEffect(() => {
@@ -58,22 +82,8 @@ export function ProfileCard() {
 
     void fetchPublicProfile(HOME_HANDLE).then((result) => {
       if (!active || !result.ok) return;
-      const data = result.data;
-      const document = data.profile;
-      if (!document) return;
-      setLive({
-        about: document.about,
-        // Unknown earned list (no server field) must not empty the row.
-        badges: data.earned
-          ? document.badges.equipped.filter((badge) => data.earned!.includes(badge.id))
-          : document.badges.equipped,
-        badgeStyle: document.badges.style ?? DEFAULT_BADGE_STYLE,
-        links: document.links.links,
-        linkDesign: document.links.design ?? DEFAULT_LINK_DESIGN,
-        username: data.account.username,
-        avatar: data.account.avatarUrl || "/logo.png",
-        joined: formatJoined(new Date(data.account.joinedAt)),
-      });
+      const next = toLiveCard(result.data);
+      if (next) setLive(next);
     });
 
     void getViewCount(HOME_HANDLE).then((count) => {

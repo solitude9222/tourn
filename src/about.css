@@ -1341,8 +1341,33 @@
   margin-top: 0;
 }
 
+/* stacked — the default page, and deliberately not centred: the column hugs
+   the left edge and the widget cards fill it, so "stacked" and "centered" are
+   different pages rather than the same one with nudged text. */
+.lkr-flow.lkr-flow--stacked {
+  align-items: stretch;
+  margin-right: auto;
+  margin-left: clamp(0px, 3vw, 44px);
+}
+
+.lkr-flow.lkr-flow--stacked .lkr-widgets {
+  align-items: stretch;
+}
+
+.lkr-flow.lkr-flow--stacked .lkr-widgets .widget-card {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .lkr-flow.lkr-flow--stacked {
+    margin-left: 0;
+  }
+}
+
 .lkr-flow.lkr-flow--centered {
   max-width: calc(var(--pv-width) + 32px);
+  align-items: center;
+  margin-inline: auto;
 }
 
 .lkr-flow.lkr-flow--centered > .profile-preview {
