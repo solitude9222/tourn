@@ -21,7 +21,8 @@
   --discord: #7289da;
   --spotify: #1db954;
   --steam: #66c0f4;
-  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Lexend: geometric, round letterforms, open even spacing. */
+  --font: "Lexend", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark;
 }
@@ -736,7 +737,10 @@ button {
 
 .hero-title {
   margin: 20px 0 0;
-  font-size: clamp(60px, 10.2vw, 122px);
+  /* Lexend sets wider than the old stack, so the ceiling drops a notch: at
+     122px the headline measured 467px against a 472px copy column and nearly
+     touched the hero card. */
+  font-size: clamp(60px, 10.2vw, 112px);
   line-height: 0.88;
   font-weight: 800;
   letter-spacing: -0.065em;

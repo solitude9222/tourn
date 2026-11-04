@@ -1315,11 +1315,14 @@
    centered a single narrow column, everything centred.
    ─────────────────────────────────────────────────────────────────── */
 
+/* The card is pinned to the left of the wide flow rather than centred, so
+   "left side" reads as a different page even before a widget fills the side
+   column. */
 .lkr-flow.lkr-flow--left {
   max-width: calc(var(--pv-width) + 380px + 32px);
   flex-direction: row;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 20px;
 }
 

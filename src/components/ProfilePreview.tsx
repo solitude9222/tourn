@@ -216,18 +216,13 @@ export function ProfilePreview({
       <div className="pv-body">
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
-            <Tooltip
-              text={tooltips.enabled ? `#${uid}` : ""}
-              style={tooltips.style}
-            >
-              <span className="pv-avatar" aria-hidden="true">
-                {avatar ? (
-                  <img src={avatar} alt="" />
-                ) : (
-                  <span>{displayName.slice(0, 1).toUpperCase()}</span>
-                )}
-              </span>
-            </Tooltip>
+            <span className="pv-avatar" aria-hidden="true">
+              {avatar ? (
+                <img src={avatar} alt="" />
+              ) : (
+                <span>{displayName.slice(0, 1).toUpperCase()}</span>
+              )}
+            </span>
             {decoration.discordUrl ? (
               <img
                 className="pv-avatar-decoration"
@@ -247,7 +242,11 @@ export function ProfilePreview({
 
         <div className="pv-id">
           <h3>
-            <EffectText text={displayName} settings={assets.effects.text.name} />
+            {/* The account number belongs to the name, not the picture: hover
+                the name to read it. */}
+            <Tooltip text={tooltips.enabled ? `#${uid}` : ""} style={tooltips.style}>
+              <EffectText text={displayName} settings={assets.effects.text.name} />
+            </Tooltip>
           </h3>
         </div>
 
