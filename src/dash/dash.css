@@ -2276,135 +2276,65 @@
   font-size: 11.5px;
 }
 
-.tw-layout-canvas {
-  position: relative;
-  min-height: 420px;
-  margin-top: 14px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #7d7d7d;
-}
-
-.tw-zone {
-  position: absolute;
-  display: flex;
-  align-items: center;
+/* Per-layout widget wireframes. */
+.tw-layout-thumb--default .tw-layout-wire {
   gap: 6px;
-  padding: 6px 10px;
-  border: 1px dashed rgba(255, 255, 255, 0.55);
-  border-radius: 999px;
-  background: rgba(20, 20, 22, 0.55);
-  color: #f1f3f7;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: grab;
 }
 
-.tw-zone.is-over {
-  border-color: var(--accent);
-  background: rgba(57, 101, 230, 0.6);
+.tw-layout-thumb--compact .tw-layout-wire {
+  gap: 4px;
+  padding: 8px 7px;
 }
 
-.tw-zone[data-zone="view"] {
-  top: 14px;
-  right: 14px;
+.tw-layout-thumb--minimal .tw-layout-wire {
+  gap: 3px;
+  width: 74px;
+  padding: 7px 6px;
 }
 
-.tw-zone[data-zone="location"] {
-  top: 52px;
-  right: 14px;
+.tw-layout-thumb--minimal .tw-layout-wire i:first-child {
+  width: 16px;
+  height: 16px;
 }
 
-.tw-zone[data-zone="join"] {
-  top: 14px;
-  left: 14px;
-}
-
-.tw-zone[data-zone="audio"] {
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.tw-profile-preview {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 330px;
-  padding: 20px;
-  border-radius: 14px;
-  background: #3a3a3d;
-  color: #fff;
-  text-align: center;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
-}
-
-.tw-profile-preview h4 {
-  margin: 10px 0 2px;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.tw-profile-preview small {
-  color: #d0d3d9;
-  font-size: 10px;
-}
-
-.tw-profile-preview-body {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.tw-profile-preview-body span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  color: #e7e9ee;
-  font-size: 10px;
-  text-align: left;
-}
-
-.tw-profile-preview-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 18px;
-  color: #cfd3da;
-  font-size: 10px;
-}
-
-.tw-zone-grid {
+/* Colour presets on the merged Card page. */
+.tw-palettes {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.tw-zone-tile {
-  padding: 10px 12px;
+.tw-palette {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 9px 10px;
   border: 2px solid var(--border);
   border-radius: 10px;
   background: var(--bar);
-}
-
-.tw-zone-tile small {
-  display: block;
-  color: #7f8590;
+  color: #9aa0ab;
+  font-family: inherit;
   font-size: 10.5px;
+  cursor: pointer;
 }
 
-.tw-zone-tile b {
-  display: block;
-  margin-top: 2px;
-  color: #dfe3ea;
-  font-size: 12px;
-  font-weight: 500;
+.tw-palette.is-active {
+  border-color: var(--accent);
+  color: #e6e9ef;
+}
+
+.tw-palette-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.tw-palette-dots i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
 /* -------------------------------------------------------------- widget form */
@@ -2557,7 +2487,6 @@
   .tw-grid--4,
   .tw-stat-panels,
   .tw-layout-cards,
-  .tw-zone-grid,
   .tw-option-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2858,50 +2787,6 @@
 .tw-group-head .tw-chevron {
   margin-left: auto;
   transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-
-/* ------------------------------------------------------- live card editor */
-
-.tw-live-stage {
-  display: flex;
-  justify-content: center;
-  min-height: 360px;
-  padding: 26px 18px;
-  border: 2px solid var(--border);
-  border-radius: var(--r-card);
-  background:
-    radial-gradient(520px 260px at 50% 0%, rgba(57, 101, 230, 0.12), transparent 70%),
-    #08080a;
-  overflow: hidden;
-}
-
-/* The scale lives on the wrapper: the preview card applies its own inline
-   transform on hover (parallax), which used to wipe the scale out and make the
-   card jump to full size. */
-.tw-live-scaler {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  transform-origin: top center;
-  transform: scale(var(--tw-live-scale, 0.86));
-  margin-bottom: calc(-1 * (1 - var(--tw-live-scale, 0.86)) * 420px);
-}
-
-@media (max-width: 1280px) {
-  .tw-live-scaler {
-    --tw-live-scale: 0.78;
-  }
-}
-
-@media (max-width: 900px) {
-  .tw-live-stage {
-    padding: 16px 10px;
-  }
-
-  .tw-live-scaler {
-    --tw-live-scale: 0.64;
-  }
 }
 
 /* ------------------------------------------------------ platform picker */

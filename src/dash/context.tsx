@@ -21,7 +21,6 @@ export type Page =
   | "analytics"
   | "customize-profile"
   | "layout"
-  | "portfolio"
   | "effects"
   | "premium"
   | "links"
@@ -32,7 +31,7 @@ export type Page =
   | "settings"
   | "admin";
 
-export type ProfileTab = "profile" | "appearance" | "experience" | "integrations" | "switches";
+export type ProfileTab = "profile" | "experience" | "integrations" | "switches";
 
 export type TabDef = { id: string; label: string; icon: IconName };
 

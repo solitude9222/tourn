@@ -1,19 +1,9 @@
 /* ---------------------------------------------------------------------------
-   Premium, Billing, Portfolio and the two embedded console pages.
+   Premium and Billing.
    --------------------------------------------------------------------------- */
 
 import { useDash } from "../context";
-import {
-  Button,
-  Card,
-  CardHead,
-  Chip,
-  EmptyState,
-  Field,
-  Icon,
-  Slider,
-  Toggle,
-} from "../ui";
+import { Button, Card, CardHead, Chip, EmptyState, Icon } from "../ui";
 
 export function PremiumPage() {
   const { isPremium, go, notify } = useDash();
@@ -191,97 +181,3 @@ export function BillingPage() {
   );
 }
 
-export function PortfolioPage() {
-  const { about, setAbout } = useDash();
-  const slideshow = about.design.slideshow;
-
-  const update = (patch: Partial<typeof slideshow>) =>
-    setAbout((current) => ({
-      ...current,
-      design: { ...current.design, slideshow: { ...current.design.slideshow, ...patch } },
-    }));
-
-  return (
-    <>
-      <Card>
-        <CardHead
-          icon="layers"
-          title="Portfolio"
-          subtitle="Full-height sections and how visitors move through them."
-          actions={
-            <Chip tone={about.design.cardStyle === "slideshow" ? "accent" : "muted"}>
-              {about.design.cardStyle === "slideshow" ? "SLIDESHOW ON" : "CARD MODE"}
-            </Chip>
-          }
-        />
-
-        <div className="tw-inline-toggle">
-          <span>
-            <b>Use the slideshow layout</b>
-            <small>Turn your profile into full-height portfolio sections.</small>
-          </span>
-          <Toggle
-            checked={about.design.cardStyle === "slideshow"}
-            onChange={(checked) =>
-              setAbout((current) => ({
-                ...current,
-                design: {
-                  ...current.design,
-                  cardStyle: checked ? "slideshow" : "default",
-                },
-              }))
-            }
-            label="Use the slideshow layout"
-          />
-        </div>
-
-        <div className="tw-grid tw-grid--2" style={{ marginTop: 20 }}>
-          <div className="tw-inline-toggle">
-            <span>
-              <b>Smooth scrolling</b>
-              <small>Animated snap between sections</small>
-            </span>
-            <Toggle
-              checked={slideshow.smooth}
-              onChange={(checked) => update({ smooth: checked })}
-              label="Smooth scrolling"
-            />
-          </div>
-          <div className="tw-inline-toggle">
-            <span>
-              <b>Section indicator</b>
-              <small>Dots showing where the visitor is</small>
-            </span>
-            <Toggle
-              checked={slideshow.indicator}
-              onChange={(checked) => update({ indicator: checked })}
-              label="Section indicator"
-            />
-          </div>
-          <div className="tw-inline-toggle">
-            <span>
-              <b>Side navigation</b>
-              <small>Section labels down the side</small>
-            </span>
-            <Toggle
-              checked={slideshow.sideNav}
-              onChange={(checked) => update({ sideNav: checked })}
-              label="Side navigation"
-            />
-          </div>
-          <Field label="Scroll speed">
-            <Slider
-              label="Scroll speed"
-              value={slideshow.speed}
-              min={250}
-              max={1400}
-              step={10}
-              suffix="ms"
-              onChange={(value) => update({ speed: value })}
-            />
-          </Field>
-        </div>
-      </Card>
-    </>
-  );
-}

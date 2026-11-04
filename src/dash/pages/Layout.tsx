@@ -1,290 +1,337 @@
 /* ---------------------------------------------------------------------------
-   Customize > Layout — pick a card arrangement, then drag the widgets to the
-   positions the public page supports.
+   Customize > Card — the card layout, the widget positions and the card's
+   colours in one place. The layout only decides how much room the card and
+   its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { useState } from "react";
+import { CARD_STYLES } from "../../lib/about";
 import { useDash } from "../context";
-import { Button, Card, CardHead, Chip, Icon, type IconName } from "../ui";
+import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
 
-type Mode = "card" | "left" | "centered";
-
-type WidgetKey = "view" | "location" | "join" | "audio";
-type ZoneKey = "top-right" | "upper-right" | "in-card" | "bottom";
-
-const WIDGETS: { key: WidgetKey; label: string; icon: IconName }[] = [
-  { key: "view", label: "Profile Views", icon: "eye" },
-  { key: "location", label: "Location", icon: "pin" },
-  { key: "join", label: "Join Date", icon: "calendar" },
-  { key: "audio", label: "Audio Player", icon: "music" },
+const VIEW_OPTIONS = [
+  { value: "top-right", label: "Top right of the card" },
+  { value: "footer", label: "Card footer" },
+  { value: "hidden", label: "Hidden" },
 ];
 
-const ZONES: { key: ZoneKey; label: string; hint: string }[] = [
-  { key: "top-right", label: "Top right", hint: "Beside the card" },
-  { key: "upper-right", label: "Upper right", hint: "Above the card" },
-  { key: "in-card", label: "In card", hint: "Inside the card" },
-  { key: "bottom", label: "Screen bottom", hint: "Pinned to the page" },
+const LOCATION_OPTIONS = [
+  { value: "under-name", label: "Under your name" },
+  { value: "top", label: "Top right" },
+  { value: "footer", label: "Card footer" },
+  { value: "hidden", label: "Hidden" },
 ];
 
-const LAYOUTS: { id: Mode; name: string; hint: string; thumb: React.ReactNode }[] = [
-  {
-    id: "card",
-    name: "Card Layout",
-    hint: "Stacked card design",
-    thumb: (
-      <div className="tw-layout-wire">
-        <i />
-        <i style={{ width: 52 }} />
-        <i style={{ width: 38 }} />
-      </div>
-    ),
-  },
-  {
-    id: "left",
-    name: "Left Layout",
-    hint: "Horizontal design",
-    thumb: (
-      <div className="tw-layout-wire" style={{ flexDirection: "row", alignItems: "center" }}>
-        <i />
-        <div style={{ display: "grid", gap: 4, flex: 1 }}>
-          <i style={{ width: "80%" }} />
-          <i style={{ width: "55%" }} />
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: "centered",
-    name: "Centered Layout",
-    hint: "Centered elements",
-    thumb: (
-      <div className="tw-layout-wire" style={{ alignItems: "center" }}>
-        <i />
-        <i style={{ width: 48 }} />
-        <i style={{ width: 30 }} />
-      </div>
-    ),
-  },
+const JOIN_OPTIONS = [
+  { value: "footer", label: "Card footer" },
+  { value: "under-name", label: "Under your name" },
+  { value: "hidden", label: "Hidden" },
+];
+
+const AUDIO_OPTIONS = [{ value: "bottom", label: "Screen bottom (fixed)" }];
+
+/** Colour pairs that set the accent, card and border together. */
+const PALETTES: { name: string; accent: string; card: string; border: string }[] = [
+  { name: "Ice", accent: "#b4bffa", card: "#12141a", border: "#ffffff" },
+  { name: "Violet", accent: "#a78bfa", card: "#15121f", border: "#b79cff" },
+  { name: "Ocean", accent: "#60c8ff", card: "#0d1620", border: "#8fdcff" },
+  { name: "Mint", accent: "#6ee7b7", card: "#0f1a16", border: "#9ff5d2" },
+  { name: "Ember", accent: "#ff9d6e", card: "#1d1210", border: "#ffc09a" },
+  { name: "Rose", accent: "#ff8fc7", card: "#1e1016", border: "#ffb3d8" },
+  { name: "Gold", accent: "#ffd479", card: "#1a1509", border: "#ffe6a8" },
+  { name: "Cyan", accent: "#67e8f9", card: "#08181c", border: "#a5f3fc" },
+  { name: "Lime", accent: "#c4f16b", card: "#12170b", border: "#dcff9c" },
+  { name: "Slate", accent: "#cbd5e1", card: "#14171c", border: "#e2e8f0" },
 ];
 
 export function LayoutPage() {
   const { about, setAbout, notify } = useDash();
   const design = about.design;
-  const [dragging, setDragging] = useState<WidgetKey | null>(null);
-  const [over, setOver] = useState<ZoneKey | null>(null);
 
-  const mode: Mode =
-    design.layout === "modern" ? "left" : design.cardStyle === "compact" ? "centered" : "card";
+  const updateDesign = (patch: Partial<typeof design>) =>
+    setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
 
-  const applyMode = (next: Mode) => {
+  const updateColors = (patch: Partial<typeof design.colors>) =>
+    updateDesign({ colors: { ...design.colors, ...patch } });
+
+  const gradientOn = about.assets.card.id === "aurora";
+  const updateCard = (patch: Partial<typeof about.assets.card>) =>
     setAbout((current) => ({
       ...current,
-      design: {
-        ...current.design,
-        layout: next === "left" ? "modern" : "classic",
-        cardStyle: next === "centered" ? "compact" : next === "card" ? "default" : current.design.cardStyle,
-      },
+      assets: { ...current.assets, card: { ...current.assets.card, ...patch } },
     }));
-  };
-
-  const positions: Record<WidgetKey, { zone: ZoneKey; label: string }> = {
-    view: {
-      zone: design.viewPosition === "footer" ? "bottom" : design.viewPosition === "hidden" ? "in-card" : "top-right",
-      label:
-        design.viewPosition === "footer"
-          ? "Screen bottom"
-          : design.viewPosition === "hidden"
-            ? "Hidden"
-            : "Top right",
-    },
-    location: {
-      zone:
-        design.locationPosition === "top"
-          ? "upper-right"
-          : design.locationPosition === "footer"
-            ? "bottom"
-            : design.locationPosition === "hidden"
-              ? "in-card"
-              : "in-card",
-      label:
-        design.locationPosition === "top"
-          ? "Upper right"
-          : design.locationPosition === "footer"
-            ? "Screen bottom"
-            : design.locationPosition === "hidden"
-              ? "Hidden"
-              : "In card",
-    },
-    join: {
-      zone:
-        design.joinPosition === "under-name"
-          ? "upper-right"
-          : design.joinPosition === "hidden"
-            ? "top-right"
-            : "in-card",
-      label:
-        design.joinPosition === "under-name"
-          ? "Upper right"
-          : design.joinPosition === "hidden"
-            ? "Hidden"
-            : "In card",
-    },
-    audio: { zone: "bottom", label: "Screen bottom" },
-  };
-
-  const drop = (zone: ZoneKey) => {
-    const widget = dragging;
-    setOver(null);
-    setDragging(null);
-    if (!widget) return;
-
-    if (widget === "audio") {
-      notify("Audio Player", "The player always sits at the bottom of the page.");
-      return;
-    }
-
-    setAbout((current) => {
-      const next = { ...current.design };
-      if (widget === "view") {
-        next.viewPosition = zone === "in-card" ? "top-right" : zone === "bottom" ? "footer" : "top-right";
-      }
-      if (widget === "location") {
-        next.locationPosition =
-          zone === "upper-right" ? "top" : zone === "bottom" ? "footer" : "under-name";
-      }
-      if (widget === "join") {
-        next.joinPosition =
-          zone === "upper-right" ? "under-name" : zone === "bottom" ? "footer" : "footer";
-      }
-      return { ...current, design: next };
-    });
-
-    notify("Layout Customization", "Position updated — save to publish it.");
-  };
 
   return (
     <>
-      <div className="tw-layout-cards">
-        {LAYOUTS.map((layout) => (
-          <button
-            key={layout.id}
-            type="button"
-            className={`tw-layout-card${mode === layout.id ? " is-active" : ""}`}
-            onClick={() => applyMode(layout.id)}
-          >
-            <div className="tw-layout-thumb">{layout.thumb}</div>
-            <b>{layout.name}</b>
-            <small>{layout.hint}</small>
-          </button>
-        ))}
-      </div>
+      <Card>
+        <CardHead
+          icon="layout"
+          title="Card layout"
+          subtitle="Only the spacing and the widget sizes change — your colours, background and blur stay exactly as they are."
+        />
+
+        <div className="tw-layout-cards">
+          {CARD_STYLES.map((layout) => (
+            <button
+              key={layout.id}
+              type="button"
+              className={`tw-layout-card${design.cardStyle === layout.id ? " is-active" : ""}`}
+              onClick={() => updateDesign({ cardStyle: layout.id })}
+            >
+              <div className={`tw-layout-thumb tw-layout-thumb--${layout.id}`}>
+                <div className={`tw-layout-wire tw-layout-wire--${layout.id}`}>
+                  <i />
+                  <i style={{ width: 52 }} />
+                  <i style={{ width: 38 }} />
+                </div>
+              </div>
+              <b>{layout.name}</b>
+              <small>{layout.description}</small>
+            </button>
+          ))}
+        </div>
+      </Card>
 
       <Card>
         <CardHead
           icon="grid"
-          title="Layout Preview"
-          subtitle="Drag the actual profile widgets inside the preview."
+          title="Widget positions"
+          subtitle="Pick where each widget sits. Uncheck a widget on Links → Widgets to hide it completely."
         />
 
-        <div className="tw-row" style={{ gap: 8 }}>
-          <Chip tone="muted">
-            <span className="tw-dot" />
-            Visible widget
-          </Chip>
-          <Chip tone="amber">
-            <Icon name="lock" size={11} />
-            Disabled in settings, position only
-          </Chip>
-        </div>
+        <div className="tw-form-grid">
+          <Field label="Profile views">
+            <Select
+              icon="eye"
+              value={design.viewPosition}
+              options={VIEW_OPTIONS}
+              onChange={(value) => updateDesign({ viewPosition: value as typeof design.viewPosition })}
+            />
+          </Field>
 
-        <div className="tw-layout-canvas">
-          <div className="tw-widget-tray">
-            {WIDGETS.map((widget) => (
-              <span
-                key={widget.key}
-                className="tw-zone"
-                draggable
-                onDragStart={() => setDragging(widget.key)}
-                onDragEnd={() => setDragging(null)}
-                style={{ position: "static", cursor: "grab" }}
-              >
-                <Icon name={widget.icon} size={12} />
-                {widget.label}
-              </span>
-            ))}
-          </div>
+          <Field label="Location">
+            <Select
+              icon="pin"
+              value={design.locationPosition}
+              options={LOCATION_OPTIONS}
+              onChange={(value) =>
+                updateDesign({ locationPosition: value as typeof design.locationPosition })
+              }
+            />
+          </Field>
 
-          {ZONES.map((zone) => (
-            <div
-              key={zone.key}
-              className={`tw-dropzone tw-dropzone--${zone.key}${over === zone.key ? " is-over" : ""}`}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setOver(zone.key);
-              }}
-              onDragLeave={() => setOver((current) => (current === zone.key ? null : current))}
-              onDrop={(event) => {
-                event.preventDefault();
-                drop(zone.key);
-              }}
-              data-zone={zone.key}
-            >
-              {zone.label}
-            </div>
-          ))}
+          <Field label="Join date">
+            <Select
+              icon="calendar"
+              value={design.joinPosition}
+              options={JOIN_OPTIONS}
+              onChange={(value) => updateDesign({ joinPosition: value as typeof design.joinPosition })}
+            />
+          </Field>
 
-          <div className="tw-profile-preview">
-            <span className="tw-style-avatar" style={{ margin: "0 auto" }} />
-            <h4>{about.displayName.trim() || "your name"}</h4>
-            <small>Joined 13 days ago</small>
-            <div className="tw-profile-preview-body">
-              <span>
-                <Icon name="discord" size={12} />
-                Discord
-              </span>
-              <span>
-                <Icon name="music" size={12} />
-                Spotify
-              </span>
-            </div>
-            <div className="tw-profile-preview-foot">
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <Icon name="eye" size={11} /> {positions.view.label}
-              </span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <Icon name="pin" size={11} /> {positions.location.label}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="tw-zone-grid">
-          {WIDGETS.map((widget) => (
-            <div className="tw-zone-tile" key={widget.key}>
-              <small>{widget.label}</small>
-              <b>{positions[widget.key].label}</b>
-            </div>
-          ))}
+          <Field label="Audio player" hint="The player always sits at the bottom of the page.">
+            <Select icon="music" value="bottom" options={AUDIO_OPTIONS} onChange={() => undefined} />
+          </Field>
         </div>
 
         <div className="tw-row" style={{ marginTop: 16, justifyContent: "flex-end" }}>
           <Button
             icon="refresh"
-            onClick={() =>
-              setAbout((current) => ({
-                ...current,
-                design: {
-                  ...current.design,
-                  viewPosition: "top-right",
-                  locationPosition: "under-name",
-                  joinPosition: "footer",
-                },
-              }))
-            }
+            onClick={() => {
+              updateDesign({
+                viewPosition: "top-right",
+                locationPosition: "under-name",
+                joinPosition: "footer",
+              });
+              notify("Widget positions", "Reset to the defaults — save to publish it.");
+            }}
           >
             Reset positions
           </Button>
         </div>
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="palette"
+          title="Card style"
+          subtitle="Colours, surface and size of the card itself."
+        />
+
+        <div className="tw-subhead">Colour presets</div>
+        <div className="tw-palettes">
+          {PALETTES.map((palette) => {
+            const active =
+              palette.accent.toLowerCase() === design.colors.accent.toLowerCase() &&
+              palette.card.toLowerCase() === design.colors.card.toLowerCase();
+            return (
+              <button
+                key={palette.name}
+                type="button"
+                className={`tw-palette${active ? " is-active" : ""}`}
+                onClick={() => updateColors({ accent: palette.accent, card: palette.card, border: palette.border })}
+              >
+                <span className="tw-palette-dots">
+                  <i style={{ background: palette.accent }} />
+                  <i style={{ background: palette.card }} />
+                  <i style={{ background: palette.border }} />
+                </span>
+                {palette.name}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="tw-split" style={{ marginTop: 20 }}>
+          <div className="tw-split-col">
+            <span className="tw-split-label">Colours</span>
+            <ColorField
+              label="Accent"
+              value={design.colors.accent}
+              onChange={(value) => updateColors({ accent: value })}
+            />
+            <ColorField
+              label="Card colour"
+              value={design.colors.card}
+              onChange={(value) => updateColors({ card: value })}
+            />
+            <ColorField
+              label="Border colour"
+              value={design.colors.border}
+              onChange={(value) => updateColors({ border: value })}
+            />
+            <ColorField
+              label="Text colour"
+              value={design.colors.text}
+              onChange={(value) => updateColors({ text: value })}
+            />
+            <ColorField
+              label="Muted text"
+              value={design.colors.muted}
+              onChange={(value) => updateColors({ muted: value })}
+            />
+          </div>
+
+          <div className="tw-split-col">
+            <span className="tw-split-label">Sizes &amp; sliders</span>
+            <Slider
+              label="Card width"
+              value={design.cardWidth}
+              min={360}
+              max={900}
+              step={2}
+              suffix="px"
+              onChange={(value) => updateDesign({ cardWidth: value })}
+            />
+            <Slider
+              label="Opacity"
+              value={design.backgroundOpacity}
+              min={0}
+              max={1}
+              step={0.01}
+              format={(value) => value.toFixed(2)}
+              ticks={["25%", "50%", "75%"]}
+              onChange={(value) => updateDesign({ backgroundOpacity: value })}
+            />
+            <Slider
+              label="Blur"
+              value={design.backgroundBlur}
+              min={0}
+              max={24}
+              onChange={(value) => updateDesign({ backgroundBlur: value })}
+            />
+            <Slider
+              label="Border width"
+              value={design.borderWidth}
+              min={0}
+              max={12}
+              suffix="px"
+              onChange={(value) => updateDesign({ borderWidth: value })}
+            />
+            <Slider
+              label="Border radius"
+              value={design.cardRadius}
+              min={0}
+              max={72}
+              suffix="px"
+              onChange={(value) => updateDesign({ cardRadius: value })}
+            />
+            <Slider
+              label="Border opacity"
+              value={Math.round(design.borderOpacity * 100)}
+              min={0}
+              max={100}
+              suffix="%"
+              ticks={["0%", "50%", "100%"]}
+              onChange={(value) => updateDesign({ borderOpacity: value / 100 })}
+            />
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Make card transparent</b>
+                <small>Remove all card styling</small>
+              </span>
+              <Toggle
+                checked={design.backgroundOpacity === 0}
+                onChange={(checked) => updateDesign({ backgroundOpacity: checked ? 0 : 0.08 })}
+                label="Make card transparent"
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="sparkles"
+          title="Card Gradient"
+          subtitle="Colour and motion of the gradient that travels around your card."
+        />
+        <Button
+          variant={gradientOn ? "ghost" : "primary"}
+          wide
+          icon="sparkles"
+          onClick={() => {
+            updateCard({ id: gradientOn ? "none" : "aurora" });
+            notify("Card Gradient", gradientOn ? "Gradient turned off." : "Gradient activated.");
+          }}
+        >
+          {gradientOn ? "Disable Card Gradient" : "Activate Card Gradient"}
+        </Button>
+
+        {/* The gradient controls only mean anything while it is on. */}
+        {gradientOn ? (
+          <div className="tw-split" style={{ marginTop: 18 }}>
+            <div className="tw-split-col">
+              <span className="tw-split-label">Colours</span>
+              <ColorField
+                label="Gradient colour"
+                value={about.assets.card.color}
+                onChange={(value) => updateCard({ color: value })}
+              />
+            </div>
+            <div className="tw-split-col">
+              <span className="tw-split-label">Sizes &amp; sliders</span>
+              <Slider
+                label="Intensity"
+                value={about.assets.card.intensity}
+                min={0}
+                max={100}
+                suffix="%"
+                onChange={(value) => updateCard({ intensity: value })}
+              />
+              <Slider
+                label="Speed"
+                value={about.assets.card.speed}
+                min={1.5}
+                max={20}
+                step={0.5}
+                suffix="s"
+                onChange={(value) => updateCard({ speed: value })}
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="tw-foot-note">Turn the gradient on to choose its colour and motion.</p>
+        )}
       </Card>
     </>
   );

@@ -352,10 +352,10 @@ export function TemplatesPage() {
       apply: { cardStyle: "default" as const, cardRadius: 22, layout: "classic" as const },
     },
     {
-      id: "banner",
-      name: "Banner",
-      hint: "Wide image strip · 18px radius",
-      apply: { cardStyle: "banner" as const, cardRadius: 18, layout: "classic" as const },
+      id: "soft",
+      name: "Soft",
+      hint: "Rounded · 18px radius",
+      apply: { cardStyle: "default" as const, cardRadius: 18, layout: "classic" as const },
     },
     {
       id: "compact",
@@ -366,8 +366,8 @@ export function TemplatesPage() {
     {
       id: "minimal",
       name: "Minimal",
-      hint: "No card surface · 0px radius",
-      apply: { cardStyle: "minimal" as const, cardRadius: 0, layout: "classic" as const },
+      hint: "Smallest widgets · 12px radius",
+      apply: { cardStyle: "minimal" as const, cardRadius: 12, layout: "classic" as const },
     },
   ];
 

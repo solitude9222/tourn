@@ -131,37 +131,37 @@
   text-decoration-color: #a8e0ff;
 }
 
+/* Live values read as coloured text inside the sentence. They used to be
+   little pills at 0.86em, which sat at the wrong height and made a bio look
+   like a row of bubbles. */
 .rt-live,
 .rt-stamp,
 .rt-relative,
 .rt-countdown {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 6px;
-  border: 1px solid rgba(168, 224, 255, 0.2);
-  border-radius: 999px;
-  background: rgba(168, 224, 255, 0.07);
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
   color: #b9e9ff;
-  font-size: 0.86em;
+  font-size: inherit;
   font-variant-numeric: tabular-nums;
-  line-height: 1.5;
-  vertical-align: baseline;
+  line-height: inherit;
   white-space: nowrap;
 }
 
 .rt-live {
-  border-color: rgba(110, 231, 183, 0.26);
-  background: rgba(52, 211, 153, 0.08);
   color: #a7f3d0;
 }
 
 .rt-live i {
-  width: 4px;
-  height: 4px;
+  display: inline-block;
+  width: 0.36em;
+  height: 0.36em;
+  margin-right: 0.34em;
   border-radius: 50%;
   background: #5eead4;
-  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.13);
+  vertical-align: 0.1em;
   animation: rtPulse 2s ease-in-out infinite;
 }
 
@@ -171,20 +171,14 @@
 }
 
 .rt-date {
-  border-color: rgba(196, 181, 253, 0.24);
-  background: rgba(167, 139, 250, 0.08);
   color: #ddd6fe;
 }
 
 .rt-relative {
-  border-color: rgba(253, 224, 71, 0.22);
-  background: rgba(250, 204, 21, 0.07);
   color: #fde68a;
 }
 
 .rt-countdown {
-  border-color: rgba(251, 146, 60, 0.24);
-  background: rgba(249, 115, 22, 0.08);
   color: #fed7aa;
 }
 

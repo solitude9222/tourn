@@ -1817,39 +1817,6 @@ button {
   text-transform: uppercase;
 }
 
-.bcard-label {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(5, 7, 9, 0.55);
-  backdrop-filter: blur(4px);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: #a9cfdf;
-}
-
-.bcard--discord .bcard-label,
-.bcard--server .bcard-label {
-  color: #a9dfff;
-}
-
-.bcard--spotify .bcard-label {
-  color: #8fe0b0;
-}
-
-.bcard--steam .bcard-label {
-  color: #9bdcff;
-}
-
 .bcard-meta {
   display: flex;
   align-items: center;
@@ -3554,9 +3521,6 @@ button {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .bcard-label {
-    font-size: 8.5px;
-  }
 }
 
 /* ------------------------------------------------------ site: black shell */
@@ -3876,12 +3840,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   color: #9aa6af;
 }
 
-.app--site .bcard-meta,
-.app--site .bcard-label,
-.app--site .bcard--discord .bcard-label,
-.app--site .bcard--server .bcard-label,
-.app--site .bcard--spotify .bcard-label,
-.app--site .bcard--steam .bcard-label {
+.app--site .bcard-meta {
   color: #86939c;
 }
 

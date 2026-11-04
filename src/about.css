@@ -655,38 +655,111 @@
   pointer-events: none;
 }
 
-.pv-card-banner .pv-body {
+/* A banner is an asset of its own now, so it works with every layout. */
+.pv-has-banner .pv-body {
   padding-top: calc(var(--pv-pad) * 0.55);
 }
 
-.pv-card-banner .pv-topline {
+.pv-has-banner .pv-topline {
   margin-top: -44px;
 }
 
-.pv-card-minimal {
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
-.pv-card-minimal .pv-bio .rt-code-block,
-.pv-card-minimal .pv-links {
-  border-color: rgba(255, 255, 255, 0.08);
-}
+/* ── layouts ──────────────────────────────────────────────────────────────
+   A layout only changes spacing and how large the widgets sit. The card's
+   colour, background, border and blur are left exactly as they were — the
+   old "minimal" layout used to wipe the surface, which made switching layout
+   look like it changed the whole theme. */
 
 .pv-card-compact .pv-body,
 .profile-preview--compact .pv-body {
-  padding: calc(var(--pv-pad) * 0.72);
+  padding: calc(var(--pv-pad) * 0.8);
 }
 
 .pv-card-compact .pv-id h3,
 .profile-preview--compact .pv-id h3 {
-  font-size: calc(var(--pv-name) * 0.9);
+  font-size: calc(var(--pv-name) * 0.94);
 }
 
 .pv-card-compact .pv-bio {
   margin-top: 10px;
+}
+
+.pv-card-minimal .pv-body {
+  padding: calc(var(--pv-pad) * 0.66);
+}
+
+.pv-card-minimal .pv-id h3 {
+  font-size: calc(var(--pv-name) * 0.88);
+}
+
+.pv-card-minimal .pv-bio {
+  margin-top: 8px;
+  line-height: 1.55;
+}
+
+/* Widgets shrink with the layout so a compact card does not end up carrying
+   full-size widget slabs. */
+.pv-card-compact .lkr-widgets {
+  gap: 10px;
+}
+
+.pv-card-compact .widget-card {
+  min-height: 82px;
+  padding: 10px 11px;
+}
+
+.pv-card-compact .widget-card-avatar {
+  width: 38px;
+  height: 38px;
+}
+
+.pv-card-compact .widget-card-name b {
+  font-size: 12px;
+}
+
+.pv-card-compact .widget-card-handle {
+  font-size: 9px;
+}
+
+.pv-card-compact .widget-card-chip {
+  font-size: 8px;
+  padding: 2px 5px;
+}
+
+.pv-card-minimal .lkr-widgets {
+  gap: 8px;
+}
+
+.pv-card-minimal .widget-card {
+  min-height: 62px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.pv-card-minimal .widget-card-avatar {
+  width: 30px;
+  height: 30px;
+}
+
+.pv-card-minimal .widget-card-head {
+  gap: 8px;
+}
+
+.pv-card-minimal .widget-card-name b {
+  font-size: 11.5px;
+}
+
+.pv-card-minimal .widget-card-handle {
+  font-size: 8.5px;
+}
+
+.pv-card-minimal .widget-card-chip {
+  font-size: 7.5px;
+  padding: 2px 4px;
+}
+
+.pv-card-minimal .widget-card-meta {
+  display: none;
 }
 
 .pv-ambient {
@@ -1268,126 +1341,12 @@
   margin-top: 4px;
 }
 
-/* slideshow */
-
-.lkr-scroll {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.lkr-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.lkr-slideshow {
-  scroll-snap-type: y mandatory;
-}
+/* sections */
 
 .lkr-section {
   scroll-snap-align: start;
 }
 
-.lkr-slide {
-  display: flex;
-  /* Includes padding in the 100% height so each slide is exactly one screen
-     and scroll-snap lands cleanly instead of drifting past the fold. */
-  box-sizing: border-box;
-  min-height: 100%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 40px 34px;
-}
-
-.lkr-slide-title {
-  margin: 0;
-  color: var(--pv-text);
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  opacity: 0.7;
-}
-
-.lkr-slide .profile-preview {
-  width: 100%;
-}
-
-.lkr-side-nav {
-  position: absolute;
-  top: 50%;
-  right: 9px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transform: translateY(-50%);
-}
-
-.lkr-side-dot {
-  display: grid;
-  width: 16px;
-  height: 16px;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-}
-
-.lkr-side-dot span {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--pv-text) 26%, transparent);
-  transition: height 0.2s ease, background 0.2s ease;
-}
-
-.lkr-side-dot:hover span {
-  background: color-mix(in srgb, var(--pv-text) 55%, transparent);
-}
-
-.lkr-side-dot.is-active span {
-  height: 14px;
-  background: var(--pv-accent);
-}
-
-.lkr-scroll-hint {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  z-index: 3;
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
-  color: var(--pv-muted);
-  cursor: pointer;
-  transform: translateX(-50%);
-  animation: lkrNudge 2.4s ease-in-out infinite;
-}
-
-.lkr-scroll-hint:hover {
-  color: var(--pv-text);
-}
-
-@keyframes lkrNudge {
-  0%,
-  100% {
-    transform: translate(-50%, 0);
-  }
-  50% {
-    transform: translate(-50%, 4px);
-  }
-}
 
 /* entry screen */
 
@@ -1704,9 +1663,6 @@
     flex-wrap: wrap;
   }
 
-  .lkr-slide {
-    padding: 30px 26px;
-  }
 }
 
 @media (max-width: 540px) {
@@ -1726,13 +1682,6 @@
   .about-save-actions {
     width: 100%;
     justify-content: flex-end;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lkr-scroll-hint {
-    animation: none !important;
-    transition: none !important;
   }
 }
 
@@ -1777,14 +1726,6 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-}
-
-.pv-card-banner:not(.pv-has-banner) .pv-body {
-  padding-top: var(--pv-pad);
-}
-
-.pv-card-banner:not(.pv-has-banner) .pv-topline {
-  margin-top: 0;
 }
 
 .pv-avatar-wrap {
@@ -1972,8 +1913,7 @@
 }
 
 .lkr-widgets > *,
-.lkr-links > *,
-.lkr-slide-title {
+.lkr-links > * {
   animation: pvSettle 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -1996,8 +1936,7 @@
 @media (prefers-reduced-motion: reduce) {
   .profile-preview,
   .lkr-widgets > *,
-  .lkr-links > *,
-  .lkr-slide-title {
+  .lkr-links > * {
     animation: none;
   }
 }
@@ -2862,10 +2801,31 @@
 }
 
 .profile-cursor-trail {
-  width: calc(var(--fx-cursor-size) * 0.34);
-  height: calc(var(--fx-cursor-size) * 0.34);
+  width: calc(var(--fx-cursor-size) * 0.34 * var(--fx-dot, 1));
+  height: calc(var(--fx-cursor-size) * 0.34 * var(--fx-dot, 1));
   background: var(--fx-cursor-color);
   transition: transform var(--fx-cursor-speed) linear, opacity 0.2s ease;
+}
+
+/* Trail styles — Customize › Effects › Cursor. */
+.profile-cursor-trail--line {
+  width: calc(var(--fx-cursor-size) * 0.8);
+  height: max(1px, calc(var(--fx-cursor-size) * 0.12));
+  border-radius: 999px;
+}
+
+.profile-cursor-trail--glow {
+  width: calc(var(--fx-cursor-size) * 0.9 * var(--fx-dot, 1));
+  height: calc(var(--fx-cursor-size) * 0.9 * var(--fx-dot, 1));
+  filter: blur(3px);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--fx-cursor-color) 70%, transparent);
+}
+
+.profile-cursor-trail--comet {
+  width: calc(var(--fx-cursor-size) * 0.55 * var(--fx-dot, 1));
+  height: calc(var(--fx-cursor-size) * 0.2 * var(--fx-dot, 1));
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--fx-cursor-color));
 }
 
 .profile-cursor--ring .profile-cursor-point {
@@ -4031,13 +3991,6 @@
   flex: none;
 }
 
-/* Optional per-element glows, driven by Customize › Switches. */
-.pv-glow-name .pv-id h3 {
-  text-shadow:
-    0 0 14px color-mix(in srgb, var(--pv-accent) 75%, transparent),
-    0 0 34px color-mix(in srgb, var(--pv-accent) 45%, transparent);
-}
-
 /* ONEKO — a cat that trails the pointer inside the card. */
 /* Location, views and join date are plain text now — no pill chrome. */
 .pv-location,
@@ -4049,15 +4002,4 @@
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-}
-
-/* Optional per-element glows (Customize › Switches). These have to come after
-   the plain-text reset, which otherwise wiped the colour and the halo and left
-   the "Location / Views / Join Date Glow" switches doing nothing. */
-.pv-glow-location .pv-location,
-.pv-glow-views .pv-views,
-.pv-glow-join .pv-foot-item {
-  color: color-mix(in srgb, var(--pv-accent) 40%, var(--pv-text));
-  text-shadow: 0 0 12px color-mix(in srgb, var(--pv-accent) 55%, transparent);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--pv-accent) 38%, transparent);
 }

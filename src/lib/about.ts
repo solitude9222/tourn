@@ -4,8 +4,9 @@ import type { TooltipStyle } from "./links";
 export type AboutTheme = "default" | "modern" | "portfolio";
 export type AboutLayout = "classic" | "modern";
 
-/** The public "linker" page layout. */
-export type CardStyle = "default" | "banner" | "compact" | "minimal" | "slideshow";
+/** The public "linker" page layout. Each one only changes spacing and how
+ *  large the widgets sit — never the card's colour, background or blur. */
+export type CardStyle = "default" | "compact" | "minimal";
 
 /** Where the avatar sits in the card's top row. */
 export type PfpPosition = "default" | "center" | "top-right" | "left" | "right" | "above";
@@ -43,13 +44,6 @@ export type AboutMetadata = {
 };
 
 export type EntryAnimation = "split" | "bottom-right" | "top-left" | "fade" | "zoom";
-
-export type SlideshowSettings = {
-  smooth: boolean;
-  indicator: boolean;
-  sideNav: boolean;
-  speed: number;
-};
 
 export type EntrySettings = {
   enabled: boolean;
@@ -165,11 +159,6 @@ export type AboutDesign = {
   tilt: number;
   /** Reverse the tilt direction. */
   tiltInvert?: boolean;
-  /** Optional glows applied to individual card elements. */
-  glowName?: boolean;
-  glowLocation?: boolean;
-  glowViews?: boolean;
-  glowJoin?: boolean;
   /** A small cat that follows the pointer around the card. */
   oneko?: boolean;
   /** Avatar position offset from default */
@@ -190,7 +179,6 @@ export type AboutDesign = {
   viewPosition: ViewPosition;
   joinPosition: JoinPosition;
   locationPosition: LocationPosition;
-  slideshow: SlideshowSettings;
   entry: EntrySettings;
   colors: ProfileColors;
   pills: PillStyle;
@@ -222,13 +210,6 @@ export const DEFAULT_PROFILE_COLORS: ProfileColors = {
   background: "#07070a",
   card: "#12141a",
   border: "#ffffff",
-};
-
-export const DEFAULT_SLIDESHOW: SlideshowSettings = {
-  smooth: true,
-  indicator: true,
-  sideNav: true,
-  speed: 650,
 };
 
 export const DEFAULT_ENTRY: EntrySettings = {
@@ -274,15 +255,15 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   theme: "default",
   layout: "classic",
   cardStyle: "default",
-  cardWidth: 643,
+  cardWidth: 560,
   cardRadius: 22,
   borderWidth: 0,
   borderOpacity: 0.1,
   backgroundOpacity: 0.08,
   backgroundBlur: 0,
-  // A 72px avatar reads as a thumbnail on a 643px card — the profile picture is
+  // A 72px avatar reads as a thumbnail on a 560px card — the profile picture is
   // the thing people look at first, so the default is large enough to see.
-  avatarSize: 104,
+  avatarSize: 92,
   widgetGap: 12,
   cardPadding: 20,
   nameSize: 21,
@@ -297,7 +278,6 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   viewPosition: "top-right",
   joinPosition: "footer",
   locationPosition: "under-name",
-  slideshow: DEFAULT_SLIDESHOW,
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
   pills: DEFAULT_PILL_STYLE,
@@ -314,11 +294,9 @@ export const EMPTY_ABOUT: About = {
 };
 
 export const CARD_STYLES: { id: CardStyle; name: string; description: string }[] = [
-  { id: "default", name: "Default", description: "One centered card with your bio and widgets." },
-  { id: "banner", name: "Banner", description: "A wide image strip behind your avatar." },
-  { id: "compact", name: "Compact", description: "Tighter spacing for short, quick profiles." },
-  { id: "minimal", name: "Minimal", description: "No card surface — just your content." },
-  { id: "slideshow", name: "Slideshow", description: "Full-height sections with smooth scrolling." },
+  { id: "default", name: "Default", description: "Full-size card with roomy spacing." },
+  { id: "compact", name: "Compact", description: "Tighter spacing and smaller widgets." },
+  { id: "minimal", name: "Minimal", description: "Smallest widgets, no extra chrome." },
 ];
 
 export const ENTRY_ANIMATIONS: { id: EntryAnimation; name: string }[] = [
@@ -394,16 +372,6 @@ function loadMetadata(input: unknown): AboutMetadata {
     animation: oneOf(raw.animation, TAB_ANIMATIONS, DEFAULT_METADATA.animation),
     messages,
     interval: numberIn(raw.interval, DEFAULT_METADATA.interval, 2, 30),
-  };
-}
-
-function loadSlideshow(input: unknown): SlideshowSettings {
-  const raw = (input ?? {}) as Partial<SlideshowSettings>;
-  return {
-    smooth: boolIn(raw.smooth, DEFAULT_SLIDESHOW.smooth),
-    indicator: boolIn(raw.indicator, DEFAULT_SLIDESHOW.indicator),
-    sideNav: boolIn(raw.sideNav, DEFAULT_SLIDESHOW.sideNav),
-    speed: numberIn(raw.speed, DEFAULT_SLIDESHOW.speed, 250, 1400),
   };
 }
 
@@ -490,12 +458,6 @@ function loadDesign(input: unknown): AboutDesign {
     bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 24),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),
     tiltInvert: boolIn(raw.tiltInvert, false),
-    // These used to be dropped here, so every save silently reset them — the
-    // glow switches and the ONEKO toggle looked like they did nothing.
-    glowName: boolIn(raw.glowName, false),
-    glowLocation: boolIn(raw.glowLocation, false),
-    glowViews: boolIn(raw.glowViews, false),
-    glowJoin: boolIn(raw.glowJoin, false),
     oneko: boolIn(raw.oneko, false),
     avatarX: numberIn(raw.avatarX, 0, -200, 200),
     avatarY: numberIn(raw.avatarY, 0, -200, 200),
@@ -532,7 +494,6 @@ function loadDesign(input: unknown): AboutDesign {
       LOCATION_POSITIONS,
       DEFAULT_ABOUT_DESIGN.locationPosition,
     ),
-    slideshow: loadSlideshow(raw.slideshow),
     entry: loadEntry(raw.entry),
     colors: {
       accent: validColor(rawColors.accent, DEFAULT_PROFILE_COLORS.accent),

@@ -8,7 +8,7 @@ import { DEFAULT_LINK_DESIGN, EMPTY_LINK_STORE, type LinkStore } from "../lib/li
 import { ProfilePreview } from "./ProfilePreview";
 import { ProfileLinks } from "./ProfileLinks";
 import { ProfileMetadata } from "./ProfileMetadata";
-import { BackgroundEffectLayer, OverlayEffectLayer } from "./ProfileEffects";
+import { BackgroundEffectLayer, OverlayEffectLayer, ProfileCursor } from "./ProfileEffects";
 import { WidgetCard } from "./WidgetCard";
 import { ChevronIcon } from "./Icons";
 import "../about.css";
@@ -231,11 +231,6 @@ export function LinkerPreview({
     }
   };
   const [entryOpen, setEntryOpen] = useState(entryWanted);
-  const [active, setActive] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
-
-  const slideshow = design.cardStyle === "slideshow";
 
   useEffect(() => {
     setEntryOpen(entryWanted());
@@ -248,24 +243,6 @@ export function LinkerPreview({
     if (entryPlayToken <= 0) return;
     setEntryOpen(showEntry && design.entry.enabled);
   }, [entryPlayToken, showEntry, design.entry.enabled]);
-
-  useEffect(() => {
-    if (!slideshow) return;
-    const scroller = scrollRef.current;
-    if (!scroller) return;
-    const onScroll = () => {
-      const center = scroller.scrollTop + scroller.clientHeight / 2;
-      let next = 0;
-      sectionRefs.current.forEach((section, index) => {
-        if (!section) return;
-        if (section.offsetTop <= center) next = index;
-      });
-      setActive(next);
-    };
-    scroller.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => scroller.removeEventListener("scroll", onScroll);
-  }, [slideshow, design.entry.enabled]);
 
   const style = {
     "--pv-accent": design.colors.accent,
@@ -283,7 +260,6 @@ export function LinkerPreview({
     "--pv-name": `${design.nameSize}px`,
     "--pv-bio-size": `${design.bioSize}px`,
     "--lkr-gap": `${design.widgetGap}px`,
-    "--lkr-scroll-speed": `${design.slideshow.speed}ms`,
     "--lkr-bg-color": assets.background.color,
     "--lkr-bg-from": assets.background.from,
     "--lkr-bg-to": assets.background.to,
@@ -312,7 +288,7 @@ export function LinkerPreview({
       badgeStyle={badges.style ?? DEFAULT_BADGE_STYLE}
       links={links.links}
       linkDesign={links.design ?? DEFAULT_LINK_DESIGN}
-      className={slideshow ? "profile-preview--slide" : "profile-preview--with-widgets"}
+      className="profile-preview--with-widgets"
       views={views}
       joined={joined}
       entryActive={entryOpen}
@@ -321,102 +297,7 @@ export function LinkerPreview({
     </ProfilePreview>
   );
 
-  const goTo = (index: number) => {
-    const section = sectionRefs.current[index];
-    const scroller = scrollRef.current;
-    if (!section || !scroller) return;
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!design.slideshow.smooth || reduceMotion) {
-      scroller.scrollTop = section.offsetTop;
-      return;
-    }
-
-    const start = scroller.scrollTop;
-    const distance = section.offsetTop - start;
-    const duration = design.slideshow.speed;
-    const started = performance.now();
-
-    const step = (now: number) => {
-      const progress = Math.min(1, (now - started) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      scroller.scrollTop = start + distance * eased;
-      if (progress < 1) window.requestAnimationFrame(step);
-    };
-
-    window.requestAnimationFrame(step);
-  };
-
-  const page = slideshow ? (
-    <>
-      <div
-        ref={scrollRef}
-        className="lkr-scroll lkr-slideshow"
-      >
-        <PageSection
-          id="lkr-profile"
-          className="lkr-slide lkr-slide--profile"
-          innerRef={(node) => {
-            sectionRefs.current[0] = node;
-          }}
-        >
-          {profileCard(false)}
-        </PageSection>
-        <PageSection
-          id="lkr-widgets"
-          className="lkr-slide"
-          innerRef={(node) => {
-            sectionRefs.current[1] = node;
-          }}
-        >
-          <h3 className="lkr-slide-title">Widgets</h3>
-          {widgetStack}
-        </PageSection>
-        <PageSection
-          id="lkr-links"
-          className="lkr-slide"
-          innerRef={(node) => {
-            sectionRefs.current[2] = node;
-          }}
-        >
-          <h3 className="lkr-slide-title">Find me</h3>
-          {links.links.some((l) => l.visible && l.url.trim()) ? (
-            <ProfileLinks links={links.links} design={links.design ?? DEFAULT_LINK_DESIGN} />
-          ) : (
-            <span className="lkr-link-pill">tourn.lol/{user.username}</span>
-          )}
-        </PageSection>
-      </div>
-
-      {design.slideshow.sideNav ? (
-        <nav className="lkr-side-nav" aria-label="Profile sections">
-          {["Profile", "Widgets", "Links"].map((label, index) => (
-            <button
-              key={label}
-              type="button"
-              className={`lkr-side-dot${active === index ? " is-active" : ""}`}
-              onClick={() => goTo(index)}
-              aria-label={label}
-              title={label}
-            >
-              <span />
-            </button>
-          ))}
-        </nav>
-      ) : null}
-
-      {design.slideshow.indicator ? (
-        <button
-          type="button"
-          className="lkr-scroll-hint"
-          onClick={() => goTo(Math.min(active + 1, 2))}
-          aria-label="Scroll to next section"
-        >
-          <ChevronIcon size={13} />
-        </button>
-      ) : null}
-    </>
-  ) : (
+  const page = (
     <div className="lkr-flow">
       {profileCard(true)}
     </div>
@@ -441,6 +322,7 @@ export function LinkerPreview({
       <BackgroundEffectLayer settings={assets.effects.background} />
       {page}
       <OverlayEffectLayer settings={assets.effects.overlay} />
+      <ProfileCursor settings={assets.cursor} />
       {entryOpen ? (
         <EntryOverlay
           about={about}

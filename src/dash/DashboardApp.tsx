@@ -28,7 +28,7 @@ import { BadgesPage } from "./pages/Badges";
 import { LinksPage } from "./pages/Links";
 import { WidgetsPage } from "./pages/Widgets";
 import { AssetBrowserPage, TemplatesPage } from "./pages/Assets";
-import { BillingPage, PortfolioPage, PremiumPage } from "./pages/Plan";
+import { BillingPage, PremiumPage } from "./pages/Plan";
 
 const AccountSettingsPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AccountSettingsPage })),
@@ -66,7 +66,6 @@ export type DashboardProps = {
 
 const PROFILE_TABS: TabDef[] = [
   { id: "profile", label: "Profile", icon: "user" },
-  { id: "appearance", label: "Appearance", icon: "palette" },
   { id: "experience", label: "Experience", icon: "sparkles" },
   { id: "integrations", label: "Integrations", icon: "link" },
   { id: "switches", label: "Extra", icon: "sliders" },
@@ -100,15 +99,9 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Customize",
   },
   layout: {
-    title: "Layout",
-    subtitle: "Choose how your profile widgets are arranged.",
+    title: "Card",
+    subtitle: "Card layout, widget positions and styling in one place.",
     icon: "layout",
-    crumb: "Customize",
-  },
-  portfolio: {
-    title: "Portfolio",
-    subtitle: "Full-height sections and how they scroll.",
-    icon: "layers",
     crumb: "Customize",
   },
   effects: {
@@ -419,9 +412,6 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "layout":
       content = <LayoutPage />;
-      break;
-    case "portfolio":
-      content = <PortfolioPage />;
       break;
     case "effects":
       content = <EffectsPage />;

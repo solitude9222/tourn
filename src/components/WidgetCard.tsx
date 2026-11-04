@@ -99,6 +99,9 @@ function WidgetCardSurface({
   const hasArt = design.backgroundStyle === "art" && Boolean(live?.art);
   const background = hasArt ? "art" : design.backgroundStyle === "art" ? "frosted" : design.backgroundStyle;
   const compact = widget.options.compact === true;
+  // A widget with no surface of its own still has a readable version — hovering
+  // it swaps to that one instead of leaving bare text floating over the page.
+  const bare = !hasArt && design.backgroundOpacity <= 0.05;
   const profileHref = widgetProfileUrl(platform.id, content);
 
   const title = live?.title?.trim() || (configured ? content : platform.name);
@@ -144,7 +147,9 @@ function WidgetCardSurface({
         live?.status ? ` is-${live.status}` : ""
       }${loading && !live ? " is-loading" : ""}${error ? " has-error" : ""}${
         compact ? " is-compact" : ""
-      }${preview ? " widget-card--preview" : ""}${className ? ` ${className}` : ""}`}
+      }${bare ? " is-bare" : ""}${preview ? " widget-card--preview" : ""}${
+        className ? ` ${className}` : ""
+      }`}
       style={style}
       data-platform={platform.id}
     >
@@ -170,7 +175,7 @@ function WidgetCardSurface({
             <span className="widget-card-name">
               <b title={title}>{title}</b>
               {live?.tag ? (
-                <span className="widget-card-tag" title={`Guild tag: ${live.tag}`}>
+                <span className="widget-card-tag">
                   {live.tagBadge ? (
                     <img
                       src={live.tagBadge}

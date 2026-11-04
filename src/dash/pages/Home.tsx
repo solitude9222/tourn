@@ -78,7 +78,7 @@ export function HomePage() {
     {
       label: "Add a background",
       done: Boolean(about.assets.background.imageUrl) || about.assets.background.style === "gradient",
-      target: () => go("customize-profile", "appearance"),
+      target: () => go("effects"),
     },
     {
       label: "Connect Discord account",

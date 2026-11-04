@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import {
   BACKGROUND_EFFECTS,
   TEXT_EFFECTS,
@@ -8,15 +9,14 @@ import {
   type TextEffectTarget,
 } from "../../lib/profileAssets";
 import { useDash } from "../context";
-import { Card, CardHead, ColorField, Field, Select, Slider, TextInput, Toggle } from "../ui";
+import { imageToDataUrl } from "../files";
+import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
 
-const CURSORS: { value: CursorSettings["style"]; label: string }[] = [
-  { value: "default", label: "System cursor" },
-  { value: "dot", label: "Dot" },
-  { value: "ring", label: "Ring" },
-  { value: "crosshair", label: "Crosshair" },
+const CURSOR_TRAILS: { value: CursorSettings["trailType"]; label: string }[] = [
+  { value: "dots", label: "Dots" },
+  { value: "line", label: "Line" },
   { value: "glow", label: "Glow" },
-  { value: "custom", label: "Custom image" },
+  { value: "comet", label: "Comet" },
 ];
 
 const TEXT_TARGETS: { id: TextEffectTarget; label: string }[] = [
@@ -77,6 +77,25 @@ export function EffectsPage() {
   const background = effects.background;
   const overlay = effects.overlay;
   const cursor = about.assets.cursor;
+  const cursorInput = useRef<HTMLInputElement>(null);
+  const [cursorError, setCursorError] = useState("");
+
+  // A real upload, not a list of presets: whatever image is picked becomes the
+  // pointer on the public page.
+  const uploadCursor = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setCursorError("Choose an image file.");
+      return;
+    }
+    try {
+      const url = await imageToDataUrl(file, 128, 128);
+      setCursor({ imageUrl: url, style: "custom" });
+      setCursorError("");
+    } catch {
+      setCursorError("That image could not be read.");
+    }
+  };
 
   return (
     <>
@@ -235,17 +254,44 @@ export function EffectsPage() {
       </Card>
 
       <Card>
-        <CardHead icon="move" title="Cursor" subtitle="Replace the pointer on your public page." />
+        <CardHead icon="move" title="Cursor" subtitle="Replace the pointer and let it leave a trail." />
+
+        <input
+          ref={cursorInput}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(event) => {
+            void uploadCursor(event.target.files?.[0] ?? null);
+            event.target.value = "";
+          }}
+        />
+
         <div className="tw-form-grid">
-          <Field label="Style">
-            <Select
-              value={cursor.style}
-              options={CURSORS}
-              onChange={(value) => setCursor({ style: value as CursorSettings["style"] })}
-            />
+          <Field
+            label="Cursor image"
+            hint="PNG, GIF or SVG. Leave it empty to keep the normal pointer."
+            className="tw-span-2"
+          >
+            <div className="tw-row">
+              <Button icon="upload" onClick={() => cursorInput.current?.click()}>
+                {cursor.imageUrl ? "Replace cursor" : "Upload cursor"}
+              </Button>
+              {cursor.imageUrl ? (
+                <Button
+                  variant="danger"
+                  icon="trash"
+                  onClick={() => setCursor({ imageUrl: "", style: "default" })}
+                >
+                  Remove
+                </Button>
+              ) : null}
+            </div>
           </Field>
+          {cursorError ? <p className="tw-foot-note">{cursorError}</p> : null}
+
           <ColorField
-            label="Colour"
+            label="Trail colour"
             value={cursor.color}
             onChange={(value) => setCursor({ color: value })}
           />
@@ -257,26 +303,41 @@ export function EffectsPage() {
             suffix="px"
             onChange={(value) => setCursor({ size: value })}
           />
-          <div className="tw-inline-toggle">
-            <span>
-              <b>Trail</b>
-              <small>Dots following the pointer.</small>
-            </span>
-            <Toggle
-              checked={cursor.trail}
-              onChange={(checked) => setCursor({ trail: checked })}
-              label="Cursor trail"
-            />
-          </div>
-          <Field label="Custom cursor image" className="tw-span-2">
-            <TextInput
-              icon="image"
-              value={cursor.imageUrl}
-              placeholder="https://… or a data URL"
-              onChange={(event) => setCursor({ imageUrl: event.target.value })}
-            />
-          </Field>
         </div>
+
+        <div className="tw-subhead">Trail</div>
+        <div className="tw-inline-toggle">
+          <span>
+            <b>Show a trail</b>
+            <small>The shapes that follow your pointer.</small>
+          </span>
+          <Toggle
+            checked={cursor.trail}
+            onChange={(checked) => setCursor({ trail: checked })}
+            label="Cursor trail"
+          />
+        </div>
+
+        {cursor.trail ? (
+          <div className="tw-form-grid" style={{ marginTop: 12 }}>
+            <Field label="Trail style">
+              <Select
+                value={cursor.trailType}
+                options={CURSOR_TRAILS}
+                onChange={(value) => setCursor({ trailType: value as CursorSettings["trailType"] })}
+              />
+            </Field>
+            <Field label="Trail length">
+              <Slider
+                label="Shapes"
+                value={cursor.trailLength}
+                min={2}
+                max={24}
+                onChange={(value) => setCursor({ trailLength: value })}
+              />
+            </Field>
+          </div>
+        ) : null}
       </Card>
     </>
   );

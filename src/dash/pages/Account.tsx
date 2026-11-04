@@ -459,52 +459,29 @@ export function AccountProfilePage() {
 
         <div className="tw-subhead">Cursor</div>
         <div className="tw-form-grid">
-          <Field label="Cursor style">
-            <Select
-              value={assets.cursor.style}
-              options={[
-                { value: "default", label: "Default" },
-                { value: "dot", label: "Dot" },
-                { value: "ring", label: "Ring" },
-                { value: "crosshair", label: "Crosshair" },
-                { value: "glow", label: "Glow" },
-                { value: "custom", label: "Custom image" },
-              ]}
-              onChange={(value) =>
-                updateAssets({
-                  cursor: { ...assets.cursor, style: value as typeof assets.cursor.style },
-                })
-              }
-            />
-          </Field>
-          {assets.cursor.style === "custom" ? (
-            <Field label="Cursor image">
-              <div className="tw-row">
-                <Button icon="upload" onClick={() => pick("image/*", uploadCursor)}>
-                  {assets.cursor.imageUrl ? "Replace cursor" : "Upload cursor"}
+          <Field label="Cursor image" hint="Upload an image to replace the pointer. Leave it empty to keep the normal cursor.">
+            <div className="tw-row">
+              <Button icon="upload" onClick={() => pick("image/*", uploadCursor)}>
+                {assets.cursor.imageUrl ? "Replace cursor" : "Upload cursor"}
+              </Button>
+              {assets.cursor.imageUrl ? (
+                <Button
+                  variant="danger"
+                  icon="trash"
+                  onClick={() =>
+                    updateAssets({ cursor: { ...assets.cursor, imageUrl: "", style: "default" } })
+                  }
+                >
+                  Remove
                 </Button>
-                {assets.cursor.imageUrl ? (
-                  <Button
-                    variant="danger"
-                    icon="trash"
-                    onClick={() =>
-                      updateAssets({ cursor: { ...assets.cursor, imageUrl: "", style: "default" } })
-                    }
-                  >
-                    Remove
-                  </Button>
-                ) : null}
-              </div>
-            </Field>
-          ) : (
-            <ColorField
-              label="Cursor colour"
-              value={assets.cursor.color}
-              onChange={(value) =>
-                updateAssets({ cursor: { ...assets.cursor, color: value } })
-              }
-            />
-          )}
+              ) : null}
+            </div>
+          </Field>
+          <ColorField
+            label="Cursor colour"
+            value={assets.cursor.color}
+            onChange={(value) => updateAssets({ cursor: { ...assets.cursor, color: value } })}
+          />
         </div>
 
         <input

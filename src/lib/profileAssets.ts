@@ -10,6 +10,8 @@ export type CardEffectId =
   | "edgeGlow"
   | "frost";
 export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
+/** How the pointer trail is drawn. */
+export type CursorTrailType = "dots" | "line" | "glow" | "comet";
 export type ProfileBackgroundStyle = "solid" | "gradient" | "image";
 /** Canvas background effects — the same twelve engines power both the
  *  behind-the-card layer and the above-everything overlay layer. */
@@ -128,6 +130,7 @@ export type CursorSettings = {
   color: string;
   size: number;
   trail: boolean;
+  trailType: CursorTrailType;
   trailLength: number;
   imageUrl: string;
 };
@@ -265,6 +268,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     color: "#a8e0ff",
     size: 10,
     trail: false,
+    trailType: "dots",
     trailLength: 5,
     imageUrl: "",
   },
@@ -512,8 +516,13 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       style: cursorImage ? "custom" : "default",
       color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
       size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
-      trail: false,
-      trailLength: numberIn(cursor.trailLength, DEFAULT_PROFILE_ASSETS.cursor.trailLength, 1, 8),
+      trail: boolIn(cursor.trail, DEFAULT_PROFILE_ASSETS.cursor.trail),
+      trailType: choiceIn(
+        cursor.trailType,
+        ["dots", "line", "glow", "comet"] as const,
+        DEFAULT_PROFILE_ASSETS.cursor.trailType,
+      ),
+      trailLength: numberIn(cursor.trailLength, DEFAULT_PROFILE_ASSETS.cursor.trailLength, 1, 24),
       imageUrl: cursorImage,
     },
     background: {

@@ -269,6 +269,10 @@ export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
 export function ProfileCursor({ settings }: { settings: CursorSettings }) {
   const layerRef = useRef<HTMLSpanElement>(null);
   const trailRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const dots = settings.trailLength;
+  // The system cursor (and a custom image, which the page sets itself) has no
+  // marker of its own, but it can still leave a trail.
+  const showPoint = settings.style !== "default" && settings.style !== "custom";
 
   useEffect(() => {
     const layer = layerRef.current;
@@ -288,15 +292,21 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       layer.style.setProperty("--fx-cx", `${x}px`);
       layer.style.setProperty("--fx-cy", `${y}px`);
 
-      if (settings.trail) {
-        positions.unshift({ x, y });
-        positions.splice(settings.trailLength + 1);
-        trailRef.current.forEach((dot, index) => {
-          const point = positions[Math.min(index, positions.length - 1)];
-          if (!dot || !point) return;
-          dot.style.transform = `translate3d(${point.x}px, ${point.y}px, 0) translate(-50%, -50%)`;
-        });
-      }
+      if (!settings.trail) return;
+      positions.unshift({ x, y });
+      positions.splice(dots + 1);
+      trailRef.current.forEach((dot, index) => {
+        const point = positions[Math.min(index + 1, positions.length - 1)];
+        const ahead = positions[Math.min(index, positions.length - 1)];
+        if (!dot || !point) return;
+        // The line and comet trails read direction from the segment they sit
+        // on, so each dot is rotated to point the way the pointer is moving.
+        const angle =
+          ahead && (ahead.x !== point.x || ahead.y !== point.y)
+            ? (Math.atan2(ahead.y - point.y, ahead.x - point.x) * 180) / Math.PI
+            : 0;
+        dot.style.transform = `translate3d(${point.x}px, ${point.y}px, 0) translate(-50%, -50%) rotate(${angle}deg)`;
+      });
     };
 
     const onMove = (event: PointerEvent) => {
@@ -313,7 +323,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
     };
   }, [settings.style, settings.size, settings.color, settings.trail, settings.trailLength]);
 
-  if (settings.style === "default" || settings.style === "custom") return null;
+  if (!showPoint && !settings.trail) return null;
 
   return (
     <span
@@ -329,18 +339,23 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       aria-hidden="true"
     >
       {settings.trail
-        ? Array.from({ length: settings.trailLength }, (_, index) => (
+        ? Array.from({ length: dots }, (_, index) => (
             <span
               key={index}
               ref={(node) => {
                 trailRef.current[index] = node;
               }}
-              className="profile-cursor-trail"
-              style={{ opacity: 1 - index / (settings.trailLength + 1) }}
+              className={`profile-cursor-trail profile-cursor-trail--${settings.trailType}`}
+              style={
+                {
+                  "--fx-dot": Math.max(0.18, 1 - index / (dots + 1)),
+                  opacity: Math.max(0.05, 1 - index / (dots + 1)),
+                } as CSSProperties
+              }
             />
           ))
         : null}
-      <span className="profile-cursor-point" />
+      {showPoint ? <span className="profile-cursor-point" /> : null}
     </span>
   );
 }

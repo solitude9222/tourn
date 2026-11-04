@@ -58,7 +58,8 @@ export function ProfilePreview({
   const avatar = assets.avatarUrl.trim() || user.avatarUrl;
   const decoration = assets.decoration;
   const banner = assets.banner;
-  const hasBanner = design.cardStyle === "banner" && banner.enabled;
+  // A banner without an image is just a blank tinted band, so it needs both.
+  const hasBanner = banner.enabled && Boolean(banner.imageUrl.trim());
   const bioEffect = assets.effects.text.bio;
   const cardFx = assets.card;
   // One tooltip design for the whole card — badges and the avatar used to be
@@ -142,9 +143,7 @@ export function ProfilePreview({
         hasBanner ? " pv-has-banner" : ""
       }${tiltEnabled ? " profile-preview--tilt" : ""}${
         compact ? " profile-preview--compact" : ""
-      }${design.glowName ? " pv-glow-name" : ""}${design.glowLocation ? " pv-glow-location" : ""}${
-        design.glowViews ? " pv-glow-views" : ""
-      }${design.glowJoin ? " pv-glow-join" : ""}${className ? ` ${className}` : ""}`}
+      }${className ? ` ${className}` : ""}`}
       style={{ ...style, ...tilt.style }}
       data-pfp={design.pfpPosition}
       data-badges={design.badgePosition}

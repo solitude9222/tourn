@@ -9,7 +9,7 @@ import {
 import { STATUS_COLORS, STATUS_LABELS, usePolled, type Polled } from "../lib/hooks";
 import { avatarUrl, currentGame, customStatus, formatClock } from "../lib/format";
 import { FEATURED_TRACK, inviteCode, spotifyTrackId, type Settings } from "../config";
-import { discordBadges, primaryGuildId, primaryGuildTag } from "../lib/discord";
+import { discordBadges, primaryGuildTag } from "../lib/discord";
 import { fetchSteamProfile, steamProfileTarget } from "../lib/steam";
 import { ScrollText } from "./Marquee";
 import {
@@ -64,10 +64,6 @@ function Card({
       <span className="bcard-scrim" aria-hidden="true" />
       <span className="bcard-sheen" aria-hidden="true" />
       <span className="bcard-body">{children}</span>
-      <span className="bcard-label">
-        {labelIcon}
-        {label}
-      </span>
       {action}
     </>
   );
@@ -129,7 +125,6 @@ function SkeletonCard({ label, delay = 0 }: { label: string; delay?: number }) {
           </span>
         </span>
       </span>
-      <span className="bcard-label">{label}</span>
     </article>
   );
 }
@@ -206,7 +201,6 @@ export function DiscordCard({
   const custom = customStatus(lanyard.data.activities);
   const badges = discordBadges(user.public_flags);
   const guildTag = primaryGuildTag(user.primary_guild);
-  const linkedGuild = primaryGuildId(user.primary_guild) ?? guildId;
   const displayName = user.display_name || user.global_name || user.username;
   const activity = custom ?? (game ? `Playing ${game.name}` : null);
 
@@ -221,11 +215,7 @@ export function DiscordCard({
       <span className="bcard-main">
         <span className="bcard-line">
           <ScrollText className="bcard-title">{displayName}</ScrollText>
-          {guildTag ? (
-            <span className="bcard-guild-tag" title={linkedGuild ?? undefined}>
-              {guildTag}
-            </span>
-          ) : null}
+          {guildTag ? <span className="bcard-guild-tag">{guildTag}</span> : null}
           {badges.length ? (
             <span className="bcard-badges">
               {badges.slice(0, 3).map((badge) => (
@@ -246,11 +236,6 @@ export function DiscordCard({
           <MetaItem icon={<Dot color={STATUS_COLORS[lanyard.data.discord_status]} />}>
             {STATUS_LABELS[lanyard.data.discord_status]}
           </MetaItem>
-          {linkedGuild ? (
-            <MetaItem icon={<HashIcon size={9} />} grow>
-              <ScrollText className="bcard-meta-scroll">Guild {linkedGuild}</ScrollText>
-            </MetaItem>
-          ) : null}
         </span>
       </span>
     </Card>

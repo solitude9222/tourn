@@ -356,72 +356,6 @@
 
 /* layout ----------------------------------------------------------------- */
 
-.tw-widget-tray {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 2;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  max-width: 46%;
-}
-
-.tw-widget-tray .tw-zone {
-  padding: 5px 9px;
-  font-size: 10.5px;
-}
-
-.tw-dropzone {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  border: 1px dashed rgba(255, 255, 255, 0.35);
-  border-radius: 10px;
-  background: rgba(15, 15, 17, 0.12);
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: background 140ms ease, border-color 140ms ease;
-}
-
-.tw-dropzone--top-right {
-  top: 14px;
-  right: 14px;
-  width: 130px;
-  height: 30px;
-}
-
-.tw-dropzone--upper-right {
-  top: 52px;
-  right: 14px;
-  width: 130px;
-  height: 30px;
-}
-
-.tw-dropzone--in-card {
-  top: 50%;
-  left: 50%;
-  width: 140px;
-  height: 30px;
-  transform: translate(-50%, 150px);
-}
-
-.tw-dropzone--bottom {
-  bottom: 14px;
-  left: 50%;
-  width: 170px;
-  height: 30px;
-  transform: translateX(-50%);
-}
-
-.tw-dropzone.is-over {
-  border-color: #fff;
-  background: rgba(57, 101, 230, 0.55);
-}
-
 /* badges ----------------------------------------------------------------- */
 
 .tw-copy-block {
@@ -845,10 +779,6 @@
   .tw-meta-grid,
   .tw-template-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .tw-widget-tray {
-    max-width: 100%;
   }
 
   .tw-periods {

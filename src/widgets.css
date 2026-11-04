@@ -613,6 +613,22 @@
   transform: translateY(-1px);
 }
 
+/* Widgets with no background of their own stay transparent until the pointer
+   is on them, then become their surfaced version so the hovered card is the
+   readable one. */
+.widget-card.is-bare {
+  border-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.widget-card.is-bare:hover,
+.widget-card.is-bare:focus-within {
+  border-color: color-mix(in srgb, var(--wg-brand, #a8e0ff) 30%, rgba(255, 255, 255, 0.1));
+  background: rgba(12, 14, 18, 0.82);
+  backdrop-filter: blur(10px);
+}
+
 .widget-card--bg-frosted {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
