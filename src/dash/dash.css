@@ -2882,3 +2882,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* The site-wide fixed background layer paints above ordinary content. Give the
+   console its own stacking context so its nav and pages always sit on top. */
+.tw-dash {
+  position: relative;
+  z-index: 40;
+  isolation: isolate;
+}
