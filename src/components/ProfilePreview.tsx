@@ -175,7 +175,9 @@ export function ProfilePreview({
       onPointerLeave={tiltEnabled ? tilt.onPointerLeave : undefined}
       className={`profile-preview pv-theme-${design.theme} pv-layout-${design.layout} pv-card-${design.cardStyle}${
         hasBanner ? " pv-has-banner" : ""
-      }${tiltEnabled ? " profile-preview--tilt" : ""}${
+      }${design.backgroundOpacity <= 0 ? " pv-clear" : ""}${
+        tiltEnabled ? " profile-preview--tilt" : ""
+      }${
         compact ? " profile-preview--compact" : ""
       }${className ? ` ${className}` : ""}`}
       style={{ ...style, ...tilt.style }}

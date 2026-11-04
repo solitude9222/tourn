@@ -8,6 +8,7 @@ import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../li
 import decorations from "../../lib/decorations.json";
 import type { CardEffectId } from "../../lib/profileAssets";
 import { FontPicker } from "../../components/FontPicker";
+import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
 
@@ -91,7 +92,7 @@ const PALETTES: { name: string; accent: string; card: string; border: string }[]
 ];
 
 export function LayoutPage() {
-  const { about, setAbout, notify } = useDash();
+  const { about, setAbout, widgets, badges, links, profileViews, user, notify } = useDash();
   const design = about.design;
 
   const updateDesign = (patch: Partial<typeof design>) =>
@@ -115,8 +116,34 @@ export function LayoutPage() {
       assets: { ...current.assets, card: { ...current.assets.card, ...patch } },
     }));
 
+  // The card preview is part of the page so every slider, font and effect
+  // shows its result immediately — editing blind is how a change looks like it
+  // "did nothing".
+  const preview = (
+    <aside className="tw-card-preview" aria-label="Card preview">
+      <div className="tw-card-preview-inner">
+        <LinkerPreview
+          user={{
+            id: user.id,
+            username: user.username,
+            avatarUrl: about.assets.avatarUrl || user.avatarUrl,
+          }}
+          about={about}
+          widgets={widgets}
+          badges={badges}
+          links={links}
+          views={profileViews}
+          showEntry={false}
+          showMetadata={false}
+          interactive={false}
+        />
+      </div>
+    </aside>
+  );
+
   return (
-    <>
+    <div className="tw-card-page">
+      <div className="tw-card-main">
       <Card>
         <CardHead
           icon="layout"
@@ -285,13 +312,12 @@ export function LayoutPage() {
             />
             <Slider
               label="Opacity"
-              value={design.backgroundOpacity}
+              value={Math.round(design.backgroundOpacity * 100)}
               min={0}
-              max={1}
-              step={0.01}
-              format={(value) => value.toFixed(2)}
-              ticks={["25%", "50%", "75%"]}
-              onChange={(value) => updateDesign({ backgroundOpacity: value })}
+              max={100}
+              format={(value) => `${value}%`}
+              ticks={["0%", "50%", "100%"]}
+              onChange={(value) => updateDesign({ backgroundOpacity: value / 100 })}
             />
             <Slider
               label="Blur"
@@ -479,6 +505,8 @@ export function LayoutPage() {
           </Field>
         </div>
       </Card>
-    </>
+      </div>
+      {preview}
+    </div>
   );
 }

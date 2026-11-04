@@ -3392,3 +3392,44 @@
   font-size: 11px;
   font-weight: 550;
 }
+
+/* ── card page: settings on the left, the live card on the right ───────── */
+.tw-card-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 332px;
+  gap: 14px;
+  align-items: start;
+}
+
+.tw-card-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tw-card-preview {
+  position: sticky;
+  top: 12px;
+  height: 470px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #08070c;
+}
+
+.tw-card-preview-inner {
+  width: 200%;
+  height: 200%;
+  zoom: 0.5;
+}
+
+@media (max-width: 1240px) {
+  .tw-card-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tw-card-preview {
+    display: none;
+  }
+}

@@ -991,6 +991,19 @@
   font-size: max(10px, calc(17px * var(--pv-scale, 1)));
 }
 
+/* Opacity at 0 means nothing on the card: no surface, no blur, and none of the
+   ambient accent wash that used to keep painting over the artwork. */
+.profile-preview.pv-clear {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.profile-preview.pv-clear .pv-ambient {
+  display: none;
+}
+
 .pv-bio {
   /* Contains the sparkle layer, which is absolutely positioned. Without this
      the sparkles were placed against the whole card instead of the bio. */
