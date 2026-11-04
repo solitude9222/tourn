@@ -1,3 +1,4 @@
+import "./lib/preloadLinks";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { DEFAULT_SETTINGS, EMPTY_SETTINGS, loadSettings, type Settings } from "./config";

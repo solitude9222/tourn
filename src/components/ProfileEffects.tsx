@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type {
   BackgroundEffectSettings,
   CursorSettings,
@@ -42,25 +42,36 @@ function CanvasEffectLayer({
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const apiRef = useRef<ReturnType<typeof mountBgEffect> | null>(null);
+  const [hidden, setHidden] = useState(false);
+  const reduced =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  useEffect(() => {
+    const onVisibility = () => setHidden(document.hidden);
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || effect === "none") return;
+    if (!host || effect === "none" || reduced || hidden) return;
     apiRef.current = mountBgEffect(host, { effect, intensity, speed, color, amount, flag, maxFps });
     return () => {
       apiRef.current?.destroy();
       apiRef.current = null;
     };
-    // Mount/unmount only on effect change — settings updates go through update().
+    // Mount/unmount on effect or visibility change — settings updates go through update().
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effect]);
+  }, [effect, reduced, hidden]);
 
   useEffect(() => {
     if (effect === "none") return;
     apiRef.current?.update({ effect, intensity, speed, color, amount, flag, maxFps });
   }, [effect, intensity, speed, color, amount, flag]);
 
-  if (effect === "none") return null;
+  if (effect === "none" || reduced || hidden) return null;
   return <span ref={hostRef} className={hostClass} aria-hidden="true" />;
 }
 
@@ -85,6 +96,7 @@ export function BackgroundEffectLayer({
       amount={settings.params.amount}
       flag={settings.params.flag}
       hostClass="profile-fx-bg profile-fx-canvas"
+      maxFps={45}
     />
   );
 }
@@ -147,7 +159,7 @@ function useEffectFont(family: string) {
 
 function Sparkles({ settings }: { settings: TextEffectSettings }) {
   const schemaDensity = TEXT_EFFECT_PARAM.sparkle?.kind === "slider" ? settings.params.amount : 10;
-  const count = Math.max(3, Math.min(24, Math.round(schemaDensity)));
+  const count = Math.max(3, Math.min(14, Math.round(schemaDensity)));
   return (
     <span className="fx-sparkles" aria-hidden="true">
       {Array.from({ length: count }, (_, index) => (
