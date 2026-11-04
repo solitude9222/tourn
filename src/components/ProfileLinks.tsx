@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { linkHref, type LinkDesign, type LinkInstance } from "../lib/links";
 import { getPlatform } from "../lib/linkPlatforms";
+import { LinkGlyph } from "./LinkGlyph";
 import { LinkIcon } from "./Icons";
 import { Tooltip } from "./Tooltip";
 
@@ -52,12 +53,13 @@ export function ProfileLinks({
         const label = link.label || platform?.name || "Link";
         const brand = link.iconUrl ? undefined : platform?.color;
 
-        const icon = link.iconUrl ? (
-          <img src={link.iconUrl} alt="" className="pv-link-img" />
-        ) : platform ? (
-          <platform.Icon size={iconPx} />
-        ) : (
-          <LinkIcon size={iconPx} />
+        const icon = (
+          <LinkGlyph
+            platformId={link.platform}
+            iconUrl={link.iconUrl}
+            size={iconPx}
+            brandIcon={platform?.Icon ?? LinkIcon}
+          />
         );
 
         const shared = {
@@ -84,19 +86,6 @@ export function ProfileLinks({
         );
       })}
 
-      {/* A small key to the row: what an icon does on hover and on click. */}
-      <Tooltip
-        style="glass"
-        text={visible.some((link) => linkHref(link.url)) ? "Icons open in a new tab · tap to copy" : "Tap an icon to copy it"}
-      >
-        <span className="pv-link-info" role="note" aria-label="Link help">
-          <svg viewBox="0 0 24 24" width={Math.max(11, Math.round(iconPx * 0.8))} height={Math.max(11, Math.round(iconPx * 0.8))} fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" />
-            <path d="M12 11v5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-            <circle cx="12" cy="7.8" r="1.05" fill="currentColor" />
-          </svg>
-        </span>
-      </Tooltip>
     </div>
   );
 }

@@ -137,6 +137,7 @@ async function discordLive(
   widget: WidgetInstance,
   input: string,
   signal: AbortSignal,
+  asBot = false,
 ): Promise<WidgetLive> {
   const id = discordUserId(input);
 
@@ -258,6 +259,24 @@ async function discordLive(
 
   const joined = snowflakeDate(id);
   const meta: string[] = [];
+  if (asBot) {
+    meta.push("Discord bot");
+    if (joined) meta.push(`Created ${formatJoined(joined)}`);
+    return {
+      title: displayName,
+      subtitle: `@${username}`,
+      meta,
+      avatar,
+      decoration: null,
+      banner,
+      art: showBanner && (banner || avatar) ? banner || avatar : avatar,
+      accent: lookup?.banner_color || "#5865f2",
+      tag,
+      tagBadge,
+      badges,
+      status: null,
+    };
+  }
   if (widget.options.status !== false && status) meta.push(STATUS_LABELS[status]);
   if (platforms.length && widget.options.status !== false) meta.push(platforms.join(" · "));
   if (activity) meta.push(activity);
@@ -695,6 +714,8 @@ async function liveForWidget(widget: WidgetInstance, signal: AbortSignal): Promi
   switch (widget.platform) {
     case "discord":
       return discordLive(widget, content, signal);
+    case "discordbot":
+      return discordLive(widget, content, signal, true);
     case "roblox":
       return robloxLive(widget, content, signal);
     case "github":
@@ -720,6 +741,7 @@ async function liveForWidget(widget: WidgetInstance, signal: AbortSignal): Promi
 
 const LIVE_PLATFORMS = new Set([
   "discord",
+  "discordbot",
   "roblox",
   "github",
   "steam",

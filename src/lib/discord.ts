@@ -83,7 +83,10 @@ export function primaryGuildId(guild: DiscordPrimaryGuild): string | null {
  * guess — and it renders even when the tag's letters are invisible.
  */
 export function guildTagBadge(guild: DiscordPrimaryGuild): string | null {
-  if (!guild?.identity_enabled) return null;
+  // The badge hash and guild id are what the CDN needs; `identity_enabled`
+  // only says whether the member currently shows the tag, and requiring it
+  // hid the badge on accounts that still carry one.
+  if (!guild) return null;
   const badge = guild.badge;
   const guildId = guild.identity_guild_id;
   if (!badge) return null;

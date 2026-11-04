@@ -2,7 +2,10 @@ import { DEFAULT_PROFILE_ASSETS, loadProfileAssets, type ProfileAssets } from ".
 import type { TooltipStyle } from "./links";
 
 export type AboutTheme = "default" | "modern" | "portfolio";
-export type AboutLayout = "classic" | "modern";
+/** The page layout: how the card, the widgets and the links are arranged.
+ *  `stacked` is one column, `left` pins the card left with widgets beside it,
+ *  `centered` is a single narrow column centred on the page. */
+export type AboutLayout = "stacked" | "left" | "centered";
 
 /** The public "linker" page layout. Each one only changes spacing and how
  *  large the widgets sit — never the card's colour, background or blur. */
@@ -255,7 +258,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
 
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   theme: "default",
-  layout: "classic",
+  layout: "stacked",
   cardStyle: "default",
   font: "",
   // Sizing follows one reference card: 726 × 315 with a 128px avatar, 40px
@@ -431,7 +434,16 @@ function loadDesign(input: unknown): AboutDesign {
   const rawPills = (raw.pills ?? {}) as Partial<PillStyle>;
   const rawTooltips = (raw.tooltips ?? {}) as Partial<TooltipSettings>;
   const theme = raw.theme === "modern" || raw.theme === "portfolio" ? raw.theme : "default";
-  const layout = raw.layout === "modern" ? "modern" : "classic";
+  // Older documents only had classic/modern; both map onto the new names.
+  // The old "modern" page was the centred one, so it lands on `centered`
+  // rather than moving anyone's card to the side.
+  const savedLayout = String(raw.layout ?? "");
+  const layout: AboutLayout =
+    savedLayout === "left"
+      ? "left"
+      : savedLayout === "centered" || savedLayout === "modern"
+        ? "centered"
+        : "stacked";
   const cardStyle = CARD_STYLES.some((item) => item.id === raw.cardStyle)
     ? (raw.cardStyle as CardStyle)
     : DEFAULT_ABOUT_DESIGN.cardStyle;

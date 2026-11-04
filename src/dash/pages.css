@@ -609,11 +609,13 @@
   margin-top: 18px;
 }
 
+/* The preview column is a window, not a card: no plate behind it, just the
+   widgets scrolling past. */
 .tw-widget-preview {
-  padding: 14px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  background: var(--bar);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
 }
 
 .tw-widget-preview-head {
@@ -635,17 +637,51 @@
   font-size: 10.5px;
 }
 
-.tw-widget-preview-frame {
+/* Every active widget, top to bottom, drifting by on its own. Hovering stops
+   the reel so a card can actually be read. */
+.tw-widget-scroll {
   position: relative;
-  display: grid;
-  align-content: center;
-  gap: 10px;
-  min-height: 190px;
+  height: 320px;
   margin-top: 12px;
-  padding: 14px;
   overflow: hidden;
-  border-radius: 10px;
-  background: #111114;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
+}
+
+.tw-widget-scroll-track {
+  display: flex;
+  flex-direction: column;
+  animation: twWidgetReel 26s linear infinite;
+}
+
+.tw-widget-scroll:hover .tw-widget-scroll-track {
+  animation-play-state: paused;
+}
+
+.tw-widget-scroll-pass {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.tw-widget-scroll-pass .widget-card {
+  width: 100%;
+}
+
+@keyframes twWidgetReel {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-widget-scroll-track {
+    animation: none;
+  }
 }
 
 /* Click-through preview box in the connected list. */
@@ -759,7 +795,7 @@
   flex: none;
   border: 1px solid #24272e;
   border-radius: 12px;
-  background: rgba(57, 101, 230, 0.1);
+  background: rgba(124, 92, 255, 0.1);
   color: var(--accent-text);
 }
 
@@ -1166,7 +1202,7 @@
 }
 
 .tw-plan.is-active {
-  border-color: rgba(57, 101, 230, 0.5);
+  border-color: rgba(124, 92, 255, 0.5);
 }
 
 .tw-plan-head {
@@ -1274,8 +1310,8 @@
   height: 44px;
   margin-bottom: 4px;
   border-radius: 12px;
-  background: #1b233b;
-  color: #79a1f7;
+  background: #221b3a;
+  color: #b9a5ff;
 }
 
 .tw-gate-card h1 {

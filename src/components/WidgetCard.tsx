@@ -16,6 +16,7 @@ import {
   type WidgetLive,
 } from "../lib/widgetLive";
 import { STATUS_COLORS } from "../lib/hooks";
+import type { DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
 import { PlatformIcon } from "./PlatformIcons";
 import { DiscordBadgeIcon, SettingsIcon, TrashIcon } from "./Icons";
@@ -199,9 +200,9 @@ function WidgetCardSurface({
                   {live.tag}
                 </span>
               ) : null}
-              {live?.badges.length ? (
+              {design.showBadges && live?.badges.length ? (
                 <span className="widget-card-badges">
-                  {live.badges.slice(0, 2).map((badge) => (
+                  {live.badges.map((badge) => (
                     <DiscordBadgeIcon
                       key={`${badge.kind}-${badge.flag}`}
                       kind={badge.kind}
@@ -295,9 +296,26 @@ export function WidgetCard({
 
 /** Believable live data per platform, so the editor previews a real card
  *  instead of a grey placeholder. Connected widgets preview their real data. */
+type SampleBadge = DiscordBadge;
+
+const SAMPLE_BADGES: SampleBadge[] = [
+  { kind: "staff", label: "Discord Staff", flag: 1 },
+  { kind: "partner", label: "Partnered Server Owner", flag: 2 },
+  { kind: "hypesquad", label: "HypeSquad Events", flag: 4 },
+  { kind: "early", label: "Early Supporter", flag: 512 },
+  { kind: "developer", label: "Early Verified Bot Developer", flag: 131072 },
+];
+
 const SAMPLE_LIVE: Record<
   string,
-  { title: string; subtitle: string; meta: string[]; status?: LiveStatus; tag?: string }
+  {
+    title: string;
+    subtitle: string;
+    meta: string[];
+    status?: LiveStatus;
+    tag?: string;
+    badges?: SampleBadge[];
+  }
 > = {
   discord: {
     title: "tourn.lol",
@@ -305,6 +323,13 @@ const SAMPLE_LIVE: Record<
     meta: ["1,284 members", "412 online"],
     status: "online",
     tag: "TOURN",
+    badges: SAMPLE_BADGES,
+  },
+  discordbot: {
+    title: "tourn.lol bot",
+    subtitle: "@tourn",
+    meta: ["Discord bot", "Created Jan 2024"],
+    badges: SAMPLE_BADGES.slice(0, 3),
   },
   github: { title: "tourn-lol", subtitle: "GitHub profile", meta: ["38 repositories", "126 followers"] },
   roblox: { title: "tourn", subtitle: "Roblox profile", meta: ["3.1K followers", "212 friends"], status: "online" },
@@ -359,7 +384,7 @@ export function WidgetCardPreview({
     art: null,
     accent: platform.color,
     tag: sample.tag ?? null,
-    badges: [],
+    badges: sample.badges ?? [],
     status: (sample.status ?? null) as LiveStatus,
   };
 

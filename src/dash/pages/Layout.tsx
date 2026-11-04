@@ -4,7 +4,7 @@
    its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { CARD_STYLES } from "../../lib/about";
+import { CARD_STYLES, type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
 import { FontPicker } from "../../components/FontPicker";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
@@ -29,6 +29,37 @@ const JOIN_OPTIONS = [
 ];
 
 const AUDIO_OPTIONS = [{ value: "bottom", label: "Screen bottom (fixed)" }];
+
+/** The three page layouts and the positions each one starts with. */
+const PAGE_LAYOUTS: {
+  id: AboutLayout;
+  name: string;
+  description: string;
+  viewPosition: ViewPosition;
+  joinPosition: JoinPosition;
+}[] = [
+  {
+    id: "stacked",
+    name: "Stacked",
+    description: "Card, then Discord presence, then the rest of the widgets, audio at the bottom.",
+    viewPosition: "top-right",
+    joinPosition: "footer",
+  },
+  {
+    id: "left",
+    name: "Left side",
+    description: "Info on the left, widgets beside it, links under the info.",
+    viewPosition: "top-right",
+    joinPosition: "under-name",
+  },
+  {
+    id: "centered",
+    name: "Centered",
+    description: "One narrow column, everything centred.",
+    viewPosition: "top-right",
+    joinPosition: "footer",
+  },
+];
 
 /** Colour pairs that set the accent, card and border together. */
 const PALETTES: { name: string; accent: string; card: string; border: string }[] = [
@@ -66,8 +97,43 @@ export function LayoutPage() {
       <Card>
         <CardHead
           icon="layout"
-          title="Card layout"
-          subtitle="Only the spacing and the widget sizes change — your colours, background and blur stay exactly as they are."
+          title="Page layout"
+          subtitle="Where the card, the widgets and your links sit. Colours, background and blur stay exactly as they are."
+        />
+
+        <div className="tw-layout-cards">
+          {PAGE_LAYOUTS.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              className={`tw-layout-card${design.layout === preset.id ? " is-active" : ""}`}
+              onClick={() =>
+                updateDesign({
+                  layout: preset.id,
+                  viewPosition: preset.viewPosition,
+                  joinPosition: preset.joinPosition,
+                })
+              }
+            >
+              <div className={`tw-layout-thumb tw-layout-thumb--page-${preset.id}`}>
+                <div className={`tw-layout-wire tw-layout-wire--page-${preset.id}`}>
+                  <i />
+                  <i style={{ width: 52 }} />
+                  <i style={{ width: 38 }} />
+                </div>
+              </div>
+              <b>{preset.name}</b>
+              <small>{preset.description}</small>
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="layers"
+          title="Card size"
+          subtitle="Only the spacing and the widget sizes change — never your colours."
         />
 
         <div className="tw-layout-cards">

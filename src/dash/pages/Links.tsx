@@ -9,6 +9,7 @@ import { useState } from "react";
 import { ICON_SIZES, createLink, type LinkInstance } from "../../lib/links";
 import { PLATFORMS, getPlatform, placeholderFor } from "../../lib/linkPlatforms";
 import { PlatformIcon } from "../../components/PlatformIcons";
+import { LinkGlyph } from "../../components/LinkGlyph";
 import { ProfileLinks } from "../../components/ProfileLinks";
 import { useDash } from "../context";
 import {
@@ -98,11 +99,12 @@ export function LinksPage() {
                     <Icon name="drag" size={14} />
                   </span>
                   <span className="tw-link-platform">
-                    {link.iconUrl ? (
-                      <img src={link.iconUrl} alt="" width={18} height={18} />
-                    ) : (
-                      <PlatformIcon id={link.platform} size={18} />
-                    )}
+                    <LinkGlyph
+                      platformId={link.platform}
+                      iconUrl={link.iconUrl}
+                      size={18}
+                      brandIcon={getPlatform(link.platform)?.Icon}
+                    />
                   </span>
                   <span className="tw-link-copy">
                     <b>{link.label || definition?.name || "Link"}</b>

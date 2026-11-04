@@ -129,6 +129,8 @@ export type WidgetDesign = {
   scale: number;
   /** Show the live meta chips (members, followers, scrobbles…). */
   showMeta: boolean;
+  /** Show every Discord badge the account carries on the card. */
+  showBadges: boolean;
 };
 
 export type WidgetStore = {
@@ -150,6 +152,7 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   gap: 10,
   scale: 1,
   showMeta: true,
+  showBadges: true,
 };
 
 const baseOptions = (): WidgetOption[] => [
@@ -197,6 +200,25 @@ const ALL_WIDGET_PLATFORMS: WidgetPlatform[] = [
         key: "show_banner",
         label: "Show Profile Banner",
         hint: "Use the banner from your public Discord profile when the card uses artwork.",
+        type: "toggle",
+        default: true,
+      },
+    ],
+  },
+  {
+    id: "discordbot",
+    name: "Discord bot",
+    description: "Show a bot's own card — name, avatar and badges straight from Discord.",
+    color: "#5865f2",
+    contentLabel: "Discord bot ID",
+    contentPlaceholder: "Application ID, e.g. 1535359723040276560",
+    didYouKnow: DID_YOU_KNOW,
+    options: [
+      ...baseOptions(),
+      {
+        key: "show_banner",
+        label: "Show Bot Banner",
+        hint: "Use the bot's banner when the card uses artwork.",
         type: "toggle",
         default: true,
       },
@@ -757,6 +779,7 @@ const ALL_WIDGET_PLATFORMS: WidgetPlatform[] = [
 
 const SUPPORTED_IDS = [
   "discord",
+  "discordbot",
   "github",
   "roblox",
   "lastfm",
@@ -807,6 +830,7 @@ export const WIDGET_SAMPLE_CONTENT: Record<string, string> = {
   discord: "tourn.lol",
   github: "tourn-lol",
   roblox: "301974334",
+  discordbot: "1535359723040276560",
   lastfm: "tourn",
   statsfm: "tourn",
   valorant: "tourn#lol",
@@ -913,6 +937,7 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
         gap: clamp(rawDesign.gap, DEFAULT_WIDGET_DESIGN.gap, 0, 28),
         scale: clamp(rawDesign.scale, DEFAULT_WIDGET_DESIGN.scale, 0.85, 1.15),
         showMeta: rawDesign.showMeta !== false,
+        showBadges: rawDesign.showBadges !== false,
       },
     };
   } catch {

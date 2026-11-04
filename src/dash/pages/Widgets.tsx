@@ -4,7 +4,7 @@
    widget-card render; connected widgets read their live data.
    --------------------------------------------------------------------------- */
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   DEFAULT_WIDGET_DESIGN,
   WIDGET_PLATFORMS,
@@ -111,7 +111,6 @@ export function WidgetsPage() {
   const [configuring, setConfiguring] = useState<WidgetPlatform | null>(null);
   const [editing, setEditing] = useState<WidgetInstance | null>(null);
   const [inspecting, setInspecting] = useState<WidgetInstance | null>(null);
-  const [previewPlatform, setPreviewPlatform] = useState("discord");
   const [content, setContent] = useState("");
   const [addOptions, setAddOptions] = useState<Record<string, boolean | string>>({});
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -168,44 +167,40 @@ export function WidgetsPage() {
     }));
 
   const design = widgets.design;
+  // "Real preview" scrolls the widgets that are actually on the profile, with
+  // their live data — the samples are only a stand-in for a brand-new account.
+  const active = widgets.widgets.filter((widget) => widget.visible !== false);
 
   const setDesign = (patch: Partial<typeof design>) =>
     setWidgets((current) => ({ ...current, design: { ...current.design, ...patch } }));
 
-  const previewStyle = useMemo(
-    () =>
-      ({
-        background:
-          design.backgroundStyle === "gradient"
-            ? `linear-gradient(135deg, ${design.gradientFrom}, ${design.gradientTo})`
-            : design.backgroundColor,
-        borderRadius: design.radius,
-      }) as const,
-    [design],
-  );
-
   return (
     <>
       <Card>
-        <CardHead icon="grid" title="Available widgets" subtitle="Pick a platform — the preview is the real card." />
+        <CardHead
+          icon="grid"
+          title="Available widgets"
+          subtitle="One row each — pick a platform to add it to your stack."
+        />
 
         <div className="tw-widget-gallery">
           {WIDGET_PLATFORMS.map((platform) => (
             <button
               key={platform.id}
               type="button"
-              className="tw-widget-tile"
+              className="tw-widget-pick"
               onClick={() => openAdd(platform)}
             >
-              <span className="tw-widget-tile-frame" aria-hidden="true">
-                <WidgetCardPreview design={design} platformId={platform.id} />
+              <span className="tw-widget-pick-icon" aria-hidden="true">
+                <PlatformIcon id={platform.id} size={17} />
               </span>
-              <span className="tw-widget-tile-copy">
-                <span className="tw-widget-tile-name">
-                  <PlatformIcon id={platform.id} size={13} />
-                  {platform.name}
-                </span>
+              <span className="tw-widget-pick-copy">
+                <b>{platform.name}</b>
+                <small>{platform.description}</small>
+              </span>
+              <span className="tw-widget-pick-add">
                 <Icon name="plus" size={13} />
+                Add
               </span>
             </button>
           ))}
@@ -359,6 +354,27 @@ export function WidgetsPage() {
                 onChange={(value) => setDesign({ borderWidth: value })}
               />
               <Slider
+                label="Border alpha"
+                value={design.borderOpacity}
+                min={0}
+                max={1}
+                step={0.01}
+                format={(value) => value.toFixed(2)}
+                onChange={(value) => setDesign({ borderOpacity: value })}
+              />
+            </div>
+
+            <div className="tw-form-grid">
+              <Slider
+                label="Background alpha"
+                value={design.backgroundOpacity}
+                min={0}
+                max={1}
+                step={0.01}
+                format={(value) => value.toFixed(2)}
+                onChange={(value) => setDesign({ backgroundOpacity: value })}
+              />
+              <Slider
                 label="Corner radius"
                 value={design.radius}
                 min={0}
@@ -400,6 +416,18 @@ export function WidgetsPage() {
               />
             </div>
 
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Show badges</b>
+                <small>Every Discord badge the account carries, next to the name.</small>
+              </span>
+              <Toggle
+                checked={design.showBadges}
+                onChange={(checked) => setDesign({ showBadges: checked })}
+                label="Show badges"
+              />
+            </div>
+
             <div className="tw-form-grid">
               <Slider
                 label="Opacity"
@@ -424,18 +452,40 @@ export function WidgetsPage() {
           <div className="tw-widget-preview">
             <div className="tw-widget-preview-head">
               <small>Real preview</small>
-              <Select
-                value={previewPlatform}
-                options={WIDGET_PLATFORMS.map((platform) => ({
-                  value: platform.id,
-                  label: platform.name,
-                }))}
-                onChange={setPreviewPlatform}
-              />
+              <span className="tw-widget-preview-note">
+                {active.length
+                  ? `${active.length} active widget${active.length === 1 ? "" : "s"}`
+                  : "sample cards"}
+              </span>
             </div>
-            <div className="tw-widget-preview-frame" style={previewStyle}>
-              <WidgetCardPreview design={design} platformId={previewPlatform} />
-              <div className="tw-widget-preview-brand">tourn.lol</div>
+            <div className="tw-widget-scroll">
+              <div className="tw-widget-scroll-track">
+                {[0, 1].map((pass) => (
+                  <div
+                    className="tw-widget-scroll-pass"
+                    key={pass}
+                    aria-hidden={pass === 1 ? "true" : undefined}
+                  >
+                    {active.length
+                      ? active.map((widget) => (
+                          <WidgetCard
+                            key={`${pass}-${widget.id}`}
+                            widget={widget}
+                            design={design}
+                            className="widget-card--reel"
+                          />
+                        ))
+                      : ["discord", "discordbot", "spotify", "roblox"].map((id) => (
+                          <WidgetCardPreview
+                            key={`${pass}-${id}`}
+                            design={design}
+                            platformId={id}
+                            className="widget-card--reel"
+                          />
+                        ))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

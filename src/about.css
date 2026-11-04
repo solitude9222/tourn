@@ -1024,20 +1024,20 @@
   font-size: max(10px, calc(12px * var(--pv-scale, 1)));
 }
 
-.pv-layout-modern {
+.pv-layout-centered {
   text-align: center;
 }
 
-.pv-layout-modern .pv-topline {
+.pv-layout-centered .pv-topline {
   flex-direction: column;
   gap: 9px;
 }
 
-.pv-layout-modern .pv-location {
+.pv-layout-centered .pv-location {
   margin-left: 0;
 }
 
-.pv-layout-modern .pv-links {
+.pv-layout-centered .pv-links {
   justify-content: center;
 }
 
@@ -1209,7 +1209,7 @@
   border-radius: 6px;
 }
 
-.pv-layout-modern .pv-link-icons {
+.pv-layout-centered .pv-link-icons {
   justify-content: center;
 }
 
@@ -1307,6 +1307,55 @@
     radial-gradient(280px 220px at 100% 100%, color-mix(in srgb, var(--pv-accent) 8%, transparent), transparent 70%),
     var(--pv-bg);
   pointer-events: none;
+}
+
+/* ── page layouts ────────────────────────────────────────────────────
+   stacked  one column: card, then the widget stack, audio at the bottom.
+   left     card pinned left with the widget stack beside it.
+   centered a single narrow column, everything centred.
+   ─────────────────────────────────────────────────────────────────── */
+
+.lkr-flow--left {
+  max-width: calc(var(--pv-width) + 380px + 32px);
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+}
+
+.lkr-flow--left > .profile-preview {
+  flex: 0 0 auto;
+}
+
+.lkr-side {
+  flex: 1 1 320px;
+  min-width: 260px;
+  max-width: 380px;
+  padding-top: 2px;
+}
+
+.lkr-side .lkr-widgets {
+  margin-top: 0;
+}
+
+.lkr-flow--centered {
+  max-width: calc(var(--pv-width) + 32px);
+}
+
+.lkr-flow--centered > .profile-preview {
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .lkr-flow--left {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .lkr-side {
+    width: 100%;
+    max-width: none;
+  }
 }
 
 .lkr-flow {

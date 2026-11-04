@@ -238,11 +238,6 @@ export function DiscordCard({
           @{user.username}
           {activity ? ` · ${activity}` : ""}
         </ScrollText>
-        <span className="bcard-meta">
-          <MetaItem icon={<Dot color={STATUS_COLORS[lanyard.data.discord_status]} />}>
-            {STATUS_LABELS[lanyard.data.discord_status]}
-          </MetaItem>
-        </span>
       </span>
     </Card>
   );
@@ -337,8 +332,7 @@ export function ServerCard({
             <MetaItem icon={<Dot />}>
               {data.approximate_presence_count.toLocaleString("en-US")} online
             </MetaItem>
-          ) : null}
-          {typeof data.approximate_member_count === "number" ? (
+          ) : typeof data.approximate_member_count === "number" ? (
             <MetaItem icon={<UsersIcon size={10} />}>
               {data.approximate_member_count.toLocaleString("en-US")} members
             </MetaItem>
@@ -379,18 +373,9 @@ export function SpotifyCard({
   const href = hasTrack ? `https://open.spotify.com/track/${trackId}` : undefined;
 
   const meta = live
-    ? [
-        { icon: <DiscIcon size={10} />, text: live.album },
-        {
-          icon: <ClockIcon size={10} />,
-          text: formatClock(live.timestamps.end - live.timestamps.start),
-        },
-      ]
+    ? [{ icon: <DiscIcon size={10} />, text: live.album }]
     : featured
-      ? [
-          { icon: <DiscIcon size={10} />, text: featured.album },
-          { icon: <ClockIcon size={10} />, text: formatClock(featured.duration * 1000) },
-        ]
+      ? [{ icon: <DiscIcon size={10} />, text: featured.album }]
       : [];
 
   return (

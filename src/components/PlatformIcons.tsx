@@ -21,6 +21,7 @@ function WeatherIcon({ size = 16, className }: Props) {
 }
 
 const MARK_ALIASES: Record<string, string> = {
+  discordbot: "discord",
   lastfm: "lastdotfm",
   chess: "chessdotcom",
   league: "leagueoflegends",
