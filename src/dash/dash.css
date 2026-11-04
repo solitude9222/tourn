@@ -1430,6 +1430,75 @@
   gap: 20px 16px;
 }
 
+/* Colour pickers always live in the left column, sliders in the right one. */
+.tw-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.tw-split-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.tw-split-label {
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+  color: var(--nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tw-foot-note {
+  margin: 16px 0 0;
+  color: var(--nav);
+  font-size: 12px;
+}
+
+/* Live sample of the profile's icon row on the links page. */
+.tw-icon-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 74px;
+  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-card);
+  background: #08080a;
+}
+
+.tw-icon-preview small {
+  color: var(--nav);
+  font-size: 12px;
+}
+
+/* Real enter screen inside the dashboard, scaled to fit the card. */
+.tw-enter-stage {
+  position: relative;
+  height: 300px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-card);
+  background: #08080a;
+  overflow: hidden;
+}
+
+.tw-enter-stage .lkr-entry {
+  border-radius: 0;
+}
+
+@media (max-width: 900px) {
+  .tw-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .tw-row {
   display: flex;
   align-items: center;
@@ -2806,21 +2875,21 @@
   overflow: hidden;
 }
 
+/* The scale lives on the wrapper: the preview card applies its own inline
+   transform on hover (parallax), which used to wipe the scale out and make the
+   card jump to full size. */
 .tw-live-scaler {
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-}
-
-.tw-live-scaler .profile-preview {
   transform-origin: top center;
   transform: scale(var(--tw-live-scale, 0.86));
   margin-bottom: calc(-1 * (1 - var(--tw-live-scale, 0.86)) * 420px);
 }
 
 @media (max-width: 1280px) {
-  .tw-live-scaler .profile-preview {
+  .tw-live-scaler {
     --tw-live-scale: 0.78;
   }
 }
@@ -2830,7 +2899,7 @@
     padding: 16px 10px;
   }
 
-  .tw-live-scaler .profile-preview {
+  .tw-live-scaler {
     --tw-live-scale: 0.64;
   }
 }

@@ -13,14 +13,17 @@ import { WidgetCard } from "./WidgetCard";
 import { ChevronIcon } from "./Icons";
 import "../about.css";
 
-function EntryOverlay({
+export function EntryOverlay({
   about,
   onEnter,
   playToken = 0,
+  preview = false,
 }: {
   about: About;
   onEnter: () => void;
   playToken?: number;
+  /** Dashboard preview: renders the real screen but never responds to clicks. */
+  preview?: boolean;
 }) {
   const entry = about.design.entry;
   const accent = about.design.colors.accent;
@@ -103,18 +106,24 @@ function EntryOverlay({
 
   return (
     <div
-      className={`lkr-entry lkr-entry--${entry.animation} lkr-entry--${entry.align}${leaving ? " is-leaving" : ""}`}
-      role="button"
-      tabIndex={0}
-      aria-label="Enter profile"
-      onPointerDown={beginLeave}
-      onClick={beginLeave}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          beginLeave();
-        }
-      }}
+      className={`lkr-entry lkr-entry--${entry.animation} lkr-entry--${entry.align}${leaving ? " is-leaving" : ""}${
+        preview ? " lkr-entry--preview" : ""
+      }`}
+      role={preview ? undefined : "button"}
+      tabIndex={preview ? -1 : 0}
+      aria-label={preview ? undefined : "Enter profile"}
+      onPointerDown={preview ? undefined : beginLeave}
+      onClick={preview ? undefined : beginLeave}
+      onKeyDown={
+        preview
+          ? undefined
+          : (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                beginLeave();
+              }
+            }
+      }
       style={{
         "--lkr-entry-accent": accent,
         "--lkr-entry-blur": `${entry.blur}px`,
@@ -209,7 +218,10 @@ export function LinkerPreview({
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const entrySeenKey = `tourn.lol/entry-seen/v1/${user.username}`;
-  const [entryOpen, setEntryOpen] = useState(() => {
+  // One question, asked both on mount and whenever the entry settings change,
+  // so the "seen this visit" flag cannot be ignored (which reopened the entry
+  // screen over an already-loaded card when navigating back to a profile).
+  const entryWanted = () => {
     if (!showEntry || !design.entry.enabled) return false;
     if (!design.entry.oncePerSession) return true;
     try {
@@ -217,7 +229,8 @@ export function LinkerPreview({
     } catch {
       return true;
     }
-  });
+  };
+  const [entryOpen, setEntryOpen] = useState(entryWanted);
   const [active, setActive] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -225,8 +238,9 @@ export function LinkerPreview({
   const slideshow = design.cardStyle === "slideshow";
 
   useEffect(() => {
-    setEntryOpen(showEntry && design.entry.enabled);
-  }, [showEntry, design.entry.enabled, user.username]);
+    setEntryOpen(entryWanted());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- entryWanted reads exactly these
+  }, [showEntry, design.entry.enabled, design.entry.oncePerSession, user.username]);
 
   // "Replay" in the dashboard bumps the token: reopen the screen, then let
   // EntryOverlay play it out on its own.

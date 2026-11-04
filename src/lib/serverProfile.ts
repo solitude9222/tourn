@@ -24,8 +24,9 @@ export type ProfileDocument = {
 export type ProfilePayload = {
   account: Account;
   profile: ProfileDocument | null;
-  /** Badge ids the backend has verified for this account. */
-  earned: string[];
+  /** Badge ids the backend has verified for this account. `null` when the
+   *  payload doesn't say — treated as "unknown", never as "none earned". */
+  earned: string[] | null;
 };
 
 export function normalizeDocument(input: unknown): ProfileDocument {
@@ -43,7 +44,7 @@ function withDocument(payload: Omit<ProfilePayload, "profile"> & { profile: unkn
     account: payload.account,
     earned: Array.isArray(payload.earned)
       ? payload.earned.filter((id): id is string => typeof id === "string")
-      : [],
+      : null,
     profile: payload.profile ? normalizeDocument(payload.profile) : null,
   };
 }

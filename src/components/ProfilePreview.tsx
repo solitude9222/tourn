@@ -1,7 +1,7 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
-import { hexToRgba, type About } from "../lib/about";
+import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
@@ -14,47 +14,6 @@ import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
 import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
-
-function OnekoCat() {
-  const catRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const cat = catRef.current;
-    const host = cat?.parentElement;
-    if (!cat || !host) return;
-    let frame = 0;
-    let target = { x: 24, y: 24 };
-    const current = { x: 24, y: 24 };
-
-    const tick = () => {
-      frame = 0;
-      current.x += (target.x - current.x) * 0.16;
-      current.y += (target.y - current.y) * 0.16;
-      cat.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate(-50%, -50%)`;
-      if (Math.abs(target.x - current.x) > 0.6 || Math.abs(target.y - current.y) > 0.6) {
-        frame = window.requestAnimationFrame(tick);
-      }
-    };
-
-    const onMove = (event: PointerEvent) => {
-      const rect = host.getBoundingClientRect();
-      target = { x: event.clientX - rect.left, y: event.clientY - rect.top };
-      if (!frame) frame = window.requestAnimationFrame(tick);
-    };
-
-    host.addEventListener("pointermove", onMove, { passive: true });
-    return () => {
-      host.removeEventListener("pointermove", onMove);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  return (
-    <span ref={catRef} className="pv-oneko" aria-hidden="true">
-      🐈
-    </span>
-  );
-}
 
 export function ProfilePreview({
   user,
@@ -103,8 +62,9 @@ export function ProfilePreview({
   const bioEffect = assets.effects.text.bio;
   const cardFx = assets.card;
   // One tooltip design for the whole card — badges and the avatar used to be
-  // hardcoded to "dark", which made the tooltip settings look broken.
-  const tooltipDesign = linkDesign ?? DEFAULT_LINK_DESIGN;
+  // hardcoded to "dark", which made the tooltip settings look broken. Links
+  // never show a tooltip; only these two do.
+  const tooltips = design.tooltips ?? DEFAULT_ABOUT_DESIGN.tooltips;
   const uid = accountUid(user);
   const tiltEnabled = (design.tilt ?? 0) > 0;
   const tilt = useTilt(design.tilt ?? 0, Boolean(design.tiltInvert));
@@ -120,8 +80,8 @@ export function ProfilePreview({
         <BadgeRow
           badges={badges}
           style={badgeStyle ?? DEFAULT_BADGE_STYLE}
-          tooltipStyle={tooltipDesign.tooltipStyle}
-          tooltipEnabled={tooltipDesign.tooltipEnabled}
+          tooltipStyle={tooltips.style}
+          tooltipEnabled={tooltips.enabled}
         />
       </div>
     ) : null;
@@ -217,8 +177,6 @@ export function ProfilePreview({
         </>
       ) : null}
 
-      {design.oneko ? <OnekoCat /> : null}
-
       {showViews && viewPosition === "top-right" ? (
         <span className="pv-views pv-views--corner" aria-label={`${viewCount} profile views`}>
           <EyeIcon size={12} />
@@ -230,8 +188,8 @@ export function ProfilePreview({
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
             <Tooltip
-              text={tooltipDesign.tooltipEnabled ? `#${uid}` : ""}
-              style={tooltipDesign.tooltipStyle}
+              text={tooltips.enabled ? `#${uid}` : ""}
+              style={tooltips.style}
             >
               <span className="pv-avatar" aria-hidden="true">
                 {avatar ? (

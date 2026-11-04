@@ -600,6 +600,9 @@
   border-radius: var(--wg-radius, 18px);
   background: var(--wg-bg, rgba(255, 255, 255, 0.06));
   color: #f2f7fa;
+  /* The profile card can be centred; a widget's own text always reads from the
+     left so the title lines up with its avatar and meta chips. */
+  text-align: left;
   isolation: isolate;
   backdrop-filter: blur(var(--wg-blur, 0px));
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
@@ -861,32 +864,15 @@
   border-radius: 50%;
 }
 
-.widget-card-mark {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 21px;
-  flex: none;
-  padding: 0 8px 0 7px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 7px;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.widget-card-mark b {
-  color: #d7dee3;
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-
-.widget-card.is-compact .widget-card-mark b {
-  display: none;
-}
-
 .widget-card.is-compact .widget-card-meta {
   display: none;
+}
+
+/* The platform chip no longer fills the bottom row, so a widget with no live
+   meta would keep a fixed-height hole under its title. Let it size to its
+   content instead. */
+.widget-card:not(:has(.widget-card-meta > *)) {
+  min-height: 0;
 }
 
 .widget-card.is-compact .widget-card-avatar {
@@ -1493,17 +1479,6 @@
     background-position: 50%;
   }
 }
-.widget-card-mark--link {
-  text-decoration: none;
-  cursor: pointer;
-  transition: opacity 0.16s ease;
-}
-
-.widget-card-mark--link:hover {
-  opacity: 0.78;
-  text-decoration: underline;
-}
-
 /* ═══════════════════════════════════════════════════════════════════════
    Platform + widget cards — dark tiles with a large watermark, a brand
    coloured icon plate and readable two-line descriptions.

@@ -9,7 +9,6 @@ import { Bento } from "./Bento";
 import { ProfileCard } from "./ProfileCard";
 import {
   ArrowRight,
-  CheckIcon,
   ChevronIcon,
   DiscordIcon,
   SpotifyIcon,
@@ -22,44 +21,56 @@ export function Hero({
   signedIn,
   onPrimary,
   onExample,
+  onFaq,
 }: {
   signedIn: boolean;
   onPrimary: () => void;
   onExample: () => void;
+  onFaq: () => void;
 }) {
   return (
     <section className="hero" id="top">
       <div className="hero-bg" aria-hidden="true" />
       <div className="wrap hero-grid">
         <div className="hero-copy">
-          <span className="eyebrow">
+          <p className="hero-kicker">
             <i className="pulse-dot" />
-            Open beta · your link, live
-          </span>
+            open beta · small on purpose
+          </p>
           <h1 className="hero-title">
             tourn<span className="accent">.</span>lol
           </h1>
           <p className="hero-sub">
-            One short link for everything you play. Your bio, live widgets and every platform you
-            use — on a page that stays current instead of going stale.
+            one link for everything you play. your bio, your links, your live widgets — on a
+            page that stays current instead of going stale.
           </p>
           <div className="hero-actions">
             <button type="button" className="btn btn-primary" onClick={onPrimary}>
-              {signedIn ? "Open your dashboard" : "Claim your link"}
+              {signedIn ? "open your dashboard" : "claim your link"}
               <ArrowRight size={15} />
             </button>
             <button type="button" className="btn btn-ghost" onClick={onExample}>
-              See a live bio
+              see a live bio <span aria-hidden="true">→</span>
             </button>
           </div>
-          <div className="hero-meta">
-            <span>
-              <CheckIcon size={13} /> Free while in beta
-            </span>
-            <span>
-              <CheckIcon size={13} /> Email or Discord sign-in
-            </span>
-          </div>
+          <p className="hero-note">
+            free while in beta · email or discord sign-in · there is a cat on this page, sorry
+          </p>
+          <nav className="hero-pages" aria-label="pages">
+            <span>pages</span>
+            <a href="#/leaderboard">
+              leaderboard <span aria-hidden="true">→</span>
+            </a>
+            <a href="#/premium">
+              premium <span aria-hidden="true">→</span>
+            </a>
+            <a href="#/legal">
+              legal <span aria-hidden="true">→</span>
+            </a>
+            <button type="button" className="hero-page-link" onClick={onFaq}>
+              help <span aria-hidden="true">→</span>
+            </button>
+          </nav>
         </div>
         <div className="hero-card-slot">
           <ProfileCard />
@@ -77,19 +88,13 @@ export function StatsBand({ stats }: { stats: SiteStats }) {
   return (
     <section className="stats-band" aria-label="tourn.lol, in numbers">
       <div className="wrap stats-band-row" data-reveal>
-        <div className="stats-band-item">
-          <b className="stats-band-value">
-            {stats.users === null ? "—" : formatCompactNumber(stats.users)}
-          </b>
-          <span className="stats-band-label">creators signed up</span>
-        </div>
-        <span className="stats-band-divider" aria-hidden="true" />
-        <div className="stats-band-item">
-          <b className="stats-band-value">
-            {stats.views === null ? "—" : formatCompactNumber(stats.views)}
-          </b>
-          <span className="stats-band-label">profile views</span>
-        </div>
+        <p className="stats-band-line">
+          <b>{stats.users === null ? "—" : formatCompactNumber(stats.users)}</b> creators signed up
+          <span className="stats-band-dot" aria-hidden="true">
+            ·
+          </span>
+          <b>{stats.views === null ? "—" : formatCompactNumber(stats.views)}</b> profile views
+        </p>
       </div>
     </section>
   );
@@ -115,13 +120,13 @@ export function BentoSection({
   return (
     <section className="section" id="example">
       <div className="wrap">
-        <div className="section-head section-head--center" data-reveal>
-          <span className="eyebrow eyebrow--sm">your bio</span>
+        <div className="section-head" data-reveal>
+          <span className="home-label">your bio <span aria-hidden="true">→</span></span>
           <h2 className="section-title">
-            Your profile, <span className="accent">live.</span>
+            your profile, <span className="accent">live.</span>
           </h2>
           <p className="section-sub">
-            Who you are, where you hang out, what's playing, what you're grinding. Widgets,
+            who you are, where you hang out, what's playing, what you're grinding. widgets,
             connected once, current forever.
           </p>
         </div>
@@ -237,11 +242,11 @@ export function FaqSection() {
     <section className="section section--tight" id="faq">
       <div className="wrap faq-wrap">
         <div className="section-head" data-reveal>
-          <span className="eyebrow eyebrow--sm">help</span>
-          <h2 className="section-title">Questions, answered.</h2>
+          <span className="home-label">help <span aria-hidden="true">→</span></span>
+          <h2 className="section-title">questions, answered.</h2>
           <p className="section-sub">
-            Short version: one link, your bio and a live widget stack. No clutter. The long version
-            is here.
+            short version: one link, your bio and a live widget stack. no clutter. the long
+            version is here.
           </p>
         </div>
         <div className="faq-list">
@@ -318,7 +323,10 @@ export function Footer({
       </div>
       <div className="wrap footer-bottom">
         <span>© 2026 tourn.lol</span>
-        <span>Bio links for people who play.</span>
+        <span>bio links for people who play. this footer is mostly here because it looks cool.</span>
+        <span className="footer-cat">
+          the cat is <a href="https://github.com/adryd325/oneko.js" target="_blank" rel="noreferrer">oneko.js</a> 🐈‍⬛
+        </span>
       </div>
     </footer>
   );

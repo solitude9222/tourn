@@ -5,6 +5,7 @@ import { EMPTY_WIDGET_STORE, loadWidgetStore, type WidgetStore } from "../lib/wi
 import { EMPTY_BADGE_STORE, loadBadgeStore, type BadgeStore } from "../lib/badges";
 import { EMPTY_LINK_STORE, loadLinkStore, type LinkStore } from "../lib/links";
 import { LinkerPreview } from "./LinkerPreview";
+import { Oneko } from "./Oneko";
 import { SiteBackdrop } from "./Chrome";
 import { ArrowRight } from "./Icons";
 import "../about.css";
@@ -88,6 +89,7 @@ export function DemoPage({
 
   return (
     <section className="profile-page demo-page">
+      <Oneko enabled={Boolean(data.about.design.oneko)} />
       <LinkerPreview
         user={owner}
         about={data.about}

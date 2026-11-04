@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------------
    Customize > Profile — Profile, Appearance, Experience, Integrations and
-   Switches. Every control writes a field the public page already reads; the
+   Extra. Every control writes a field the public page already reads; the
    couple of reference features this product does not have yet are shown
    disabled rather than pretending to save.
    --------------------------------------------------------------------------- */
@@ -9,6 +9,7 @@ import { useState } from "react";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { WIDGET_PLATFORMS, createWidgetInstance } from "../../lib/widgets";
 import { ProfilePreview } from "../../components/ProfilePreview";
+import { EntryOverlay } from "../../components/LinkerPreview";
 import { WidgetCard } from "../../components/WidgetCard";
 import { DEFAULT_BADGE_STYLE } from "../../lib/badges";
 import { DEFAULT_LINK_DESIGN } from "../../lib/links";
@@ -51,6 +52,14 @@ const ENTRY_ANIMATIONS = [
   { value: "typewriter", label: "Typewriter" },
 ];
 
+const TOOLTIP_STYLES = [
+  { value: "default", label: "Default" },
+  { value: "glass", label: "Glass" },
+  { value: "accent", label: "Accent" },
+  { value: "dark", label: "Dark" },
+  { value: "minimal", label: "Minimal" },
+];
+
 const FILTERS = [
   { value: "none", label: "No filter" },
   { value: "soft", label: "Soft fade" },
@@ -89,6 +98,9 @@ function DiscordPresenceCard() {
   const widget = widgets.widgets.find((entry) => entry.platform === "discord");
   const [discordId, setDiscordId] = useState(widget?.content || settings.discordUserId);
   const [busy, setBusy] = useState(false);
+
+  // No connected Discord account, no presence section — there is nothing to
+  // read and nothing to configure.
 
   const updateOption = (key: string, value: boolean | string) => {
     if (!widget) return;
@@ -132,6 +144,8 @@ function DiscordPresenceCard() {
     if (result.error) notify("Discord", result.error);
     setBusy(false);
   };
+
+  if (!linked) return null;
 
   return (
     <Card>
@@ -263,6 +277,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
     isPremium,
     notify,
     go,
+    setProfileTab,
   } = useDash();
 
   const design = about.design;
@@ -381,15 +396,19 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               />
             </Field>
 
-            <ColorField
-              label="Text Color"
-              value={design.colors.text}
-              onChange={(value) => updateColors({ text: value })}
-            />
+          </div>
 
-            <div className="tw-color-row">
+          {/* Colour pickers on the left, everything else on the right. */}
+          <div className="tw-split" style={{ marginTop: 20 }}>
+            <div className="tw-split-col">
+              <span className="tw-split-label">Colours</span>
               <ColorField
-                label="Secondary Text"
+                label="Text colour"
+                value={design.colors.text}
+                onChange={(value) => updateColors({ text: value })}
+              />
+              <ColorField
+                label="Secondary text"
                 value={design.colors.muted}
                 onChange={(value) => updateColors({ muted: value })}
               />
@@ -400,25 +419,28 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               />
             </div>
 
-            <Field label="Join Date Format" help>
-              <Select
-                icon="clock"
-                value={about.metadata.joinFormat ?? "relative"}
-                options={JOIN_FORMATS}
-                onChange={(value) =>
-                  updateMetadata({ joinFormat: value as "relative" | "us" | "eu" })
-                }
-              />
-            </Field>
+            <div className="tw-split-col">
+              <span className="tw-split-label">Details</span>
+              <Field label="Join Date Format" help>
+                <Select
+                  icon="clock"
+                  value={about.metadata.joinFormat ?? "relative"}
+                  options={JOIN_FORMATS}
+                  onChange={(value) =>
+                    updateMetadata({ joinFormat: value as "relative" | "us" | "eu" })
+                  }
+                />
+              </Field>
 
-            <Field label="Date Format" help>
-              <Select
-                icon="calendar"
-                value={about.metadata.dateFormat ?? "us"}
-                options={DATE_FORMATS}
-                onChange={(value) => updateMetadata({ dateFormat: value as "us" | "eu" })}
-              />
-            </Field>
+              <Field label="Date Format" help>
+                <Select
+                  icon="calendar"
+                  value={about.metadata.dateFormat ?? "us"}
+                  options={DATE_FORMATS}
+                  onChange={(value) => updateMetadata({ dateFormat: value as "us" | "eu" })}
+                />
+              </Field>
+            </div>
           </div>
         </Card>
 
@@ -499,56 +521,43 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
             </div>
           </div>
 
-          <div className="tw-form-grid" style={{ marginTop: 20 }}>
-            <ColorField
-              label="Card colour"
-              value={design.colors.card}
-              onChange={(value) => updateColors({ card: value })}
-            />
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Make card transparent</b>
-                <small>Remove all card styling</small>
-              </span>
-              <Toggle
-                checked={design.backgroundOpacity === 0}
-                onChange={(checked) => updateDesign({ backgroundOpacity: checked ? 0 : 0.08 })}
-                label="Make card transparent"
+          {/* Colours on the left, sliders on the right. */}
+          <div className="tw-split" style={{ marginTop: 20 }}>
+            <div className="tw-split-col">
+              <span className="tw-split-label">Colours</span>
+              <ColorField
+                label="Card colour"
+                value={design.colors.card}
+                onChange={(value) => updateColors({ card: value })}
+              />
+              <ColorField
+                label="Border colour"
+                value={design.colors.border}
+                onChange={(value) => updateColors({ border: value })}
               />
             </div>
 
-            <Slider
-              label="Opacity"
-              value={design.backgroundOpacity}
-              min={0}
-              max={1}
-              step={0.01}
-              format={(value) => value.toFixed(2)}
-              ticks={["25%", "50%", "75%"]}
-              onChange={(value) => updateDesign({ backgroundOpacity: value })}
-            />
-
-            <Slider
-              label="Blur"
-              value={design.backgroundBlur}
-              min={0}
-              max={24}
-              onChange={(value) => updateDesign({ backgroundBlur: value })}
-            />
-          </div>
-
-          <div className="tw-subhead">Border Settings</div>
-
-          <div className="tw-form-grid">
-            <ColorField
-              label="Border colour"
-              value={design.colors.border}
-              onChange={(value) => updateColors({ border: value })}
-            />
-
-            <div className="tw-border-sliders">
+            <div className="tw-split-col">
+              <span className="tw-split-label">Sizes &amp; sliders</span>
               <Slider
-                label="Border Width"
+                label="Opacity"
+                value={design.backgroundOpacity}
+                min={0}
+                max={1}
+                step={0.01}
+                format={(value) => value.toFixed(2)}
+                ticks={["25%", "50%", "75%"]}
+                onChange={(value) => updateDesign({ backgroundOpacity: value })}
+              />
+              <Slider
+                label="Blur"
+                value={design.backgroundBlur}
+                min={0}
+                max={24}
+                onChange={(value) => updateDesign({ backgroundBlur: value })}
+              />
+              <Slider
+                label="Border width"
                 value={design.borderWidth}
                 min={0}
                 max={12}
@@ -556,7 +565,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
                 onChange={(value) => updateDesign({ borderWidth: value })}
               />
               <Slider
-                label="Border Radius"
+                label="Border radius"
                 value={design.cardRadius}
                 min={0}
                 max={72}
@@ -564,7 +573,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
                 onChange={(value) => updateDesign({ cardRadius: value })}
               />
               <Slider
-                label="Border Opacity"
+                label="Border opacity"
                 value={Math.round(design.borderOpacity * 100)}
                 min={0}
                 max={100}
@@ -572,8 +581,18 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
                 ticks={["0%", "50%", "100%"]}
                 onChange={(value) => updateDesign({ borderOpacity: value / 100 })}
               />
+              <div className="tw-inline-toggle">
+                <span>
+                  <b>Make card transparent</b>
+                  <small>Remove all card styling</small>
+                </span>
+                <Toggle
+                  checked={design.backgroundOpacity === 0}
+                  onChange={(checked) => updateDesign({ backgroundOpacity: checked ? 0 : 0.08 })}
+                  label="Make card transparent"
+                />
+              </div>
             </div>
-
           </div>
         </Card>
 
@@ -583,30 +602,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
             title="Card Gradient"
             subtitle="Colour and motion of the gradient that travels around your card."
           />
-          <div className="tw-form-grid">
-            <ColorField
-              label="Gradient colour"
-              value={about.assets.card.color}
-              onChange={(value) => updateCard({ color: value })}
-            />
-            <Slider
-              label="Intensity"
-              value={about.assets.card.intensity}
-              min={0}
-              max={100}
-              suffix="%"
-              onChange={(value) => updateCard({ intensity: value })}
-            />
-            <Slider
-              label="Speed"
-              value={about.assets.card.speed}
-              min={1.5}
-              max={20}
-              step={0.5}
-              suffix="s"
-              onChange={(value) => updateCard({ speed: value })}
-            />
-          </div>
           <Button
             variant={gradientOn ? "ghost" : "primary"}
             wide
@@ -618,6 +613,42 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           >
             {gradientOn ? "Disable Card Gradient" : "Activate Card Gradient"}
           </Button>
+
+          {/* The gradient controls only mean anything while it is on. */}
+          {gradientOn ? (
+            <div className="tw-split" style={{ marginTop: 18 }}>
+              <div className="tw-split-col">
+                <span className="tw-split-label">Colours</span>
+                <ColorField
+                  label="Gradient colour"
+                  value={about.assets.card.color}
+                  onChange={(value) => updateCard({ color: value })}
+                />
+              </div>
+              <div className="tw-split-col">
+                <span className="tw-split-label">Sizes &amp; sliders</span>
+                <Slider
+                  label="Intensity"
+                  value={about.assets.card.intensity}
+                  min={0}
+                  max={100}
+                  suffix="%"
+                  onChange={(value) => updateCard({ intensity: value })}
+                />
+                <Slider
+                  label="Speed"
+                  value={about.assets.card.speed}
+                  min={1.5}
+                  max={20}
+                  step={0.5}
+                  suffix="s"
+                  onChange={(value) => updateCard({ speed: value })}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="tw-foot-note">Turn the gradient on to choose its colour and motion.</p>
+          )}
         </Card>
       </>
     );
@@ -625,11 +656,28 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 
   if (tab === "experience") {
     return (
-      <>
-        <Card>
-          <CardHead icon="expand" title="Enter Screen Customization" />
+      <Card>
+        <CardHead
+          icon="expand"
+          title="Enter Screen Customization"
+          subtitle="Everything below is the same screen visitors see, live."
+        />
 
-          <div className="tw-form-grid">
+        <div className="tw-inline-toggle">
+          <span>
+            <b>Show enter screen</b>
+            <small>Off lets visitors land straight on your page.</small>
+          </span>
+          <Toggle
+            checked={Boolean(entry.enabled)}
+            onChange={(checked) => updateEntry({ enabled: checked })}
+            label="Show enter screen"
+          />
+        </div>
+
+        <div className="tw-split" style={{ marginTop: 18 }}>
+          <div className="tw-split-col">
+            <span className="tw-split-label">Colours</span>
             <ColorField
               label="Background"
               value={entry.background}
@@ -640,7 +688,17 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               value={entry.titleColor}
               onChange={(value) => updateEntry({ titleColor: value })}
             />
+            {entry.divider ? (
+              <ColorField
+                label="Divider colour"
+                value={entry.dividerColor ?? "#ffffff"}
+                onChange={(value) => updateEntry({ dividerColor: value })}
+              />
+            ) : null}
+          </div>
 
+          <div className="tw-split-col">
+            <span className="tw-split-label">Sizes &amp; sliders</span>
             <Slider
               label="Opacity"
               value={entry.dim}
@@ -650,7 +708,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               ticks={["20%", "50%", "80%"]}
               onChange={(value) => updateEntry({ dim: value })}
             />
-
             <Slider
               label="Blur"
               value={entry.blur}
@@ -658,9 +715,8 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               max={40}
               onChange={(value) => updateEntry({ blur: value })}
             />
-
             <Slider
-              label="Font Size"
+              label="Font size"
               value={entry.titleSize}
               min={12}
               max={72}
@@ -668,106 +724,54 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               ticks={["24px", "48px", "72px"]}
               onChange={(value) => updateEntry({ titleSize: value })}
             />
-          </div>
-
-          <div className="tw-inline-toggle" style={{ marginTop: 18 }}>
-            <span>
-              <b>Divider line</b>
-              <small>Adds a customizable line below your enter text.</small>
-            </span>
-            <Toggle
-              checked={Boolean(entry.divider)}
-              onChange={(checked) => updateEntry({ divider: checked })}
-              label="Divider line"
-            />
-          </div>
-
-          {entry.divider ? (
-            <div className="tw-form-grid" style={{ marginTop: 16 }}>
-              <ColorField
-                label="Divider colour"
-                value={entry.dividerColor ?? "#ffffff"}
-                onChange={(value) => updateEntry({ dividerColor: value })}
-              />
-              <Slider
-                label="Divider length"
-                value={entry.dividerWidth ?? 42}
-                min={10}
-                max={100}
-                suffix="%"
-                onChange={(value) => updateEntry({ dividerWidth: value })}
-              />
-              <Slider
-                label="Divider thickness"
-                value={entry.dividerSize ?? 1}
-                min={1}
-                max={8}
-                suffix="px"
-                onChange={(value) => updateEntry({ dividerSize: value })}
-              />
-              <Slider
-                label="Divider opacity"
-                value={Math.round((entry.dividerOpacity ?? 0.4) * 100)}
-                min={0}
-                max={100}
-                suffix="%"
-                onChange={(value) => updateEntry({ dividerOpacity: value / 100 })}
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Divider line</b>
+                <small>Adds a customizable line below your enter text.</small>
+              </span>
+              <Toggle
+                checked={Boolean(entry.divider)}
+                onChange={(checked) => updateEntry({ divider: checked })}
+                label="Divider line"
               />
             </div>
-          ) : null}
-
-          <div className="tw-enter-preview" style={{ background: entry.background }}>
-            <div
-              className="tw-enter-preview-card"
-              style={{ filter: entry.blur > 0 ? `blur(${entry.blur / 4}px)` : undefined }}
-            >
-              <b style={{ color: entry.titleColor, fontSize: Math.min(38, entry.titleSize) }}>
-                {entry.title.trim() || "enter"}
-              </b>
-              <span className="tw-enter-line" />
-            </div>
-
+            {entry.divider ? (
+              <>
+                <Slider
+                  label="Divider length"
+                  value={entry.dividerWidth ?? 42}
+                  min={10}
+                  max={100}
+                  suffix="%"
+                  onChange={(value) => updateEntry({ dividerWidth: value })}
+                />
+                <Slider
+                  label="Divider thickness"
+                  value={entry.dividerSize ?? 1}
+                  min={1}
+                  max={8}
+                  suffix="px"
+                  onChange={(value) => updateEntry({ dividerSize: value })}
+                />
+                <Slider
+                  label="Divider opacity"
+                  value={Math.round((entry.dividerOpacity ?? 0.4) * 100)}
+                  min={0}
+                  max={100}
+                  suffix="%"
+                  onChange={(value) => updateEntry({ dividerOpacity: value / 100 })}
+                />
+              </>
+            ) : null}
           </div>
-        </Card>
+        </div>
 
-        <Card>
-          <CardHead icon="move" title="Parallax Effect" />
-
-          <div className="tw-inline-toggle">
-            <span>
-              <b>Enable Parallax</b>
-              <small>3D tilt effect on mouse movement</small>
-            </span>
-            <Toggle
-              checked={design.tilt > 0}
-              onChange={(checked) => updateDesign({ tilt: checked ? 4 : 0 })}
-              label="Enable parallax"
-            />
-          </div>
-
-          <div style={{ marginTop: 18 }}>
-            <Slider
-              label="Intensity"
-              value={design.tilt}
-              min={0}
-              max={24}
-              onChange={(value) => updateDesign({ tilt: value })}
-            />
-          </div>
-
-          <div className="tw-inline-toggle" style={{ marginTop: 18 }}>
-            <span>
-              <b>Invert Direction</b>
-              <small>Reverse the direction the card tilts</small>
-            </span>
-            <Toggle
-              checked={Boolean(design.tiltInvert)}
-              onChange={(checked) => updateDesign({ tiltInvert: checked })}
-              label="Invert parallax"
-            />
-          </div>
-        </Card>
-      </>
+        <div className="tw-subhead">Live preview</div>
+        {/* The real screen, not a mock — so every setting above is visible. */}
+        <div className="tw-enter-stage">
+          <EntryOverlay about={about} onEnter={() => undefined} preview />
+        </div>
+      </Card>
     );
   }
 
@@ -783,35 +787,26 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
   const profileViewsOn = design.viewPosition !== "hidden";
   const joinOn = design.joinPosition !== "hidden";
   const audioOn = about.assets.audio.style !== "none";
+  const tooltips = design.tooltips;
+  const anyGlow = Boolean(
+    design.glowName || design.glowLocation || design.glowViews || design.glowJoin || badges.style.glow,
+  );
 
   return (
     <>
       <Card>
-        <CardHead icon="sliders" title="Switches" subtitle="Toggle profile features" />
+        <CardHead icon="sparkles" title="Effects" subtitle="Glows and cursor extras on your card" />
 
-        <div className="tw-section-label">Visual Effects &amp; Animations</div>
         <div className="tw-grid tw-grid--3">
           <ToggleTile
             icon="shield"
             title="Badge Glow"
-            description="Enable a glow effect for your badges"
+            description="Halo behind your badges"
             checked={badges.style.glow}
             onChange={(checked) =>
               setBadges((current) => ({
                 ...current,
                 style: { ...current.style, glow: checked },
-              }))
-            }
-          />
-          <ToggleTile
-            icon="link"
-            title="Socials Glow"
-            description="Enable a glow effect for your social media links"
-            checked={links.design.showGlow}
-            onChange={(checked) =>
-              setLinks((current) => ({
-                ...current,
-                design: { ...current.design, showGlow: checked },
               }))
             }
           />
@@ -825,97 +820,225 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           <ToggleTile
             icon="pin"
             title="Location Glow"
-            description="Glow around your location pill"
+            description="Glow on your location"
             checked={Boolean(design.glowLocation)}
             onChange={(checked) => updateDesign({ glowLocation: checked })}
           />
           <ToggleTile
             icon="eye"
             title="Profile Views Glow"
-            description="Glow around the view counter"
+            description="Glow on the view counter"
             checked={Boolean(design.glowViews)}
             onChange={(checked) => updateDesign({ glowViews: checked })}
           />
           <ToggleTile
             icon="calendar"
             title="Join Date Glow"
-            description="Glow around the join date"
+            description="Glow on the join date"
             checked={Boolean(design.glowJoin)}
             onChange={(checked) => updateDesign({ glowJoin: checked })}
           />
           <ToggleTile
             icon="sparkles"
             title="ONEKO!"
-            description="A little cat that follows your cursor"
+            description="A pixel cat that chases your cursor on your page"
             checked={Boolean(design.oneko)}
             onChange={(checked) => updateDesign({ oneko: checked })}
           />
         </div>
 
-        <div className="tw-section-label">Profile Elements</div>
+        {anyGlow ? (
+          <div className="tw-split" style={{ marginTop: 16 }}>
+            <div className="tw-split-col">
+              <span className="tw-split-label">Colours</span>
+              <ColorField
+                label="Glow colour"
+                value={design.colors.accent}
+                onChange={(value) => updateColors({ accent: value })}
+              />
+              <ColorField
+                label="Badge glow colour"
+                value={badges.style.glowColor}
+                onChange={(value) =>
+                  setBadges((current) => ({
+                    ...current,
+                    style: { ...current.style, glowColor: value },
+                  }))
+                }
+              />
+            </div>
+
+            <div className="tw-split-col">
+              <span className="tw-split-label">Sizes &amp; sliders</span>
+              <Slider
+                label="Badge glow intensity"
+                value={badges.style.glowIntensity}
+                min={0}
+                max={100}
+                suffix="%"
+                onChange={(value) =>
+                  setBadges((current) => ({
+                    ...current,
+                    style: { ...current.style, glowIntensity: value },
+                  }))
+                }
+              />
+              <div className="tw-inline-toggle">
+                <span>
+                  <b>Glow pulse</b>
+                  <small>Slowly breathe the badge halo</small>
+                </span>
+                <Toggle
+                  checked={badges.style.glowPulse}
+                  onChange={(checked) =>
+                    setBadges((current) => ({
+                      ...current,
+                      style: { ...current.style, glowPulse: checked },
+                    }))
+                  }
+                  label="Glow pulse"
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </Card>
+
+      <Card>
+        <CardHead icon="help" title="Tooltips" subtitle="Hover labels on your avatar and badges" />
+
+        <div className="tw-split">
+          <div className="tw-split-col">
+            <span className="tw-split-label">Behaviour</span>
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Show tooltips</b>
+                <small>Links never show one — the icon is the link.</small>
+              </span>
+              <Toggle
+                checked={tooltips.enabled}
+                onChange={(checked) =>
+                  updateDesign({ tooltips: { ...tooltips, enabled: checked } })
+                }
+                label="Show tooltips"
+              />
+            </div>
+          </div>
+
+          <div className="tw-split-col">
+            <span className="tw-split-label">Style</span>
+            <Field label="Tooltip style">
+              <Select
+                value={tooltips.style}
+                options={TOOLTIP_STYLES}
+                onChange={(value) =>
+                  updateDesign({
+                    tooltips: { ...tooltips, style: value as typeof tooltips.style },
+                  })
+                }
+              />
+            </Field>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead icon="user" title="Profile elements" subtitle="What shows on the card" />
+
         <div className="tw-grid tw-grid--3">
           <ToggleTile
-            icon="user"
-            title="Show Avatar"
-            description="Display your avatar icon on your page"
-            checked={about.assets.avatarUrl.length > 0 || Boolean(user?.avatarUrl)}
-            onChange={(checked) => {
-              if (!checked) {
-                setAbout((current) => ({
-                  ...current,
-                  assets: { ...current.assets, avatarUrl: "" },
-                }));
-              } else {
-                notify("Show Avatar", "Upload a picture from Account › Profile.");
-              }
-            }}
+            icon="pin"
+            title="Location"
+            description="Show where you are from"
+            checked={design.locationPosition !== "hidden"}
+            onChange={(checked) =>
+              updateDesign({ locationPosition: checked ? "under-name" : "hidden" })
+            }
           />
-
           <ToggleTile
             icon="eye"
             title="Profile Views"
-            description="Show off your profile views count"
+            description="Show your view counter"
             checked={profileViewsOn}
             onChange={(checked) =>
-              updateDesign({ viewPosition: checked ? "top-right" : "hidden" })
-            }
-          />
-          <ToggleTile
-            icon="help"
-            title="Tooltip on Social Links"
-            description="Enable/disable the hover tooltip on your social links"
-            checked={links.design.tooltipEnabled}
-            onChange={(checked) =>
-              setLinks((current) => ({
-                ...current,
-                design: { ...current.design, tooltipEnabled: checked },
-              }))
-            }
-          />
-          <ToggleTile
-            icon="music"
-            title="Audio Player"
-            description="Enable or disable the profile player on your profile page"
-            checked={audioOn}
-            onChange={(checked) =>
-              setAbout((current) => ({
-                ...current,
-                assets: {
-                  ...current.assets,
-                  audio: { ...current.assets.audio, style: checked ? "compact" : "none" },
-                },
-              }))
+              updateDesign({ viewPosition: checked ? "footer" : "hidden" })
             }
           />
           <ToggleTile
             icon="calendar"
             title="Join Date"
-            description="Show your account creation date"
+            description="Show when you joined"
             checked={joinOn}
             onChange={(checked) => updateDesign({ joinPosition: checked ? "footer" : "hidden" })}
           />
+          <ToggleTile
+            icon="music"
+            title="Audio Player"
+            description="Music on your page"
+            checked={audioOn}
+            onChange={(checked) => {
+              if (checked) {
+                setProfileTab("integrations");
+                notify("Audio Player", "Pick a player style under Integrations.");
+                return;
+              }
+              setAbout((current) => ({
+                ...current,
+                assets: {
+                  ...current.assets,
+                  audio: { ...current.assets.audio, style: "none" },
+                },
+              }));
+              notify("Audio Player", "Audio player is off.");
+            }}
+          />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead icon="move" title="Motion" subtitle="Parallax tilt on the card" />
+
+        <div className="tw-split">
+          <div className="tw-split-col">
+            <span className="tw-split-label">Behaviour</span>
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Parallax</b>
+                <small>Tilts the card toward your cursor</small>
+              </span>
+              <Toggle
+                checked={design.tilt > 0}
+                onChange={(checked) => updateDesign({ tilt: checked ? 4 : 0 })}
+                label="Parallax"
+              />
+            </div>
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Invert direction</b>
+                <small>Reverse the direction the card tilts</small>
+              </span>
+              <Toggle
+                checked={Boolean(design.tiltInvert)}
+                onChange={(checked) => updateDesign({ tiltInvert: checked })}
+                label="Invert parallax"
+              />
+            </div>
+          </div>
+
+          <div className="tw-split-col">
+            <span className="tw-split-label">Sizes &amp; sliders</span>
+            <Slider
+              label="Intensity"
+              value={design.tilt}
+              min={0}
+              max={24}
+              onChange={(value) => updateDesign({ tilt: value })}
+            />
+          </div>
         </div>
       </Card>
     </>
   );
 }
+
+

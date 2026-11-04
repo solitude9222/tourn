@@ -214,24 +214,6 @@ function WidgetCardSurface({
               </span>
             ))}
           </span>
-          {profileHref && !preview ? (
-            <a
-              className="widget-card-mark widget-card-mark--link"
-              style={{ color: platform.color }}
-              href={profileHref}
-              target="_blank"
-              rel="noreferrer noopener"
-              title={`Open on ${platform.name}`}
-            >
-              <PlatformIcon id={platform.id} size={13} />
-              <b>{platform.name}</b>
-            </a>
-          ) : (
-            <span className="widget-card-mark" style={{ color: platform.color }}>
-              <PlatformIcon id={platform.id} size={13} />
-              <b>{platform.name}</b>
-            </span>
-          )}
         </span>
       </span>
 

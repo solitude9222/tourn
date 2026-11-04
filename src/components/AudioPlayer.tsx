@@ -24,15 +24,21 @@ function LyricsPanel({
   hint: string;
 }) {
   if (lines.length) {
-    // A fixed 4-line window that physically slides to the active line —
-    // transform transition, so it glides instead of jumping.
+    // A fixed 5-line window whose middle row is the active line. The track
+    // physically slides by whole rows (transform transition) so the lyrics
+    // follow the song instead of jumping. The shift is clamped at both ends:
+    // the first lines start at the top rather than leaving blank rows, and the
+    // track never scrolls past the last line.
     const visible = lines.slice(0, 160);
+    const rows = 5;
+    const middle = Math.floor(rows / 2);
     const offset = Math.max(0, activeLine);
+    const shift = Math.min(0, Math.max(middle - offset, middle - (visible.length - 1)));
     return (
       <div className="ap-lyrics" aria-live="polite">
         <div
           className="ap-lyrics-track"
-          style={{ transform: `translateY(calc(var(--ap-lyric-center) - ${offset} * var(--ap-lyric-h)))` }}
+          style={{ transform: `translateY(calc(var(--ap-lyric-h) * ${shift}))` }}
         >
           {visible.map((line, index) => (
             <p key={index} className={index === activeLine ? "ap-lyric-current" : "ap-lyric-dim"}>
@@ -143,6 +149,27 @@ export function AudioPlayer({
     if (el.paused) void el.play();
     else el.pause();
   };
+
+  // `timeupdate` only fires about four times a second, which makes the lyric
+  // track visibly lag a fast line. While the track plays, read the real clock
+  // on an animation frame (throttled) so the highlight and the scroll land on
+  // the line the moment it is sung.
+  useEffect(() => {
+    if (!playing) return;
+    const el = audioRef.current;
+    if (!el) return;
+    let frame = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      frame = window.requestAnimationFrame(tick);
+      if (now - last < 80) return;
+      last = now;
+      const next = el.currentTime || 0;
+      setPosition((current) => (Math.abs(next - current) > 0.02 ? next : current));
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [playing]);
 
   const skip = (deltaSeconds: number) => {
     const el = audioRef.current;

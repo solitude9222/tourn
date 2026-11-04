@@ -69,7 +69,7 @@ const PROFILE_TABS: TabDef[] = [
   { id: "appearance", label: "Appearance", icon: "palette" },
   { id: "experience", label: "Experience", icon: "sparkles" },
   { id: "integrations", label: "Integrations", icon: "link" },
-  { id: "switches", label: "Switches", icon: "sliders" },
+  { id: "switches", label: "Extra", icon: "sliders" },
 ];
 
 const META: Record<Page, { title: string; subtitle: string; icon: IconName; crumb: string }> = {

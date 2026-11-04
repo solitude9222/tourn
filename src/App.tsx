@@ -31,6 +31,7 @@ import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
 import { SiteBackdrop } from "./components/Chrome";
+import { Oneko } from "./components/Oneko";
 import { post } from "./lib/backend";
 
 import { CopyIcon, ExternalIcon, MailIcon, UserIcon } from "./components/Icons";
@@ -297,6 +298,8 @@ function ProfilePage({
   badges,
   links,
   earned,
+  authLoading,
+  savedHandles,
   onSignIn,
 }: {
   handle: string | null;
@@ -305,10 +308,20 @@ function ProfilePage({
   widgets: WidgetStore;
   badges: BadgeStore;
   links: LinkStore;
-  earned: string[];
+  /** Badge ids the backend verified. `null` = not known yet, so nothing is hidden. */
+  earned: string[] | null;
+  /** The session check is still in flight. */
+  authLoading: boolean;
+  /** Handles this browser has an account for — a page for one is not "public". */
+  savedHandles: string[];
   onSignIn: () => void;
 }) {
   const isOwn = Boolean(handle && user && user.username.toLowerCase() === handle);
+  // Loading your own page used to paint the public copy first and swap to the
+  // live local card the moment the session check landed — that swap is the
+  // flash on a cold load. Hold the page while we find out who is signed in.
+  const mayBeOwn = Boolean(handle && savedHandles.includes(handle));
+  const holdForAuth = !user && authLoading && mayBeOwn;
   // A cached copy paints the real page — entry screen included — on the very
   // first frame. The fetch below only refreshes it in the background.
   const cached = useMemo(
@@ -366,11 +379,18 @@ function ProfilePage({
   if (isOwn && user) {
     return (
       <section className="profile-page">
+        <Oneko enabled={Boolean(about.design.oneko)} />
         <LinkerPreview
           user={user}
           about={about}
           widgets={widgets}
-          badges={{ ...badges, equipped: badges.equipped.filter((b) => earned.includes(b.id)) }}
+          badges={{
+            ...badges,
+            // Only strip unearned badges once the backend has actually told us
+            // which ones are earned — an empty/unknown list used to hide every
+            // badge on the card.
+            equipped: earned ? badges.equipped.filter((b) => earned.includes(b.id)) : badges.equipped,
+          }}
           links={links}
           interactive
           views={views}
@@ -382,7 +402,7 @@ function ProfilePage({
 
   // Nothing to paint yet: a plain black screen, never a skeleton flash. The
   // entry screen (or the page itself) replaces it as soon as data is ready.
-  if (remote.status === "loading") {
+  if (holdForAuth || remote.status === "loading") {
     return (
       <section
         className="profile-page profile-page--loading"
@@ -396,13 +416,16 @@ function ProfilePage({
     const document = remote.data.profile;
     return (
       <section className="profile-page">
+        <Oneko enabled={Boolean(document.about.design.oneko)} />
         <LinkerPreview
           user={remote.data.account}
           about={document.about}
           widgets={document.widgets}
           badges={{
             ...document.badges,
-            equipped: document.badges.equipped.filter((b) => remote.data.earned.includes(b.id)),
+            equipped: remote.data.earned
+              ? document.badges.equipped.filter((b) => remote.data.earned!.includes(b.id))
+              : document.badges.equipped,
           }}
           links={document.links}
           interactive
@@ -446,7 +469,8 @@ function ProfilePage({
 }
 
 function Site() {
-  const { user, first, isOwner, isAdmin, loading, unavailable, retryAuth, signOut } = useAuth();
+  const { user, first, isOwner, isAdmin, loading, unavailable, retryAuth, signOut, accounts } =
+    useAuth();
   const route = useHashRoute();
   // Start empty so a signed-in account never fires a request for the site's
   // marketing demo IDs while auth/account settings are still resolving.
@@ -456,7 +480,10 @@ function Site() {
   const [badges, setBadges] = useState<BadgeStore>(EMPTY_BADGE_STORE);
   const [profileLinks, setProfileLinks] = useState<LinkStore>(EMPTY_LINK_STORE);
   const [isPremium, setIsPremiumState] = useState(false);
-  const [earned, setEarned] = useState<string[]>([]);
+  // `null` until the backend tells us which badges this account earned. An
+  // empty array means "nothing earned"; the two must not be conflated or a
+  // failed request hides every equipped badge.
+  const [earned, setEarned] = useState<string[] | null>(null);
   const hydratedFor = useRef<string | null>(null);
   const lastSaved = useRef<string>("");
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
@@ -546,23 +573,45 @@ function Site() {
     if (!user) {
       hydratedFor.current = null;
       lastSaved.current = "";
-      setEarned([]);
+      setEarned(null);
       return;
     }
     let active = true;
     void fetchOwnProfile().then((result) => {
-      if (!active || !result.ok) return;
+      if (!active) return;
+      if (!result.ok) {
+        // Publishing waits for this read, so a failed request used to mean no
+        // edit was ever published again. Keep the local copy in charge and let
+        // the next change try to push it.
+        hydratedFor.current = user.id;
+        return;
+      }
       setEarned(result.data.earned);
       if (result.data.profile) {
         const document = result.data.profile;
-        setAbout(document.about);
-        setWidgets(document.widgets);
-        setBadges(document.badges);
-        setProfileLinks(document.links);
-        saveAbout(user.id, document.about);
-        saveWidgetStore(user.id, document.widgets);
-        saveBadgeStore(user.id, document.badges);
-        saveLinkStore(user.id, document.links);
+        // A published document with an empty section is almost always a page
+        // that was saved before its links/badges/widgets were ever uploaded.
+        // Adopting it wholesale threw away the copy on this device; keep the
+        // local section in that case (the debounced save republishes it).
+        const local = {
+          widgets: loadWidgetStore(user.id),
+          badges: loadBadgeStore(user.id),
+          links: loadLinkStore(user.id),
+        };
+        const merged = {
+          about: document.about,
+          widgets: document.widgets.widgets.length ? document.widgets : local.widgets,
+          badges: document.badges.equipped.length ? document.badges : local.badges,
+          links: document.links.links.length ? document.links : local.links,
+        };
+        setAbout(merged.about);
+        setWidgets(merged.widgets);
+        setBadges(merged.badges);
+        setProfileLinks(merged.links);
+        saveAbout(user.id, merged.about);
+        saveWidgetStore(user.id, merged.widgets);
+        saveBadgeStore(user.id, merged.badges);
+        saveLinkStore(user.id, merged.links);
         lastSaved.current = JSON.stringify(document);
       } else {
         // First publish for this account: push what this browser already has.
@@ -728,6 +777,8 @@ function Site() {
             badges={badges}
             links={profileLinks}
             earned={earned}
+            authLoading={loading}
+            savedHandles={accounts.map((entry) => entry.username.toLowerCase())}
             onSignIn={() => setAuthMode("signup")}
           />
         </main>
@@ -745,7 +796,7 @@ function Site() {
           authLoading={loading}
           authUnavailable={unavailable}
           onRetryAuth={() => void retryAuth()}
-          earned={earned}
+          earned={earned ?? []}
           onSaveAbout={handleSaveAbout}
           onSaveWidgets={handleSaveWidgets}
           onSaveBadges={handleSaveBadges}
@@ -758,7 +809,7 @@ function Site() {
         />
       ) : (
         <>
-          <main key={route} className="page-enter">
+          <main key={route} className={`page-enter${route === "" ? " home" : ""}`}>
             {route === "leaderboard" ? (
               <LeaderboardPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "shop" ? (
@@ -769,10 +820,12 @@ function Site() {
               <LegalPage />
             ) : (
               <>
+                <Oneko />
                 <Hero
                   signedIn={Boolean(user)}
                   onPrimary={openPrimary}
                   onExample={() => scrollTo("example")}
+                  onFaq={openFaq}
                 />
                 <StatsBand stats={siteStats} />
                 <BentoSection

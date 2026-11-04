@@ -879,7 +879,9 @@
   border: 1px solid var(--pv-pill-border, rgba(255, 255, 255, 0.1));
   border-radius: var(--pv-pill-radius, 999px);
   background: var(--pv-pill-bg, rgba(255, 255, 255, 0.05));
-  color: color-mix(in srgb, var(--pv-text) 86%, transparent);
+  /* Same tone as the join date / view count it sits next to, so the footer
+     reads as one line instead of a bright item beside a dim one. */
+  color: var(--pv-muted);
   font-size: 9.5px;
   font-weight: 550;
   letter-spacing: 0.005em;
@@ -890,7 +892,9 @@
 
 .pv-location svg {
   flex: none;
-  color: var(--pv-accent);
+  /* Tinted by the accent but never invisible — a black/very dark accent used
+     to swallow the pin completely. */
+  color: color-mix(in srgb, var(--pv-accent) 65%, var(--pv-muted));
 }
 
 .pv-id h3 {
@@ -1056,255 +1060,62 @@
   margin-top: 2px;
 }
 
-/* ── link row rendered on the actual card ─────────────────── */
+/* ── links: one row of icon buttons ─────────────────────────── */
 
-.pv-link-row {
+.pv-link-icons {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--lnk-gap, 8px);
-  margin-top: 10px;
-}
-
-.pv-link-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 14px;
-  border-radius: var(--lnk-radius, 12px);
-  border: 1px solid color-mix(in srgb, var(--lnk-accent) 28%, transparent);
-  background: color-mix(in srgb, var(--lnk-accent) var(--lnk-bg-opacity, 12%), rgba(255, 255, 255, 0.03));
-  backdrop-filter: blur(var(--lnk-bg-blur, 0px));
-  -webkit-backdrop-filter: blur(var(--lnk-bg-blur, 0px));
-  color: #e7edf1;
-  font-size: 12px;
-  font-weight: 560;
-  text-decoration: none;
-  transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.3, 1.3), border-color 0.16s ease, background 0.16s ease;
-}
-
-.pv-link-btn:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--lnk-accent) 50%, transparent);
-}
-
-/* A link with no navigable URL renders as a button that copies its value. */
-.pv-link-btn--copy {
-  font-family: inherit;
-  cursor: copy;
-  text-align: left;
-}
-
-/* outline — border only, no fill */
-.pv-link-row--outline .pv-link-btn {
-  background: transparent;
-  border-width: 1.4px;
-}
-
-/* ghost — no border, no background, just icon + label */
-.pv-link-row--ghost .pv-link-btn {
-  background: transparent;
-  border-color: transparent;
-  padding: 6px 8px;
-}
-
-.pv-link-row--ghost .pv-link-btn:hover {
-  background: color-mix(in srgb, var(--lnk-accent) 10%, transparent);
-}
-
-/* glass — frosted translucent */
-.pv-link-row--glass .pv-link-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* glow — card style that always carries a soft coloured halo regardless of
-   the separate "glow effect" toggle, for a brighter, more alive pill. */
-.pv-link-row--glow .pv-link-btn {
-  background: color-mix(in srgb, var(--lnk-accent) 20%, rgba(255, 255, 255, 0.03));
-  border-color: color-mix(in srgb, var(--lnk-accent) 55%, transparent);
-  box-shadow:
-    0 0 28px -3px color-mix(in srgb, var(--lnk-accent) 85%, transparent),
-    0 0 3px 0 color-mix(in srgb, var(--lnk-accent) 60%, transparent) inset;
-}
-
-.pv-link-row--glow .pv-link-btn:hover {
-  box-shadow:
-    0 0 38px 0px color-mix(in srgb, var(--lnk-accent) 95%, transparent),
-    0 0 4px 0 color-mix(in srgb, var(--lnk-accent) 75%, transparent) inset;
-}
-
-/* "glow effect" toggle — an additional ambient halo using the shared glow
-   colour, independent of card style, stacked on top via a pseudo-element so
-   it does not fight the card-style's own shadow. Animated with a slow
-   breathing pulse so a glowing link reads as genuinely lit, not just tinted. */
-.pv-link-row.pv-link-row--glow .pv-link-btn::after,
-.pv-link-btn.is-glow::after {
-  content: "";
-  position: absolute;
-  inset: -10px;
-  z-index: -1;
-  border-radius: inherit;
-  background: radial-gradient(circle, var(--lnk-glow-color, var(--lnk-accent)) 0%, transparent 70%);
-  filter: blur(14px);
-  opacity: 0.8;
-  pointer-events: none;
-  animation: linkGlowBreathe 2.8s ease-in-out infinite;
-}
-
-.pv-link-btn:hover::after {
-  opacity: 1;
-  filter: blur(17px);
-}
-
-@keyframes linkGlowBreathe {
-  0%, 100% {
-    opacity: 0.62;
-    transform: scale(0.97);
-  }
-  50% {
-    opacity: 0.95;
-    transform: scale(1.04);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pv-link-row.pv-link-row--glow .pv-link-btn::after,
-  .pv-link-btn.is-glow::after {
-    animation: none;
-  }
-}
-
-/* no background — strip fill/border entirely regardless of card style */
-.pv-link-row--no-bg .pv-link-btn {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-.pv-link-icon {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* The icon IS the link: no card, no plate, no label, no hover popup. */
+.pv-link-icon {
+  display: grid;
+  place-items: center;
+  width: var(--lnk-size, 34px);
+  height: var(--lnk-size, 34px);
   flex: none;
-  width: 26px;
-  height: 26px;
-  color: var(--lnk-accent);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lnk-colour, var(--lnk-brand, #e7edf1));
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.3, 1.3), filter 0.16s ease;
+}
+
+.pv-link-icon:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.18);
 }
 
 .pv-link-icon svg {
-  width: 18px;
-  height: 18px;
+  display: block;
 }
 
-.pv-link-icon--rounded {
+.pv-link-icons.is-glow .pv-link-icon {
+  filter: drop-shadow(
+    0 0 calc(3px + var(--lnk-glow-strength, 0.45) * 14px) var(--lnk-glow, #b4bffa)
+  );
+}
+
+.pv-link-icon.is-copied {
+  color: var(--lnk-glow, #b4bffa);
+  filter: drop-shadow(0 0 6px var(--lnk-glow, #b4bffa));
+}
+
+.pv-link-img {
+  width: 62%;
+  height: 62%;
+  object-fit: contain;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--lnk-accent) 18%, transparent);
 }
 
-.pv-link-icon--circle,
-.pv-link-icon--pill {
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--lnk-accent) 18%, transparent);
-}
-
-.pv-link-label {
-  white-space: nowrap;
-}
-
-/* per-link glow override — same treatment as the row-level "glow effect"
-   toggle, but scoped to one link so it works even when the global toggle
-   is off. The ::after halo itself is shared with .pv-link-row--glow above. */
-.pv-link-btn.is-glow {
-  box-shadow:
-    0 0 28px -3px color-mix(in srgb, var(--lnk-accent) 85%, transparent),
-    0 0 3px 0 color-mix(in srgb, var(--lnk-accent) 60%, transparent) inset;
-}
-
-.pv-link-btn.is-glow:hover {
-  box-shadow:
-    0 0 38px 0px color-mix(in srgb, var(--lnk-accent) 95%, transparent),
-    0 0 4px 0 color-mix(in srgb, var(--lnk-accent) 75%, transparent) inset;
-}
-
-/* card-mode link with a description — icon+label on the first row, the
-   optional subtitle stacked underneath. */
-.pv-link-btn--has-desc {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding-block: 7px;
-}
-
-.pv-link-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pv-link-desc {
-  margin: 0;
-  max-width: 220px;
-  color: color-mix(in srgb, #e7edf1 55%, transparent);
-  font-size: 9px;
-  font-weight: 500;
-  line-height: 1.4;
-  white-space: normal;
-}
-
-.pv-link-desc--hover {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  margin-top: -2px;
-  transition: max-height 0.2s ease, opacity 0.18s ease, margin-top 0.2s ease;
-}
-
-.pv-link-btn:hover .pv-link-desc--hover,
-.pv-link-btn:focus-visible .pv-link-desc--hover {
-  max-height: 44px;
-  opacity: 1;
-  margin-top: 0;
-}
-
-/* icon-only mode — a brand-coloured bubble with a properly readable icon */
-.pv-link-btn--icon-only {
-  padding: 11px;
-  gap: 0;
-}
-
-.pv-link-btn--icon-only .pv-link-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.pv-link-btn--icon-only .pv-link-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-.pv-link-shape--rounded {
-  border-radius: 10px;
-}
-
-.pv-link-shape--circle,
-.pv-link-shape--pill {
-  border-radius: 999px;
-}
-
-.pv-link-icon-img {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  object-fit: cover;
-}
-
-.pv-layout-modern .pv-link-row {
+.pv-layout-modern .pv-link-icons {
   justify-content: center;
 }
 
@@ -1601,9 +1412,15 @@
 .lkr-entry-bg {
   position: absolute;
   inset: 0;
-  background: var(--lkr-bg-color, var(--pv-bg));
+  /* The owner's entry background colour used to be set as a CSS variable that
+     nothing read, so the setting did nothing. */
+  background: var(--lkr-entry-bg, var(--lkr-bg-color, var(--pv-bg)));
   filter: blur(var(--lkr-entry-blur));
   transform: scale(1.08);
+}
+
+.lkr-entry--preview {
+  cursor: default;
 }
 
 .lkr-entry-content {
@@ -3106,25 +2923,17 @@
   animation: ttSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Cursor tooltip — floats above the pointer, follows it, never clipped by
-   transformed ancestors because it renders in a body portal. */
+/* Anchored tooltip — sits centred above its element (or below it when there is
+   no room), and never clipped by transformed ancestors because it renders in a
+   body portal. It has no entrance animation on purpose: the position is
+   measured in a layout effect, and an opacity/offset animation would flash the
+   bubble at the wrong place (or leave it invisible if animations are paused). */
 .tt--fixed {
   position: fixed;
   bottom: auto;
   left: 0;
   transform: translate(-50%, -100%);
-  animation: ttCursor 0.16s ease both;
-}
-
-@keyframes ttCursor {
-  from {
-    opacity: 0;
-    margin-top: 5px;
-  }
-  to {
-    opacity: 1;
-    margin-top: 0;
-  }
+  animation: none;
 }
 
 .tt--default {
@@ -3668,8 +3477,8 @@
   margin-top: 16px;
 }
 
-.profile-preview[data-name="center"] .pv-link-row,
-.profile-preview[data-pfp="above"] .pv-link-row {
+.profile-preview[data-name="center"] .pv-link-icons,
+.profile-preview[data-pfp="above"] .pv-link-icons {
   justify-content: center;
 }
 
@@ -4229,28 +4038,7 @@
     0 0 34px color-mix(in srgb, var(--pv-accent) 45%, transparent);
 }
 
-.pv-glow-location .pv-location,
-.pv-glow-views .pv-views,
-.pv-glow-join .pv-foot-item {
-  border-color: color-mix(in srgb, var(--pv-accent) 55%, transparent);
-  box-shadow:
-    0 0 12px color-mix(in srgb, var(--pv-accent) 45%, transparent),
-    inset 0 0 10px color-mix(in srgb, var(--pv-accent) 18%, transparent);
-}
-
 /* ONEKO — a cat that trails the pointer inside the card. */
-.pv-oneko {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 6;
-  font-size: 22px;
-  line-height: 1;
-  pointer-events: none;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
-  will-change: transform;
-}
-
 /* Location, views and join date are plain text now — no pill chrome. */
 .pv-location,
 .pv-views,
@@ -4261,4 +4049,15 @@
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+
+/* Optional per-element glows (Customize › Switches). These have to come after
+   the plain-text reset, which otherwise wiped the colour and the halo and left
+   the "Location / Views / Join Date Glow" switches doing nothing. */
+.pv-glow-location .pv-location,
+.pv-glow-views .pv-views,
+.pv-glow-join .pv-foot-item {
+  color: color-mix(in srgb, var(--pv-accent) 40%, var(--pv-text));
+  text-shadow: 0 0 12px color-mix(in srgb, var(--pv-accent) 55%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--pv-accent) 38%, transparent);
 }

@@ -4702,3 +4702,300 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* ------------------------------------------- home: hand-made (adryd-ish) */
+/* The landing page leans on lowercase copy, mono labels and plain arrow
+   links instead of pills and gradients. Everything here is scoped to
+   `.home` so the dashboard and the other pages keep their own look. */
+
+.home {
+  --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+}
+
+.home .hero {
+  padding-top: 58px;
+}
+
+.home .hero-bg {
+  background:
+    radial-gradient(760px 380px at 74% -6%, rgba(56, 189, 248, 0.1), transparent 70%),
+    radial-gradient(620px 420px at 8% 0%, rgba(14, 165, 233, 0.06), transparent 72%);
+}
+
+.home .hero-grid {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  align-items: start;
+  gap: 46px;
+  min-height: 0;
+  padding-top: 26px;
+  padding-bottom: 54px;
+}
+
+.home .hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: #86a3b3;
+}
+
+.home .hero-title {
+  margin: 16px 0 0;
+  font-size: clamp(52px, 7.6vw, 92px);
+  font-weight: 760;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  background: none;
+  color: #f3fbff;
+  -webkit-text-fill-color: currentColor;
+  animation: heroUp 0.7s var(--ease-out) both;
+}
+
+.home .hero-title .accent {
+  background: none;
+  color: var(--ice-2);
+  -webkit-text-fill-color: currentColor;
+  filter: none;
+}
+
+.home .hero-sub {
+  margin-top: 20px;
+  max-width: 44ch;
+  font-size: 15px;
+  line-height: 1.62;
+  color: #91adbd;
+}
+
+.home .hero-actions {
+  margin-top: 26px;
+  gap: 8px;
+}
+
+.home .btn {
+  height: 40px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.home .btn::after {
+  display: none;
+}
+
+.home .btn-primary {
+  background: var(--ice-2);
+  border-color: transparent;
+  color: #041420;
+  box-shadow: none;
+}
+
+.home .btn-primary:hover:not(:disabled) {
+  background: #bae6fd;
+  box-shadow: none;
+  transform: none;
+}
+
+.home .btn-ghost {
+  background: transparent;
+  border: 1px dashed rgba(125, 211, 252, 0.3);
+  color: #d3ebf7;
+  backdrop-filter: none;
+}
+
+.home .btn-ghost:hover {
+  background: rgba(125, 211, 252, 0.07);
+  border-color: rgba(125, 211, 252, 0.45);
+}
+
+.home .hero-note {
+  margin: 18px 0 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: #6b8798;
+}
+
+.home .hero-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin-top: 26px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(125, 211, 252, 0.14);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.home .hero-pages > span {
+  color: #55707f;
+}
+
+.home .hero-pages a {
+  color: #cfe8f5;
+  text-underline-offset: 3px;
+}
+
+.home .hero-pages a:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+}
+
+.home .hero-card-slot {
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.home .stats-band {
+  padding: 0 0 46px;
+}
+
+.home .stats-band-row {
+  justify-content: flex-start;
+  padding: 0;
+  border-bottom: 1px dashed rgba(125, 211, 252, 0.14);
+  padding-bottom: 14px;
+}
+
+.home .stats-band-line {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #7f9dae;
+}
+
+.home .stats-band-line b {
+  color: #dff3ff;
+  font-weight: 600;
+}
+
+.home .stats-band-dot {
+  margin: 0 10px;
+  color: #44606f;
+}
+
+.home .section {
+  padding: 66px 0;
+}
+
+.home .section--tight {
+  padding: 40px 0 72px;
+}
+
+.home .section-head {
+  max-width: 720px;
+  margin-bottom: 28px;
+}
+
+.home .home-label {
+  display: inline-block;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed rgba(125, 211, 252, 0.26);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: #8ecde8;
+}
+
+.home .section-title {
+  margin-top: 14px;
+  font-size: clamp(26px, 3.2vw, 36px);
+  font-weight: 730;
+  letter-spacing: -0.035em;
+  background: none;
+  color: #f1faff;
+  -webkit-text-fill-color: currentColor;
+}
+
+.home .section-title .accent {
+  background: none;
+  color: var(--ice-2);
+  -webkit-text-fill-color: currentColor;
+}
+
+.home .section-sub {
+  margin-top: 12px;
+  max-width: 56ch;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #8aa4b3;
+}
+
+.home .bento-foot {
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.home .faq-item {
+  border-radius: 10px;
+}
+
+.home .faq-item summary {
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+}
+
+.home .faq-body p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+@media (max-width: 980px) {
+  .home .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+    padding-bottom: 40px;
+  }
+
+  .home .hero-card-slot {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .home .hero {
+    padding-top: 34px;
+  }
+
+  .home .hero-title {
+    font-size: clamp(44px, 13vw, 64px);
+  }
+}
+
+/* Footer cat credit — sits in the bottom bar on every page. */
+.footer-cat {
+  font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  color: #55707f;
+}
+
+.footer-cat a {
+  color: #8ecde8;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 3px;
+}
+
+.footer-cat a:hover {
+  color: #fff;
+}
+
+.home .hero-pages .hero-page-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #cfe8f5;
+  font: inherit;
+  cursor: pointer;
+}
+
+.home .hero-pages .hero-page-link:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 3px;
+}

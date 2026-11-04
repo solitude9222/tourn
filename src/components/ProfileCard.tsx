@@ -36,7 +36,7 @@ const FALLBACK_BADGES: BadgeInstance[] = [
 
 const FALLBACK_LINKS: LinkInstance[] = [];
 
-const FALLBACK_LINK_DESIGN = { ...DEFAULT_LINK_DESIGN, iconOnly: true, cardStyle: "outline" as const };
+const FALLBACK_LINK_DESIGN = { ...DEFAULT_LINK_DESIGN };
 
 type LiveCard = {
   about: About;
@@ -63,7 +63,10 @@ export function ProfileCard() {
       if (!document) return;
       setLive({
         about: document.about,
-        badges: document.badges.equipped.filter((badge) => data.earned.includes(badge.id)),
+        // Unknown earned list (no server field) must not empty the row.
+        badges: data.earned
+          ? document.badges.equipped.filter((badge) => data.earned!.includes(badge.id))
+          : document.badges.equipped,
         badgeStyle: document.badges.style ?? DEFAULT_BADGE_STYLE,
         links: document.links.links,
         linkDesign: document.links.design ?? DEFAULT_LINK_DESIGN,

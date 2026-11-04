@@ -1,4 +1,5 @@
 import { DEFAULT_PROFILE_ASSETS, loadProfileAssets, type ProfileAssets } from "./profileAssets";
+import type { TooltipStyle } from "./links";
 
 export type AboutTheme = "default" | "modern" | "portfolio";
 export type AboutLayout = "classic" | "modern";
@@ -131,6 +132,12 @@ export type PillStyle = {
   blur: number;
 };
 
+/** Hover tooltip shown on the avatar and badges (links never show one). */
+export type TooltipSettings = {
+  enabled: boolean;
+  style: TooltipStyle;
+};
+
 export const DEFAULT_PILL_STYLE: PillStyle = {
   background: "#ffffff",
   opacity: 0.05,
@@ -165,6 +172,14 @@ export type AboutDesign = {
   glowJoin?: boolean;
   /** A small cat that follows the pointer around the card. */
   oneko?: boolean;
+  /** Avatar position offset from default */
+  avatarX?: number;
+  avatarY?: number;
+  /** Badge row position offset */
+  badgeX?: number;
+  badgeY?: number;
+  /** Avatar / badge hover tooltips. */
+  tooltips: TooltipSettings;
   /** Retained for saved documents; the pointer glare is no longer rendered. */
   tiltGlare: boolean;
   pfpPosition: PfpPosition;
@@ -179,12 +194,6 @@ export type AboutDesign = {
   entry: EntrySettings;
   colors: ProfileColors;
   pills: PillStyle;
-  /** Avatar position offset from default */
-  avatarX?: number;
-  avatarY?: number;
-  /** Badge row position offset */
-  badgeX?: number;
-  badgeY?: number;
 };
 
 export type About = {
@@ -292,6 +301,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
   pills: DEFAULT_PILL_STYLE,
+  tooltips: { enabled: true, style: "default" },
 };
 
 export const EMPTY_ABOUT: About = {
@@ -447,6 +457,7 @@ function loadDesign(input: unknown): AboutDesign {
   const raw = (input ?? {}) as Partial<AboutDesign>;
   const rawColors = (raw.colors ?? {}) as Partial<ProfileColors>;
   const rawPills = (raw.pills ?? {}) as Partial<PillStyle>;
+  const rawTooltips = (raw.tooltips ?? {}) as Partial<TooltipSettings>;
   const theme = raw.theme === "modern" || raw.theme === "portfolio" ? raw.theme : "default";
   const layout = raw.layout === "modern" ? "modern" : "classic";
   const cardStyle = CARD_STYLES.some((item) => item.id === raw.cardStyle)
@@ -478,6 +489,26 @@ function loadDesign(input: unknown): AboutDesign {
     nameSize: numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 48),
     bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 24),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),
+    tiltInvert: boolIn(raw.tiltInvert, false),
+    // These used to be dropped here, so every save silently reset them — the
+    // glow switches and the ONEKO toggle looked like they did nothing.
+    glowName: boolIn(raw.glowName, false),
+    glowLocation: boolIn(raw.glowLocation, false),
+    glowViews: boolIn(raw.glowViews, false),
+    glowJoin: boolIn(raw.glowJoin, false),
+    oneko: boolIn(raw.oneko, false),
+    avatarX: numberIn(raw.avatarX, 0, -200, 200),
+    avatarY: numberIn(raw.avatarY, 0, -200, 200),
+    badgeX: numberIn(raw.badgeX, 0, -200, 200),
+    badgeY: numberIn(raw.badgeY, 0, -200, 200),
+    tooltips: {
+      enabled: boolIn(rawTooltips.enabled, DEFAULT_ABOUT_DESIGN.tooltips.enabled),
+      style: (["default", "glass", "accent", "dark", "minimal"] as const).includes(
+        rawTooltips.style as TooltipStyle,
+      )
+        ? (rawTooltips.style as TooltipStyle)
+        : DEFAULT_ABOUT_DESIGN.tooltips.style,
+    },
     tiltGlare: boolIn(raw.tiltGlare, DEFAULT_ABOUT_DESIGN.tiltGlare),
     pfpPosition: legacyLayout
       ? DEFAULT_ABOUT_DESIGN.pfpPosition

@@ -156,17 +156,18 @@
 /* A fixed 4-line window: the track glides (transform transition) so the
    active line always lands in the centre. Masks fade the edges. */
 
+/* Five rows: the middle one is the line being sung, the two above and below
+   fade out towards the edges. */
 .ap-lyrics {
-  --ap-lyric-h: 19px;
-  --ap-lyric-center: 28.5px;
+  --ap-lyric-h: 20px;
   position: relative;
-  height: calc(var(--ap-lyric-h) * 3 + 2px);
+  height: calc(var(--ap-lyric-h) * 5);
   padding: 0 16px;
   overflow: hidden;
   display: block;
   text-align: center;
-  mask-image: linear-gradient(180deg, transparent, #000 26%, #000 74%, transparent);
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 26%, #000 74%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
 }
 
 .ap-lyrics-track {
@@ -356,9 +357,7 @@
   text-overflow: ellipsis;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ap-marquee-scroll,
-  .ap-vinyl-disc.is-spinning {
-    animation: none;
-  }
-}
+/* The player's own motion (the scrolling title strip, the spinning vinyl) is
+   part of what the page owner chose to show, so — like the rest of the profile
+   effects — it is not switched off by the OS reduced-motion flag. Stalling it
+   left the marquee strip frozen mid-word, which read as a broken player. */
