@@ -560,6 +560,12 @@ app.use(
    uploaded art as data URLs — so this single route gets a larger JSON body.
    It is registered before the global parser, which stays tight for the rest
    of the API. */
+/* Public profile pages are read far more than they are written, and each read
+   costs a handle lookup, a document read and a badge query. A short in-memory
+   cache keeps repeat visits off the database without making saves look stale. */
+const profilePageCache = new Map();
+const PROFILE_PAGE_TTL = 20_000;
+
 app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req, res) => {
   try {
     const data = req.body?.data;
@@ -575,6 +581,7 @@ app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req,
        on conflict (user_id) do update set data = excluded.data, updated_at = now()`,
       [req.auth.sub, serialized],
     );
+    profilePageCache.clear();
     res.json({ ok: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1422,15 +1429,24 @@ app.get("/api/profile", requireAuth, async (req, res) => {
 /* The public page behind tourn.lol/<handle>. */
 app.get("/api/profile/:handle", async (req, res) => {
   try {
+    const key = String(req.params.handle ?? "").trim().toLowerCase();
+    const cached = profilePageCache.get(key);
+    if (cached && Date.now() - cached.at < PROFILE_PAGE_TTL) {
+      res.set("Cache-Control", "public, max-age=30");
+      return res.json(cached.body);
+    }
     const user = await userByHandle(req.params.handle);
     if (!user) return res.status(404).json({ error: "No profile with that handle." });
     const profile = await profileRow(user.id);
-    res.set("Cache-Control", "public, max-age=30");
-    res.json({
+    const body = {
       account: publicAccountOf(user),
       profile: profile ?? null,
       earned: await earnedBadges(user, profile),
-    });
+    };
+    if (profilePageCache.size > 500) profilePageCache.clear();
+    profilePageCache.set(key, { at: Date.now(), body });
+    res.set("Cache-Control", "public, max-age=30");
+    res.json(body);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
