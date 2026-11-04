@@ -197,6 +197,7 @@ export function LinkerPreview({
   className = "",
   interactive = false,
   showEntry = true,
+  showMetadata = true,
   entryPlayToken = 0,
   views = null,
   joined,
@@ -209,6 +210,8 @@ export function LinkerPreview({
   className?: string;
   interactive?: boolean;
   showEntry?: boolean;
+  /** Off for gallery thumbnails: several previews must not fight over the tab title. */
+  showMetadata?: boolean;
   entryPlayToken?: number;
   /** Real profile view count, when it has loaded. */
   views?: number | null;
@@ -271,7 +274,7 @@ export function LinkerPreview({
   } as CSSProperties;
 
   const widgetStack = widgets.widgets.some((widget) => widget.visible !== false) ? (
-    <div className="lkr-widgets">
+    <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
       {widgets.widgets.filter((widget) => widget.visible !== false).map((widget) => (
         <WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker" />
       ))}
@@ -309,7 +312,7 @@ export function LinkerPreview({
       style={style}
       data-interactive={interactive ? "true" : undefined}
     >
-      <ProfileMetadata about={about} user={user} />
+      {showMetadata ? <ProfileMetadata about={about} user={user} /> : null}
       <div className={`lkr-bg lkr-bg--${assets.background.style}`} aria-hidden="true">
         {assets.background.style === "image" && assets.background.imageUrl ? (
           <span

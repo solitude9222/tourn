@@ -43,9 +43,13 @@ function CanvasEffectLayer({
   const hostRef = useRef<HTMLSpanElement>(null);
   const apiRef = useRef<ReturnType<typeof mountBgEffect> | null>(null);
   const [hidden, setHidden] = useState(false);
+  // Reduced motion slows the effect down instead of removing it: an effect the
+  // owner picked has to be visible, just calmer.
   const reduced =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const calmIntensity = reduced ? Math.round(intensity * 0.6) : intensity;
+  const calmSpeed = reduced ? speed * 2.2 : speed;
 
   useEffect(() => {
     const onVisibility = () => setHidden(document.hidden);
@@ -56,22 +60,38 @@ function CanvasEffectLayer({
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || effect === "none" || reduced || hidden) return;
-    apiRef.current = mountBgEffect(host, { effect, intensity, speed, color, amount, flag, maxFps });
+    if (!host || effect === "none" || hidden) return;
+    apiRef.current = mountBgEffect(host, {
+      effect,
+      intensity: calmIntensity,
+      speed: calmSpeed,
+      color,
+      amount,
+      flag,
+      maxFps,
+    });
     return () => {
       apiRef.current?.destroy();
       apiRef.current = null;
     };
     // Mount/unmount on effect or visibility change — settings updates go through update().
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effect, reduced, hidden]);
+  }, [effect, hidden, reduced]);
 
   useEffect(() => {
     if (effect === "none") return;
-    apiRef.current?.update({ effect, intensity, speed, color, amount, flag, maxFps });
-  }, [effect, intensity, speed, color, amount, flag]);
+    apiRef.current?.update({
+      effect,
+      intensity: calmIntensity,
+      speed: calmSpeed,
+      color,
+      amount,
+      flag,
+      maxFps,
+    });
+  }, [effect, calmIntensity, calmSpeed, color, amount, flag]);
 
-  if (effect === "none" || reduced || hidden) return null;
+  if (effect === "none" || hidden) return null;
   return <span ref={hostRef} className={hostClass} aria-hidden="true" />;
 }
 
@@ -104,8 +124,9 @@ export function BackgroundEffectLayer({
 /* ------------------------------------------------------------ overlay effect */
 
 export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettings }) {
+  const opacity = Math.min(0.9, Math.max(0, settings.opacity));
   return (
-    <span className="profile-fx-overlay profile-fx-overlay--canvas" style={{ "--fx-opacity": settings.opacity } as CSSProperties} aria-hidden="true">
+    <span className="profile-fx-overlay profile-fx-overlay--canvas" style={{ "--fx-opacity": opacity } as CSSProperties} aria-hidden="true">
       {/* The overlay is a wash over the card, not a second background: capping
           the density keeps the same look for a fraction of the particles. */}
       <CanvasEffectLayer

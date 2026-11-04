@@ -1458,6 +1458,30 @@ app.get("/api/stats", async (_req, res) => {
   res.json({ users: users.rows[0].count, views: Number(views.rows[0].total) });
 });
 
+/* Public leaderboard: top profiles by lifetime views. */
+app.get("/api/leaderboard", async (_req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `select u.username, u.alias, u.avatar_url, coalesce(v.views, 0)::int as views
+       from users u
+       left join profile_views v on v.username = u.username
+       order by views desc, u.created_at asc
+       limit 25`,
+    );
+    res.set("Cache-Control", "public, max-age=60");
+    res.json({
+      profiles: rows.map((row) => ({
+        username: row.username,
+        displayName: row.alias ?? null,
+        avatarUrl: row.avatar_url ?? null,
+        views: Number(row.views) || 0,
+      })),
+    });
+  } catch {
+    res.json({ profiles: [] });
+  }
+});
+
 app.get("/api/views/:username", async (req, res) => {
   const handle = cleanHandle(req.params.username);
   const { rows } = await pool.query("select views from profile_views where username = $1", [handle]);

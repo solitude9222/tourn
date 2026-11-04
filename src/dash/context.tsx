@@ -27,6 +27,7 @@ export type Page =
   | "widgets"
   | "assets"
   | "templates"
+  | "leaderboard"
   | "billing"
   | "settings"
   | "admin";

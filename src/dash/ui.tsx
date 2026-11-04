@@ -78,7 +78,8 @@ export type IconName =
   | "key"
   | "trash-2"
   | "move"
-  | "dots";
+  | "dots"
+  | "share";
 
 const ICONS: Record<IconName, ReactNode> = {
   home: (
@@ -391,6 +392,14 @@ const ICONS: Record<IconName, ReactNode> = {
       <circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none" />
       <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
       <circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="17.5" cy="5.8" r="2.7" />
+      <circle cx="6.5" cy="12" r="2.7" />
+      <circle cx="17.5" cy="18.2" r="2.7" />
+      <path d="m8.9 10.6 6.3-3.4M8.9 13.4l6.3 3.4" />
     </>
   ),
 };

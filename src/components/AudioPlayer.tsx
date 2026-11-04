@@ -225,43 +225,6 @@ export function AudioPlayer({
     </span>
   );
 
-  if (settings.style === "marquee") {
-    return (
-      <div className="ap ap--marquee" style={cardStyle}>
-        {audioEl}
-        <button type="button" className="ap-marquee-btn" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
-          {playing ? <PauseIcon size={11} /> : <PlayIcon size={11} />}
-        </button>
-        <span className="ap-marquee-track">
-          <span className={`ap-marquee-scroll${playing ? "" : " is-paused"}`}>
-            {/* 8 identical chunks: the animation shifts exactly half the
-                strip (4 chunks), so the loop is perfectly seamless. */}
-            {Array.from({ length: 8 }, (_, i) => (
-              <span key={i} className="ap-marquee-chunk">
-                {artist ? <b>{artist}</b> : null} {title}
-              </span>
-            ))}
-          </span>
-        </span>
-      </div>
-    );
-  }
-
-  if (settings.style === "vinyl") {
-    return (
-      <button type="button" className="ap ap--vinyl" style={cardStyle} onClick={togglePlay}>
-        {audioEl}
-        <span className={`ap-vinyl-disc${playing ? " is-spinning" : ""}`}>
-          <span className="ap-vinyl-label">{coverNode}</span>
-        </span>
-        <span className="ap-vinyl-copy">
-          <b>{title}</b>
-          <small>{artist || "Uploaded track"}</small>
-        </span>
-      </button>
-    );
-  }
-
   return (
     <div className={`ap ap--${settings.style}`} style={cardStyle}>
       {audioEl}

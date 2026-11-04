@@ -1778,6 +1778,19 @@
   white-space: nowrap;
 }
 
+.tw-badge-tile {
+  gap: 10px;
+}
+
+/* The two round action buttons sit in one fixed-size group so a long badge
+   name can never squeeze them out of line. */
+.tw-badge-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
 .tw-badge-tile .tw-icon-btn {
   width: 28px;
   height: 28px;
@@ -1849,34 +1862,85 @@
   border-color: #34343a;
 }
 
-.tw-widget-tile:hover::after {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
-.tw-widget-tile::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: var(--widget-color, var(--accent));
-  opacity: 0;
-  transform: scaleX(0.6);
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
 .tw-widget-icon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   flex: none;
-  border-radius: 10px;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #141417;
+  color: var(--title);
+}
+
+/* Every tile shows the widget's real card at a readable scale instead of a
+   coloured outline standing in for a preview. */
+.tw-widget-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: 12px;
+}
+
+.tw-widget-tile {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-height: 0;
+  padding: 10px;
+}
+
+.tw-widget-tile-frame {
+  display: block;
+  height: 84px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #0b0b0d;
+}
+
+.tw-widget-tile-frame > * {
+  transform: scale(0.62);
+  transform-origin: top left;
+  width: 161% !important;
+  pointer-events: none;
+}
+
+.tw-widget-tile-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--sub);
+}
+
+.tw-widget-tile-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--title);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-widget-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.tw-widget-row {
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.tw-widget-row:hover {
+  border-color: #34343a;
+  background: #141417;
+}
+
+.tw-widget-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tw-widget-copy {
@@ -1907,10 +1971,6 @@
   border: 2px solid var(--border);
   border-radius: 12px;
   background: var(--bar);
-}
-
-.tw-widget-row + .tw-widget-row {
-  margin-top: 10px;
 }
 
 .tw-widget-row .tw-drag {

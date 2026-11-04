@@ -123,6 +123,12 @@ export type WidgetDesign = {
   backgroundOpacity: number;
   backgroundBlur: number;
   radius: number;
+  /** Space between cards in the stack, in px. */
+  gap: number;
+  /** Overall card density — scales padding, type and the avatar. */
+  scale: number;
+  /** Show the live meta chips (members, followers, scrobbles…). */
+  showMeta: boolean;
 };
 
 export type WidgetStore = {
@@ -141,6 +147,9 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   backgroundOpacity: 0.94,
   backgroundBlur: 0,
   radius: 16,
+  gap: 10,
+  scale: 1,
+  showMeta: true,
 };
 
 const baseOptions = (): WidgetOption[] => [
@@ -790,6 +799,43 @@ export function createWidgetInstance(platform: WidgetPlatform): WidgetInstance {
   };
 }
 
+/**
+ * A believable handle for each platform, so the dashboard can show a real
+ * widget card before the owner has typed anything.
+ */
+export const WIDGET_SAMPLE_CONTENT: Record<string, string> = {
+  discord: "tourn.lol",
+  github: "tourn-lol",
+  roblox: "301974334",
+  lastfm: "tourn",
+  statsfm: "tourn",
+  valorant: "tourn#lol",
+  timezone: "Europe/London",
+  steam: "76561198000000000",
+  twitch: "tourn",
+  spotify: "tourn",
+  minecraft: "play.tourn.lol",
+  clashofclans: "#2PP",
+  clashroyale: "#2PP",
+  brawlstars: "#2PP",
+  weather: "London",
+};
+
+export function sampleContentFor(platformId: string): string {
+  return WIDGET_SAMPLE_CONTENT[platformId] ?? "tourn.lol";
+}
+
+/** A widget instance pre-filled with sample content, used for previews only. */
+export function sampleWidgetInstance(platform: WidgetPlatform): WidgetInstance {
+  return {
+    id: `sample-${platform.id}`,
+    platform: platform.id,
+    content: sampleContentFor(platform.id),
+    options: defaultWidgetOptions(platform),
+    visible: true,
+  };
+}
+
 export function widgetOption(instance: WidgetInstance, key: string): boolean {
   return instance.options[key] === true;
 }
@@ -864,6 +910,9 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
         ),
         backgroundBlur: clamp(rawDesign.backgroundBlur, DEFAULT_WIDGET_DESIGN.backgroundBlur, 0, 30),
         radius: clamp(rawDesign.radius, DEFAULT_WIDGET_DESIGN.radius, 0, 30),
+        gap: clamp(rawDesign.gap, DEFAULT_WIDGET_DESIGN.gap, 0, 28),
+        scale: clamp(rawDesign.scale, DEFAULT_WIDGET_DESIGN.scale, 0.85, 1.15),
+        showMeta: rawDesign.showMeta !== false,
       },
     };
   } catch {

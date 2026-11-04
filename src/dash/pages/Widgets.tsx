@@ -1,6 +1,7 @@
 /* ---------------------------------------------------------------------------
    Links > Widgets — the real widget stack: add, configure, reorder, hide and
-   the shared widget-card design.
+   the shared widget-card design. Every preview on this page is a real
+   widget-card render; connected widgets read their live data.
    --------------------------------------------------------------------------- */
 
 import { useMemo, useState } from "react";
@@ -12,7 +13,9 @@ import {
   type WidgetInstance,
   type WidgetPlatform,
 } from "../../lib/widgets";
+import { useWidgetLive } from "../../lib/widgetLive";
 import { PlatformIcon } from "../../components/PlatformIcons";
+import { WidgetCard, WidgetCardPreview } from "../../components/WidgetCard";
 import { useDash } from "../context";
 import {
   Button,
@@ -30,10 +33,85 @@ import {
   Toggle,
 } from "../ui";
 
+const STATUS_LABEL: Record<string, string> = {
+  online: "Online",
+  idle: "Idle",
+  dnd: "Do not disturb",
+  offline: "Offline",
+};
+
+/** The click-through preview box: the real card plus everything the widget
+ *  knows about the account behind it. */
+function WidgetInspector({
+  widget,
+  onClose,
+  onEdit,
+}: {
+  widget: WidgetInstance;
+  onClose: () => void;
+  onEdit: () => void;
+}) {
+  const { widgets } = useDash();
+  const result = useWidgetLive(widget);
+  const live = result.data;
+  const platform = WIDGET_PLATFORM_BY_ID.get(widget.platform);
+
+  const rows: { label: string; value: string }[] = [
+    { label: "Platform", value: platform?.name ?? widget.platform },
+    { label: "Source", value: widget.content || "Not configured" },
+    {
+      label: "Status",
+      value: live?.status ? STATUS_LABEL[live.status] ?? live.status : result.loading ? "Loading…" : "Unknown",
+    },
+    ...(live?.tag ? [{ label: "Tag", value: live.tag }] : []),
+    ...(live?.badges.length
+      ? [{ label: "Badges", value: live.badges.map((badge) => badge.label).join(", ") }]
+      : []),
+    ...(live?.meta.map((item) => ({ label: "Live data", value: item })) ?? []),
+    ...(result.error ? [{ label: "Error", value: result.error.message }] : []),
+  ];
+
+  return (
+    <Modal
+      open
+      title={platform?.name ?? "Widget"}
+      subtitle={result.loading ? "Reading live data…" : "Live preview and data"}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>Close</Button>
+          <Button variant="primary" icon="edit" onClick={onEdit}>
+            Edit widget
+          </Button>
+        </>
+      }
+    >
+      <div className="tw-stack">
+        <div className="tw-widget-inspect">
+          <WidgetCard widget={widget} design={widgets.design} />
+        </div>
+        <div className="tw-widget-data">
+          {rows.map((row, index) => (
+            <div className="tw-widget-data-row" key={`${row.label}-${index}`}>
+              <span>{row.label}</span>
+              <b>{row.value}</b>
+            </div>
+          ))}
+        </div>
+        <p className="tw-foot-note">
+          Data comes from the platform's public API and refreshes while this box is open.
+        </p>
+      </div>
+    </Modal>
+  );
+}
+
 export function WidgetsPage() {
   const { widgets, setWidgets, notify } = useDash();
   const [configuring, setConfiguring] = useState<WidgetPlatform | null>(null);
   const [editing, setEditing] = useState<WidgetInstance | null>(null);
+  const [inspecting, setInspecting] = useState<WidgetInstance | null>(null);
+  const [previewPlatform, setPreviewPlatform] = useState("discord");
   const [content, setContent] = useState("");
   const [addOptions, setAddOptions] = useState<Record<string, boolean | string>>({});
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -95,45 +173,39 @@ export function WidgetsPage() {
     setWidgets((current) => ({ ...current, design: { ...current.design, ...patch } }));
 
   const previewStyle = useMemo(
-    () => ({
-      background:
-        design.backgroundStyle === "gradient"
-          ? `linear-gradient(135deg, ${design.gradientFrom}, ${design.gradientTo})`
-          : design.backgroundColor,
-      opacity: design.backgroundOpacity,
-      borderRadius: design.radius,
-      borderWidth: design.borderWidth,
-      borderColor: design.borderColor,
-      borderStyle: "solid" as const,
-      filter: design.backgroundBlur > 0 ? `blur(${design.backgroundBlur / 2}px)` : undefined,
-    }),
+    () =>
+      ({
+        background:
+          design.backgroundStyle === "gradient"
+            ? `linear-gradient(135deg, ${design.gradientFrom}, ${design.gradientTo})`
+            : design.backgroundColor,
+        borderRadius: design.radius,
+      }) as const,
     [design],
   );
 
   return (
     <>
       <Card>
-        <CardHead
-          icon="grid"
-          title="Available Widgets"
-          subtitle="Select a widget to configure it"
-        />
+        <CardHead icon="grid" title="Available widgets" subtitle="Pick a platform — the preview is the real card." />
 
-        <div className="tw-grid tw-grid--3">
+        <div className="tw-widget-gallery">
           {WIDGET_PLATFORMS.map((platform) => (
             <button
               key={platform.id}
               type="button"
               className="tw-widget-tile"
-              style={{ ["--widget-color" as string]: platform.color }}
               onClick={() => openAdd(platform)}
             >
-              <span className="tw-widget-icon tw-widget-icon--brand">
-                <PlatformIcon id={platform.id} size={22} />
+              <span className="tw-widget-tile-frame" aria-hidden="true">
+                <WidgetCardPreview design={design} platformId={platform.id} />
               </span>
-              <span className="tw-widget-copy">
-                <b>{platform.name}</b>
-                <small>{platform.description}</small>
+              <span className="tw-widget-tile-copy">
+                <span className="tw-widget-tile-name">
+                  <PlatformIcon id={platform.id} size={13} />
+                  {platform.name}
+                </span>
+                <Icon name="plus" size={13} />
               </span>
             </button>
           ))}
@@ -143,12 +215,12 @@ export function WidgetsPage() {
       <Card>
         <CardHead
           icon="layers"
-          title="Connected Widgets"
-          subtitle="Manage your active profile widgets"
+          title="Connected widgets"
+          subtitle="Click a widget to preview it and its live data."
         />
 
         {widgets.widgets.length ? (
-          <div>
+          <div className="tw-widget-list" style={{ gap: design.gap }}>
             {widgets.widgets.map((instance, index) => {
               const platform = platformFor(instance);
               return (
@@ -156,6 +228,7 @@ export function WidgetsPage() {
                   key={instance.id}
                   className="tw-widget-row"
                   draggable
+                  onClick={() => setInspecting(instance)}
                   onDragStart={() => setDragIndex(index)}
                   onDragOver={(event) => event.preventDefault()}
                   onDrop={() => {
@@ -173,42 +246,47 @@ export function WidgetsPage() {
                   <span className="tw-drag">
                     <Icon name="drag" size={14} />
                   </span>
-                  <span className="tw-widget-icon tw-widget-icon--brand" style={{ width: 30, height: 30 }}>
+                  <span className="tw-widget-icon">
                     <PlatformIcon id={instance.platform} size={16} />
                   </span>
                   <span className="tw-widget-row-copy">
                     <b>{platform?.name ?? instance.platform}</b>
                     <small>{instance.content || "Not configured"}</small>
                   </span>
-                  <Toggle
-                    checked={instance.visible !== false}
-                    onChange={(checked) =>
-                      setWidgets((current) => ({
-                        ...current,
-                        widgets: current.widgets.map((entry) =>
-                          entry.id === instance.id ? { ...entry, visible: checked } : entry,
-                        ),
-                      }))
-                    }
-                    label={`Show ${platform?.name ?? "widget"}`}
-                  />
-                  <IconButton
-                    label={`Edit ${platform?.name ?? "widget"}`}
-                    icon="edit"
-                    variant="primary"
-                    onClick={() => openEdit(instance)}
-                  />
-                  <IconButton
-                    label={`Delete ${platform?.name ?? "widget"}`}
-                    icon="trash"
-                    variant="danger"
-                    onClick={() =>
-                      setWidgets((current) => ({
-                        ...current,
-                        widgets: current.widgets.filter((entry) => entry.id !== instance.id),
-                      }))
-                    }
-                  />
+                  <span
+                    className="tw-widget-row-actions"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Toggle
+                      checked={instance.visible !== false}
+                      onChange={(checked) =>
+                        setWidgets((current) => ({
+                          ...current,
+                          widgets: current.widgets.map((entry) =>
+                            entry.id === instance.id ? { ...entry, visible: checked } : entry,
+                          ),
+                        }))
+                      }
+                      label={`Show ${platform?.name ?? "widget"}`}
+                    />
+                    <IconButton
+                      label={`Edit ${platform?.name ?? "widget"}`}
+                      icon="edit"
+                      variant="primary"
+                      onClick={() => openEdit(instance)}
+                    />
+                    <IconButton
+                      label={`Delete ${platform?.name ?? "widget"}`}
+                      icon="trash"
+                      variant="danger"
+                      onClick={() =>
+                        setWidgets((current) => ({
+                          ...current,
+                          widgets: current.widgets.filter((entry) => entry.id !== instance.id),
+                        }))
+                      }
+                    />
+                  </span>
                 </div>
               );
             })}
@@ -225,8 +303,8 @@ export function WidgetsPage() {
       <Card>
         <CardHead
           icon="palette"
-          title="Widget Card Customization"
-          subtitle="Adjust the shared design of your profile widgets. Background colour is only visible on widgets without their own image background."
+          title="Widget appearance"
+          subtitle="Applies to every widget on your profile."
           actions={
             <Button
               icon="refresh"
@@ -235,14 +313,14 @@ export function WidgetsPage() {
                 notify("Widget design", "Defaults restored — save to publish.");
               }}
             >
-              Reset to Defaults
+              Reset to defaults
             </Button>
           }
         />
 
         <div className="tw-widget-design">
           <div className="tw-stack">
-            <Field label="Background style">
+            <Field label="Background">
               <Select
                 value={design.backgroundStyle}
                 options={[
@@ -273,7 +351,7 @@ export function WidgetsPage() {
 
             <div className="tw-form-grid">
               <Slider
-                label="Border Width"
+                label="Border width"
                 value={design.borderWidth}
                 min={0}
                 max={6}
@@ -281,12 +359,44 @@ export function WidgetsPage() {
                 onChange={(value) => setDesign({ borderWidth: value })}
               />
               <Slider
-                label="Radius"
+                label="Corner radius"
                 value={design.radius}
                 min={0}
                 max={28}
                 suffix="px"
                 onChange={(value) => setDesign({ radius: value })}
+              />
+            </div>
+
+            <div className="tw-subhead">Stack</div>
+            <div className="tw-form-grid">
+              <Slider
+                label="Card size"
+                value={Math.round(design.scale * 100)}
+                min={85}
+                max={115}
+                suffix="%"
+                onChange={(value) => setDesign({ scale: value / 100 })}
+              />
+              <Slider
+                label="Spacing"
+                value={design.gap}
+                min={0}
+                max={28}
+                suffix="px"
+                onChange={(value) => setDesign({ gap: value })}
+              />
+            </div>
+
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Show live details</b>
+                <small>The member, follower or stat chips under each name.</small>
+              </span>
+              <Toggle
+                checked={design.showMeta}
+                onChange={(checked) => setDesign({ showMeta: checked })}
+                label="Show live details"
               />
             </div>
 
@@ -312,18 +422,19 @@ export function WidgetsPage() {
           </div>
 
           <div className="tw-widget-preview">
-            <small>Preview</small>
-            <div className="tw-widget-preview-note">Normal widget card without an image background.</div>
-            <div className="tw-widget-preview-frame">
-              <div className="tw-widget-preview-card" style={previewStyle}>
-                <span className="tw-widget-preview-icon">
-                  <Icon name="discord" size={14} />
-                </span>
-                <span>
-                  <b>Your widget</b>
-                  <small>Live preview</small>
-                </span>
-              </div>
+            <div className="tw-widget-preview-head">
+              <small>Real preview</small>
+              <Select
+                value={previewPlatform}
+                options={WIDGET_PLATFORMS.map((platform) => ({
+                  value: platform.id,
+                  label: platform.name,
+                }))}
+                onChange={setPreviewPlatform}
+              />
+            </div>
+            <div className="tw-widget-preview-frame" style={previewStyle}>
+              <WidgetCardPreview design={design} platformId={previewPlatform} />
               <div className="tw-widget-preview-brand">tourn.lol</div>
             </div>
           </div>
@@ -346,6 +457,14 @@ export function WidgetsPage() {
       >
         {configuring ? (
           <div className="tw-stack">
+            <div className="tw-widget-inspect">
+              <WidgetCardPreview
+                design={design}
+                platformId={configuring.id}
+                content={content.trim() || undefined}
+              />
+            </div>
+
             <Field label={configuring.contentLabel}>
               <TextInput
                 icon="at"
@@ -405,6 +524,15 @@ export function WidgetsPage() {
       >
         {editing ? (
           <div className="tw-stack">
+            <div className="tw-widget-inspect">
+              {/* The sample render keeps typing from firing a live request per
+                  keystroke; the click-through inspector has the real data. */}
+              <WidgetCardPreview
+                design={design}
+                platformId={editing.platform}
+                content={content.trim() || undefined}
+              />
+            </div>
             <Field
               label={WIDGET_PLATFORM_BY_ID.get(editing.platform)?.contentLabel ?? "Content"}
             >
@@ -457,6 +585,18 @@ export function WidgetsPage() {
           </div>
         ) : null}
       </Modal>
+
+      {inspecting ? (
+        <WidgetInspector
+          widget={inspecting}
+          onClose={() => setInspecting(null)}
+          onEdit={() => {
+            const target = inspecting;
+            setInspecting(null);
+            openEdit(target);
+          }}
+        />
+      ) : null}
     </>
   );
 }

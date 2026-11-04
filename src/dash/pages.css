@@ -457,7 +457,14 @@
   background: var(--bar);
 }
 
-.tw-widget-preview > small {
+.tw-widget-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tw-widget-preview-head > small {
   color: #d7dbe3;
   font-size: 12px;
   font-weight: 500;
@@ -472,12 +479,54 @@
 .tw-widget-preview-frame {
   position: relative;
   display: grid;
-  place-items: center;
+  align-content: center;
+  gap: 10px;
   min-height: 190px;
   margin-top: 12px;
+  padding: 14px;
   overflow: hidden;
   border-radius: 10px;
   background: #111114;
+}
+
+/* Click-through preview box in the connected list. */
+.tw-widget-inspect {
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: #0b0b0d;
+}
+
+.tw-widget-data {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tw-widget-data-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+.tw-widget-data-row:last-child {
+  border-bottom: 0;
+}
+
+.tw-widget-data-row span {
+  color: var(--sub);
+}
+
+.tw-widget-data-row b {
+  color: var(--title);
+  font-weight: 500;
+  text-align: right;
 }
 
 .tw-widget-preview-card {
@@ -538,55 +587,361 @@
 
 .tw-template-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
   margin-top: 18px;
 }
 
 .tw-template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--bar);
+}
+
+.tw-template-shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.tw-template-shot-hover {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72));
+  color: #eef3f7;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.tw-template-shot:hover .tw-template-shot-hover {
+  opacity: 1;
+}
+
+/* A real LinkerPreview, zoomed to fit the card. */
+.tw-template-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #08080a;
+}
+
+.tw-template-stage-inner {
+  width: 200%;
+  height: 200%;
+  zoom: 0.5;
+}
+
+.tw-template-copy b {
+  display: block;
+  color: var(--title);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.tw-template-copy small {
+  display: block;
+  margin-top: 2px;
+  color: var(--sub);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.tw-template-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+}
+
+/* shared looks ----------------------------------------------------------- */
+
+.tw-share-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tw-share-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
   border: 2px solid var(--border);
   border-radius: 12px;
   background: var(--bar);
-  text-align: left;
+}
+
+.tw-share-thumb {
+  display: grid;
+  place-items: center;
+  width: 132px;
+  flex: none;
+  color: var(--sub);
+}
+
+.tw-share-thumb .tw-template-stage {
+  aspect-ratio: 16 / 9;
+}
+
+.tw-share-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.tw-share-copy b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tw-share-copy small {
+  display: block;
+  margin-top: 2px;
+  color: var(--sub);
+  font-size: 11.5px;
+}
+
+.tw-code {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: #0e0e11;
+  color: var(--sub);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* part picker ------------------------------------------------------------ */
+
+.tw-part-list {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tw-part {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
 }
 
-.tw-template-card:hover {
-  border-color: #333;
+.tw-part:last-child {
+  border-bottom: 0;
 }
 
-.tw-template-thumb {
+.tw-part.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tw-part input {
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.tw-part-copy b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--title);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-part-copy small {
   display: block;
-  height: 130px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 50% 34%, #3d3d46 0 14px, transparent 15px),
-    linear-gradient(#232329, #232329) center 62% / 58% 10px no-repeat,
-    linear-gradient(#1c1c21, #1c1c21) center 78% / 40% 6px no-repeat,
-    #151519;
+  margin-top: 2px;
+  color: var(--sub);
+  font-size: 11.5px;
 }
 
-.tw-template-thumb[data-kind="soft"] {
-  background:
-    linear-gradient(180deg, #34343d 0 42px, transparent 42px),
-    radial-gradient(circle at 24% 42%, #3d3d46 0 14px, transparent 15px),
-    #151519;
+/* leaderboard ------------------------------------------------------------ */
+
+.tw-lb {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
 }
 
-.tw-template-thumb[data-kind="compact"] {
-  background:
-    radial-gradient(circle at 50% 30%, #3d3d46 0 11px, transparent 12px),
-    linear-gradient(#232329, #232329) center 58% / 44% 8px no-repeat,
-    #151519;
+.tw-lb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bar);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 140ms ease, background 140ms ease;
 }
 
-.tw-template-thumb[data-kind="minimal"] {
-  background:
-    radial-gradient(circle at 50% 34%, #3d3d46 0 16px, transparent 17px),
-    linear-gradient(#232329, #232329) center 70% / 52% 8px no-repeat,
-    #0d0d0f;
+.tw-lb-row:hover {
+  border-color: #34343a;
+  background: #141417;
+}
+
+.tw-lb-row.is-you {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.tw-lb-row.is-skeleton {
+  height: 58px;
+  opacity: 0.45;
+  background: linear-gradient(90deg, #141417, #1b1b20, #141417);
+  background-size: 200% 100%;
+  animation: twShimmer 1.4s ease infinite;
+}
+
+.tw-lb-rank {
+  width: 22px;
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tw-lb-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #141417;
+  color: var(--sub);
+}
+
+.tw-lb-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tw-lb-copy {
+  min-width: 0;
+  width: 190px;
+}
+
+.tw-lb-copy b {
+  display: block;
+  overflow: hidden;
+  color: var(--title);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-lb-copy small {
+  color: var(--sub);
+  font-size: 11px;
+}
+
+.tw-lb-bar {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #1b1b20;
+}
+
+.tw-lb-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), #8fd8ff);
+}
+
+.tw-lb-views {
+  min-width: 90px;
+  color: var(--title);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tw-lb-views small {
+  color: var(--sub);
+  font-size: 10.5px;
+}
+
+/* effects stage ---------------------------------------------------------- */
+
+.tw-effect-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 190px;
+  margin-top: 14px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: #08080a;
+}
+
+.tw-effect-stage-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 210px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(16, 17, 21, 0.86);
+  color: #eef3f7;
+}
+
+.tw-effect-stage-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2a2d36, #1a1c22);
+}
+
+.tw-effect-stage-lines b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-effect-stage-lines small {
+  color: #9aa0ab;
+  font-size: 11px;
 }
 
 /* plan ------------------------------------------------------------------- */
@@ -837,4 +1192,13 @@
 .tw-note-pop {
   animation: tw-pop 170ms cubic-bezier(0.2, 0.8, 0.2, 1);
   transform-origin: bottom center;
+}
+
+@keyframes twShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }

@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import { linkHref, type LinkDesign, type LinkInstance } from "../lib/links";
 import { getPlatform } from "../lib/linkPlatforms";
 import { LinkIcon } from "./Icons";
+import { Tooltip } from "./Tooltip";
 
 /**
  * A profile's links: one row of icon buttons, nothing else. No cards, no
@@ -66,27 +67,36 @@ export function ProfileLinks({
           "aria-label": label,
         };
 
-        return href ? (
-          <a
-            key={link.id}
-            {...shared}
-            href={href}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            {icon}
-          </a>
-        ) : (
-          <button
-            key={link.id}
-            {...shared}
-            type="button"
-            onClick={() => void copyValue(link)}
-          >
-            {icon}
-          </button>
+        const tip = copiedId === link.id ? "Copied" : href ? label : `${label} · tap to copy`;
+
+        return (
+          <Tooltip key={link.id} text={tip} style="glass">
+            {href ? (
+              <a {...shared} href={href} target="_blank" rel="noreferrer noopener">
+                {icon}
+              </a>
+            ) : (
+              <button {...shared} type="button" onClick={() => void copyValue(link)}>
+                {icon}
+              </button>
+            )}
+          </Tooltip>
         );
       })}
+
+      {/* A small key to the row: what an icon does on hover and on click. */}
+      <Tooltip
+        style="glass"
+        text={visible.some((link) => linkHref(link.url)) ? "Icons open in a new tab · tap to copy" : "Tap an icon to copy it"}
+      >
+        <span className="pv-link-info" role="note" aria-label="Link help">
+          <svg viewBox="0 0 24 24" width={Math.max(11, Math.round(iconPx * 0.8))} height={Math.max(11, Math.round(iconPx * 0.8))} fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" />
+            <path d="M12 11v5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+            <circle cx="12" cy="7.8" r="1.05" fill="currentColor" />
+          </svg>
+        </span>
+      </Tooltip>
     </div>
   );
 }

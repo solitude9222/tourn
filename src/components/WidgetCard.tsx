@@ -2,12 +2,19 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { hexToRgba } from "../lib/about";
 import {
   WIDGET_PLATFORM_BY_ID,
+  defaultWidgetOptions,
+  sampleContentFor,
   widgetProfileUrl,
   type WidgetDesign,
   type WidgetInstance,
   type WidgetPlatform,
 } from "../lib/widgets";
-import { useWidgetLive, widgetSupportsLive, type WidgetLive } from "../lib/widgetLive";
+import {
+  useWidgetLive,
+  widgetSupportsLive,
+  type LiveStatus,
+  type WidgetLive,
+} from "../lib/widgetLive";
 import { STATUS_COLORS } from "../lib/hooks";
 import type { WidgetError } from "../lib/api";
 import { PlatformIcon } from "./PlatformIcons";
@@ -120,7 +127,9 @@ function WidgetCardSurface({
       : `Add ${platform.contentLabel.toLowerCase()}`);
   // Discord exposes a lot of raw presence fields; one line keeps the card
   // readable instead of turning it into a wall of labels.
-  const meta = live?.meta.filter(Boolean).slice(0, platform.id === "discord" ? 1 : 2) ?? [];
+  const meta = design.showMeta
+    ? (live?.meta.filter(Boolean).slice(0, platform.id === "discord" ? 2 : 3) ?? [])
+    : [];
 
   const style = {
     "--wg-border-color": hexToRgba(design.borderColor, design.borderOpacity),
@@ -139,6 +148,7 @@ function WidgetCardSurface({
     "--wg-blur": `${design.backgroundBlur}px`,
     "--wg-radius": `${design.radius}px`,
     "--wg-brand": platform.color,
+    "--wg-scale": design.scale,
   } as CSSProperties;
 
   return (
@@ -283,46 +293,86 @@ export function WidgetCard({
   );
 }
 
+/** Believable live data per platform, so the editor previews a real card
+ *  instead of a grey placeholder. Connected widgets preview their real data. */
+const SAMPLE_LIVE: Record<
+  string,
+  { title: string; subtitle: string; meta: string[]; status?: LiveStatus; tag?: string }
+> = {
+  discord: {
+    title: "tourn.lol",
+    subtitle: "Community server",
+    meta: ["1,284 members", "412 online"],
+    status: "online",
+    tag: "TOURN",
+  },
+  github: { title: "tourn-lol", subtitle: "GitHub profile", meta: ["38 repositories", "126 followers"] },
+  roblox: { title: "tourn", subtitle: "Roblox profile", meta: ["3.1K followers", "212 friends"], status: "online" },
+  lastfm: { title: "tourn", subtitle: "Last.fm profile", meta: ["42,318 scrobbles", "Top artist · Burial"] },
+  statsfm: { title: "tourn", subtitle: "Stats.fm profile", meta: ["128,904 minutes", "Top artist · Aphex Twin"] },
+  valorant: { title: "tourn", subtitle: "Immortal 2 · 74 RR", meta: ["1.24 K/D", "18 wins"], status: "online" },
+  timezone: { title: "20:41", subtitle: "Europe/London", meta: ["BST · UTC+1"] },
+  steam: { title: "tourn", subtitle: "Steam profile", meta: ["312 games", "1,204 hours"], status: "online" },
+  twitch: { title: "tourn", subtitle: "Twitch channel", meta: ["24.6K followers", "Live now"], status: "online" },
+  spotify: { title: "tourn", subtitle: "Spotify profile", meta: ["Now playing · Bloom"] },
+  minecraft: { title: "play.tourn.lol", subtitle: "Minecraft server", meta: ["48 / 200 online", "1.20.4"], status: "online" },
+  clashofclans: { title: "tourn", subtitle: "Town Hall 15", meta: ["5,842 trophies", "Clan · TOURN"] },
+  clashroyale: { title: "tourn", subtitle: "Arena 23", meta: ["7,102 trophies"] },
+  brawlstars: { title: "tourn", subtitle: "Brawl Stars profile", meta: ["32,880 trophies", "68 brawlers"] },
+  weather: { title: "18°C", subtitle: "London", meta: ["Partly cloudy", "Feels like 17°C"] },
+};
+
 export function WidgetCardPreview({
   design,
-  username,
+  platformId = "discord",
+  content,
+  className = "",
 }: {
   design: WidgetDesign;
-  username: string;
+  platformId?: string;
+  content?: string;
+  className?: string;
 }) {
-  const platform = WIDGET_PLATFORM_BY_ID.get("discord");
+  const platform = WIDGET_PLATFORM_BY_ID.get(platformId);
   if (!platform) return null;
 
-  const sampleWidget: WidgetInstance = {
-    id: "widget-preview",
-    platform: "discord",
-    content: `tourn.lol/${username}`,
-    options: { inside: true, compact: false, status: true, show_banner: true },
+  const sample = SAMPLE_LIVE[platform.id] ?? {
+    title: content?.trim() || sampleContentFor(platform.id),
+    subtitle: `${platform.name} profile`,
+    meta: [] as string[],
   };
 
-  const sampleLive: WidgetLive = {
-    title: "tourn.lol",
-    subtitle: `@${username}`,
-    meta: ["Online", "Editing the profile"],
+  const widget: WidgetInstance = {
+    id: `preview-${platform.id}`,
+    platform: platform.id,
+    content: content?.trim() || sampleContentFor(platform.id),
+    options: defaultWidgetOptions(platform),
+  };
+
+  const live: WidgetLive = {
+    title: sample.title,
+    subtitle: sample.subtitle,
+    meta: sample.meta,
     avatar: null,
     decoration: null,
     banner: null,
     art: null,
     accent: platform.color,
-    tag: "TOURN",
+    tag: sample.tag ?? null,
     badges: [],
-    status: "online",
+    status: (sample.status ?? null) as LiveStatus,
   };
 
   return (
     <WidgetCardSurface
-      widget={sampleWidget}
+      widget={widget}
       platform={platform}
       design={design}
-      live={sampleLive}
+      live={live}
       loading={false}
       error={null}
       preview
+      className={className}
     />
   );
 }

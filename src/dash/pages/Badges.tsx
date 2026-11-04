@@ -159,19 +159,20 @@ export function BadgesPage() {
                   <b>{badge.name}</b>
                   <small>{badge.description}</small>
                 </span>
-                {isEarned ? (
+                <span className="tw-badge-actions">
                   <IconButton
-                    label={isActive ? `Remove ${badge.name}` : `Show ${badge.name}`}
-                    icon={isActive ? "check" : "plus"}
+                    label={isEarned ? (isActive ? `Remove ${badge.name}` : `Show ${badge.name}`) : `How to unlock ${badge.name}`}
+                    icon={isEarned ? (isActive ? "check" : "plus") : "lock"}
                     variant={isActive ? "primary" : "plain"}
-                    onClick={() => toggleBadge(badge)}
+                    onClick={() => (isEarned ? toggleBadge(badge) : setDetail(badge))}
                   />
-                ) : (
-                  <Button data-size="sm" onClick={() => toggleBadge(badge)}>
-                    Unlock
-                  </Button>
-                )}
-                <IconButton label={`About ${badge.name}`} icon="help" variant="plain" onClick={() => setDetail(badge)} />
+                  <IconButton
+                    label={`About ${badge.name}`}
+                    icon="help"
+                    variant="plain"
+                    onClick={() => setDetail(badge)}
+                  />
+                </span>
               </div>
             );
           })}

@@ -587,6 +587,9 @@
 .widget-card {
   position: relative;
   display: block;
+  /* Global card size from the widget appearance panel. zoom is layout-aware,
+     so the whole card shrinks or grows instead of overlapping its neighbours. */
+  zoom: var(--wg-scale, 1);
   /* Cards fill their column: the dashboard shows them wide, the public page
      caps them to the profile card width. */
   width: 100%;

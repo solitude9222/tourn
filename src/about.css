@@ -1184,6 +1184,24 @@
   filter: drop-shadow(0 0 6px var(--lnk-glow, #b4bffa));
 }
 
+/* A quiet key to the row: the one icon that is not a link. */
+.pv-link-info {
+  display: grid;
+  place-items: center;
+  width: calc(var(--lnk-size, 34px) * var(--pv-scale, 1) * 0.78);
+  height: calc(var(--lnk-size, 34px) * var(--pv-scale, 1) * 0.78);
+  flex: none;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--pv-text, #fff) 42%, transparent);
+  cursor: help;
+  transition: color 0.16s ease, background 0.16s ease;
+}
+
+.pv-link-info:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: color-mix(in srgb, var(--pv-text, #fff) 78%, transparent);
+}
+
 .pv-link-img {
   width: 62%;
   height: 62%;
@@ -2487,7 +2505,9 @@
 /* Overlays are a wash over the card, never a lid on it: the authored opacity
    is kept, but capped so text and links underneath stay readable. */
 .profile-fx-overlay--canvas {
-  opacity: min(var(--fx-opacity, 1), 0.55);
+  /* --fx-opacity is the authored 0–1 value; the dashboard caps the top of the
+     range so the wash can never bury the text underneath it. */
+  opacity: var(--fx-opacity, 0.55);
 }
 
 .profile-fx-bg i {
@@ -2692,7 +2712,7 @@
   inset: 0;
   z-index: 4;
   pointer-events: none;
-  opacity: min(var(--fx-opacity, 1), 0.55);
+  opacity: var(--fx-opacity, 0.55);
 }
 
 .profile-fx-overlay--vhs {
@@ -2904,6 +2924,26 @@
   left: 0;
   transform: translate(-50%, -100%);
   animation: none;
+}
+
+/* The bubble itself is placed by an inline transform, so the entrance runs on
+   an inner span: it swipes up while fading in, clipped from the bottom edge. */
+.tt-in {
+  display: block;
+  animation: ttSwipeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes ttSwipeIn {
+  from {
+    opacity: 0;
+    translate: 0 7px;
+    clip-path: inset(0 0 100% 0 round 8px);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    clip-path: inset(0 0 0 0 round 8px);
+  }
 }
 
 .tt--default {

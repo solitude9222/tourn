@@ -30,7 +30,7 @@ export type BackgroundEffectId =
   | "dust"
   | "leaf";
 export type OverlayEffectId = BackgroundEffectId;
-export type AudioStyle = "none" | "compact" | "marquee" | "lyrics" | "vinyl";
+export type AudioStyle = "none" | "compact" | "lyrics";
 export type TextEffectId =
   | "none"
   | "rgb"
@@ -386,9 +386,7 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
 export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "No audio player shown" },
   { id: "compact", name: "Compact", hint: "One row: cover, title, transport, progress" },
-  { id: "marquee", name: "Marquee", hint: "A slim strip, the title runs through it. No transport" },
   { id: "lyrics", name: "Lyrics", hint: "Custom or auto-fetched lyrics that follow playback" },
-  { id: "vinyl", name: "Vinyl", hint: "Spinning record art beside the track info" },
 ];
 
 export const TEXT_TARGETS: { id: TextEffectTarget; name: string }[] = [
@@ -457,8 +455,12 @@ function loadAudio(value: unknown): AudioSettings {
   void raw.source;
   void raw.trackUrl;
   return {
+    // Profiles saved with the old marquee/vinyl players land on the compact
+    // one instead of silently losing their track.
     style: choiceIn(
-      raw.style,
+      String(raw.style) === "marquee" || String(raw.style) === "vinyl"
+        ? "compact"
+        : raw.style,
       AUDIO_STYLES.map((item) => item.id),
       DEFAULT_PROFILE_ASSETS.audio.style,
     ),

@@ -9,7 +9,7 @@ import { Button, Icon, IconButton, type IconName } from "./ui";
 
 type NavChild = { page: Page; tab?: ProfileTab; label: string; icon: IconName };
 type NavGroup = {
-  key: "account" | "customize" | "links" | "assets" | "settings";
+  key: "account" | "customize" | "links" | "community" | "settings";
   label: string;
   icon: IconName;
   children: NavChild[];
@@ -47,11 +47,12 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
-    key: "assets",
-    label: "Assets",
-    icon: "image",
+    key: "community",
+    label: "Community",
+    icon: "users",
     children: [
-      { page: "assets", label: "Asset Browser", icon: "image" },
+      { page: "assets", label: "Assets", icon: "image" },
+      { page: "leaderboard", label: "Leaderboard", icon: "chart" },
       { page: "templates", label: "Templates", icon: "grid" },
     ],
   },
@@ -76,8 +77,9 @@ const PAGE_GROUP: Partial<Record<Page, NavGroup["key"]>> = {
   effects: "customize",
   links: "links",
   widgets: "links",
-  assets: "assets",
-  templates: "assets",
+  assets: "community",
+  leaderboard: "community",
+  templates: "community",
   billing: "settings",
   settings: "settings",
   admin: "settings",

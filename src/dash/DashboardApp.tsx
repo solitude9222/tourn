@@ -27,7 +27,7 @@ import { EffectsPage } from "./pages/Effects";
 import { BadgesPage } from "./pages/Badges";
 import { LinksPage } from "./pages/Links";
 import { WidgetsPage } from "./pages/Widgets";
-import { AssetBrowserPage, TemplatesPage } from "./pages/Assets";
+import { AssetBrowserPage, LeaderboardPage, TemplatesPage } from "./pages/Community";
 import { BillingPage, PremiumPage } from "./pages/Plan";
 
 const AccountSettingsPage = lazy(() =>
@@ -124,16 +124,22 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Links",
   },
   assets: {
-    title: "Assets Browser",
-    subtitle: "Browse and download community uploads",
+    title: "Assets",
+    subtitle: "Your uploads, ready to reuse on the profile.",
     icon: "image",
-    crumb: "Assets",
+    crumb: "Community",
+  },
+  leaderboard: {
+    title: "Leaderboard",
+    subtitle: "The most viewed profiles on tourn.lol.",
+    icon: "chart",
+    crumb: "Community",
   },
   templates: {
     title: "Templates",
-    subtitle: "Start from a saved arrangement.",
+    subtitle: "Apply a look, or share your own with a code.",
     icon: "grid",
-    crumb: "Assets",
+    crumb: "Community",
   },
   billing: {
     title: "Billing",
@@ -427,6 +433,9 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "assets":
       content = <AssetBrowserPage />;
+      break;
+    case "leaderboard":
+      content = <LeaderboardPage />;
       break;
     case "templates":
       content = <TemplatesPage />;

@@ -123,7 +123,7 @@ export function Tooltip({
                 visibility: coords ? "visible" : "hidden",
               }}
             >
-              {text}
+              <span className="tt-in">{text}</span>
             </span>,
             document.body,
           )

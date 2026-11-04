@@ -8,6 +8,7 @@ import {
   type TextEffectSettings,
   type TextEffectTarget,
 } from "../../lib/profileAssets";
+import { BackgroundEffectLayer, OverlayEffectLayer } from "../../components/ProfileEffects";
 import { useDash } from "../context";
 import { imageToDataUrl } from "../files";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
@@ -24,6 +25,30 @@ const TEXT_TARGETS: { id: TextEffectTarget; label: string }[] = [
   { id: "alias", label: "Username" },
   { id: "bio", label: "Bio" },
 ];
+
+/** The production effect layers on a card-sized stage, so the dashboard shows
+ *  exactly what the profile will render. */
+function EffectStage({
+  background,
+  overlay,
+}: {
+  background: BackgroundEffectSettings;
+  overlay: OverlayEffectSettings;
+}) {
+  return (
+    <div className="tw-effect-stage">
+      <BackgroundEffectLayer settings={background} compact />
+      <div className="tw-effect-stage-card">
+        <span className="tw-effect-stage-avatar" />
+        <span className="tw-effect-stage-lines">
+          <b>Your name</b>
+          <small>Your handle</small>
+        </span>
+      </div>
+      <OverlayEffectLayer settings={overlay} />
+    </div>
+  );
+}
 
 export function EffectsPage() {
   const { about, setAbout } = useDash();
@@ -105,6 +130,7 @@ export function EffectsPage() {
           title="Background effect"
           subtitle="Animated layer behind your card."
         />
+        <EffectStage background={background} overlay={overlay} />
         <div className="tw-form-grid">
           <Field label="Effect">
             <Select
@@ -182,11 +208,11 @@ export function EffectsPage() {
           />
           <Slider
             label="Opacity"
-            value={overlay.opacity}
+            value={Math.round(overlay.opacity * 100)}
             min={0}
             max={100}
             suffix="%"
-            onChange={(value) => setOverlay({ opacity: value })}
+            onChange={(value) => setOverlay({ opacity: value / 100 })}
           />
           <Slider
             label="Intensity"
@@ -195,6 +221,15 @@ export function EffectsPage() {
             max={100}
             suffix="%"
             onChange={(value) => setOverlay({ intensity: value })}
+          />
+          <Slider
+            label="Speed"
+            value={overlay.speed}
+            min={0.2}
+            max={4}
+            step={0.1}
+            suffix="x"
+            onChange={(value) => setOverlay({ speed: value })}
           />
         </div>
       </Card>
