@@ -1341,27 +1341,23 @@
   margin-top: 0;
 }
 
-/* stacked — the default page, and deliberately not centred: the column hugs
-   the left edge and the widget cards fill it, so "stacked" and "centered" are
-   different pages rather than the same one with nudged text. */
-.lkr-flow.lkr-flow--stacked {
-  align-items: stretch;
-  margin-right: auto;
-  margin-left: clamp(0px, 3vw, 44px);
+/* stacked — every widget is its own card under the profile card, in one
+   column: main card, Discord presence, the rest, audio at the bottom. The
+   column itself stays centred; it is the contents that stack. */
+.lkr-stack {
+  display: flex;
+  width: min(var(--pv-width), 100%);
+  flex-direction: column;
+  gap: var(--lkr-gap);
 }
 
-.lkr-flow.lkr-flow--stacked .lkr-widgets {
-  align-items: stretch;
-}
-
-.lkr-flow.lkr-flow--stacked .lkr-widgets .widget-card {
+.lkr-stack .lkr-widgets {
   width: 100%;
+  gap: var(--lkr-gap);
 }
 
-@media (max-width: 900px) {
-  .lkr-flow.lkr-flow--stacked {
-    margin-left: 0;
-  }
+.lkr-stack .widget-card {
+  width: 100%;
 }
 
 .lkr-flow.lkr-flow--centered {

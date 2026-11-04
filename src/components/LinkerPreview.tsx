@@ -273,9 +273,19 @@ export function LinkerPreview({
       : undefined,
   } as CSSProperties;
 
-  const widgetStack = widgets.widgets.some((widget) => widget.visible !== false) ? (
+  const visibleWidgets = widgets.widgets.filter((widget) => widget.visible !== false);
+  // Stacked puts Discord presence first, then the rest in the order they were
+  // arranged; the other layouts keep the saved order.
+  const orderedWidgets =
+    design.layout === "stacked"
+      ? [...visibleWidgets].sort((a, b) =>
+          a.platform === "discord" ? -1 : b.platform === "discord" ? 1 : 0,
+        )
+      : visibleWidgets;
+
+  const widgetStack = orderedWidgets.length ? (
     <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
-      {widgets.widgets.filter((widget) => widget.visible !== false).map((widget) => (
+      {orderedWidgets.map((widget) => (
         <WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker" />
       ))}
     </div>
@@ -300,15 +310,16 @@ export function LinkerPreview({
     </ProfilePreview>
   );
 
-  // Three arrangements of the same three things: the card, the widgets and the
-  // links. `left` moves the widget stack beside the card; the other two keep it
-  // inside, and only the alignment changes.
-  const sideWidgets =
-    design.layout === "left" && widgets.widgets.some((widget) => widget.visible !== false);
+  // Three arrangements of the same three things. `stacked` puts every widget in
+  // its own card below the profile card; `left` moves that stack beside the
+  // card; `centered` keeps it inside the card, in one centred column.
+  const sideWidgets = design.layout === "left" && orderedWidgets.length > 0;
+  const stackedWidgets = design.layout === "stacked" && orderedWidgets.length > 0;
 
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
-      {profileCard(!sideWidgets)}
+      {profileCard(!sideWidgets && !stackedWidgets)}
+      {stackedWidgets ? <div className="lkr-stack">{widgetStack}</div> : null}
       {sideWidgets ? <div className="lkr-side">{widgetStack}</div> : null}
     </div>
   );
