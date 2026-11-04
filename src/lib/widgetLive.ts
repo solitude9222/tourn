@@ -5,7 +5,7 @@ import {
   WidgetError,
 } from "./api";
 import { currentGame, customStatus, avatarUrl, decorationUrl, snowflakeDate, formatJoined } from "./format";
-import { discordBadges, primaryGuildTag, type DiscordBadge } from "./discord";
+import { discordBadges, primaryGuildTag, readableGuildTag, type DiscordBadge } from "./discord";
 import { usePolled } from "./hooks";
 import { fetchSteamProfile } from "./steam";
 import { spotifyTrackId } from "../config";
@@ -205,8 +205,8 @@ async function discordLive(
   const lookupGuild = lookupUser?.primary_guild;
   const tag =
     primaryGuildTag(user?.primary_guild) ||
-    (lookupGuild?.identity_enabled !== false ? lookupGuild?.tag ?? null : null) ||
-    lookupUser?.clan?.tag ||
+    (lookupGuild?.identity_enabled !== false ? readableGuildTag(lookupGuild?.tag) : null) ||
+    readableGuildTag(lookupUser?.clan?.tag) ||
     null;
   const guildBadge =
     user?.primary_guild?.badge || lookupUser?.primary_guild?.badge || lookupUser?.clan?.badge || null;

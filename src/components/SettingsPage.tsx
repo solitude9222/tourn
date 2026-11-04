@@ -1,29 +1,19 @@
+/* ---------------------------------------------------------------------------
+   Account settings.
+
+   Rendered as a normal dashboard page: the same cards, buttons, fields and
+   type scale as every other page, instead of a second, older design language.
+   Platform connections (Discord, Spotify, Steam, …) live on the Widgets page,
+   so there is no "Connections" tab here — just the account itself.
+   --------------------------------------------------------------------------- */
+
 import { useEffect, useState } from "react";
 import { accountUid, useAuth } from "../lib/auth";
 import { formatJoined } from "../lib/format";
-import {
-  ArrowUpRight,
-  BoltIcon,
-  CheckIcon,
-  CloseIcon,
-  DiscordIcon,
-  GridIcon,
-  KeyIcon,
-  LinkIcon,
-  MailIcon,
-  ShieldIcon,
-  TrashIcon,
-  UserIcon,
-} from "./Icons";
-import "../dashboard.css";
+import { Button, Card, CardHead, Chip, Field, Icon, TextInput } from "../dash/ui";
 
 type SettingsNavigateTarget = "about" | "widgets" | "links";
 
-/**
- * Account settings, rendered as a normal dashboard page instead of a pop-up.
- * Platform connections (Discord, Spotify, Steam, …) live on the Widgets page,
- * so there is no "Connections" tab here.
- */
 export function SettingsPage({
   onNavigate,
 }: {
@@ -59,7 +49,7 @@ export function SettingsPage({
     const result = await setAlias(aliasDraft);
     setAliasBusy(false);
     if (result.error) setAliasMsg(result.error);
-    else setAliasMsg("Primary alias saved.");
+    else setAliasMsg("Primary claim saved.");
   };
 
   const saveAlias2 = async () => {
@@ -78,319 +68,250 @@ export function SettingsPage({
   const uid = accountUid(user);
 
   return (
-    <div className="settings-page">
-      <header className="settings-hero" data-reveal>
-        <div className="settings-hero-id">
-          {user?.avatarUrl ? (
-            <img className="settings-hero-avatar" src={user.avatarUrl} alt="" />
-          ) : (
-            <span className="settings-hero-avatar settings-hero-avatar--initial">
-              {displayName.slice(0, 1).toUpperCase()}
-            </span>
-          )}
-          <div className="settings-hero-name">
+    <div className="tw-set">
+      <Card>
+        <div className="tw-set-id">
+          <span className="tw-set-avatar">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" />
+            ) : (
+              displayName.slice(0, 1).toUpperCase()
+            )}
+          </span>
+          <div className="tw-set-idcopy">
             <b>{displayName}</b>
-            <small>{user?.email ?? "Discord account"}</small>
-          </div>
-          <div className="settings-hero-tags">
-            <span className="settings-tag">#{uid}</span>
-            {isPremiumUser ? (
-              <span className="settings-tag settings-tag--premium">
-                <BoltIcon size={10} />
-                Premium
-              </span>
-            ) : null}
-            {isAdmin ? <span className="settings-tag settings-tag--admin">Admin</span> : null}
-            {user ? (
-              <span className="settings-tag settings-tag--dim">
-                Joined {formatJoined(new Date(user.joinedAt))}
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <div className="settings-hero-actions">
-          <a className="btn btn-ghost btn-sm" href={`#/profile/${user?.username ?? ""}`}>
-            View public bio
-            <ArrowUpRight size={12} />
-          </a>
-          {onNavigate ? (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onNavigate("widgets")}>
-              <GridIcon size={12} />
-              Edit widgets
-            </button>
-          ) : null}
-        </div>
-      </header>
-
-      <section className="dash-panel about-panel" data-reveal data-reveal-delay="30">
-        <header className="about-panel-head">
-          <div>
-            <h2>Connections</h2>
-            <p>Attach Discord to this account so widgets and the server can find you.</p>
-          </div>
-          <span className="dash-section-icon dash-section-icon--small">
-            <DiscordIcon size={13} />
-          </span>
-        </header>
-
-        <div className="settings-page-body">
-          <div className={`settings-connection${user?.discordLinked ? " is-connected" : ""}`}>
-            <span className="settings-connection-icon">
-              <DiscordIcon size={18} />
-            </span>
-            <span className="settings-connection-copy">
-              <b>Discord</b>
-              <small>
-                {user?.discordLinked
-                  ? "Connected — your Discord ID is available to the Discord widget and server tools."
-                  : "Not connected. Link it to use your Discord profile without a separate account."}
-              </small>
-            </span>
-            {user?.discordLinked ? (
-              <span className="settings-connection-state">
-                <CheckIcon size={12} />
-                Connected
-              </span>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => {
-                  setLinkBusy(true);
-                  setLinkMsg(null);
-                  void linkDiscord().then((result) => {
-                    setLinkBusy(false);
-                    if (result.error) setLinkMsg(result.error);
-                  });
-                }}
-                disabled={linkBusy || configured === false}
-              >
-                <DiscordIcon size={13} />
-                {linkBusy ? "Opening Discord…" : "Connect Discord"}
-              </button>
-            )}
-          </div>
-          {linkMsg ? <p className="settings-note">{linkMsg}</p> : null}
-          <p className="settings-note">
-            Signing in with Discord attaches it automatically when the Discord email matches this
-            account. Use the button above when they don't match.
-          </p>
-        </div>
-      </section>
-
-      <section className="dash-panel about-panel" data-reveal>
-        <header className="about-panel-head">
-          <div>
-            <h2>Claims</h2>
-            <p>Your handle on tourn.lol, plus the Premium second claim on swats.bio.</p>
-          </div>
-          <span className="dash-section-icon dash-section-icon--small">
-            <LinkIcon size={13} />
-          </span>
-        </header>
-
-        <div className="settings-page-body settings-aliases">
-          <div className="settings-grid">
-            <div className="settings-block">
-              <h3>
-                <LinkIcon size={13} /> Primary claim
-              </h3>
-              <label className="about-field">
-                <span>Alias (shown as tourn.lol/&lt;alias&gt;)</span>
-                <div className="input-prefix">
-                  <span>tourn.lol/</span>
-                  <input
-                    value={aliasDraft}
-                    onChange={(event) => setAliasDraft(event.target.value)}
-                    placeholder={user?.username ?? "yourname"}
-                    maxLength={24}
-                    spellCheck={false}
-                  />
-                </div>
-                <small>
-                  Letters, numbers, dots, underscores and dashes only. 3–24 characters. Free for
-                  every account.
-                </small>
-              </label>
-              <div className="settings-alias-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => void saveAlias()}
-                  disabled={aliasBusy}
-                >
-                  {aliasBusy ? "Saving…" : "Save primary claim"}
-                  <ArrowUpRight size={13} />
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => setAliasDraft(user?.username ?? "")}
-                >
-                  Use handle
-                </button>
-              </div>
-              {aliasMsg ? <p className="settings-note">{aliasMsg}</p> : null}
-            </div>
-
-            <div className={`settings-block${isPremiumUser ? "" : " is-locked"}`}>
-              <h3>
-                <BoltIcon size={13} /> Second claim · Premium
-              </h3>
-              <label className="about-field">
-                <span>Second alias (shown as swats.bio/&lt;alias&gt;)</span>
-                <div className={`input-prefix${isPremiumUser ? "" : " input-prefix--locked"}`}>
-                  <span>swats.bio/</span>
-                  <input
-                    value={alias2Draft}
-                    onChange={(event) => setAlias2Draft(event.target.value)}
-                    placeholder={isPremiumUser ? "yoursecondname" : "Premium"}
-                    maxLength={24}
-                    spellCheck={false}
-                    disabled={!isPremiumUser}
-                  />
-                </div>
-                <small>
-                  {isPremiumUser
-                    ? "Premium accounts can claim a second handle on swats.bio. Claiming is checked against every taken handle first."
-                    : "A second claim on swats.bio is one of Premium's perks. Unlock it, then claim yours."}
-                </small>
-              </label>
-              <div className="settings-alias-actions">
-                {isPremiumUser ? (
-                  <>
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-sm"
-                      onClick={() => void saveAlias2()}
-                      disabled={aliasBusy}
-                    >
-                      Save second claim
-                    </button>
-                    {user?.alias2 ? (
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => {
-                          setAlias2Draft("");
-                          void setAlias2(null).then(() => setAlias2Msg("Second claim cleared."));
-                        }}
-                      >
-                        <TrashIcon size={13} />
-                        Release claim
-                      </button>
-                    ) : null}
-                  </>
-                ) : (
-                  <a className="btn btn-primary btn-sm" href="#/premium">
-                    <BoltIcon size={13} />
-                    Unlock with Premium
-                  </a>
-                )}
-              </div>
-              {alias2Msg ? <p className="settings-note">{alias2Msg}</p> : null}
+            <small>
+              @{user?.username}
+              {user?.email ? ` · ${user.email}` : ""}
+            </small>
+            <div className="tw-set-chips">
+              <Chip>#{uid}</Chip>
+              {isPremiumUser ? <Chip tone="accent">Premium</Chip> : null}
+              {isAdmin ? <Chip tone="amber">Admin</Chip> : null}
+              {user ? <Chip>Joined {formatJoined(new Date(user.joinedAt))}</Chip> : null}
             </div>
           </div>
-
-          {user ? (
-            <div className="settings-block">
-              <h3>
-                <LinkIcon size={13} /> Your two links
-              </h3>
-              <ul className="settings-link-list">
-                <li>
-                  <code>tourn.lol/{user.alias?.trim() || user.username}</code>
-                  <small>always live</small>
-                </li>
-                <li>
-                  <code>swats.bio/{user.alias2 || user.username}</code>
-                  <small>{isPremiumUser ? "premium" : "premium — locked"}</small>
-                </li>
-              </ul>
-            </div>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="dash-panel about-panel" data-reveal data-reveal-delay="60">
-        <header className="about-panel-head">
-          <div>
-            <h2>Security</h2>
-            <p>Password, email, two-factor authentication and signed-in devices.</p>
-          </div>
-          <span className="dash-section-icon dash-section-icon--small">
-            <ShieldIcon size={13} />
-          </span>
-        </header>
-        <div className="settings-page-body">
-          <SecurityPanel security={security} configured={configured} isAdmin={isAdmin} />
-        </div>
-      </section>
-
-      <section className="dash-panel about-panel" data-reveal data-reveal-delay="120">
-        <header className="about-panel-head">
-          <div>
-            <h2>Premium</h2>
-            <p>What is free, what is unlocked with Premium, and where to get it.</p>
-          </div>
-          <span className="dash-section-icon dash-section-icon--small">
-            <BoltIcon size={13} />
-          </span>
-        </header>
-
-        <div className="settings-page-body settings-premium">
-          <p className="settings-premium-state">
-            <BoltIcon size={14} />
-            {isPremiumUser ? (
-              <>
-                <b>Premium is active</b> on this account — everything on this list is unlocked.
-              </>
-            ) : (
-              <>
-                <b>Free plan.</b> Everything core stays free; the extras below are Premium.
-              </>
-            )}
-          </p>
-          <ul className="settings-premium-list">
-            <li>
-              <CheckIcon size={12} /> "None" background and text effects
-              <small>Free</small>
-            </li>
-            <li>
-              <BoltIcon size={12} /> Background / overlay effects beyond None
-              <small>Premium</small>
-            </li>
-            <li>
-              <BoltIcon size={12} /> Flashier audio styles + file-upload audio
-              <small>Premium</small>
-            </li>
-            <li>
-              <BoltIcon size={12} /> Glass / Glow link card styles
-              <small>Premium</small>
-            </li>
-            <li>
-              <BoltIcon size={12} /> Second claim → swats.bio/&lt;alias&gt;
-              <small>Premium</small>
-            </li>
-          </ul>
-          <div className="settings-premium-actions">
-            <a className="btn btn-primary btn-sm" href="#/premium">
-              <BoltIcon size={13} />
-              See the full Premium plan
-              <ArrowUpRight size={13} />
+          <div className="tw-row">
+            <a className="tw-btn tw-btn--ghost" href={`#/profile/${user?.username ?? ""}`}>
+              <Icon name="eye" size={15} />
+              Public page
             </a>
             {onNavigate ? (
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => onNavigate("links")}
-              >
-                Style your links
-              </button>
+              <Button icon="grid" onClick={() => onNavigate("widgets")}>
+                Edit widgets
+              </Button>
             ) : null}
           </div>
         </div>
-      </section>
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="link"
+          title="Claims"
+          subtitle="Your handle on tourn.lol, plus the Premium second claim on swats.bio."
+        />
+
+        <div className="tw-set-grid">
+          <div className="tw-set-block">
+            <div className="tw-set-block-head">
+              <b>Primary claim</b>
+              <Chip tone="success">Free</Chip>
+            </div>
+            <Field label="Alias" hint="Letters, numbers, dots, underscores and dashes only. 3–24 characters.">
+              <span className="tw-prefix">
+                <i>tourn.lol/</i>
+                <input
+                  value={aliasDraft}
+                  onChange={(event) => setAliasDraft(event.target.value)}
+                  placeholder={user?.username ?? "yourname"}
+                  maxLength={24}
+                  spellCheck={false}
+                />
+              </span>
+            </Field>
+            <div className="tw-row">
+              <Button variant="primary" disabled={aliasBusy} onClick={() => void saveAlias()}>
+                {aliasBusy ? "Saving…" : "Save claim"}
+              </Button>
+              <Button onClick={() => setAliasDraft(user?.username ?? "")}>Use handle</Button>
+            </div>
+            {aliasMsg ? <p className="tw-set-note">{aliasMsg}</p> : null}
+          </div>
+
+          <div className={`tw-set-block${isPremiumUser ? "" : " is-locked"}`}>
+            <div className="tw-set-block-head">
+              <b>Second claim</b>
+              <Chip tone={isPremiumUser ? "accent" : "muted"}>Premium</Chip>
+            </div>
+            <Field
+              label="swats.bio alias"
+              hint={
+                isPremiumUser
+                  ? "Claiming is checked against every taken handle first."
+                  : "A second claim on swats.bio is one of Premium's perks."
+              }
+            >
+              <span className="tw-prefix">
+                <i>swats.bio/</i>
+                <input
+                  value={alias2Draft}
+                  onChange={(event) => setAlias2Draft(event.target.value)}
+                  placeholder={isPremiumUser ? "yoursecondname" : "Premium"}
+                  maxLength={24}
+                  spellCheck={false}
+                  disabled={!isPremiumUser}
+                />
+              </span>
+            </Field>
+            <div className="tw-row">
+              {isPremiumUser ? (
+                <>
+                  <Button variant="primary" disabled={aliasBusy} onClick={() => void saveAlias2()}>
+                    Save second claim
+                  </Button>
+                  {user?.alias2 ? (
+                    <Button
+                      icon="trash"
+                      onClick={() => {
+                        setAlias2Draft("");
+                        void setAlias2(null).then(() => setAlias2Msg("Second claim cleared."));
+                      }}
+                    >
+                      Release
+                    </Button>
+                  ) : null}
+                </>
+              ) : (
+                <Button
+                  variant="primary"
+                  icon="crown"
+                  onClick={() => {
+                    window.location.hash = "#/premium";
+                  }}
+                >
+                  Unlock with Premium
+                </Button>
+              )}
+            </div>
+            {alias2Msg ? <p className="tw-set-note">{alias2Msg}</p> : null}
+          </div>
+        </div>
+
+        {user ? (
+          <div className="tw-set-links">
+            <span>
+              <code>tourn.lol/{user.alias?.trim() || user.username}</code>
+              <small>always live</small>
+            </span>
+            <span>
+              <code>swats.bio/{user.alias2 || user.username}</code>
+              <small>{isPremiumUser ? "premium" : "premium — locked"}</small>
+            </span>
+          </div>
+        ) : null}
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="discord"
+          title="Connections"
+          subtitle="Attach Discord so widgets and the server can find you."
+        />
+        <div className={`tw-set-row${user?.discordLinked ? " is-on" : ""}`}>
+          <span className="tw-set-row-icon">
+            <Icon name="discord" size={18} />
+          </span>
+          <span className="tw-set-row-copy">
+            <b>Discord</b>
+            <small>
+              {user?.discordLinked
+                ? "Connected — your Discord profile is available to widgets and server tools."
+                : "Not connected. Link it to use your Discord profile without a second account."}
+            </small>
+          </span>
+          {user?.discordLinked ? (
+            <Chip tone="success">Connected</Chip>
+          ) : (
+            <Button
+              variant="primary"
+              icon="discord"
+              disabled={linkBusy || configured === false}
+              onClick={() => {
+                setLinkBusy(true);
+                setLinkMsg(null);
+                void linkDiscord().then((result) => {
+                  setLinkBusy(false);
+                  if (result.error) setLinkMsg(result.error);
+                });
+              }}
+            >
+              {linkBusy ? "Opening Discord…" : "Connect"}
+            </Button>
+          )}
+        </div>
+        {linkMsg ? <p className="tw-set-note">{linkMsg}</p> : null}
+        <p className="tw-set-note">
+          Signing in with Discord attaches it automatically when the Discord email matches this
+          account. Use the button above when they don't match.
+        </p>
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="shield"
+          title="Security"
+          subtitle="Email, password, two-factor authentication and signed-in devices."
+        />
+        <SecurityPanel security={security} configured={configured} isAdmin={isAdmin} />
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="crown"
+          title="Plan"
+          subtitle={isPremiumUser ? "Premium is active on this account." : "Free plan."}
+          actions={
+            <Button
+              variant={isPremiumUser ? "ghost" : "primary"}
+              icon={isPremiumUser ? "settings" : "bolt"}
+              onClick={() => {
+                window.location.hash = "#/premium";
+              }}
+            >
+              {isPremiumUser ? "Manage plan" : "See Premium"}
+            </Button>
+          }
+        />
+        <ul className="tw-set-plan">
+          {[
+            ["None background and text effects", true],
+            ["Background / overlay effects", isPremiumUser],
+            ["Every audio style and file upload", isPremiumUser],
+            ["Glass and glow link card styles", isPremiumUser],
+            ["Second claim on swats.bio", isPremiumUser],
+            ["Ten template shares instead of two", isPremiumUser],
+          ].map(([label, on]) => (
+            <li key={String(label)} className={on ? "is-on" : ""}>
+              <Icon name={on ? "check" : "lock"} size={13} />
+              {label}
+              <small>{on ? "Included" : "Premium"}</small>
+            </li>
+          ))}
+        </ul>
+        {onNavigate ? (
+          <p className="tw-set-note">
+            <button type="button" className="tw-inline-link" onClick={() => onNavigate("links")}>
+              Style your links
+            </button>{" "}
+            or{" "}
+            <button type="button" className="tw-inline-link" onClick={() => onNavigate("about")}>
+              edit your profile
+            </button>
+            .
+          </p>
+        ) : null}
+      </Card>
     </div>
   );
 }
@@ -521,210 +442,168 @@ function SecurityPanel({
   };
 
   return (
-    <div className="settings-security">
+    <div className="tw-set-sec">
       {!configured ? (
-        <p className="settings-note settings-note--warn">
-          Sign-in isn't wired up on this deployment — the backend's /env.js isn't reachable. Make
-          sure the Railway backend is running (see SETUP.md). Locally: run npm run server
-          alongside npm run dev. Passwords, MFA and session controls come alive once it is.
+        <p className="tw-set-warn">
+          Sign-in isn't wired up on this deployment — the backend's /env.js isn't reachable. Start
+          the API (npm run server) and password, 2FA and session controls come alive.
         </p>
-      ) : null}
-
-      {configured ? (
-        <p className="settings-note">
-          <b>Verify with Discord:</b> the tourn.lol bot DMs you a 6-digit code to confirm password,
-          email and 2FA changes — a stolen browser session alone can't lock you out. Until the bot
-          ships, password changes re-verify your current password and 2FA uses your authenticator
-          app.
+      ) : (
+        <p className="tw-set-note">
+          <b>Verify with Discord:</b> the bot DMs you a 6-digit code to confirm password, email and
+          2FA changes, so a stolen browser session alone can't lock you out.
         </p>
-      ) : null}
+      )}
 
-      <section className="settings-block">
-        <h3>
-          <MailIcon size={13} /> Account
-        </h3>
-        <div className="settings-session-box">
-          <div className="settings-session-row">
-            <img src={user?.avatarUrl ?? "/logo.png"} alt="" width={20} height={20} />
-            <span>
-              <b>{user?.email ?? "Discord account"}</b>
-              <small>@{user?.username}</small>
-            </span>
-            <span className="settings-session-id">{user?.id ? `${user.id.slice(0, 8)}…` : null}</span>
-            {isAdmin ? <span className="settings-admin-tag">admin</span> : null}
-          </div>
-          {configured ? (
-            <div className="settings-session-row">
-              <KeyIcon size={14} />
-              <span>
-                <b>Other active sessions</b>
-                <small>Any old device still signed into this account</small>
-              </span>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => void killSessions()}
-                disabled={busy}
-              >
-                Sign them out
-              </button>
-            </div>
-          ) : null}
-          {sessionMsg ? <p className="settings-note">{sessionMsg}</p> : null}
-        </div>
-        {configured ? (
-          <>
-            <label className="about-field">
-              <span>Change email</span>
-              <input
-                type="email"
-                value={newEmail}
-                onChange={(event) => setNewEmail(event.target.value)}
-                placeholder={user?.email ?? ""}
-                autoComplete="email"
-              />
-              <small>The backend updates your email immediately — it becomes a second sign-in method.</small>
-            </label>
-            <div className="settings-alias-actions">
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => void changeEmail()}
-                disabled={busy || !newEmail.trim()}
-              >
-                Send change request
-              </button>
-            </div>
-            {emailMsg ? <p className="settings-note">{emailMsg}</p> : null}
-          </>
-        ) : null}
-      </section>
+      <div className="tw-set-row">
+        <span className="tw-set-row-icon">
+          {user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : <Icon name="user" size={16} />}
+        </span>
+        <span className="tw-set-row-copy">
+          <b>{user?.email ?? "Discord account"}</b>
+          <small>
+            @{user?.username}
+            {user?.id ? ` · ${user.id.slice(0, 8)}…` : ""}
+          </small>
+        </span>
+        {isAdmin ? <Chip tone="amber">Admin</Chip> : <Chip>Member</Chip>}
+      </div>
 
       {configured ? (
-        <section className="settings-block">
-          <h3>
-            <KeyIcon size={13} /> Password
-          </h3>
-          <label className="about-field">
-            <span>Current password</span>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(event) => setCurrentPassword(event.target.value)}
-              placeholder="Required before any change"
-              autoComplete="current-password"
-            />
-          </label>
-          <label className="about-field">
-            <span>New password</span>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              placeholder="At least 8 characters"
-              autoComplete="new-password"
-              minLength={8}
-            />
-          </label>
-          <div className="settings-alias-actions">
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => void changePassword()}
-              disabled={busy || !newPassword}
-            >
-              Update password
-            </button>
-          </div>
-          {passwordMsg ? <p className="settings-note">{passwordMsg}</p> : null}
-        </section>
-      ) : null}
-
-      {configured ? (
-        <section className="settings-block">
-          <h3>
-            <ShieldIcon size={13} /> Two-factor (TOTP)
-          </h3>
-          {mfaFactors.length > 0 ? (
-            <div className="settings-session-box">
-              {mfaFactors.map((factor) => (
-                <div className="settings-session-row" key={factor.id}>
-                  <ShieldIcon size={14} />
-                  <span>
-                    <b>Authenticator app</b>
-                    <small>added {new Date(factor.createdAt).toLocaleDateString()}</small>
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => void stopMfa(factor.id)}
-                    disabled={busy}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : mfaQr ? (
-            <>
-              <div className="settings-mfa-qr" aria-label="Authenticator QR code">
-                <img src={mfaQr} alt="TOTP enrollment QR code" />
+        <>
+          <div className="tw-set-grid">
+            <div className="tw-set-block">
+              <div className="tw-set-block-head">
+                <b>Email</b>
               </div>
-              <code className="settings-mfa-secret">{mfaSecret}</code>
-              <label className="about-field">
-                <span>Paste the 6-digit code from your app</span>
-                <input
-                  value={mfaCode}
-                  onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="123456"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
+              <Field label="New email" hint="The backend updates it immediately — it becomes a second sign-in method.">
+                <TextInput
+                  type="email"
+                  value={newEmail}
+                  onChange={(event) => setNewEmail(event.target.value)}
+                  placeholder={user?.email ?? ""}
+                  autoComplete="email"
                 />
-              </label>
-              <div className="settings-alias-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => void verifyMfa()}
-                  disabled={busy || mfaCode.length !== 6}
-                >
-                  Verify & enable
-                </button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setMfaQr("")}>
-                  Cancel
-                </button>
+              </Field>
+              <Button disabled={busy || !newEmail.trim()} onClick={() => void changeEmail()}>
+                Send change request
+              </Button>
+              {emailMsg ? <p className="tw-set-note">{emailMsg}</p> : null}
+            </div>
+
+            <div className="tw-set-block">
+              <div className="tw-set-block-head">
+                <b>Password</b>
               </div>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => void startMfa()}
-              disabled={busy}
-            >
-              <ShieldIcon size={13} />
-              Set up authenticator app
-            </button>
-          )}
-          {mfaMsg ? <p className="settings-note">{mfaMsg}</p> : null}
-        </section>
+              <Field label="Current password">
+                <TextInput
+                  type="password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  placeholder="Required before any change"
+                  autoComplete="current-password"
+                />
+              </Field>
+              <Field label="New password" hint="At least 8 characters.">
+                <TextInput
+                  type="password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  placeholder="At least 8 characters"
+                  autoComplete="new-password"
+                  minLength={8}
+                />
+              </Field>
+              <Button variant="primary" disabled={busy || !newPassword} onClick={() => void changePassword()}>
+                Update password
+              </Button>
+              {passwordMsg ? <p className="tw-set-note">{passwordMsg}</p> : null}
+            </div>
+          </div>
+
+          <div className="tw-set-block">
+            <div className="tw-set-block-head">
+              <b>Two-factor authentication</b>
+              {mfaFactors.length ? <Chip tone="success">On</Chip> : <Chip>Off</Chip>}
+            </div>
+            {mfaFactors.length > 0 ? (
+              <>
+                {mfaFactors.map((factor) => (
+                  <div className="tw-set-row" key={factor.id}>
+                    <span className="tw-set-row-icon">
+                      <Icon name="shield" size={16} />
+                    </span>
+                    <span className="tw-set-row-copy">
+                      <b>Authenticator app</b>
+                      <small>added {new Date(factor.createdAt).toLocaleDateString()}</small>
+                    </span>
+                    <Button disabled={busy} onClick={() => void stopMfa(factor.id)}>
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </>
+            ) : mfaQr ? (
+              <div className="tw-set-mfa">
+                <img src={mfaQr} alt="TOTP enrollment QR code" width={164} height={164} />
+                <div className="tw-set-mfa-side">
+                  <code>{mfaSecret}</code>
+                  <Field label="Code from your app">
+                    <TextInput
+                      value={mfaCode}
+                      onChange={(event) =>
+                        setMfaCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                      }
+                      placeholder="123456"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                    />
+                  </Field>
+                  <div className="tw-row">
+                    <Button
+                      variant="primary"
+                      disabled={busy || mfaCode.length !== 6}
+                      onClick={() => void verifyMfa()}
+                    >
+                      Verify &amp; enable
+                    </Button>
+                    <Button onClick={() => setMfaQr("")}>Cancel</Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Button icon="shield" disabled={busy} onClick={() => void startMfa()}>
+                Set up authenticator app
+              </Button>
+            )}
+            {mfaMsg ? <p className="tw-set-note">{mfaMsg}</p> : null}
+          </div>
+
+          <div className="tw-set-row">
+            <span className="tw-set-row-icon">
+              <Icon name="logout" size={16} />
+            </span>
+            <span className="tw-set-row-copy">
+              <b>Other sessions</b>
+              <small>Any old device still signed in to this account</small>
+            </span>
+            <Button disabled={busy} onClick={() => void killSessions()}>
+              Sign them out
+            </Button>
+          </div>
+          {sessionMsg ? <p className="tw-set-note">{sessionMsg}</p> : null}
+        </>
       ) : null}
 
-      {configured ? (
-        <section className="settings-block">
-          <h3>
-            <UserIcon size={13} /> Danger zone
-          </h3>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm settings-signout"
-            onClick={() => void signOut()}
-          >
-            <CloseIcon size={12} />
-            Sign out of this device
-          </button>
-        </section>
-      ) : null}
+      <div className="tw-set-danger">
+        <div>
+          <b>Sign out of this device</b>
+          <small>Your saved profile stays on tourn.lol.</small>
+        </div>
+        <Button icon="logout" onClick={() => void signOut()}>
+          Sign out
+        </Button>
+      </div>
     </div>
   );
 }

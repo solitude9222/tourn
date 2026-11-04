@@ -32,10 +32,6 @@ export function Hero({
       <div className="hero-bg" aria-hidden="true" />
       <div className="wrap hero-grid">
         <div className="hero-copy">
-          <span className="eyebrow">
-            <i className="pulse-dot" />
-            Open beta · your link, live
-          </span>
           <h1 className="hero-title">
             tourn<span className="accent">.</span>lol
           </h1>
@@ -116,7 +112,6 @@ export function BentoSection({
     <section className="section" id="example">
       <div className="wrap">
         <div className="section-head section-head--center" data-reveal>
-          <span className="eyebrow eyebrow--sm">your bio</span>
           <h2 className="section-title">
             Your profile, <span className="accent">live.</span>
           </h2>
@@ -237,7 +232,6 @@ export function FaqSection() {
     <section className="section section--tight" id="faq">
       <div className="wrap faq-wrap">
         <div className="section-head" data-reveal>
-          <span className="eyebrow eyebrow--sm">help</span>
           <h2 className="section-title">Questions, answered.</h2>
           <p className="section-sub">
             Short version: one link, your bio and a live widget stack. No clutter. The long version

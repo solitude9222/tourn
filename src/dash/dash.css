@@ -269,49 +269,79 @@
   padding: 0 16px 14px;
 }
 
+/* The bottom-left plan chip. One row, one accent, no border shouting: the
+   spinning star is the only decoration and it stays inside a 28px tile. */
 .tw-premium-card {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   width: 100%;
-  padding: 12px 13px;
-  margin-bottom: 12px;
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  background: var(--card);
+  padding: 9px 10px;
+  margin-bottom: 10px;
+  border: 1px solid #23262d;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(57, 101, 230, 0.14), rgba(57, 101, 230, 0.03));
   color: var(--title);
   text-decoration: none;
   cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .tw-premium-card:hover {
-  border-color: #2b2b2b;
+  border-color: rgba(57, 101, 230, 0.5);
+  background: linear-gradient(135deg, rgba(57, 101, 230, 0.2), rgba(57, 101, 230, 0.06));
 }
 
 .tw-premium-icon {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  width: 28px;
+  height: 28px;
   flex: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tw-premium-icon img {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.tw-premium-copy {
+  min-width: 0;
+  flex: 1;
 }
 
 .tw-premium-card b {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
+  overflow: hidden;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-premium-card.is-active b {
+  color: #dfe8ff;
 }
 
 .tw-premium-card small {
   display: block;
-  margin-top: 2px;
-  color: var(--nav);
-  font-size: 11.5px;
+  margin-top: 1px;
+  overflow: hidden;
+  color: #8b93a3;
+  font-size: 11px;
   font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-premium-chev {
+  flex: none;
+  color: #5f6878;
 }
 
 .tw-user-row {
@@ -1728,58 +1758,92 @@
 /* ---------------------------------------------------------------- badges */
 
 .tw-badge-tile {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  min-height: 66px;
-  padding: 12px 14px;
-  border: 2px solid var(--border);
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--bar);
+  background: #0d0d0f;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.tw-badge-tile:hover {
+  border-color: #2c2c31;
+  background: #101013;
+}
+
+.tw-badge-tile.is-equipped {
+  border-color: rgba(57, 101, 230, 0.5);
+  background: rgba(32, 44, 82, 0.32);
+}
+
+.tw-badge-tile.is-locked .tw-badge-art {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.tw-badge-tile.is-locked .tw-badge-copy b {
+  color: #9aa1ad;
 }
 
 .tw-badge-art {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
   flex: none;
   overflow: hidden;
-  border-radius: 9px;
-  background: #1b1b1e;
-  font-size: 13px;
-  font-weight: 600;
+  border-radius: 10px;
+  background: radial-gradient(120% 120% at 30% 0%, #1d1d22, #101012);
+  border: 1px solid #232327;
 }
 
 .tw-badge-art img {
   width: 100%;
   height: 100%;
+  padding: 3px;
   object-fit: contain;
+  display: block;
+}
+
+.tw-badge-art-letter {
+  display: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: #98a0ad;
+}
+
+.tw-badge-art.is-fallback .tw-badge-art-letter {
+  display: block;
 }
 
 .tw-badge-copy {
   min-width: 0;
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .tw-badge-copy b {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.tw-badge-copy small {
-  display: block;
-  margin-top: 2px;
   overflow: hidden;
-  color: #7f8590;
-  font-size: 11px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #eef0f4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tw-badge-tile {
-  gap: 10px;
+.tw-badge-copy small {
+  display: block;
+  overflow: hidden;
+  color: #7f8590;
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* The two round action buttons sit in one fixed-size group so a long badge
@@ -1799,20 +1863,148 @@
   border-color: #2b2b2b;
 }
 
-.tw-badge-tile.is-equipped {
-  border-color: rgba(57, 101, 230, 0.45);
-  background: rgba(27, 35, 59, 0.35);
+.tw-badge-tile .tw-icon-btn:hover {
+  border-color: #3c3c42;
+  background: #16161a;
+}
+
+.tw-badge-group {
+  margin-top: 18px;
+}
+
+.tw-badge-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.tw-badge-group-head h3 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a919d;
+}
+
+.tw-badge-group-head small {
+  color: #5f6672;
+  font-size: 11px;
+}
+
+.tw-badge-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 620px) {
+  .tw-badge-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tw-badge-filter {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #0b0b0d;
+}
+
+.tw-badge-filter-btn {
+  height: 26px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #8a919d;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.tw-badge-filter-btn:hover {
+  color: #d6dae1;
+}
+
+.tw-badge-filter-btn.is-active {
+  background: #1b1b20;
+  color: #f1f3f6;
+}
+
+.tw-badge-promo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.tw-badge-promo-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 13px;
+  border: 1px solid #24242a;
+  background: radial-gradient(120% 120% at 30% 0%, #201a2c, #101013);
+}
+
+.tw-badge-promo-icon img {
+  display: block;
+}
+
+.tw-badge-promo-copy {
+  min-width: 200px;
+  flex: 1;
+}
+
+.tw-badge-promo-copy b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #eef0f4;
+}
+
+.tw-badge-promo-copy small {
+  display: block;
+  margin-top: 3px;
+  color: #828994;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tw-badge-promo-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  margin-left: auto;
+}
+
+.tw-empty-note {
+  margin: 16px 0 0;
+  color: #7f8590;
+  font-size: 12.5px;
 }
 
 .tw-badge-drop {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  min-height: 150px;
-  padding: 16px;
-  border: 1px dashed #2a2a2a;
+  gap: 8px;
+  min-height: 108px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px dashed #262629;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.01);
+  background: rgba(255, 255, 255, 0.012);
 }
 
 .tw-badge-drop.is-empty {
@@ -1824,19 +2016,25 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 12px 0 8px;
-  border: 2px solid var(--border);
+  height: 38px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--tile);
+  background: #111114;
   color: #e7e9ee;
-  font-size: 13px;
-  cursor: grab;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.tw-drop-badge:hover {
+  border-color: #35353b;
+  background: #16161a;
 }
 
 .tw-drop-badge img {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 

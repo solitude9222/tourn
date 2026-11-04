@@ -4,6 +4,8 @@
    --------------------------------------------------------------------------- */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useAuth } from "../lib/auth";
+import { forgetAccount, loadAccounts, switchSession, type StoredAccount } from "../lib/accounts";
 import { useDash, type Page, type ProfileTab, type TabDef } from "./context";
 import { Button, Icon, IconButton, type IconName } from "./ui";
 
@@ -99,6 +101,8 @@ export type ShellProps = {
   tabs?: TabDef[];
   activeTab?: string;
   onTab?: (id: string) => void;
+  onAddAccount?: () => void;
+  onSignOut?: () => void;
   children: ReactNode;
 };
 
@@ -114,9 +118,13 @@ export function Shell({
   tabs,
   activeTab,
   onTab,
+  onAddAccount,
+  onSignOut,
   children,
 }: ShellProps) {
-  const { user, about, settings, dirty, save, discard, isPremium, isAdmin, profileViews, go } = useDash();
+  const { user, about, settings, dirty, save, discard, isPremium, isAdmin, profileViews, go, notify } =
+    useDash();
+  const { accounts, retryAuth } = useAuth();
   const [openGroups, setOpenGroups] = useState<NavGroup["key"][]>(() => [
     PAGE_GROUP[page] ?? "account",
   ]);
@@ -124,6 +132,8 @@ export function Shell({
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notes, setNotes] = useState(false);
+  const [saved, setSaved] = useState<StoredAccount[]>(() => loadAccounts());
+  const [switching, setSwitching] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const displayName = about.displayName.trim() || user.username;
@@ -138,6 +148,29 @@ export function Shell({
     window.scrollTo({ top: 0 });
     setMobileOpen(false);
   }, [page]);
+
+  useEffect(() => {
+    setSaved(loadAccounts());
+  }, [accounts, user.id, menuOpen]);
+
+  const switchTo = async (entry: StoredAccount) => {
+    if (entry.id === user.id) {
+      setMenuOpen(false);
+      return;
+    }
+    setSwitching(entry.id);
+    const result = await switchSession(entry.ticket);
+    if (result.ok) {
+      setMenuOpen(false);
+      await retryAuth();
+      setSwitching(null);
+      return;
+    }
+    // The saved pass expired: forget it so the menu stops offering a dead row.
+    setSaved(forgetAccount(entry.id));
+    setSwitching(null);
+    notify("Could not switch", "That saved session expired — add the account again.");
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -271,64 +304,124 @@ export function Shell({
         </div>
 
         <div className="tw-rail-foot">
-          {isPremium ? (
-            <button type="button" className="tw-premium-card" onClick={() => go("billing")}>
-              <span className="tw-premium-icon">
-                <Icon name="star" size={15} />
-              </span>
-              <span>
-                <b>Premium active</b>
-                <small>Manage your plan</small>
-              </span>
-            </button>
-          ) : (
-            <button type="button" className="tw-premium-card" onClick={() => go("premium")}>
-              <span className="tw-premium-icon">
-                <Icon name="star" size={15} />
-              </span>
-              <span>
-                <b>Upgrade to Premium</b>
-                <small>Unlock exclusive features</small>
-              </span>
-            </button>
-          )}
+          <button
+            type="button"
+            className={`tw-premium-card${isPremium ? " is-active" : ""}`}
+            onClick={() => go(isPremium ? "billing" : "premium")}
+          >
+            <span className="tw-premium-icon">
+              <img src="/badges/icons/norm/premium.svg" alt="" width={18} height={18} />
+            </span>
+            <span className="tw-premium-copy">
+              <b>{isPremium ? "Premium active" : "Upgrade to Premium"}</b>
+              <small>{isPremium ? "Manage your plan" : "Unlock every extra"}</small>
+            </span>
+            <Icon name="chevron-right" size={14} className="tw-premium-chev" />
+          </button>
 
           <div className="tw-user" ref={menuRef}>
             {menuOpen ? (
               <div className="tw-user-pop" role="menu" aria-label="Account menu">
-                <a
-                  role="menuitem"
-                  href={`/${encodeURIComponent(user.username)}`}
-                  className="tw-user-pop-item"
-                >
-                  <Icon name="eye" size={14} />
-                  View public page
-                  <Icon name="external" size={12} />
-                </a>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="tw-user-pop-item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    go("settings");
-                  }}
-                >
-                  <Icon name="settings" size={14} />
-                  Account settings
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="tw-user-pop-item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    go("billing");
-                  }}
-                >
-                  <Icon name="crown" size={14} />
-                  Billing
-                </button>
+                <div className="tw-user-pop-head">
+                  <small>Signed in as</small>
+                  <b>@{user.username}</b>
+                </div>
+
+                <div className="tw-user-pop-list">
+                  {saved
+                    .filter((entry) => entry.id !== user.id)
+                    .map((entry) => (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        role="menuitem"
+                        className="tw-account-row"
+                        disabled={switching === entry.id}
+                        onClick={() => void switchTo(entry)}
+                      >
+                        <span className="tw-account-avatar">
+                          {entry.avatarUrl ? (
+                            <img src={entry.avatarUrl} alt="" />
+                          ) : (
+                            entry.username.slice(0, 1).toUpperCase()
+                          )}
+                        </span>
+                        <span className="tw-account-copy">
+                          <b>{entry.name || entry.username}</b>
+                          <small>
+                            {switching === entry.id ? "Switching…" : `@${entry.username}`}
+                          </small>
+                        </span>
+                        <Icon name="chevron-right" size={13} />
+                      </button>
+                    ))}
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="tw-account-add"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onAddAccount?.();
+                    }}
+                  >
+                    <span className="tw-account-add-icon">
+                      <Icon name="plus" size={14} />
+                    </span>
+                    <span>
+                      <b>Add another account</b>
+                      <small>Signed-in accounts stay one click away</small>
+                    </span>
+                  </button>
+                </div>
+
+                <div className="tw-user-pop-actions">
+                  <a
+                    role="menuitem"
+                    href={`/${encodeURIComponent(user.username)}`}
+                    className="tw-user-pop-item"
+                  >
+                    <Icon name="eye" size={14} />
+                    View public page
+                    <Icon name="external" size={12} />
+                  </a>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="tw-user-pop-item"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      go("settings");
+                    }}
+                  >
+                    <Icon name="settings" size={14} />
+                    Account settings
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="tw-user-pop-item"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      go("billing");
+                    }}
+                  >
+                    <Icon name="crown" size={14} />
+                    Billing
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="tw-user-pop-item tw-user-pop-item--danger"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onSignOut?.();
+                    }}
+                  >
+                    <Icon name="logout" size={14} />
+                    Sign out
+                  </button>
+                </div>
               </div>
             ) : null}
 

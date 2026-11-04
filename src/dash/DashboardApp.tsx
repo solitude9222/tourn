@@ -185,6 +185,8 @@ export function Dashboard(props: DashboardProps) {
     onSaveLinks,
     onSignIn,
     onSignUp,
+    onSignOut,
+    onAddAccount,
   } = props;
 
   const [page, setPage] = useState<Page>(() => {
@@ -465,6 +467,8 @@ export function Dashboard(props: DashboardProps) {
         tabs={page === "customize-profile" ? PROFILE_TABS : undefined}
         activeTab={profileTab}
         onTab={(id) => setProfileTab(id as ProfileTab)}
+        onAddAccount={onAddAccount}
+        onSignOut={onSignOut}
       >
         <Suspense fallback={null}>{content}</Suspense>
       </Shell>

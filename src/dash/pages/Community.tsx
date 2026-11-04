@@ -23,7 +23,6 @@ import { EMPTY_ABOUT, type About } from "../../lib/about";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import {
   TEMPLATE_PART_META,
-  builtinTemplates,
   decodeTemplate,
   encodeTemplate,
   loadReceived,
@@ -532,7 +531,6 @@ export function TemplatesPage() {
   const { user, about, links, widgets, badges, setAbout, setLinks, setWidgets, setBadges, isPremium, notify, go } =
     useDash();
 
-  const builtins = useMemo(() => builtinTemplates(), []);
   const [shares, setShares] = useState<TemplateShare[]>(() => loadShares(user.id));
   const [received, setReceived] = useState<TemplateShare[]>(() => loadReceived(user.id));
   const [preview, setPreview] = useState<{ name: string; snapshot: TemplateSnapshot } | null>(null);
@@ -638,53 +636,29 @@ export function TemplatesPage() {
     }
   };
 
-  const gallery = (items: { id: string; name: string; note: string; snapshot: TemplateSnapshot }[]) => (
-    <div className="tw-template-grid">
-      {items.map((item) => {
-        const locked = isPremium ? [] : premiumParts(item.snapshot);
-        return (
-          <article className="tw-template-card" key={item.id}>
-            <button type="button" className="tw-template-shot" onClick={() => setPreview({ name: item.name, snapshot: item.snapshot })}>
-              <TemplateStage snapshot={item.snapshot} />
-              <span className="tw-template-shot-hover">
-                <Icon name="expand" size={16} /> Preview
-              </span>
-            </button>
-            <div className="tw-template-copy">
-              <b>{item.name}</b>
-              <small>{item.note}</small>
-            </div>
-            <div className="tw-template-foot">
-              {locked.length ? <Chip tone="amber">Premium parts</Chip> : <Chip>Free</Chip>}
-              <Button variant="primary" icon="check" onClick={() => startApply(item.name, item.snapshot)}>
-                Use
-              </Button>
-            </div>
-          </article>
-        );
-      })}
-    </div>
-  );
-
   return (
     <>
       <Card>
-        <CardHead
-          icon="grid"
-          title="Templates"
-          subtitle="Start from a look, or share your own. Pick exactly which parts come across."
-          actions={
-            <div className="tw-row">
-              <Button icon="download" onClick={() => setImportOpen(true)}>
-                Import code
-              </Button>
-              <Button variant="primary" icon="share" onClick={() => setShareOpen(true)}>
-                Share my look
-              </Button>
-            </div>
-          }
-        />
-        {gallery(builtins)}
+        <div className="tw-template-hero">
+          <span className="tw-template-hero-icon">
+            <Icon name="share" size={20} />
+          </span>
+          <div className="tw-template-hero-copy">
+            <b>Share a look, take a look.</b>
+            <small>
+              A template carries the card, colours, effects, widgets and link row — never your
+              name, bio or uploads. You choose which parts apply.
+            </small>
+          </div>
+          <div className="tw-template-hero-actions">
+            <Button icon="download" onClick={() => setImportOpen(true)}>
+              Import a code
+            </Button>
+            <Button variant="primary" icon="share" onClick={() => setShareOpen(true)}>
+              Share my look
+            </Button>
+          </div>
+        </div>
       </Card>
 
       <Card>

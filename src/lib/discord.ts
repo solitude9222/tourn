@@ -50,13 +50,44 @@ export type DiscordPrimaryGuild = {
   badge?: string;
 } | null | undefined;
 
+/**
+ * Some servers set their tag to characters that draw nothing — combining marks
+ * and Arabic diacritics such as `ٴٴٴ` — so the plaque shows the server's badge
+ * next to an empty gap. Those tags are not text: strip the marks and, if
+ * nothing readable is left, report no tag so the card shows just the badge.
+ */
+const INVISIBLE_TAG_CHARS =
+  /[\u0300-\u036F\u0610-\u061A\u064B-\u065F\u0670\u0674\u06D6-\u06ED\u1AB0-\u1AFF\u1DC0-\u1DFF\u200B-\u200F\u202A-\u202E\u2060-\u2064\u206A-\u206F\u20D0-\u20FF\uFE00-\uFE0F\uFE20-\uFE2F\uFEFF]/g;
+
+export function readableGuildTag(tag: string | null | undefined): string | null {
+  if (!tag) return null;
+  const visible = tag.replace(INVISIBLE_TAG_CHARS, "").trim();
+  if (!visible) return null;
+  return tag.trim();
+}
+
 /** The tag shown next to a display name, e.g. `TOURN`. */
 export function primaryGuildTag(guild: DiscordPrimaryGuild): string | null {
   if (!guild?.identity_enabled) return null;
-  return guild.tag || null;
+  return readableGuildTag(guild.tag);
 }
 
 /** The guild id backing the tag, used when the card needs the raw id. */
 export function primaryGuildId(guild: DiscordPrimaryGuild): string | null {
   return guild?.identity_guild_id || null;
+}
+
+/**
+ * The real tag badge Discord draws to the left of a server tag. It is keyed by
+ * the guild id and the badge hash, so it is a stable CDN URL rather than a
+ * guess — and it renders even when the tag's letters are invisible.
+ */
+export function guildTagBadge(guild: DiscordPrimaryGuild): string | null {
+  if (!guild?.identity_enabled) return null;
+  const badge = guild.badge;
+  const guildId = guild.identity_guild_id;
+  if (!badge) return null;
+  if (badge.startsWith("http")) return badge;
+  if (!guildId) return null;
+  return `https://cdn.discordapp.com/guild-tag-badges/${guildId}/${badge}.png?size=32`;
 }

@@ -491,6 +491,23 @@ function Site() {
 
   useReveal([route, user?.id]);
 
+  // The browser tab names the page you are on. A profile names itself (the
+  // profile metadata does that), every other page is "tourn.lol — <page>", so a
+  // tab never keeps a stale handle after you leave someone's bio.
+  useEffect(() => {
+    if (route === "profile") return;
+    const names: Record<string, string> = {
+      "": "home",
+      dashboard: "dashboard",
+      leaderboard: "leaderboard",
+      shop: "shop",
+      premium: "premium",
+      legal: "legal",
+      demo: "demo",
+    };
+    document.title = `tourn.lol — ${names[route] ?? route}`;
+  }, [route]);
+
   // Coming back from Discord with ?error=… used to land on the home page with
   // the message silently dropped: the dialog reads the URL only when it opens,
   // and nothing opened it. Open it here so the failure is actually explained.

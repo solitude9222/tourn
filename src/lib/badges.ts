@@ -101,9 +101,8 @@ const PLATFORM: BadgeDef[] = [
   { id: "bughunter", name: "Bug Hunter", description: "Found and reported a real bug", requirement: "Granted by staff for a reproducible bug report.", group: "platform", art: `${ICON}/bughunter.png`, color: "#a3e635" },
   { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: `${ICON}/newbie.png`, color: "#b4bffa" },
   { id: "user", name: "Active User", description: "Long-time active member", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: `${ICON}/iverauser.gif`, color: "#b4bffa" },
-  // Art not uploaded yet — these render as a tinted monogram until it is.
-  { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: "", color: "#f472b6" },
-  { id: "booster", name: "Booster", description: "Server booster", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: "", color: "#f472b6" },
+  { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: `${ICON}/premium.svg`, color: "#f472b6" },
+  { id: "booster", name: "Booster", description: "Server booster", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: `${ICON}/booster.png`, color: "#f472b6" },
 ];
 
 /* ── seasonal badges ───────────────────────────────────────── */

@@ -9,7 +9,7 @@ import {
 import { STATUS_COLORS, STATUS_LABELS, usePolled, type Polled } from "../lib/hooks";
 import { avatarUrl, currentGame, customStatus, formatClock } from "../lib/format";
 import { FEATURED_TRACK, inviteCode, spotifyTrackId, type Settings } from "../config";
-import { discordBadges, primaryGuildTag } from "../lib/discord";
+import { discordBadges, guildTagBadge, primaryGuildTag } from "../lib/discord";
 import { fetchSteamProfile, steamProfileTarget } from "../lib/steam";
 import { ScrollText } from "./Marquee";
 import {
@@ -201,6 +201,7 @@ export function DiscordCard({
   const custom = customStatus(lanyard.data.activities);
   const badges = discordBadges(user.public_flags);
   const guildTag = primaryGuildTag(user.primary_guild);
+  const guildBadge = guildTagBadge(user.primary_guild);
   const displayName = user.display_name || user.global_name || user.username;
   const activity = custom ?? (game ? `Playing ${game.name}` : null);
 
@@ -215,7 +216,12 @@ export function DiscordCard({
       <span className="bcard-main">
         <span className="bcard-line">
           <ScrollText className="bcard-title">{displayName}</ScrollText>
-          {guildTag ? <span className="bcard-guild-tag">{guildTag}</span> : null}
+          {guildBadge || guildTag ? (
+            <span className="bcard-guild-tag" title={guildTag ? `${guildTag} server tag` : "Server tag"}>
+              {guildBadge ? <img src={guildBadge} alt="" width={11} height={11} loading="lazy" /> : null}
+              {guildTag}
+            </span>
+          ) : null}
           {badges.length ? (
             <span className="bcard-badges">
               {badges.slice(0, 3).map((badge) => (

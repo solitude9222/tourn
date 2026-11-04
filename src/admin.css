@@ -2060,3 +2060,196 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Embedded in the dashboard: the console wears the dashboard's clothes.
+
+   The standalone admin page keeps its own look, but inside /dashboard it sits
+   under the dashboard's page header and next to the dashboard's cards, so it
+   adopts the same card, tab, button and type scale. No mono micro-labels, no
+   double hero, no lavender gradients — one design language per screen.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.adm.adm--embedded {
+  --adm-brand: var(--accent-text, #79a1f7);
+  --adm-brand-strong: var(--accent, #3965e6);
+  --adm-brand-soft: rgba(57, 101, 230, 0.14);
+  --adm-line: var(--border, #1f1f1f);
+  --adm-line-soft: #1b1b1f;
+  --adm-muted: #8a919d;
+  --adm-dim: #6b7280;
+  gap: 16px;
+}
+
+/* The dashboard already prints "Admin" above the page. */
+.adm.adm--embedded .adm-hero {
+  display: none;
+}
+
+/* Tabs: the same shape as .tw-tabs. */
+.adm.adm--embedded .adm-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  justify-self: stretch;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0b0b0d;
+}
+
+.adm.adm--embedded .adm-tab {
+  flex: 0 1 auto;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 8px;
+  color: #8a919d;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.adm.adm--embedded .adm-tab:hover {
+  background: #16161a;
+  color: #d9dde4;
+}
+
+.adm.adm--embedded .adm-tab.is-active {
+  background: rgba(57, 101, 230, 0.16);
+  color: #cfdcff;
+  box-shadow: none;
+}
+
+.adm.adm--embedded .adm-tab.is-active svg {
+  color: var(--accent-text);
+}
+
+/* Panels become the dashboard card. */
+.adm.adm--embedded .adm-panel,
+.adm.adm--embedded .adm-card,
+.adm.adm--embedded .adm-invite,
+.adm.adm--embedded .adm-bot-form {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card, #0d0d0f);
+  box-shadow: none;
+}
+
+.adm.adm--embedded .adm-panel {
+  padding: 18px;
+}
+
+.adm.adm--embedded .adm-panel-head h2 {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.adm.adm--embedded .adm-panel-head h2 svg {
+  color: var(--accent-text);
+}
+
+/* Stat tiles: quiet, same as the home page metrics. */
+.adm.adm--embedded .adm-stat {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0d0d0f;
+  padding: 14px 16px;
+}
+
+.adm.adm--embedded .adm-stat-label {
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7c8492;
+}
+
+.adm.adm--embedded .adm-stat-value {
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.adm.adm--embedded .adm-stat small {
+  color: #6f7684;
+  font-size: 11.5px;
+}
+
+/* The eyebrow/labels stop being terminal text. */
+.adm.adm--embedded .adm-eyebrow {
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--accent-text);
+}
+
+/* Buttons: the dashboard's own two shapes. */
+.adm.adm--embedded .adm-btn {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #141417;
+  color: #d7dbe2;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  box-shadow: none;
+}
+
+.adm.adm--embedded .adm-btn:hover {
+  border-color: #33363d;
+  background: #191a1e;
+  color: #fff;
+}
+
+.adm.adm--embedded .adm-btn--primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: none;
+}
+
+.adm.adm--embedded .adm-btn--primary:hover {
+  border-color: transparent;
+  background: #4a74ef;
+  color: #fff;
+}
+
+/* Inputs match the dashboard fields. */
+.adm.adm--embedded .adm-field input,
+.adm.adm--embedded .adm-field select,
+.adm.adm--embedded .adm-field textarea,
+.adm.adm--embedded .adm-code,
+.adm.adm--embedded .adm-copy-link {
+  border: 1px solid #26292f;
+  border-radius: 10px;
+  background: #0b0b0d;
+  color: #e8ebf1;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.adm.adm--embedded .adm-hint,
+.adm.adm--embedded .adm-invite-note,
+.adm.adm--embedded .adm-empty {
+  color: #7c8492;
+  font-size: 12px;
+}
+
+.adm.adm--embedded .adm-msg {
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+/* Tables and member rows: one hairline, aligned columns. */
+.adm.adm--embedded .adm-row,
+.adm.adm--embedded .adm-invite {
+  border-radius: 10px;
+}
