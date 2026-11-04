@@ -1412,21 +1412,6 @@
    centered a single narrow column, everything centred.
    ─────────────────────────────────────────────────────────────────── */
 
-/* The card is pinned to the left of the wide flow rather than centred, so
-   "left side" reads as a different page even before a widget fills the side
-   column. */
-.lkr-flow.lkr-flow--left {
-  max-width: calc(var(--pv-width) + 380px + 32px);
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 20px;
-}
-
-.lkr-flow.lkr-flow--left > .profile-preview {
-  flex: 0 0 auto;
-}
-
 /* stacked — every widget is its own card under the profile card, in one
    column: main card, Discord presence, the rest, audio at the bottom. The
    column itself stays centred; it is the contents that stack. */
@@ -1454,14 +1439,6 @@
 
 .lkr-flow.lkr-flow--centered > .profile-preview {
   text-align: center;
-}
-
-@media (max-width: 900px) {
-  .lkr-flow.lkr-flow--left {
-    flex-direction: column;
-    align-items: center;
-  }
-
 }
 
 .lkr-flow {
