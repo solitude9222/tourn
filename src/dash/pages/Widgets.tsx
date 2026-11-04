@@ -180,7 +180,7 @@ export function WidgetsPage() {
         <CardHead
           icon="grid"
           title="Available widgets"
-          subtitle="One row each — pick a platform to add it to your stack."
+          subtitle="Pick a platform to add it to your stack."
         />
 
         <div className="tw-widget-gallery">
@@ -189,10 +189,11 @@ export function WidgetsPage() {
               key={platform.id}
               type="button"
               className="tw-widget-pick"
+              style={{ ["--widget-color" as string]: platform.color }}
               onClick={() => openAdd(platform)}
             >
               <span className="tw-widget-pick-icon" aria-hidden="true">
-                <PlatformIcon id={platform.id} size={17} />
+                <PlatformIcon id={platform.id} size={19} />
               </span>
               <span className="tw-widget-pick-copy">
                 <b>{platform.name}</b>

@@ -4313,8 +4313,11 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 /* The hero gives the card column enough room for the saved card width, so a
    643px card actually renders at 643px instead of being squeezed to the
-   column. The profile page itself is uncapped up to the saved width. */
-@media (min-width: 1081px) {
+   column. The profile page itself is uncapped up to the saved width. The
+   breakpoint sits above where the headline would collide with the card: with
+   the fixed 660px column the copy only has ~330px at 1081px wide, and
+   "tourn.lol" is wider than that, so it ran underneath the card. */
+@media (min-width: 1221px) {
   .hero-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 660px);
     gap: 48px;

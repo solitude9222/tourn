@@ -2076,38 +2076,59 @@
    Add affordance — no thumbnail grid, no scrolling gallery. */
 .tw-widget-gallery {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 10px;
 }
 
+/* Full tiles, not list rows: a brand plate, the platform name and what it
+   actually shows, with the add action pinned to the bottom. */
 .tw-widget-pick {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 11px 14px;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 132px;
+  padding: 16px;
+  overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 11px;
+  border-radius: 14px;
   background: var(--bar);
   text-align: left;
   cursor: pointer;
   transition: border-color 140ms ease, background 140ms ease;
 }
 
+.tw-widget-pick::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--widget-color, var(--accent));
+  opacity: 0;
+  transform: scaleX(0.5);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
 .tw-widget-pick:hover {
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-color: color-mix(in srgb, var(--widget-color, var(--accent)) 45%, var(--border));
   background: var(--tile);
+}
+
+.tw-widget-pick:hover::after {
+  opacity: 1;
+  transform: none;
 }
 
 .tw-widget-pick-icon {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   flex: none;
-  border-radius: 9px;
-  background: var(--tile);
-  color: var(--accent-text);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--widget-color, var(--accent)) 16%, var(--tile));
+  color: var(--widget-color, var(--accent-text));
 }
 
 .tw-widget-pick-copy {
@@ -2115,28 +2136,28 @@
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .tw-widget-pick-copy b {
   color: var(--title);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 640;
+  letter-spacing: -0.01em;
 }
 
 .tw-widget-pick-copy small {
-  overflow: hidden;
   color: var(--nav);
   font-size: 11.5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
 }
 
 .tw-widget-pick-add {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  flex: none;
+  margin-top: auto;
+  padding-top: 2px;
   color: var(--accent-text);
   font-size: 12px;
   font-weight: 600;
