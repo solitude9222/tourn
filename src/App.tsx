@@ -736,11 +736,7 @@ function Site() {
   }, [user, about, widgets, badges, profileLinks]);
 
   return (
-    <div
-      className={`app${route === "dashboard" ? " app--dash" : " app--site"}${
-        route === "" ? " app--home" : ""
-      }`}
-    >
+    <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}`}>
       <Suspense fallback={null}>
       {route === "demo" || route === "profile" ? null : <SiteBackdrop />}
 
@@ -813,7 +809,7 @@ function Site() {
         />
       ) : (
         <>
-          <main key={route} className={`page-enter${route === "" ? " home" : ""}`}>
+          <main key={route} className="page-enter">
             {route === "leaderboard" ? (
               <LeaderboardPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "shop" ? (
@@ -828,7 +824,6 @@ function Site() {
                   signedIn={Boolean(user)}
                   onPrimary={openPrimary}
                   onExample={() => scrollTo("example")}
-                  onFaq={openFaq}
                 />
                 <StatsBand stats={siteStats} />
                 <BentoSection
