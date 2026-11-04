@@ -303,7 +303,8 @@ export function LinkerPreview({
   // Three arrangements of the same three things: the card, the widgets and the
   // links. `left` moves the widget stack beside the card; the other two keep it
   // inside, and only the alignment changes.
-  const sideWidgets = design.layout === "left" && widgets.widgets.length > 0;
+  const sideWidgets =
+    design.layout === "left" && widgets.widgets.some((widget) => widget.visible !== false);
 
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
