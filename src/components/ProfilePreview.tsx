@@ -103,6 +103,10 @@ export function ProfilePreview({
       </div>
     ) : null;
 
+  // The left layout puts the badges on the same line as the handle, so it
+  // renders that row itself instead of using the free-floating badge slots.
+  const inlineBadges = design.layout === "left";
+
   const locationPill = location ? (
     <span className="pv-location">
       <PinIcon size={10} />
@@ -233,12 +237,12 @@ export function ProfilePreview({
               />
             ) : null}
           </span>
-          {design.badgePosition === "beside-avatar" ? badgeRow : null}
+          {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
           {locationPosition === "top" ? locationPill : null}
         </div>
 
-        {design.badgePosition === "top-right" ? badgeRow : null}
-        {design.badgePosition === "above-name" ? badgeRow : null}
+        {design.badgePosition === "top-right" && !inlineBadges ? badgeRow : null}
+        {design.badgePosition === "above-name" && !inlineBadges ? badgeRow : null}
 
         <div className="pv-id">
           <h3>
@@ -250,11 +254,12 @@ export function ProfilePreview({
           </h3>
         </div>
 
-        {design.badgePosition === "default" ? badgeRow : null}
-
-        <span className="pv-handle">
-          <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
-        </span>
+        <div className="pv-ident">
+          <span className="pv-handle">
+            <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
+          </span>
+          {inlineBadges || design.badgePosition === "default" ? badgeRow : null}
+        </div>
 
         {locationPosition === "under-name" ? locationPill : null}
         {joinPosition === "under-name" && joined ? (
@@ -283,7 +288,7 @@ export function ProfilePreview({
 
         {children}
 
-        {design.badgePosition === "bottom" ? badgeRow : null}
+        {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
 
         {showJoined && (joinPosition === "footer" || viewPosition === "footer") ? (
           <div className="pv-foot">

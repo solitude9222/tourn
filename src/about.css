@@ -1024,6 +1024,103 @@
   font-size: max(10px, calc(12px * var(--pv-scale, 1)));
 }
 
+/* The identity row exists so the left layout can hold the handle and the
+   badges on one line. Everywhere else it is invisible to layout. */
+.pv-ident {
+  display: contents;
+}
+
+/* ── left: a two-column head, then a centred body ─────────────────────
+   avatar top-left; the handle with its badges to its right; the display name
+   under that; the join date under that; then the bio, the widgets in one small
+   horizontal row, the links, and the footer in the bottom-left corner.
+   ──────────────────────────────────────────────────────────────────── */
+
+.pv-layout-left .pv-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  justify-items: start;
+  column-gap: calc(16px * var(--pv-scale, 1));
+  row-gap: calc(6px * var(--pv-scale, 1));
+  text-align: left;
+}
+
+.pv-layout-left .pv-topline {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+
+.pv-layout-left .pv-ident {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 2;
+  grid-row: 1;
+  align-items: center;
+  gap: calc(8px * var(--pv-scale, 1));
+}
+
+.pv-layout-left .pv-ident .pv-handle {
+  margin-top: 0;
+}
+
+.pv-layout-left .pv-id {
+  grid-column: 2;
+  grid-row: 2;
+  max-width: 100%;
+}
+
+.pv-layout-left .pv-joined-inline,
+.pv-layout-left .pv-location {
+  grid-column: 2;
+  grid-row: 3;
+  margin-top: 0;
+}
+
+.pv-layout-left .pv-bio {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  justify-self: stretch;
+  margin-top: calc(16px * var(--pv-scale, 1));
+  text-align: center;
+}
+
+/* widgets stay inside the card here, but shrink into a horizontal row. */
+.pv-layout-left .lkr-widgets {
+  display: grid;
+  width: 100%;
+  grid-column: 1 / -1;
+  grid-row: 5;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  align-items: stretch;
+  gap: 8px;
+  margin-top: calc(14px * var(--pv-scale, 1));
+}
+
+.pv-layout-left .lkr-widgets .widget-card {
+  width: 100%;
+  min-height: 0;
+}
+
+.pv-layout-left .pv-links {
+  grid-column: 1 / -1;
+  grid-row: 6;
+  justify-content: center;
+  justify-self: stretch;
+}
+
+.pv-layout-left .ap,
+.pv-layout-left .pv-foot {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+}
+
+.pv-layout-left .pv-foot {
+  justify-content: flex-start;
+}
+
 .pv-layout-centered {
   text-align: center;
 }
@@ -1330,17 +1427,6 @@
   flex: 0 0 auto;
 }
 
-.lkr-side {
-  flex: 1 1 320px;
-  min-width: 260px;
-  max-width: 380px;
-  padding-top: 2px;
-}
-
-.lkr-side .lkr-widgets {
-  margin-top: 0;
-}
-
 /* stacked — every widget is its own card under the profile card, in one
    column: main card, Discord presence, the rest, audio at the bottom. The
    column itself stays centred; it is the contents that stack. */
@@ -1376,10 +1462,6 @@
     align-items: center;
   }
 
-  .lkr-side {
-    width: 100%;
-    max-width: none;
-  }
 }
 
 .lkr-flow {

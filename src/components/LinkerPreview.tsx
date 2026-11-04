@@ -310,17 +310,15 @@ export function LinkerPreview({
     </ProfilePreview>
   );
 
-  // Three arrangements of the same three things. `stacked` puts every widget in
-  // its own card below the profile card; `left` moves that stack beside the
-  // card; `centered` keeps it inside the card, in one centred column.
-  const sideWidgets = design.layout === "left" && orderedWidgets.length > 0;
+  // The card stays in the middle of the page for every layout; the layouts
+  // rearrange what is inside it. `stacked` is the exception: it lifts every
+  // widget out into its own card underneath, so they stack down the page.
   const stackedWidgets = design.layout === "stacked" && orderedWidgets.length > 0;
 
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
-      {profileCard(!sideWidgets && !stackedWidgets)}
+      {profileCard(!stackedWidgets)}
       {stackedWidgets ? <div className="lkr-stack">{widgetStack}</div> : null}
-      {sideWidgets ? <div className="lkr-side">{widgetStack}</div> : null}
     </div>
   );
 

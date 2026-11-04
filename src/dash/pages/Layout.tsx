@@ -48,7 +48,8 @@ const PAGE_LAYOUTS: {
   {
     id: "left",
     name: "Left side",
-    description: "Info on the left, widgets beside it, links under the info.",
+    description:
+      "Avatar and handle top left, name and join date beside it, bio centred, widgets in one small row, links under them.",
     viewPosition: "top-right",
     joinPosition: "under-name",
   },
