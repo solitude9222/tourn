@@ -4702,32 +4702,50 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   }
 }
 
-/* ------------------------------------------- home: hand-made (adryd-ish) */
-/* The landing page leans on lowercase copy, mono labels and plain arrow
-   links instead of pills and gradients. Everything here is scoped to
-   `.home` so the dashboard and the other pages keep their own look. */
+/* ------------------------------------------------ home (cops.bio-inspired) */
+/* Deep near-black with an indigo glow, a faint repeating glyph pattern and
+   compact mono-labelled chips. Scoped to `.app--home` so the dashboard and
+   the other pages keep their own cyan treatment. */
 
-.home {
+.app--home {
   --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+  --home-accent: #6f5cff;
+  --home-accent-2: #9b8bff;
+  --home-glow: rgba(111, 92, 255, 0.55);
+  --home-line: rgba(255, 255, 255, 0.075);
 }
 
 .home .hero {
-  padding-top: 58px;
+  padding-top: 54px;
 }
 
 .home .hero-bg {
   background:
-    radial-gradient(760px 380px at 74% -6%, rgba(56, 189, 248, 0.1), transparent 70%),
-    radial-gradient(620px 420px at 8% 0%, rgba(14, 165, 233, 0.06), transparent 72%);
+    radial-gradient(820px 420px at 76% -10%, rgba(111, 92, 255, 0.3), transparent 68%),
+    radial-gradient(560px 420px at 6% 2%, rgba(111, 92, 255, 0.11), transparent 72%),
+    radial-gradient(1000px 620px at 50% 108%, rgba(0, 0, 0, 0.85), transparent 74%);
+}
+
+/* The reference repeats a faint mark across the hero. Same idea, different
+   glyph, and faded out before it reaches the copy. */
+.home .hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 28v16M28 36h16' stroke='%236f5cff' stroke-opacity='0.22' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 72px 72px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.35) 62%, transparent 92%);
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.35) 62%, transparent 92%);
+  pointer-events: none;
 }
 
 .home .hero-grid {
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
   align-items: start;
-  gap: 46px;
+  gap: 48px;
   min-height: 0;
-  padding-top: 26px;
-  padding-bottom: 54px;
+  padding-top: 30px;
+  padding-bottom: 56px;
 }
 
 .home .hero-kicker {
@@ -4735,49 +4753,58 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   align-items: center;
   gap: 8px;
   margin: 0;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid var(--home-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 10.5px;
   letter-spacing: 0.02em;
-  color: #86a3b3;
+  color: #a5a5bd;
+}
+
+.home .hero-kicker .pulse-dot {
+  background: var(--home-accent-2);
+  box-shadow: 0 0 0 3px rgba(111, 92, 255, 0.22);
 }
 
 .home .hero-title {
-  margin: 16px 0 0;
+  margin: 18px 0 0;
   font-size: clamp(52px, 7.6vw, 92px);
-  font-weight: 760;
-  letter-spacing: -0.05em;
+  font-weight: 780;
+  letter-spacing: -0.055em;
   line-height: 0.9;
   background: none;
-  color: #f3fbff;
+  color: #f4f4ff;
   -webkit-text-fill-color: currentColor;
   animation: heroUp 0.7s var(--ease-out) both;
 }
 
 .home .hero-title .accent {
   background: none;
-  color: var(--ice-2);
+  color: var(--home-accent-2);
   -webkit-text-fill-color: currentColor;
-  filter: none;
+  filter: drop-shadow(0 0 26px rgba(111, 92, 255, 0.55));
 }
 
 .home .hero-sub {
-  margin-top: 20px;
-  max-width: 44ch;
-  font-size: 15px;
+  margin-top: 18px;
+  max-width: 42ch;
+  font-size: 14.5px;
   line-height: 1.62;
-  color: #91adbd;
+  color: #9797b0;
 }
 
 .home .hero-actions {
-  margin-top: 26px;
+  margin-top: 24px;
   gap: 8px;
 }
 
 .home .btn {
-  height: 40px;
+  height: 38px;
   border-radius: 8px;
   font-family: var(--mono);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -4787,36 +4814,36 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .home .btn-primary {
-  background: var(--ice-2);
+  background: var(--home-accent);
   border-color: transparent;
-  color: #041420;
-  box-shadow: none;
+  color: #fff;
+  box-shadow: 0 12px 26px -14px var(--home-glow);
 }
 
 .home .btn-primary:hover:not(:disabled) {
-  background: #bae6fd;
-  box-shadow: none;
+  background: #8071ff;
+  box-shadow: 0 16px 32px -14px var(--home-glow);
   transform: none;
 }
 
 .home .btn-ghost {
-  background: transparent;
-  border: 1px dashed rgba(125, 211, 252, 0.3);
-  color: #d3ebf7;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--home-line);
+  color: #dcdcf0;
   backdrop-filter: none;
 }
 
 .home .btn-ghost:hover {
-  background: rgba(125, 211, 252, 0.07);
-  border-color: rgba(125, 211, 252, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .home .hero-note {
-  margin: 18px 0 0;
+  margin: 16px 0 0;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1.6;
-  color: #6b8798;
+  color: #6f6f88;
 }
 
 .home .hero-pages {
@@ -4824,81 +4851,100 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 16px;
-  margin-top: 26px;
+  margin-top: 24px;
   padding-top: 14px;
-  border-top: 1px dashed rgba(125, 211, 252, 0.14);
+  border-top: 1px solid var(--home-line);
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .home .hero-pages > span {
-  color: #55707f;
+  color: #5e5e76;
 }
 
 .home .hero-pages a {
-  color: #cfe8f5;
+  color: #c5c5db;
+  transition: color 0.16s ease;
+}
+
+.home .hero-pages a:hover,
+.home .hero-pages .hero-page-link:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 
-.home .hero-pages a:hover {
-  color: #fff;
-  text-decoration: underline;
-  text-decoration-style: dashed;
+.home .hero-pages .hero-page-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #c5c5db;
+  font: inherit;
+  cursor: pointer;
 }
 
 .home .hero-card-slot {
   justify-content: center;
-  padding-top: 8px;
+  padding-top: 6px;
+  filter: drop-shadow(0 30px 60px rgba(111, 92, 255, 0.22));
 }
 
 .home .stats-band {
-  padding: 0 0 46px;
+  padding: 0 0 44px;
 }
 
 .home .stats-band-row {
   justify-content: flex-start;
   padding: 0;
-  border-bottom: 1px dashed rgba(125, 211, 252, 0.14);
   padding-bottom: 14px;
+  border-bottom: 1px solid var(--home-line);
 }
 
 .home .stats-band-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
   margin: 0;
   font-family: var(--mono);
-  font-size: 12px;
-  color: #7f9dae;
+  font-size: 11px;
+  color: #77778f;
 }
 
 .home .stats-band-line b {
-  color: #dff3ff;
-  font-weight: 600;
+  font-family: var(--font);
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: #f2f2ff;
 }
 
 .home .stats-band-dot {
-  margin: 0 10px;
-  color: #44606f;
+  margin: 0 6px 0 12px;
+  color: #45455a;
 }
 
 .home .section {
-  padding: 66px 0;
+  padding: 64px 0;
 }
 
 .home .section--tight {
-  padding: 40px 0 72px;
+  padding: 38px 0 70px;
 }
 
 .home .section-head {
   max-width: 720px;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
 .home .home-label {
   display: inline-block;
   padding-bottom: 3px;
-  border-bottom: 1px dashed rgba(125, 211, 252, 0.26);
+  border-bottom: 1px solid rgba(155, 139, 255, 0.32);
   font-family: var(--mono);
-  font-size: 11.5px;
-  color: #8ecde8;
+  font-size: 11px;
+  color: var(--home-accent-2);
 }
 
 .home .section-title {
@@ -4907,13 +4953,13 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   font-weight: 730;
   letter-spacing: -0.035em;
   background: none;
-  color: #f1faff;
+  color: #f2f2ff;
   -webkit-text-fill-color: currentColor;
 }
 
 .home .section-title .accent {
   background: none;
-  color: var(--ice-2);
+  color: var(--home-accent-2);
   -webkit-text-fill-color: currentColor;
 }
 
@@ -4922,7 +4968,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   max-width: 56ch;
   font-size: 13.5px;
   line-height: 1.7;
-  color: #8aa4b3;
+  color: #8d8da6;
 }
 
 .home .bento-foot {
@@ -4944,10 +4990,31 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   line-height: 1.7;
 }
 
+/* Header picks up the same indigo on the landing page only. */
+.app--home .site-head .btn-primary {
+  background: var(--home-accent);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 24px -16px var(--home-glow);
+}
+
+.app--home .site-head .btn-primary:hover:not(:disabled) {
+  background: #8071ff;
+  box-shadow: 0 14px 28px -16px var(--home-glow);
+}
+
+.app--home .brand-dot {
+  color: var(--home-accent-2);
+}
+
+.app--home .head-link.is-active {
+  color: #fff;
+}
+
 @media (max-width: 980px) {
   .home .hero-grid {
     grid-template-columns: 1fr;
-    gap: 34px;
+    gap: 32px;
     padding-bottom: 40px;
   }
 
@@ -4958,7 +5025,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 @media (max-width: 560px) {
   .home .hero {
-    padding-top: 34px;
+    padding-top: 30px;
   }
 
   .home .hero-title {
@@ -4982,20 +5049,4 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .footer-cat a:hover {
   color: #fff;
-}
-
-.home .hero-pages .hero-page-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #cfe8f5;
-  font: inherit;
-  cursor: pointer;
-}
-
-.home .hero-pages .hero-page-link:hover {
-  color: #fff;
-  text-decoration: underline;
-  text-decoration-style: dashed;
-  text-underline-offset: 3px;
 }

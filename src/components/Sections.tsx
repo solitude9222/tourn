@@ -54,7 +54,7 @@ export function Hero({
             </button>
           </div>
           <p className="hero-note">
-            free while in beta · email or discord sign-in · there is a cat on this page, sorry
+            free while in beta · email or discord sign-in · no card, no catch
           </p>
           <nav className="hero-pages" aria-label="pages">
             <span>pages</span>
@@ -325,7 +325,11 @@ export function Footer({
         <span>© 2026 tourn.lol</span>
         <span>bio links for people who play. this footer is mostly here because it looks cool.</span>
         <span className="footer-cat">
-          the cat is <a href="https://github.com/adryd325/oneko.js" target="_blank" rel="noreferrer">oneko.js</a> 🐈‍⬛
+          some profiles have a cat ·{" "}
+          <a href="https://github.com/adryd325/oneko.js" target="_blank" rel="noreferrer">
+            oneko.js
+          </a>{" "}
+          🐈‍⬛
         </span>
       </div>
     </footer>
