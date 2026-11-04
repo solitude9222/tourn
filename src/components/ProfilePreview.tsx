@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
 import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
@@ -6,6 +6,7 @@ import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
 import { useTilt } from "../lib/useTilt";
+import { loadGoogleFont } from "../lib/fonts";
 import { EffectText, SparkleLayer, textEffectClass, textEffectStyle } from "./ProfileEffects";
 import { BadgeRow } from "./BadgeRow";
 import { ProfileLinks } from "./ProfileLinks";
@@ -14,6 +15,21 @@ import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
 import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
+
+/** The card is full-bleed on phones, so its type has to follow the screen. */
+function useNarrowCard(): boolean {
+  const [narrow, setNarrow] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 720px)").matches,
+  );
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 720px)");
+    const sync = () => setNarrow(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+  return narrow;
+}
 
 export function ProfilePreview({
   user,
@@ -108,7 +124,21 @@ export function ProfilePreview({
     </span>
   );
 
+  // Every size in the card is expressed against a 726px reference card, so a
+  // narrower card shrinks its type, avatar and spacing with it instead of
+  // keeping full-size text in a small box.
+  const cardFont = design.font.trim();
+  useEffect(() => {
+    if (cardFont) loadGoogleFont(cardFont);
+  }, [cardFont]);
+
+  const narrow = useNarrowCard();
+  const renderedWidth = narrow ? Math.min(design.cardWidth, 400) : design.cardWidth;
+  const scale = Math.max(0.45, Math.min(1.6, renderedWidth / 726));
+
   const style = {
+    "--pv-scale": scale,
+    fontFamily: cardFont ? `"${cardFont}", var(--font)` : undefined,
     "--pv-accent": design.colors.accent,
     "--pv-text": design.colors.text,
     "--pv-muted": design.colors.muted,
@@ -118,11 +148,11 @@ export function ProfilePreview({
     "--pv-border-width": `${design.borderWidth}px`,
     "--pv-radius": `${design.cardRadius}px`,
     "--pv-width": `${design.cardWidth}px`,
-    "--pv-avatar": `${design.avatarSize}px`,
+    "--pv-avatar": `calc(${design.avatarSize}px * var(--pv-scale))`,
     "--pv-blur": `${design.backgroundBlur}px`,
-    "--pv-pad": `${design.cardPadding}px`,
-    "--pv-name": `${design.nameSize}px`,
-    "--pv-bio-size": `${design.bioSize}px`,
+    "--pv-pad": `calc(${design.cardPadding}px * var(--pv-scale))`,
+    "--pv-name": `calc(${design.nameSize}px * var(--pv-scale))`,
+    "--pv-bio-size": `calc(${design.bioSize}px * var(--pv-scale))`,
     "--pv-card-fx-color": cardFx.color,
     "--pv-card-fx-strength": cardFx.intensity / 100,
     "--pv-card-fx-speed": `${Math.max(1.5, cardFx.speed)}s`,

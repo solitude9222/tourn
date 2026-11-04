@@ -1899,17 +1899,6 @@
   line-height: 1.35;
 }
 
-.tw-widget-mark {
-  position: absolute;
-  right: 6px;
-  bottom: -10px;
-  font-size: 60px;
-  font-weight: 700;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.045);
-  pointer-events: none;
-}
-
 .tw-widget-row {
   display: flex;
   align-items: center;
@@ -2787,6 +2776,107 @@
 .tw-group-head .tw-chevron {
   margin-left: auto;
   transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ------------------------------------------------------------ font picker */
+
+.font-picker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.font-picker-label {
+  color: var(--title);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.font-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 42px;
+  padding: 0 12px;
+  border: 2px solid var(--input-border);
+  border-radius: var(--r-input);
+  background: var(--bar);
+  color: var(--title);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease;
+}
+
+.font-picker-trigger:hover,
+.font-picker-trigger[aria-expanded="true"] {
+  border-color: #4a6fd6;
+}
+
+.font-picker-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.font-picker-chevron {
+  flex: none;
+  color: #8b919c;
+}
+
+.font-picker-pop {
+  position: fixed;
+  z-index: 120;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid #2c2c2c;
+  border-radius: 12px;
+  background: #141416;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.6);
+  animation: tw-pop 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.font-picker-group + .font-picker-group {
+  margin-top: 4px;
+}
+
+.font-picker-group-label {
+  display: block;
+  padding: 8px 10px 4px;
+  color: var(--nav);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.font-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--sub);
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.font-picker-item:hover {
+  background: #1c1c1f;
+  color: var(--title);
+}
+
+.font-picker-item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 /* ------------------------------------------------------ platform picker */

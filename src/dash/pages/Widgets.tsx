@@ -135,9 +135,6 @@ export function WidgetsPage() {
                 <b>{platform.name}</b>
                 <small>{platform.description}</small>
               </span>
-              <span className="tw-widget-mark" aria-hidden="true">
-                {platform.name.slice(0, 1)}
-              </span>
             </button>
           ))}
         </div>

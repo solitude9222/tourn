@@ -144,6 +144,8 @@ export type AboutDesign = {
   theme: AboutTheme;
   layout: AboutLayout;
   cardStyle: CardStyle;
+  /** Card font family (a Google family name); empty string = the site font. */
+  font: string;
   cardWidth: number;
   cardRadius: number;
   borderWidth: number;
@@ -255,19 +257,21 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   theme: "default",
   layout: "classic",
   cardStyle: "default",
-  cardWidth: 560,
-  cardRadius: 22,
+  font: "",
+  // Sizing follows one reference card: 726 × 315 with a 128px avatar, 40px
+  // name, 20px bio and 28px padding. Every other metric in the card is scaled
+  // from the card's width, so these four values are "px at 726 wide".
+  cardWidth: 726,
+  cardRadius: 36,
   borderWidth: 0,
   borderOpacity: 0.1,
   backgroundOpacity: 0.08,
   backgroundBlur: 0,
-  // A 72px avatar reads as a thumbnail on a 560px card — the profile picture is
-  // the thing people look at first, so the default is large enough to see.
-  avatarSize: 92,
+  avatarSize: 128,
   widgetGap: 12,
-  cardPadding: 20,
-  nameSize: 21,
-  bioSize: 11.5,
+  cardPadding: 28,
+  nameSize: 40,
+  bioSize: 20,
   tilt: 0,
   tiltGlare: false,
   pfpPosition: "above",
@@ -434,13 +438,20 @@ function loadDesign(input: unknown): AboutDesign {
   // Documents saved before the layout change have no viewPosition. They are
   // upgraded once so the new stacked layout applies without a manual reset.
   const legacyLayout = !("viewPosition" in raw);
+  // Cards saved against the old compact design (21px name, 92px avatar, 20px
+  // padding) read as a shrunk page, so their type and spacing are lifted to the
+  // reference proportions once. Anything deliberately larger is left alone.
+  const legacyType = !(Number(raw.nameSize) > 24);
 
   return {
     theme,
     layout,
     cardStyle,
+    font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
     cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 1100),
-    cardRadius: numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 72),
+    cardRadius: legacyType
+      ? DEFAULT_ABOUT_DESIGN.cardRadius
+      : numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 72),
     borderWidth: legacyLayout
       ? DEFAULT_ABOUT_DESIGN.borderWidth
       : numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 12),
@@ -451,11 +462,19 @@ function loadDesign(input: unknown): AboutDesign {
       ? DEFAULT_ABOUT_DESIGN.backgroundOpacity
       : numberIn(raw.backgroundOpacity, DEFAULT_ABOUT_DESIGN.backgroundOpacity, 0, 1),
     backgroundBlur: numberIn(raw.backgroundBlur, DEFAULT_ABOUT_DESIGN.backgroundBlur, 0, 40),
-    avatarSize: numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 40, 200),
+    avatarSize: legacyType
+      ? DEFAULT_ABOUT_DESIGN.avatarSize
+      : numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 40, 240),
     widgetGap: numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 0, 48),
-    cardPadding: numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 8, 64),
-    nameSize: numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 48),
-    bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 24),
+    cardPadding: legacyType
+      ? DEFAULT_ABOUT_DESIGN.cardPadding
+      : numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 8, 64),
+    nameSize: legacyType
+      ? DEFAULT_ABOUT_DESIGN.nameSize
+      : numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 64),
+    bioSize: legacyType
+      ? DEFAULT_ABOUT_DESIGN.bioSize
+      : numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 32),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),
     tiltInvert: boolIn(raw.tiltInvert, false),
     oneko: boolIn(raw.oneko, false),

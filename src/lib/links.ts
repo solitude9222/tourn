@@ -44,7 +44,8 @@ export const DEFAULT_LINK_DESIGN: LinkDesign = {
   glow: false,
   glowColor: "#b4bffa",
   glowIntensity: 45,
-  iconSize: 34,
+  // Sized for the reference card: 40px icons on a 726px-wide card.
+  iconSize: 40,
 };
 
 export const ICON_SIZES = { min: 22, max: 56 } as const;

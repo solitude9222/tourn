@@ -5,6 +5,7 @@
    --------------------------------------------------------------------------- */
 
 import { CARD_STYLES } from "../../lib/about";
+import { FontPicker } from "../../components/FontPicker";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
 
@@ -276,6 +277,26 @@ export function LayoutPage() {
               />
             </div>
           </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="edit"
+          title="Font"
+          subtitle="Pick the typeface for your name, bio and card text."
+        />
+
+        <div className="tw-field">
+          <FontPicker
+            value={design.font}
+            onChange={(family) => updateDesign({ font: family })}
+            label="Card font"
+          />
+          <span className="tw-field-hint">
+            Theme font is the default. Every family here loads on its own, so a
+            chosen font still shows for visitors on first paint.
+          </span>
         </div>
       </Card>
 

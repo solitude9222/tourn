@@ -568,7 +568,7 @@
     #151519;
 }
 
-.tw-template-thumb[data-kind="banner"] {
+.tw-template-thumb[data-kind="soft"] {
   background:
     linear-gradient(180deg, #34343d 0 42px, transparent 42px),
     radial-gradient(circle at 24% 42%, #3d3d46 0 14px, transparent 15px),

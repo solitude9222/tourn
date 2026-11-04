@@ -111,216 +111,15 @@ button {
   padding-inline: 24px;
 }
 
-/* ----------------------------------------------------- backdrop (mark II) */
+/* ---------------------------------------------------------------- backdrop */
 
+/* Plain black. Nothing animates behind the site pages any more. */
 .site-backdrop {
   position: fixed;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
   pointer-events: none;
-  background: var(--bg-deep);
-}
-
-/* Base wash: the deep vertical gradient stays, the static blobs are gone —
-   the color now lives in the aurora layers below. */
-.site-wash {
-  position: absolute;
-  inset: -8%;
-  background: linear-gradient(180deg, #010409 0%, #01050b 48%, #020a10 100%);
-}
-
-/* Far and near starfields: two dot-grid layers at different scales, drifting
-   apart so the parallax reads even before scroll. */
-.bd-stars {
-  position: absolute;
-  inset: -60% -40%;
-  background-image:
-    radial-gradient(1.4px 1.4px at 22% 34%, rgba(210, 236, 255, 0.5) 49%, transparent 51%),
-    radial-gradient(1.2px 1.2px at 68% 18%, rgba(210, 236, 255, 0.38) 49%, transparent 51%),
-    radial-gradient(1.7px 1.7px at 84% 62%, rgba(168, 224, 255, 0.4) 49%, transparent 51%),
-    radial-gradient(1.1px 1.1px at 41% 77%, rgba(210, 236, 255, 0.3) 49%, transparent 51%),
-    radial-gradient(1.3px 1.3px at 9% 58%, rgba(168, 224, 255, 0.34) 49%, transparent 51%);
-  background-size: 340px 300px;
-  opacity: 0.75;
-  animation: starsDriftFar 140s linear infinite;
-}
-
-.bd-stars--near {
-  inset: -45% -30%;
-  background-image:
-    radial-gradient(2px 2px at 57% 44%, rgba(214, 238, 255, 0.55) 49%, transparent 51%),
-    radial-gradient(2.4px 2.4px at 12% 12%, rgba(168, 224, 255, 0.4) 49%, transparent 51%),
-    radial-gradient(1.8px 1.8px at 88% 86%, rgba(214, 238, 255, 0.32) 49%, transparent 51%),
-    radial-gradient(2.2px 2.2px at 33% 92%, rgba(192, 230, 255, 0.28) 49%, transparent 51%);
-  background-size: 520px 430px;
-  opacity: 0.5;
-  animation: starsDriftNear 90s linear infinite;
-}
-
-/* Aurora: three blurred color engines slowly circling each other. */
-.bd-aurora {
-  position: absolute;
-  width: 62vw;
-  height: 62vw;
-  border-radius: 50%;
-  filter: blur(70px);
-  mix-blend-mode: screen;
-  will-change: transform;
-}
-
-.bd-aurora--a {
-  top: -22%;
-  left: -12%;
-  background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.16), transparent 66%);
-  animation: auroraA 26s ease-in-out infinite alternate;
-}
-
-.bd-aurora--b {
-  top: 8%;
-  right: -18%;
-  background: radial-gradient(circle at 50% 50%, rgba(129, 140, 248, 0.13), transparent 66%);
-  animation: auroraB 34s ease-in-out infinite alternate;
-}
-
-.bd-aurora--c {
-  bottom: -26%;
-  left: 26%;
-  background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.12), transparent 66%);
-  animation: auroraC 22s ease-in-out infinite alternate;
-}
-
-/* Perspective grid along the bottom, forever scrolling to the horizon. */
-.bd-grid {
-  position: absolute;
-  left: -25%;
-  right: -25%;
-  bottom: 0;
-  height: 46vh;
-  background-image:
-    linear-gradient(to right, rgba(143, 216, 255, 0.14) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(143, 216, 255, 0.12) 1px, transparent 1px);
-  background-size: 64px 46px;
-  transform: perspective(560px) rotateX(62deg);
-  transform-origin: 50% 100%;
-  mask-image: linear-gradient(180deg, transparent 4%, #000 34%, transparent 96%);
-  -webkit-mask-image: linear-gradient(180deg, transparent 4%, #000 34%, transparent 96%);
-  opacity: 0.55;
-  animation: gridScroll 9s linear infinite;
-}
-
-/** Light beams slicing slowly through the aurora. */
-.bd-beam {
-  position: absolute;
-  top: -30%;
-  bottom: -30%;
-  width: 34vw;
-  background: linear-gradient(
-    100deg,
-    transparent 30%,
-    rgba(168, 224, 255, 0.05) 46%,
-    rgba(214, 238, 255, 0.09) 50%,
-    rgba(168, 224, 255, 0.05) 54%,
-    transparent 70%
-  );
-  filter: blur(14px);
-  transform-origin: 50% 100%;
-}
-
-.bd-beam--one {
-  left: -12%;
-  animation: beamSweepOne 30s ease-in-out infinite alternate;
-}
-
-.bd-beam--two {
-  right: -16%;
-  transform-origin: 50% 0%;
-  animation: beamSweepTwo 38s ease-in-out infinite alternate;
-}
-
-.site-mark {
-  position: absolute;
-  right: -12%;
-  top: 3%;
-  width: min(1080px, 86vw);
-  height: auto;
-  opacity: 0.04;
-  transform: rotate(-8deg);
-  filter: blur(0.4px) saturate(1.5) hue-rotate(-26deg) brightness(1.35);
-  mix-blend-mode: screen;
-  animation: markFloat 30s ease-in-out infinite alternate;
-}
-
-/* Fine grain so large flat areas never band. */
-.bd-noise {
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-}
-
-/* Quiet rails: the edges fade out so content stays readable on top. */
-.bd-vignette {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(120% 90% at 50% 42%, transparent 58%, rgba(1, 4, 8, 0.55) 100%),
-    linear-gradient(180deg, rgba(1, 4, 8, 0.5) 0%, transparent 18%, transparent 80%, rgba(1, 4, 8, 0.6) 100%);
-}
-
-@keyframes starsDriftFar {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-340px, 300px, 0); }
-}
-
-@keyframes starsDriftNear {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-520px, 430px, 0); }
-}
-
-@keyframes auroraA {
-  from { transform: translate3d(0, 0, 0) scale(1); filter: blur(70px) hue-rotate(0deg); }
-  50% { transform: translate3d(9vw, 6vh, 0) scale(1.12); filter: blur(78px) hue-rotate(18deg); }
-  to { transform: translate3d(-6vw, 10vh, 0) scale(0.96); filter: blur(70px) hue-rotate(-12deg); }
-}
-
-@keyframes auroraB {
-  from { transform: translate3d(0, 0, 0) scale(0.94); }
-  50% { transform: translate3d(-8vw, 8vh, 0) scale(1.08); }
-  to { transform: translate3d(5vw, -6vh, 0) scale(1); }
-}
-
-@keyframes auroraC {
-  from { transform: translate3d(0, 0, 0) scale(1.06) rotate(0deg); }
-  to { transform: translate3d(-7vw, -9vh, 0) scale(0.92) rotate(14deg); }
-}
-
-@keyframes gridScroll {
-  from { background-position-y: 0; }
-  to { background-position-y: 46px; }
-}
-
-@keyframes beamSweepOne {
-  from { transform: rotate(-24deg) translateX(-8%); opacity: 0.5; }
-  50% { opacity: 0.85; }
-  to { transform: rotate(18deg) translateX(10%); opacity: 0.5; }
-}
-
-@keyframes beamSweepTwo {
-  from { transform: rotate(20deg) translateX(8%); opacity: 0.4; }
-  50% { opacity: 0.75; }
-  to { transform: rotate(-14deg) translateX(-10%); opacity: 0.4; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bd-stars,
-  .bd-aurora,
-  .bd-grid,
-  .bd-beam,
-  .site-mark {
-    animation: none;
-  }
+  background: #000;
 }
 
 /* ----------------------------------------------------------------- head */
@@ -3336,13 +3135,6 @@ button {
   .shop-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .site-mark {
-    right: -26%;
-    top: 12%;
-    width: 120vw;
-    opacity: 0.045;
-  }
 }
 
 @media (max-width: 980px) {
@@ -3504,12 +3296,6 @@ button {
   .claim-input {
     min-width: 0;
   }
-
-  .site-mark {
-    right: -42%;
-    top: 18%;
-    width: 150vw;
-  }
 }
 
 @media (max-width: 420px) {
@@ -3529,19 +3315,19 @@ button {
    surface step lighter. Scoped so the dashboard keeps its own tokens. */
 html:has(.app--site),
 body:has(.app--site) {
-  background: #0a0b0d;
+  background: #000;
 }
 
 html:has(.app--site) {
-  scrollbar-color: #3a4249 #0a0b0d;
+  scrollbar-color: #2b2b2b #000;
 }
 
 html:has(.app--site) ::-webkit-scrollbar-track {
-  background: #0a0b0d;
+  background: #000;
 }
 
 html:has(.app--site) ::-webkit-scrollbar-thumb {
-  border-color: #0a0b0d;
+  border-color: #000;
   background: linear-gradient(180deg, #3b434a, #59636b);
 }
 
@@ -3559,57 +3345,6 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   --site-muted: #959da6;
   --site-muted-2: #6f7780;
   --site-ice: #a8e0ff;
-}
-
-.app--site .site-backdrop {
-  background: #060708;
-}
-
-.app--site .site-wash {
-  background: linear-gradient(180deg, #0c0d10 0%, #08090b 48%, #0a0b0d 100%);
-}
-
-.app--site .bd-aurora--a {
-  background: radial-gradient(circle at 50% 50%, rgba(143, 216, 255, 0.07), transparent 66%);
-}
-
-.app--site .bd-aurora--b {
-  background: radial-gradient(circle at 50% 50%, rgba(120, 130, 190, 0.06), transparent 66%);
-}
-
-.app--site .bd-aurora--c {
-  background: radial-gradient(circle at 50% 50%, rgba(80, 130, 200, 0.055), transparent 66%);
-}
-
-.app--site .bd-grid {
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  opacity: 0.4;
-}
-
-.app--site .bd-beam {
-  background: linear-gradient(
-    100deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.03) 46%,
-    rgba(214, 238, 255, 0.055) 50%,
-    rgba(255, 255, 255, 0.03) 54%,
-    transparent 70%
-  );
-}
-
-.app--site .bd-stars {
-  opacity: 0.5;
-}
-
-.app--site .bd-stars--near {
-  opacity: 0.34;
-}
-
-.app--site .site-mark {
-  opacity: 0.025;
-  filter: saturate(0.6) brightness(1.2);
 }
 
 .app--site .site-head::before {
