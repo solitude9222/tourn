@@ -1785,3 +1785,27 @@
 .tw-prefix:focus-within {
   border-color: #3a4a72;
 }
+
+/* ── layout page preview ───────────────────────────────────────────────── */
+/* A wide, clipped stage running the real LinkerPreview, so picking a page
+   layout visibly rearranges the card, the widgets and the links here. */
+.tw-layout-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #08070c;
+}
+
+.tw-layout-stage-inner {
+  width: 220%;
+  height: 220%;
+  zoom: 0.45;
+}
+
+.tw-layout-stage .lkr-page {
+  min-height: 100%;
+}

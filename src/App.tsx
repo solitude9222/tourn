@@ -69,11 +69,16 @@ void import("./components/Sections");
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
 import {
+  clearPendingDocument,
   fetchOwnProfile,
   fetchPublicProfile,
+  flushProfileDocument,
+  loadPendingDocument,
   preloadProfile,
   readCachedProfile,
+  savePendingDocument,
   saveProfile,
+  type ProfileDocument,
   type ProfilePayload,
 } from "./lib/serverProfile";
 import { getViewCount, recordView } from "./lib/views";
@@ -604,6 +609,22 @@ function Site() {
         return;
       }
       setEarned(result.data.earned);
+      // A publish that failed last time leaves the newer document here. It has
+      // to win over the server copy, or the failed publish is silently undone.
+      const pending = loadPendingDocument(user.id);
+      if (pending) {
+        setAbout(pending.about);
+        setWidgets(pending.widgets);
+        setBadges(pending.badges);
+        setProfileLinks(pending.links);
+        saveAbout(user.id, pending.about);
+        saveWidgetStore(user.id, pending.widgets);
+        saveBadgeStore(user.id, pending.badges);
+        saveLinkStore(user.id, pending.links);
+        lastSaved.current = "";
+        hydratedFor.current = user.id;
+        return;
+      }
       if (result.data.profile) {
         const document = result.data.profile;
         // A published document with an empty section is almost always a page
@@ -649,16 +670,72 @@ function Site() {
   }, [user?.id]);
 
   // Any dashboard edit republishes the page (debounced so sliders don't spam).
+  // The document only counts as saved once the backend says so: a failed PUT
+  // keeps it pending, retries, and survives the next refresh.
+  const retryRef = useRef(0);
   useEffect(() => {
     if (!user || hydratedFor.current !== user.id) return;
+    let cancelled = false;
+    let retryTimer = 0;
+
+    const publish = async (document: ProfileDocument) => {
+      const serialized = JSON.stringify(document);
+      if (serialized === lastSaved.current) return;
+      const result = await saveProfile(document);
+      if (cancelled) return;
+      if (result.ok) {
+        lastSaved.current = serialized;
+        retryRef.current = 0;
+        clearPendingDocument(user.id);
+        return;
+      }
+      savePendingDocument(user.id, document);
+      // 2s, 4s, 8s, 16s, then every 30s while the tab stays open.
+      const delay = Math.min(30_000, 2000 * 2 ** retryRef.current);
+      if (retryRef.current === 0) {
+        window.dispatchEvent(
+          new CustomEvent("tourn:toast", {
+            detail: {
+              title: "Couldn't save yet",
+              message: `${result.error ?? "The server didn't accept the change."} Your edit is kept and will retry.`,
+            },
+          }),
+        );
+      }
+      retryRef.current += 1;
+      retryTimer = window.setTimeout(() => void publish(document), delay);
+    };
+
     const document = { about, widgets, badges, links: profileLinks };
     const serialized = JSON.stringify(document);
     if (serialized === lastSaved.current) return;
-    const timer = window.setTimeout(() => {
-      lastSaved.current = serialized;
-      void saveProfile(document);
-    }, 700);
-    return () => window.clearTimeout(timer);
+    const timer = window.setTimeout(() => void publish(document), 700);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      window.clearTimeout(retryTimer);
+    };
+  }, [user?.id, about, widgets, badges, profileLinks]);
+
+  // Closing the tab or switching away must not throw away the last edit: write
+  // it down and send it with keepalive, which survives the page going away.
+  useEffect(() => {
+    if (!user) return;
+    const flush = () => {
+      const document = { about, widgets, badges, links: profileLinks };
+      if (JSON.stringify(document) === lastSaved.current) return;
+      savePendingDocument(user.id, document);
+      flushProfileDocument(document);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [user?.id, about, widgets, badges, profileLinks]);
 
   const lanyard = usePolled(
@@ -747,9 +824,9 @@ function Site() {
     saveWidgetStore(user.id, widgets);
     saveBadgeStore(user.id, badges);
     saveLinkStore(user.id, profileLinks);
-    const document = { about, widgets, badges, links: profileLinks };
-    lastSaved.current = JSON.stringify(document);
-    void saveProfile(document);
+    // Let the publish effect send it: it marks the document saved only after
+    // the backend confirms, so a failed save here is retried instead of lost.
+    lastSaved.current = "";
   }, [user, about, widgets, badges, profileLinks]);
 
   return (

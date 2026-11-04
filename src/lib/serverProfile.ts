@@ -8,7 +8,7 @@
    --------------------------------------------------------------------------- */
 
 import type { Account } from "./auth";
-import { api } from "./backend";
+import { api, apiBase } from "./backend";
 import { normalizeAbout, type About } from "./about";
 import { normalizeWidgetStore, type WidgetStore } from "./widgets";
 import { normalizeBadgeStore, type BadgeStore } from "./badges";
@@ -150,4 +150,60 @@ export async function saveProfile(document: ProfileDocument): Promise<{ ok: bool
     body: JSON.stringify({ data: document }),
   });
   return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
+/* ---------------------------------------------------------------------------
+   Unsaved work.
+
+   A publish can fail for reasons the page cannot see — an expired session, a
+   document over the backend's size limit, a dropped connection — and a publish
+   that fails silently used to be lost on the next refresh, because the server
+   copy then overwrote the local one. An unpublished document is now kept next
+   to the local stores and republished on the next visit.
+   --------------------------------------------------------------------------- */
+
+const PENDING_PREFIX = "tourn.lol/pending-profile/v1/";
+
+export function savePendingDocument(userId: string, document: ProfileDocument): void {
+  try {
+    localStorage.setItem(PENDING_PREFIX + userId, JSON.stringify(document));
+  } catch {
+    /* private mode / quota — the local stores still have the edit */
+  }
+}
+
+export function loadPendingDocument(userId: string): ProfileDocument | null {
+  try {
+    const raw = localStorage.getItem(PENDING_PREFIX + userId);
+    if (!raw) return null;
+    return normalizeDocument(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingDocument(userId: string): void {
+  try {
+    localStorage.removeItem(PENDING_PREFIX + userId);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Publish on the way out (tab hidden or closed), where there is no time left
+ *  to await a normal request. */
+export function flushProfileDocument(document: ProfileDocument): void {
+  try {
+    const body = JSON.stringify({ data: document });
+    if (body.length > 90_000) return; // keepalive requests are size-capped
+    void fetch(`${apiBase()}/api/profile`, {
+      method: "PUT",
+      keepalive: true,
+      credentials: "include",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body,
+    });
+  } catch {
+    /* nothing else to do — the pending copy covers the next visit */
+  }
 }

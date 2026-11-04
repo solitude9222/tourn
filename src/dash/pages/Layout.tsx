@@ -6,6 +6,7 @@
 
 import { CARD_STYLES, type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
 import { FontPicker } from "../../components/FontPicker";
+import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
 
@@ -76,7 +77,7 @@ const PALETTES: { name: string; accent: string; card: string; border: string }[]
 ];
 
 export function LayoutPage() {
-  const { about, setAbout, notify } = useDash();
+  const { about, setAbout, widgets, badges, links, profileViews, user, notify } = useDash();
   const design = about.design;
 
   const updateDesign = (patch: Partial<typeof design>) =>
@@ -126,6 +127,34 @@ export function LayoutPage() {
               <small>{preset.description}</small>
             </button>
           ))}
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="eye"
+          title="Live preview"
+          subtitle="Your real page. Picking a layout rearranges it straight away."
+        />
+
+        <div className="tw-layout-stage">
+          <div className="tw-layout-stage-inner">
+            <LinkerPreview
+              user={{
+                id: user.id,
+                username: user.username,
+                avatarUrl: about.assets.avatarUrl || user.avatarUrl,
+              }}
+              about={about}
+              widgets={widgets}
+              badges={badges}
+              links={links}
+              views={profileViews}
+              showEntry={false}
+              showMetadata={false}
+              interactive={false}
+            />
+          </div>
         </div>
       </Card>
 

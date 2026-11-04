@@ -1315,7 +1315,7 @@
    centered a single narrow column, everything centred.
    ─────────────────────────────────────────────────────────────────── */
 
-.lkr-flow--left {
+.lkr-flow.lkr-flow--left {
   max-width: calc(var(--pv-width) + 380px + 32px);
   flex-direction: row;
   align-items: flex-start;
@@ -1323,7 +1323,7 @@
   gap: 20px;
 }
 
-.lkr-flow--left > .profile-preview {
+.lkr-flow.lkr-flow--left > .profile-preview {
   flex: 0 0 auto;
 }
 
@@ -1338,16 +1338,16 @@
   margin-top: 0;
 }
 
-.lkr-flow--centered {
+.lkr-flow.lkr-flow--centered {
   max-width: calc(var(--pv-width) + 32px);
 }
 
-.lkr-flow--centered > .profile-preview {
+.lkr-flow.lkr-flow--centered > .profile-preview {
   text-align: center;
 }
 
 @media (max-width: 900px) {
-  .lkr-flow--left {
+  .lkr-flow.lkr-flow--left {
     flex-direction: column;
     align-items: center;
   }
