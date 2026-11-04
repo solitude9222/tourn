@@ -85,6 +85,19 @@ function EntryOverlay({
           )}
         </h2>
       ) : null}
+
+      {entry.divider ? (
+        <span
+          className="lkr-entry-divider"
+          aria-hidden="true"
+          style={{
+            width: `${entry.dividerWidth ?? 42}%`,
+            height: `${entry.dividerSize ?? 1}px`,
+            background: entry.dividerColor ?? "#ffffff",
+            opacity: entry.dividerOpacity ?? 0.4,
+          }}
+        />
+      ) : null}
     </>
   );
 

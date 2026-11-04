@@ -4213,3 +4213,40 @@
   0% { background-position: -120% -120%; }
   55%, 100% { background-position: 120% 120%; }
 }
+
+/* Entry separator — tuned from the dashboard's Divider controls. */
+.lkr-entry-divider {
+  display: block;
+  margin: 2px auto;
+  border-radius: 99px;
+  flex: none;
+}
+
+/* Optional per-element glows, driven by Customize › Switches. */
+.pv-glow-name .pv-id h3 {
+  text-shadow:
+    0 0 14px color-mix(in srgb, var(--pv-accent) 75%, transparent),
+    0 0 34px color-mix(in srgb, var(--pv-accent) 45%, transparent);
+}
+
+.pv-glow-location .pv-location,
+.pv-glow-views .pv-views,
+.pv-glow-join .pv-foot-item {
+  border-color: color-mix(in srgb, var(--pv-accent) 55%, transparent);
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--pv-accent) 45%, transparent),
+    inset 0 0 10px color-mix(in srgb, var(--pv-accent) 18%, transparent);
+}
+
+/* ONEKO — a cat that trails the pointer inside the card. */
+.pv-oneko {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  font-size: 22px;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+  will-change: transform;
+}

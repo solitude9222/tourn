@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
 import { hexToRgba, type About } from "../lib/about";
@@ -14,6 +14,47 @@ import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
 import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
+
+function OnekoCat() {
+  const catRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const cat = catRef.current;
+    const host = cat?.parentElement;
+    if (!cat || !host) return;
+    let frame = 0;
+    let target = { x: 24, y: 24 };
+    const current = { x: 24, y: 24 };
+
+    const tick = () => {
+      frame = 0;
+      current.x += (target.x - current.x) * 0.16;
+      current.y += (target.y - current.y) * 0.16;
+      cat.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate(-50%, -50%)`;
+      if (Math.abs(target.x - current.x) > 0.6 || Math.abs(target.y - current.y) > 0.6) {
+        frame = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const onMove = (event: PointerEvent) => {
+      const rect = host.getBoundingClientRect();
+      target = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      if (!frame) frame = window.requestAnimationFrame(tick);
+    };
+
+    host.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      host.removeEventListener("pointermove", onMove);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return (
+    <span ref={catRef} className="pv-oneko" aria-hidden="true">
+      🐈
+    </span>
+  );
+}
 
 export function ProfilePreview({
   user,
@@ -66,7 +107,7 @@ export function ProfilePreview({
   const tooltipDesign = linkDesign ?? DEFAULT_LINK_DESIGN;
   const uid = accountUid(user);
   const tiltEnabled = (design.tilt ?? 0) > 0;
-  const tilt = useTilt(design.tilt ?? 0);
+  const tilt = useTilt(design.tilt ?? 0, Boolean(design.tiltInvert));
   const viewPosition = design.viewPosition ?? "top-right";
   const joinPosition = design.joinPosition ?? "footer";
   const locationPosition = design.locationPosition ?? "under-name";
@@ -141,7 +182,9 @@ export function ProfilePreview({
         hasBanner ? " pv-has-banner" : ""
       }${tiltEnabled ? " profile-preview--tilt" : ""}${
         compact ? " profile-preview--compact" : ""
-      }${className ? ` ${className}` : ""}`}
+      }${design.glowName ? " pv-glow-name" : ""}${design.glowLocation ? " pv-glow-location" : ""}${
+        design.glowViews ? " pv-glow-views" : ""
+      }${design.glowJoin ? " pv-glow-join" : ""}${className ? ` ${className}` : ""}`}
       style={{ ...style, ...tilt.style }}
       data-pfp={design.pfpPosition}
       data-badges={design.badgePosition}
@@ -173,6 +216,8 @@ export function ProfilePreview({
           <span className="pv-beam-glow pv-beam-glow--br" aria-hidden="true" />
         </>
       ) : null}
+
+      {design.oneko ? <OnekoCat /> : null}
 
       {showViews && viewPosition === "top-right" ? (
         <span className="pv-views pv-views--corner" aria-label={`${viewCount} profile views`}>

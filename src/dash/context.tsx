@@ -27,7 +27,6 @@ export type Page =
   | "widgets"
   | "assets"
   | "templates"
-  | "image-host"
   | "billing"
   | "settings"
   | "admin";

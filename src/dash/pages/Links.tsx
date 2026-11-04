@@ -235,14 +235,22 @@ export function LinksPage() {
           </>
         }
       >
-        <Field label="Platform">
-          <Select
-            value={platform}
-            icon="globe"
-            options={PLATFORMS.map((entry) => ({ value: entry.id, label: entry.name }))}
-            onChange={setPlatform}
-          />
-        </Field>
+        <span className="tw-label">Platform</span>
+        <div className="tw-platform-menu" role="listbox" aria-label="Link platform">
+          {PLATFORMS.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              role="option"
+              aria-selected={platform === entry.id}
+              className={`tw-platform-option${platform === entry.id ? " is-active" : ""}`}
+              onClick={() => setPlatform(entry.id)}
+            >
+              <PlatformIcon id={entry.id} size={17} />
+              <span>{entry.name}</span>
+            </button>
+          ))}
+        </div>
       </Modal>
 
       <Modal

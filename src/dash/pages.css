@@ -885,3 +885,32 @@
     padding: 14px;
   }
 }
+
+/* Connected-account row used by Integrations › Discord. */
+.tw-discord-connect {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-tile);
+  background: var(--tile);
+}
+
+.tw-discord-connect > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tw-discord-connect b {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.tw-discord-connect small {
+  color: var(--sub);
+  font-size: 12px;
+}

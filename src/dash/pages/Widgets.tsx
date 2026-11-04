@@ -34,6 +34,7 @@ export function WidgetsPage() {
   const [configuring, setConfiguring] = useState<WidgetPlatform | null>(null);
   const [editing, setEditing] = useState<WidgetInstance | null>(null);
   const [content, setContent] = useState("");
+  const [addOptions, setAddOptions] = useState<Record<string, boolean | string>>({});
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const platformFor = (instance: WidgetInstance) => WIDGET_PLATFORM_BY_ID.get(instance.platform);
@@ -41,6 +42,12 @@ export function WidgetsPage() {
   const openAdd = (platform: WidgetPlatform) => {
     setConfiguring(platform);
     setContent("");
+    const defaults: Record<string, boolean | string> = {};
+    platform.options.forEach((option) => {
+      defaults[option.key] =
+        option.type === "toggle" ? option.default === true : String(option.default ?? "");
+    });
+    setAddOptions(defaults);
   };
 
   const openEdit = (instance: WidgetInstance) => {
@@ -52,6 +59,7 @@ export function WidgetsPage() {
     if (!configuring) return;
     const instance = createWidgetInstance(configuring);
     instance.content = content.trim();
+    instance.options = { ...instance.options, ...addOptions };
     if (!instance.content) {
       notify("Widget", `Add your ${configuring.name} handle first.`);
       return;
@@ -359,23 +367,30 @@ export function WidgetsPage() {
                       <b>{option.label}</b>
                       <small>{option.hint}</small>
                     </span>
-                    <Toggle checked={false} onChange={() => undefined} disabled label={option.label} />
+                    <Toggle
+                      checked={addOptions[option.key] === true}
+                      onChange={(checked) =>
+                        setAddOptions((current) => ({ ...current, [option.key]: checked }))
+                      }
+                      label={option.label}
+                    />
                   </div>
                 ) : (
                   <Field key={option.key} label={option.label}>
                     <Select
-                      value={String(option.default)}
+                      value={String(addOptions[option.key] ?? option.default ?? "")}
                       options={(option.choices ?? []).map((choice) => ({
                         value: choice.value,
                         label: choice.label,
                       }))}
-                      onChange={() => undefined}
+                      onChange={(value) =>
+                        setAddOptions((current) => ({ ...current, [option.key]: value }))
+                      }
                     />
                   </Field>
                 ),
               )}
             </div>
-            <p className="tw-foot-note">Widget options can be adjusted after it is added.</p>
           </div>
         ) : null}
       </Modal>

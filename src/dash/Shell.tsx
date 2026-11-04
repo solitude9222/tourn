@@ -85,7 +85,6 @@ const PAGE_GROUP: Partial<Record<Page, NavGroup["key"]>> = {
 };
 
 const PREMIUM_ITEM: NavChild = { page: "premium", label: "Premium", icon: "star" };
-const IMAGE_HOST_ITEM: NavChild = { page: "image-host", label: "Image Host", icon: "globe" };
 
 export type ShellProps = {
   page: Page;
@@ -221,8 +220,13 @@ export function Shell({
                     {group.label}
                     <Icon name="chevron-down" size={14} className="tw-chevron" />
                   </button>
-                  {open ? (
-                    <div className="tw-group-body" role="group" aria-label={group.label}>
+                  <div
+                    className={`tw-group-body${open ? " is-open" : ""}`}
+                    role="group"
+                    aria-label={group.label}
+                    inert={!open}
+                  >
+                    <div className="tw-group-inner">
                       {children.map((child) => (
                         <button
                           key={`${child.page}-${child.tab ?? child.label}`}
@@ -235,7 +239,7 @@ export function Shell({
                         </button>
                       ))}
                     </div>
-                  ) : null}
+                  </div>
                 </div>
               );
             })}
@@ -262,16 +266,6 @@ export function Shell({
               </button>
             ) : null}
 
-            {!searching || matches(IMAGE_HOST_ITEM.label) ? (
-              <button
-                type="button"
-                className={`tw-nav-item${page === "image-host" ? " is-active" : ""}`}
-                onClick={() => onNavigate("image-host")}
-              >
-                <Icon name="globe" size={18} />
-                Image Host
-              </button>
-            ) : null}
           </nav>
         </div>
 

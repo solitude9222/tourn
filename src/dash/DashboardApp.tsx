@@ -26,7 +26,7 @@ import { LayoutPage } from "./pages/Layout";
 import { BadgesPage } from "./pages/Badges";
 import { LinksPage } from "./pages/Links";
 import { WidgetsPage } from "./pages/Widgets";
-import { AssetBrowserPage, ImageHostPage, TemplatesPage } from "./pages/Assets";
+import { AssetBrowserPage, TemplatesPage } from "./pages/Assets";
 import { BillingPage, PortfolioPage, PremiumPage } from "./pages/Plan";
 
 const AccountSettingsPage = lazy(() =>
@@ -134,12 +134,6 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     subtitle: "Start from a saved arrangement.",
     icon: "grid",
     crumb: "Assets",
-  },
-  "image-host": {
-    title: "Image Host",
-    subtitle: "Keep your profile images in one place.",
-    icon: "globe",
-    crumb: "Image Host",
   },
   billing: {
     title: "Billing",
@@ -436,9 +430,6 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "templates":
       content = <TemplatesPage />;
-      break;
-    case "image-host":
-      content = <ImageHostPage />;
       break;
     case "billing":
       content = <BillingPage />;

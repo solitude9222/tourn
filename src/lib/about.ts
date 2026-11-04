@@ -99,6 +99,16 @@ export type EntrySettings = {
   panelBlur: number; // px
   panelRadius: number; // px
 
+  /** Divider drawn under the entry copy. */
+  divider: boolean;
+  dividerColor: string;
+  /** Divider length as a percentage of the entry content width. */
+  dividerWidth: number;
+  /** Divider thickness in pixels. */
+  dividerSize: number;
+  /** Divider opacity, 0–1. */
+  dividerOpacity: number;
+
   /** How long the click-to-enter animation runs, in milliseconds. */
   animationDuration: number;
 };
@@ -146,6 +156,15 @@ export type AboutDesign = {
   bioSize: number;
   /** Pointer tilt strength in degrees (0 = off). */
   tilt: number;
+  /** Reverse the tilt direction. */
+  tiltInvert?: boolean;
+  /** Optional glows applied to individual card elements. */
+  glowName?: boolean;
+  glowLocation?: boolean;
+  glowViews?: boolean;
+  glowJoin?: boolean;
+  /** A small cat that follows the pointer around the card. */
+  oneko?: boolean;
   /** Retained for saved documents; the pointer glare is no longer rendered. */
   tiltGlare: boolean;
   pfpPosition: PfpPosition;
@@ -234,6 +253,11 @@ export const DEFAULT_ENTRY: EntrySettings = {
   panelOpacity: 34,
   panelBlur: 12,
   panelRadius: 22,
+  divider: false,
+  dividerColor: "#ffffff",
+  dividerWidth: 42,
+  dividerSize: 1,
+  dividerOpacity: 0.4,
   animationDuration: 760,
 };
 
@@ -410,6 +434,11 @@ function loadEntry(input: unknown): EntrySettings {
     panelOpacity: numberIn(raw.panelOpacity, DEFAULT_ENTRY.panelOpacity, 0, 100),
     panelBlur: numberIn(raw.panelBlur, DEFAULT_ENTRY.panelBlur, 0, 40),
     panelRadius: numberIn(raw.panelRadius, DEFAULT_ENTRY.panelRadius, 0, 48),
+    divider: boolIn(raw.divider, DEFAULT_ENTRY.divider),
+    dividerColor: validColor(raw.dividerColor, DEFAULT_ENTRY.dividerColor),
+    dividerWidth: numberIn(raw.dividerWidth, DEFAULT_ENTRY.dividerWidth, 10, 100),
+    dividerSize: numberIn(raw.dividerSize, DEFAULT_ENTRY.dividerSize, 1, 8),
+    dividerOpacity: numberIn(raw.dividerOpacity, DEFAULT_ENTRY.dividerOpacity, 0, 1),
     animationDuration: numberIn(raw.animationDuration, DEFAULT_ENTRY.animationDuration, 200, 2000),
   };
 }

@@ -8,13 +8,13 @@
 
 import {
   useEffect,
-  useId,
   useRef,
+  useState,
   type ButtonHTMLAttributes,
   type CSSProperties,
   type InputHTMLAttributes,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
-  type SelectHTMLAttributes,
 } from "react";
 
 /* ------------------------------------------------------------------ icons */
@@ -557,25 +557,150 @@ export function Select({
   disabled?: boolean;
   placeholder?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLSpanElement>(null);
+  const current = options.find((option) => option.value === value);
+  const label = current?.label ?? placeholder ?? "Select";
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
-    <span className={`tw-control tw-select${icon ? " tw-control--icon" : ""}`}>
+    <span
+      ref={rootRef}
+      className={`tw-control tw-select${icon ? " tw-control--icon" : ""}${open ? " is-open" : ""}`}
+    >
       {icon ? <Icon name={icon} size={15} className="tw-control-icon" /> : null}
-      <select
-        value={value}
+      <button
+        type="button"
+        className="tw-select-btn"
         aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
+        onClick={() => setOpen((currentOpen) => !currentOpen)}
       >
-        {placeholder ? <option value="">{placeholder}</option> : null}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <Icon name="chevron-down" size={14} className="tw-select-chevron" />
+        <span>{label}</span>
+        <Icon name="chevron-down" size={14} className="tw-select-chevron" />
+      </button>
+
+      {open ? (
+        <div className="tw-select-menu" role="listbox" aria-label={ariaLabel}>
+          {placeholder && !current ? (
+            <button
+              type="button"
+              role="option"
+              aria-selected={!value}
+              className="tw-select-item"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+            >
+              <span>{placeholder}</span>
+            </button>
+          ) : null}
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              className={`tw-select-item${option.value === value ? " is-active" : ""}`}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+            >
+              <span>{option.label}</span>
+              {option.value === value ? <Icon name="check" size={14} /> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </span>
   );
+}
+
+/* ------------------------------------------------------------ colour maths */
+
+type Rgb = { r: number; g: number; b: number };
+type Hsv = { h: number; s: number; v: number };
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function hexToRgb(hex: string): Rgb | null {
+  const clean = hex.trim().replace(/^#/, "");
+  const full =
+    clean.length === 3 ? clean.split("").map((part) => part + part).join("") : clean;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return null;
+  return {
+    r: Number.parseInt(full.slice(0, 2), 16),
+    g: Number.parseInt(full.slice(2, 4), 16),
+    b: Number.parseInt(full.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex({ r, g, b }: Rgb): string {
+  const part = (value: number) =>
+    Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0");
+  return `#${part(r)}${part(g)}${part(b)}`;
+}
+
+function rgbToHsv({ r, g, b }: Rgb): Hsv {
+  const red = r / 255;
+  const green = g / 255;
+  const blue = b / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const delta = max - min;
+  let hue = 0;
+  if (delta > 0) {
+    if (max === red) hue = ((green - blue) / delta) % 6;
+    else if (max === green) hue = (blue - red) / delta + 2;
+    else hue = (red - green) / delta + 4;
+    hue *= 60;
+    if (hue < 0) hue += 360;
+  }
+  return { h: hue, s: max === 0 ? 0 : delta / max, v: max };
+}
+
+function hsvToRgb({ h, s, v }: Hsv): Rgb {
+  const chroma = v * s;
+  const section = (h / 60) % 6;
+  const x = chroma * (1 - Math.abs((section % 2) - 1));
+  let rgb: [number, number, number] = [0, 0, 0];
+  if (section < 1) rgb = [chroma, x, 0];
+  else if (section < 2) rgb = [x, chroma, 0];
+  else if (section < 3) rgb = [0, chroma, x];
+  else if (section < 4) rgb = [0, x, chroma];
+  else if (section < 5) rgb = [x, 0, chroma];
+  else rgb = [chroma, 0, x];
+  const match = v - chroma;
+  return {
+    r: Math.round((rgb[0] + match) * 255),
+    g: Math.round((rgb[1] + match) * 255),
+    b: Math.round((rgb[2] + match) * 255),
+  };
+}
+
+function hsvToHex(hsv: Hsv): string {
+  return rgbToHex(hsvToRgb(hsv));
 }
 
 export function ColorField({
@@ -589,28 +714,77 @@ export function ColorField({
   label?: ReactNode;
   disabled?: boolean;
 }) {
-  const id = useId();
+  const [open, setOpen] = useState(false);
+  const [hsv, setHsv] = useState<Hsv>(() =>
+    rgbToHsv(hexToRgb(value) ?? { r: 0, g: 0, b: 0 }),
+  );
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const rgb = hexToRgb(value);
+    if (!rgb) return;
+    const next = rgbToHsv(rgb);
+    setHsv((current) => ({ ...next, h: next.s === 0 ? current.h : next.h }));
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const commit = (next: Hsv) => {
+    setHsv(next);
+    onChange(hsvToHex(next));
+  };
+
+  const hueFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const dx = event.clientX - rect.left - rect.width / 2;
+    const dy = event.clientY - rect.top - rect.height / 2;
+    const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+    commit({ ...hsv, h: (angle + 360) % 360 });
+  };
+
+  const svFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const saturation = clamp01((event.clientX - rect.left) / rect.width);
+    const brightness = 1 - clamp01((event.clientY - rect.top) / rect.height);
+    commit({ ...hsv, s: saturation, v: brightness });
+  };
+
+  const radians = (hsv.h * Math.PI) / 180;
+  const wheelX = 50 + Math.sin(radians) * 41;
+  const wheelY = 50 - Math.cos(radians) * 41;
+  const valid = /^#[0-9a-f]{6}$/i.test(value);
+
   return (
-    <div className="tw-color-field">
+    <div className="tw-color-field" ref={rootRef}>
       {label ? <span className="tw-label">{label}</span> : null}
       <span className={`tw-control tw-color${disabled ? " is-disabled" : ""}`}>
-        <label className="tw-swatch" htmlFor={id} style={{ background: value }}>
-          <input
-            id={id}
-            type="color"
-            value={/^#[0-9a-f]{6}$/i.test(value) ? value : "#000000"}
-            onChange={(event) => onChange(event.target.value)}
-            disabled={disabled}
-            aria-label={typeof label === "string" ? label : "Colour"}
-          />
-        </label>
+        <button
+          type="button"
+          className="tw-swatch"
+          style={{ background: valid ? value : "#000000" }}
+          onClick={() => setOpen((current) => !current)}
+          disabled={disabled}
+          aria-label={typeof label === "string" ? `${label} picker` : "Colour picker"}
+          aria-expanded={open}
+        />
         <input
           className="tw-color-hex"
           value={value}
-          onChange={(event) => {
-            const next = event.target.value;
-            onChange(next);
-          }}
+          onChange={(event) => onChange(event.target.value)}
           onBlur={(event) => {
             const raw = event.target.value.trim();
             if (!/^#[0-9a-f]{6}$/i.test(raw)) onChange("#000000");
@@ -619,7 +793,95 @@ export function ColorField({
           aria-label="Hex colour"
           disabled={disabled}
         />
+        <button
+          type="button"
+          className="tw-color-open"
+          onClick={() => setOpen((current) => !current)}
+          disabled={disabled}
+          aria-label="Open colour wheel"
+        >
+          <Icon name="chevron-down" size={14} />
+        </button>
       </span>
+
+      {open ? (
+        <div className="tw-color-pop">
+          <div
+            className="tw-color-wheel"
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              hueFromPointer(event);
+            }}
+            onPointerMove={(event) => {
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) hueFromPointer(event);
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+              event.preventDefault();
+              const step = event.key === "ArrowRight" ? 4 : -4;
+              commit({ ...hsv, h: (hsv.h + step + 360) % 360 });
+            }}
+            role="slider"
+            aria-label="Hue"
+            aria-valuemin={0}
+            aria-valuemax={360}
+            aria-valuenow={Math.round(hsv.h)}
+            tabIndex={0}
+          >
+            <span
+              className="tw-color-wheel-thumb"
+              style={{
+                left: `${wheelX}%`,
+                top: `${wheelY}%`,
+                background: `hsl(${hsv.h} 100% 50%)`,
+              }}
+            />
+          </div>
+
+          <div
+            className="tw-color-sv"
+            style={{
+              background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hsv.h} 100% 50%))`,
+            }}
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              svFromPointer(event);
+            }}
+            onPointerMove={(event) => {
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) svFromPointer(event);
+            }}
+          >
+            <span
+              className="tw-color-sv-thumb"
+              style={{
+                left: `${hsv.s * 100}%`,
+                top: `${(1 - hsv.v) * 100}%`,
+                background: valid ? value : "#000000",
+              }}
+            />
+          </div>
+
+          <div className="tw-color-presets">
+            {["#3965e6", "#79a1f7", "#34d399", "#f5c451", "#e0575b", "#b4bffa", "#ffffff", "#111111"].map(
+              (swatch) => (
+                <button
+                  key={swatch}
+                  type="button"
+                  className="tw-color-preset"
+                  style={{ background: swatch }}
+                  onClick={() => onChange(swatch)}
+                  aria-label={`Use ${swatch}`}
+                />
+              ),
+            )}
+          </div>
+
+          <div className="tw-color-readout">
+            <span style={{ background: valid ? value : "#000000" }} />
+            <code>{valid ? value.toUpperCase() : "—"}</code>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

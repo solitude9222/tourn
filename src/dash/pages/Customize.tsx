@@ -5,8 +5,15 @@
    disabled rather than pretending to save.
    --------------------------------------------------------------------------- */
 
+import { useState } from "react";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
-import { WIDGET_PLATFORMS } from "../../lib/widgets";
+import { WIDGET_PLATFORMS, createWidgetInstance } from "../../lib/widgets";
+import { ProfilePreview } from "../../components/ProfilePreview";
+import { WidgetCard } from "../../components/WidgetCard";
+import { DEFAULT_BADGE_STYLE } from "../../lib/badges";
+import { DEFAULT_LINK_DESIGN } from "../../lib/links";
+import { formatJoinDate } from "../../lib/format";
+import { useAuth } from "../../lib/auth";
 import { useDash, type ProfileTab } from "../context";
 import {
   Button,
@@ -74,29 +81,16 @@ function PlayerStyleCard() {
 }
 
 function DiscordPresenceCard() {
-  const { widgets, setWidgets, go } = useDash();
-  const widget = widgets.widgets.find((entry) => entry.platform === "discord");
+  const { widgets, setWidgets, settings, notify } = useDash();
+  const { user: authUser, linkDiscord } = useAuth();
+  const linked = Boolean(authUser?.discordLinked);
   const platform = WIDGET_PLATFORMS.find((entry) => entry.id === "discord");
-
-  if (!widget || !platform) {
-    return (
-      <Card>
-        <CardHead icon="discord" title="Discord Presence" />
-        <EmptyState
-          icon="discord"
-          title="No Discord widget yet"
-          message="Add the Discord widget to configure your presence card."
-          action={
-            <Button variant="primary" icon="plus" onClick={() => go("widgets")}>
-              Add Discord widget
-            </Button>
-          }
-        />
-      </Card>
-    );
-  }
+  const widget = widgets.widgets.find((entry) => entry.platform === "discord");
+  const [discordId, setDiscordId] = useState(widget?.content || settings.discordUserId);
+  const [busy, setBusy] = useState(false);
 
   const updateOption = (key: string, value: boolean | string) => {
+    if (!widget) return;
     setWidgets((current) => ({
       ...current,
       widgets: current.widgets.map((entry) =>
@@ -107,42 +101,149 @@ function DiscordPresenceCard() {
     }));
   };
 
+  const savePresence = () => {
+    if (!platform) return;
+    const id = discordId.trim();
+    if (!id) {
+      notify("Discord", "Add your Discord user ID first.");
+      return;
+    }
+    if (widget) {
+      setWidgets((current) => ({
+        ...current,
+        widgets: current.widgets.map((entry) =>
+          entry.id === widget.id ? { ...entry, content: id, visible: true } : entry,
+        ),
+      }));
+    } else {
+      const instance = createWidgetInstance(platform);
+      instance.id = "discord-presence";
+      instance.content = id;
+      instance.visible = true;
+      setWidgets((current) => ({ ...current, widgets: [...current.widgets, instance] }));
+    }
+    notify("Discord presence", "Saved — your live status shows on the profile once you save.");
+  };
+
+  const connect = async () => {
+    setBusy(true);
+    const result = await linkDiscord();
+    if (result.error) notify("Discord", result.error);
+    setBusy(false);
+  };
+
   return (
     <Card>
-      <CardHead icon="discord" title="Discord Presence" />
+      <CardHead
+        icon="discord"
+        title="Discord Presence"
+        subtitle="Driven by your connected Discord account — no widget to add."
+      />
 
-      <div className="tw-option-grid" style={{ marginBottom: 20 }}>
-        {platform.options
-          .filter((option) => option.type === "select")
-          .map((option) => (
-            <Field key={option.key} label={option.label} help>
-              <Select
-                value={String(widget.options[option.key] ?? option.default)}
-                options={(option.choices ?? []).map((choice) => ({
-                  value: choice.value,
-                  label: choice.label,
-                }))}
-                onChange={(value) => updateOption(option.key, value)}
-              />
-            </Field>
-          ))}
+      <div className="tw-discord-connect">
+        <span className="tw-widget-icon" style={{ background: "#5865f2", width: 34, height: 34 }}>
+          <Icon name="discord" size={17} />
+        </span>
+        <span>
+          <b>{linked ? "Discord account connected" : "Connect your Discord account"}</b>
+          <small>
+            {linked
+              ? "Your account is linked. Presence reads the user ID below."
+              : "Link the account that owns this profile."}
+          </small>
+        </span>
+        <Button
+          variant={linked ? "ghost" : "primary"}
+          icon="discord"
+          disabled={busy}
+          onClick={() => void connect()}
+        >
+          {busy ? "Opening…" : linked ? "Reconnect" : "Connect Discord"}
+        </Button>
       </div>
 
-      <div className="tw-subhead">Additional options:</div>
-      <div className="tw-grid tw-grid--4">
-        {platform.options
-          .filter((option) => option.type === "toggle")
-          .map((option) => (
-            <ToggleTile
-              key={option.key}
-              title={option.label}
-              description={option.hint}
-              checked={widget.options[option.key] === true}
-              onChange={(checked) => updateOption(option.key, checked)}
-              accentBorder
-            />
-          ))}
+      <div className="tw-form-grid" style={{ marginTop: 18 }}>
+        <Field
+          label="Discord user ID"
+          help
+          hint="Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID."
+        >
+          <TextInput
+            icon="discord"
+            value={discordId}
+            placeholder="1546745348020772915"
+            onChange={(event) => setDiscordId(event.target.value)}
+          />
+        </Field>
+        <div className="tw-inline-toggle">
+          <span>
+            <b>Show on profile</b>
+            <small>Off hides the presence card without deleting it.</small>
+          </span>
+          <Toggle
+            checked={Boolean(widget) && widget?.visible !== false}
+            onChange={(checked) => {
+              if (!widget) {
+                if (checked) savePresence();
+                return;
+              }
+              setWidgets((current) => ({
+                ...current,
+                widgets: current.widgets.map((entry) =>
+                  entry.id === widget.id ? { ...entry, visible: checked } : entry,
+                ),
+              }));
+            }}
+            label="Show Discord presence"
+          />
+        </div>
       </div>
+
+      <div className="tw-row" style={{ marginTop: 14 }}>
+        <Button variant="primary" onClick={savePresence}>
+          Save presence
+        </Button>
+      </div>
+
+      {platform && widget ? (
+        <>
+          <div className="tw-subhead">Presence options</div>
+          <div className="tw-option-grid">
+            {platform.options
+              .filter((option) => option.type === "select")
+              .map((option) => (
+                <Field key={option.key} label={option.label}>
+                  <Select
+                    value={String(widget.options[option.key] ?? option.default)}
+                    options={(option.choices ?? []).map((choice) => ({
+                      value: choice.value,
+                      label: choice.label,
+                    }))}
+                    onChange={(value) => updateOption(option.key, value)}
+                  />
+                </Field>
+              ))}
+          </div>
+          <div className="tw-grid tw-grid--4" style={{ marginTop: 14 }}>
+            {platform.options
+              .filter((option) => option.type === "toggle")
+              .map((option) => (
+                <ToggleTile
+                  key={option.key}
+                  title={option.label}
+                  description={option.hint}
+                  checked={widget.options[option.key] === true}
+                  onChange={(checked) => updateOption(option.key, checked)}
+                  accentBorder
+                />
+              ))}
+          </div>
+        </>
+      ) : (
+        <p className="tw-foot-note">
+          Save your Discord user ID to unlock presence options.
+        </p>
+      )}
     </Card>
   );
 }
@@ -154,6 +255,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
     badges,
     links,
     widgets,
+    profileViews,
     setAbout,
     setBadges,
     setLinks,
@@ -348,27 +450,46 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
     return (
       <>
         <Card>
-          <CardHead icon="edit" title="Card Customization" />
+          <CardHead
+            icon="edit"
+            title="Card Customization"
+            subtitle="Live preview of your real profile card — every change applies instantly."
+          />
 
           <div className="tw-subhead">Card Style</div>
 
-          <div className="tw-style-preview">
-            <div
-              className="tw-style-demo"
-              style={{
-                background: design.colors.card,
-                opacity: Math.max(0.08, design.backgroundOpacity),
-                borderRadius: design.cardRadius,
-                borderColor: design.colors.border,
-                borderWidth: design.borderWidth,
-                borderStyle: design.borderWidth > 0 ? "solid" : "none",
-                backdropFilter: design.backgroundBlur > 0 ? `blur(${design.backgroundBlur}px)` : undefined,
-              }}
-            >
-              <span className="tw-style-avatar" />
-              <b>{about.displayName.trim() || "your name"}</b>
-              <small>Joined 13 days ago</small>
-              <div className="tw-style-widget" />
+          <div className="tw-live-stage">
+            <div className="tw-live-scaler">
+              <ProfilePreview
+                user={user}
+                about={about}
+                badges={badges.equipped}
+                badgeStyle={badges.style ?? DEFAULT_BADGE_STYLE}
+                links={links.links}
+                linkDesign={links.design ?? DEFAULT_LINK_DESIGN}
+                className="profile-preview--with-widgets"
+                views={profileViews}
+                joined={formatJoinDate(
+                  new Date(user.joinedAt),
+                  about.metadata.joinFormat ?? "relative",
+                )}
+                hideAudio
+              >
+                {widgets.widgets.some((widget) => widget.visible !== false) ? (
+                  <div className="lkr-widgets">
+                    {widgets.widgets
+                      .filter((widget) => widget.visible !== false)
+                      .map((widget) => (
+                        <WidgetCard
+                          key={widget.id}
+                          widget={widget}
+                          design={widgets.design}
+                          className="widget-card--linker"
+                        />
+                      ))}
+                  </div>
+                ) : null}
+              </ProfilePreview>
             </div>
           </div>
 
@@ -447,21 +568,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               />
             </div>
 
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Disable Border on Mute Button</b>
-                <small>Coming with audio controls</small>
-              </span>
-              <Toggle checked={false} onChange={() => undefined} disabled label="Disable border on mute button" />
-            </div>
-
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Disable Border on Audio Display</b>
-                <small>Coming with audio controls</small>
-              </span>
-              <Toggle checked={false} onChange={() => undefined} disabled label="Disable border on audio display" />
-            </div>
           </div>
         </Card>
 
@@ -514,26 +620,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
     return (
       <>
         <Card>
-          <CardHead icon="comment" title="Comments" subtitle="Let visitors comment on your profile" />
-          <div className="tw-stack">
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Enable Comments</b>
-                <small>Coming soon — comments are not part of this build yet.</small>
-              </span>
-              <Toggle checked={false} onChange={() => undefined} disabled label="Enable comments" />
-            </div>
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Disable Border on Comment Button</b>
-                <small>Removes the border and its effect from the comment button</small>
-              </span>
-              <Toggle checked={false} onChange={() => undefined} disabled label="Disable comment border" />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
           <CardHead icon="expand" title="Enter Screen Customization" />
 
           <div className="tw-form-grid">
@@ -582,8 +668,46 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               <b>Divider line</b>
               <small>Adds a customizable line below your enter text.</small>
             </span>
-            <Toggle checked={false} onChange={() => undefined} disabled label="Divider line" />
+            <Toggle
+              checked={Boolean(entry.divider)}
+              onChange={(checked) => updateEntry({ divider: checked })}
+              label="Divider line"
+            />
           </div>
+
+          {entry.divider ? (
+            <div className="tw-form-grid" style={{ marginTop: 16 }}>
+              <ColorField
+                label="Divider colour"
+                value={entry.dividerColor ?? "#ffffff"}
+                onChange={(value) => updateEntry({ dividerColor: value })}
+              />
+              <Slider
+                label="Divider length"
+                value={entry.dividerWidth ?? 42}
+                min={10}
+                max={100}
+                suffix="%"
+                onChange={(value) => updateEntry({ dividerWidth: value })}
+              />
+              <Slider
+                label="Divider thickness"
+                value={entry.dividerSize ?? 1}
+                min={1}
+                max={8}
+                suffix="px"
+                onChange={(value) => updateEntry({ dividerSize: value })}
+              />
+              <Slider
+                label="Divider opacity"
+                value={Math.round((entry.dividerOpacity ?? 0.4) * 100)}
+                min={0}
+                max={100}
+                suffix="%"
+                onChange={(value) => updateEntry({ dividerOpacity: value / 100 })}
+              />
+            </div>
+          ) : null}
 
           <div className="tw-enter-preview" style={{ background: entry.background }}>
             <div
@@ -595,10 +719,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               </b>
               <span className="tw-enter-line" />
             </div>
-            <span className="tw-enter-lock">
-              <Icon name="lock" size={13} />
-              Divider controls come next
-            </span>
+
           </div>
         </Card>
 
@@ -630,9 +751,13 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           <div className="tw-inline-toggle" style={{ marginTop: 18 }}>
             <span>
               <b>Invert Direction</b>
-              <small>Reverse the tilt effect (coming soon)</small>
+              <small>Reverse the direction the card tilts</small>
             </span>
-            <Toggle checked={false} onChange={() => undefined} disabled label="Invert parallax" />
+            <Toggle
+              checked={Boolean(design.tiltInvert)}
+              onChange={(checked) => updateDesign({ tiltInvert: checked })}
+              label="Invert parallax"
+            />
           </div>
         </Card>
       </>
@@ -686,56 +811,37 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           <ToggleTile
             icon="at"
             title="Username Glow"
-            description="Coming soon"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("Username Glow", "This effect is not available yet.")}
+            description="Glow behind your display name"
+            checked={Boolean(design.glowName)}
+            onChange={(checked) => updateDesign({ glowName: checked })}
           />
           <ToggleTile
             icon="pin"
             title="Location Glow"
-            description="Coming soon"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("Location Glow", "This effect is not available yet.")}
+            description="Glow around your location pill"
+            checked={Boolean(design.glowLocation)}
+            onChange={(checked) => updateDesign({ glowLocation: checked })}
           />
           <ToggleTile
             icon="eye"
             title="Profile Views Glow"
-            description="Coming soon"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("Profile Views Glow", "This effect is not available yet.")}
+            description="Glow around the view counter"
+            checked={Boolean(design.glowViews)}
+            onChange={(checked) => updateDesign({ glowViews: checked })}
           />
           <ToggleTile
             icon="calendar"
             title="Join Date Glow"
-            description="Coming soon"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("Join Date Glow", "This effect is not available yet.")}
+            description="Glow around the join date"
+            checked={Boolean(design.glowJoin)}
+            onChange={(checked) => updateDesign({ glowJoin: checked })}
           />
           <ToggleTile
             icon="sparkles"
             title="ONEKO!"
-            description="Shows a funny little cat which follows your cursor"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("ONEKO!", "This feature is not available yet.")}
-          />
-          <ToggleTile
-            icon="layers"
-            title="Container Shadow"
-            description="Coming soon"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("Container Shadow", "This effect is not available yet.")}
+            description="A little cat that follows your cursor"
+            checked={Boolean(design.oneko)}
+            onChange={(checked) => updateDesign({ oneko: checked })}
           />
         </div>
 
@@ -757,31 +863,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               }
             }}
           />
-          <ToggleTile
-            icon="music"
-            title="Mute Button"
-            description="Show the mute button on your page (coming soon)"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("Mute Button", "This control is not available yet.")}
-          />
-          <ToggleTile
-            icon="like"
-            title="Like Button"
-            description="Enable or disable the profile feedback (coming soon)"
-            checked={false}
-            onChange={() => undefined}
-            locked
-            onLockedClick={() => notify("Like Button", "Profile feedback is not available yet.")}
-          />
-          <ToggleTile
-            icon="discord"
-            title="Discord Presence"
-            description="Show your Discord status on your page"
-            checked={widgets.widgets.some((entry) => entry.platform === "discord")}
-            onChange={() => go("widgets")}
-          />
+
           <ToggleTile
             icon="eye"
             title="Profile Views"
