@@ -7,18 +7,16 @@
    --------------------------------------------------------------------------- */
 
 .tw-dash {
-  /* Light purple on near-black: the accent is a lilac, the surfaces stay dark
-     and slightly violet rather than neutral grey. */
-  --page: #08070c;
-  --rail: #0b0a11;
-  --card: #12101a;
-  --bar: #0a0910;
-  --tile: #181525;
-  --border: #221e30;
-  --input-border: #352f4d;
-  --accent: #7c5cff;
-  --accent-soft: #221b3a;
-  --accent-text: #b9a5ff;
+  --page: #09080b;
+  --rail: #0d0d0d;
+  --card: #111111;
+  --bar: #0c0c0c;
+  --tile: #18171a;
+  --border: #1f1f1f;
+  --input-border: #333333;
+  --accent: #3965e6;
+  --accent-soft: #1b233b;
+  --accent-text: #79a1f7;
   --title: #ffffff;
   --sub: #9fa2af;
   --desc: #a3a2ab;
@@ -66,7 +64,7 @@
 }
 
 .tw-dash ::selection {
-  background: rgba(124, 92, 255, 0.4);
+  background: rgba(57, 101, 230, 0.4);
 }
 
 /* ------------------------------------------------------------------ scroll */
@@ -113,7 +111,7 @@
   width: 37px;
   height: 37px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(185, 165, 255, 0.28));
+  filter: drop-shadow(0 0 10px rgba(121, 161, 247, 0.28));
 }
 
 .tw-brand-text {
@@ -282,7 +280,7 @@
   margin-bottom: 10px;
   border: 1px solid #23262d;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(124, 92, 255, 0.14), rgba(124, 92, 255, 0.03));
+  background: linear-gradient(135deg, rgba(57, 101, 230, 0.14), rgba(57, 101, 230, 0.03));
   color: var(--title);
   text-decoration: none;
   cursor: pointer;
@@ -290,8 +288,8 @@
 }
 
 .tw-premium-card:hover {
-  border-color: rgba(124, 92, 255, 0.5);
-  background: linear-gradient(135deg, rgba(124, 92, 255, 0.2), rgba(124, 92, 255, 0.06));
+  border-color: rgba(57, 101, 230, 0.5);
+  background: linear-gradient(135deg, rgba(57, 101, 230, 0.2), rgba(57, 101, 230, 0.06));
 }
 
 .tw-premium-icon {
@@ -954,7 +952,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--accent-text);
-  box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.18);
+  box-shadow: 0 0 0 4px rgba(57, 101, 230, 0.18);
   appearance: none;
 }
 
@@ -1035,7 +1033,7 @@
 }
 
 .tw-toggle-tile.is-accent {
-  border-color: rgba(124, 92, 255, 0.55);
+  border-color: rgba(57, 101, 230, 0.55);
 }
 
 .tw-toggle-tile-icon {
@@ -1121,7 +1119,7 @@
 }
 
 .tw-btn--soft {
-  background: rgba(124, 92, 255, 0.14);
+  background: rgba(57, 101, 230, 0.14);
   color: #a8c1ff;
 }
 
@@ -1223,7 +1221,7 @@
 }
 
 .tw-chip--accent {
-  background: rgba(124, 92, 255, 0.16);
+  background: rgba(57, 101, 230, 0.16);
   color: #9db9ff;
 }
 
@@ -1778,7 +1776,7 @@
 }
 
 .tw-badge-tile.is-equipped {
-  border-color: rgba(124, 92, 255, 0.5);
+  border-color: rgba(57, 101, 230, 0.5);
   background: rgba(32, 44, 82, 0.32);
 }
 
@@ -2908,7 +2906,7 @@
 }
 
 .tw-select-item.is-active {
-  background: rgba(124, 92, 255, 0.14);
+  background: rgba(57, 101, 230, 0.14);
   color: var(--accent-text);
 }
 
@@ -3224,7 +3222,7 @@
 
 .tw-platform-option.is-active {
   border-color: var(--accent);
-  background: rgba(124, 92, 255, 0.14);
+  background: rgba(57, 101, 230, 0.14);
   color: #fff;
 }
 

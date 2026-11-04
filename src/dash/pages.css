@@ -795,7 +795,7 @@
   flex: none;
   border: 1px solid #24272e;
   border-radius: 12px;
-  background: rgba(124, 92, 255, 0.1);
+  background: rgba(57, 101, 230, 0.1);
   color: var(--accent-text);
 }
 
@@ -1202,7 +1202,7 @@
 }
 
 .tw-plan.is-active {
-  border-color: rgba(124, 92, 255, 0.5);
+  border-color: rgba(57, 101, 230, 0.5);
 }
 
 .tw-plan-head {
@@ -1310,8 +1310,8 @@
   height: 44px;
   margin-bottom: 4px;
   border-radius: 12px;
-  background: #221b3a;
-  color: #b9a5ff;
+  background: #1b233b;
+  color: #79a1f7;
 }
 
 .tw-gate-card h1 {

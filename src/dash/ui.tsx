@@ -869,7 +869,7 @@ export function ColorField({
           </div>
 
           <div className="tw-color-presets">
-            {["#7c5cff", "#b9a5ff", "#34d399", "#f5c451", "#e0575b", "#b4bffa", "#ffffff", "#111111"].map(
+            {["#3965e6", "#79a1f7", "#34d399", "#f5c451", "#e0575b", "#b4bffa", "#ffffff", "#111111"].map(
               (swatch) => (
                 <button
                   key={swatch}
