@@ -83,7 +83,6 @@ export function PremiumPage() {
         <div className="tw-grid tw-grid--3">
           {[
             ["Custom badges", "Create your own badge with a custom icon and name."],
-            ["Card effects", "Gradient and glow treatments for your profile card."],
             ["Premium links", "Glass and glow styles for your social links."],
             ["Alias", "A second address under swats.bio."],
             ["Priority support", "Direct help in the Discord."],
