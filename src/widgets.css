@@ -1833,3 +1833,187 @@
   border-color: rgba(143, 216, 255, 0.3);
   color: #e7f9ff;
 }
+
+/* ═══ Public-card interactions ══════════════════════════════════════
+   Hovering a widget on the profile fades a detail panel in beside its
+   picture (the picture stays visible, and stays the menu button); the
+   picture itself opens a small menu with the widget's own actions.
+   ══════════════════════════════════════════════════════════════════ */
+
+.widget-card-reveal {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  bottom: 8px;
+  left: calc(12px + 56px + 12px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(9, 11, 17, 0.94), rgba(9, 11, 17, 0.88));
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.widget-card--linker:hover .widget-card-reveal,
+.widget-card--linker:focus-within .widget-card-reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.widget-card-reveal-brand {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--wg-brand, #b4bffa);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.widget-card-reveal-title {
+  color: #f4f8fb;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.widget-card-reveal-sub {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.widget-card-reveal-meta {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+}
+
+.widget-card-reveal-hint {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 10px;
+}
+
+/* The picture is a button on the public card. */
+.widget-card-avatar.is-menu {
+  cursor: pointer;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.widget-card-avatar.is-menu:hover,
+.widget-card-avatar.is-open {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  transform: scale(1.04);
+}
+
+.widget-card-avatar.is-menu:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Green light for anything counting people who are on right now. */
+.widget-card-online {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: #3ddc84;
+  box-shadow: 0 0 6px rgba(61, 220, 132, 0.9);
+}
+
+/* The picture's pop-up menu. Fixed coordinates: the card clips its children,
+   so the menu lives in a body portal instead. */
+.widget-menu {
+  position: fixed;
+  z-index: 80;
+  width: 232px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(12, 14, 20, 0.97);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.9);
+  animation: widgetMenuIn 0.16s ease both;
+}
+
+@keyframes widgetMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.widget-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 4px;
+  padding: 7px 9px 9px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.widget-menu-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.widget-menu-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.widget-menu-copy b {
+  color: #f2f6fa;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.widget-menu-copy small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.widget-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #dfe7ee;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.widget-menu-item:hover,
+.widget-menu-item:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  outline: none;
+}

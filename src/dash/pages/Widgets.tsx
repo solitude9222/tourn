@@ -317,6 +317,7 @@ export function WidgetsPage() {
 
         <div className="tw-widget-design">
           <div className="tw-stack">
+            <div className="tw-subhead">Surface</div>
             <Field label="Background">
               <Select
                 value={design.backgroundStyle}
@@ -339,34 +340,6 @@ export function WidgetsPage() {
                 value={design.backgroundColor}
                 onChange={(value) => setDesign({ backgroundColor: value })}
               />
-              <ColorField
-                label="Border"
-                value={design.borderColor}
-                onChange={(value) => setDesign({ borderColor: value })}
-              />
-            </div>
-
-            <div className="tw-form-grid">
-              <Slider
-                label="Border width"
-                value={design.borderWidth}
-                min={0}
-                max={6}
-                suffix="px"
-                onChange={(value) => setDesign({ borderWidth: value })}
-              />
-              <Slider
-                label="Border alpha"
-                value={design.borderOpacity}
-                min={0}
-                max={1}
-                step={0.01}
-                format={(value) => value.toFixed(2)}
-                onChange={(value) => setDesign({ borderOpacity: value })}
-              />
-            </div>
-
-            <div className="tw-form-grid">
               <Slider
                 label="Background alpha"
                 value={design.backgroundOpacity}
@@ -375,6 +348,17 @@ export function WidgetsPage() {
                 step={0.01}
                 format={(value) => value.toFixed(2)}
                 onChange={(value) => setDesign({ backgroundOpacity: value })}
+              />
+            </div>
+
+            <div className="tw-form-grid">
+              <Slider
+                label="Blur"
+                value={design.backgroundBlur}
+                min={0}
+                max={24}
+                suffix="px"
+                onChange={(value) => setDesign({ backgroundBlur: value })}
               />
               <Slider
                 label="Corner radius"
@@ -386,16 +370,43 @@ export function WidgetsPage() {
               />
             </div>
 
-            <div className="tw-subhead">Edge</div>
-            <Field label="Edge animation">
+            <div className="tw-subhead">Border</div>
+            <div className="tw-form-grid">
+              <ColorField
+                label="Border"
+                value={design.borderColor}
+                onChange={(value) => setDesign({ borderColor: value })}
+              />
+              <Slider
+                label="Border width"
+                value={design.borderWidth}
+                min={0}
+                max={6}
+                suffix="px"
+                onChange={(value) => setDesign({ borderWidth: value })}
+              />
+            </div>
+
+            <Slider
+              label="Border alpha"
+              value={design.borderOpacity}
+              min={0}
+              max={1}
+              step={0.01}
+              format={(value) => value.toFixed(2)}
+              onChange={(value) => setDesign({ borderOpacity: value })}
+            />
+
+            <div className="tw-subhead">Edge animation</div>
+            <Field label="Effect">
               <Select
                 value={design.outlineEffect}
                 options={[
                   { value: "none", label: "None" },
-                  { value: "trace", label: "Trace — a line runs the border" },
-                  { value: "march", label: "March — dashes chase each other" },
-                  { value: "pulse", label: "Pulse — the ring breathes" },
-                  { value: "glow", label: "Glow — halo around the card" },
+                  { value: "trace", label: "Trace · a line runs the border" },
+                  { value: "march", label: "March · dashes chase each other" },
+                  { value: "pulse", label: "Pulse · the ring breathes" },
+                  { value: "glow", label: "Glow · halo around the card" },
                 ]}
                 onChange={(value) =>
                   setDesign({ outlineEffect: value as WidgetDesign["outlineEffect"] })
@@ -452,6 +463,7 @@ export function WidgetsPage() {
               />
             </div>
 
+            <div className="tw-subhead">Content</div>
             <div className="tw-inline-toggle">
               <span>
                 <b>Show live details</b>
@@ -475,28 +487,49 @@ export function WidgetsPage() {
                 label="Show badges"
               />
             </div>
-
-            <div className="tw-form-grid">
-              <Slider
-                label="Opacity"
-                value={design.backgroundOpacity}
-                min={0}
-                max={1}
-                step={0.01}
-                format={(value) => value.toFixed(2)}
-                onChange={(value) => setDesign({ backgroundOpacity: value })}
-              />
-              <Slider
-                label="Blur"
-                value={design.backgroundBlur}
-                min={0}
-                max={24}
-                suffix="px"
-                onChange={(value) => setDesign({ backgroundBlur: value })}
-              />
-            </div>
           </div>
 
+          {/* Live reel: the cards exactly as they will render, scrolling
+              past so every change above is visible while you make it. */}
+          <aside className="tw-widget-preview" aria-label="Widget preview">
+            <div className="tw-widget-preview-head">
+              <small>Real preview</small>
+              <span className="tw-widget-preview-note">
+                {active.length
+                  ? `${active.length} active widget${active.length === 1 ? "" : "s"}`
+                  : "sample cards"}
+              </span>
+            </div>
+            <div className="tw-widget-scroll">
+              <div className="tw-widget-scroll-track">
+                {[0, 1].map((pass) => (
+                  <div
+                    className="tw-widget-scroll-pass"
+                    key={pass}
+                    aria-hidden={pass === 1 ? "true" : undefined}
+                  >
+                    {active.length
+                      ? active.map((widget) => (
+                          <WidgetCard
+                            key={`${pass}-${widget.id}`}
+                            widget={widget}
+                            design={design}
+                            className="widget-card--reel"
+                          />
+                        ))
+                      : ["discord", "discordbot", "spotify", "roblox"].map((id) => (
+                          <WidgetCardPreview
+                            key={`${pass}-${id}`}
+                            design={design}
+                            platformId={id}
+                            className="widget-card--reel"
+                          />
+                        ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
         </div>
       </Card>
 

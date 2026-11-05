@@ -5,6 +5,7 @@
    --------------------------------------------------------------------------- */
 
 import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
+import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
 
@@ -80,8 +81,35 @@ export function LayoutPage() {
       },
     }));
 
+  // The card preview sits beside the settings so every slider, colour and
+  // effect shows its result immediately — but it never plays audio: the
+  // preview is silent, and the player is left to the real profile page.
+  const preview = (
+    <aside className="tw-card-preview" aria-label="Card preview">
+      <div className="tw-card-preview-inner">
+        <LinkerPreview
+          user={{
+            id: user.id,
+            username: user.username,
+            avatarUrl: about.assets.avatarUrl || user.avatarUrl,
+          }}
+          about={about}
+          widgets={widgets}
+          badges={badges}
+          links={links}
+          views={profileViews}
+          showEntry={false}
+          showMetadata={false}
+          interactive={false}
+          hideAudio
+        />
+      </div>
+    </aside>
+  );
+
   return (
     <div className="tw-card-page">
+      <div className="tw-card-main">
       <Card>
         <CardHead
           icon="layout"
@@ -321,6 +349,8 @@ export function LayoutPage() {
           </Field>
         </div>
       </Card>
+      </div>
+      {preview}
     </div>
   );
 }

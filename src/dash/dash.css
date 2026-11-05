@@ -3536,10 +3536,47 @@
   font-weight: 550;
 }
 
-/* ── card page: the settings, full width (no live preview aside) ───────── */
+/* ── card page: settings on the left, the live card on the right ─────────
+   The preview is 360px wide at half zoom, which is exactly the 720px card:
+   nothing is cropped, and the column stays put while the settings scroll. */
 .tw-card-page {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 14px;
+  align-items: start;
+}
+
+.tw-card-main {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tw-card-preview {
+  position: sticky;
+  top: 12px;
+  height: 470px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #08070c;
+}
+
+.tw-card-preview-inner {
+  width: 200%;
+  height: 200%;
+  zoom: 0.5;
+}
+
+@media (max-width: 1240px) {
+  .tw-card-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tw-card-preview {
+    display: none;
+  }
 }
 
 /* Bigger, easier-to-hit decoration tiles for the gallery. */

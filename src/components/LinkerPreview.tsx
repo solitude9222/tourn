@@ -202,6 +202,8 @@ export function LinkerPreview({
   entryPlayToken = 0,
   views = null,
   joined,
+  /** Keeps dashboard previews silent — a preview must never start audio. */
+  hideAudio = false,
 }: {
   user: Pick<Account, "id" | "username" | "avatarUrl">;
   about: About;
@@ -218,6 +220,8 @@ export function LinkerPreview({
   views?: number | null;
   /** Formatted join date for the card footer. */
   joined?: string;
+  /** Drop the player entirely (dashboard previews). */
+  hideAudio?: boolean;
 }) {
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
@@ -292,6 +296,7 @@ export function LinkerPreview({
             className={`widget-card--linker${
               widget.platform === "discord" ? " widget-card--wide" : ""
             }`}
+            interactive={interactive}
           />
         ))}
       </div>
@@ -312,7 +317,7 @@ export function LinkerPreview({
       views={views}
       joined={joined}
       entryActive={entryOpen}
-      hideAudio={design.layout === "stacked"}
+      hideAudio={hideAudio || design.layout === "stacked"}
     >
       {widgets.widgets.length ? widgetStack : null}
     </ProfilePreview>

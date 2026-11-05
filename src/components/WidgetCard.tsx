@@ -1,4 +1,5 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { hexToRgba } from "../lib/about";
 import {
   WIDGET_PLATFORM_BY_ID,
@@ -29,11 +30,16 @@ function WidgetAvatar({
   src,
   decoration,
   status,
+  onMenu,
+  menuOpen = false,
 }: {
   platform: WidgetPlatform;
   src: string | null;
   decoration: string | null;
   status: WidgetLive["status"];
+  /** Present on the public card: the picture is a button that opens a menu. */
+  onMenu?: (event: { currentTarget: HTMLElement }) => void;
+  menuOpen?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
 
@@ -45,7 +51,23 @@ function WidgetAvatar({
     <span
       className={`widget-card-avatar${SQUARE_AVATARS.has(platform.id) ? " is-square" : ""}${
         status ? ` is-${status}` : ""
-      }`}
+      }${onMenu ? " is-menu" : ""}${menuOpen ? " is-open" : ""}`}
+      {...(onMenu
+        ? {
+            role: "button",
+            tabIndex: 0,
+            "aria-haspopup": "menu" as const,
+            "aria-expanded": menuOpen,
+            "aria-label": `${platform.name}: open options`,
+            onClick: (event: React.MouseEvent<HTMLElement>) => onMenu(event),
+            onKeyDown: (event: React.KeyboardEvent<HTMLElement>) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onMenu(event);
+              }
+            },
+          }
+        : {})}
     >
       {src && !failed ? (
         <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />
@@ -89,6 +111,7 @@ function WidgetCardSurface({
   onConfigure,
   onRemove,
   preview = false,
+  interactive = false,
 }: {
   widget: WidgetInstance;
   platform: WidgetPlatform;
@@ -100,6 +123,9 @@ function WidgetCardSurface({
   onConfigure?: (widget: WidgetInstance) => void;
   onRemove?: (widget: WidgetInstance) => void;
   preview?: boolean;
+  /** The public card: hover reveals the detail pop-up and the picture opens
+   *  the widget's own menu. Dashboard cards stay plain controls. */
+  interactive?: boolean;
 }) {
   const content = widget.content.trim();
   const configured = Boolean(content);
@@ -111,6 +137,49 @@ function WidgetCardSurface({
   // it swaps to that one instead of leaving bare text floating over the page.
   const bare = !hasArt && design.backgroundOpacity <= 0.05;
   const profileHref = widgetProfileUrl(platform.id, content);
+
+  // The picture opens the widget's own menu on the public card. It is placed
+  // with fixed coordinates so the card's rounded clip cannot cut it off.
+  const [menu, setMenu] = useState<{ left: number; top: number } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const toggleMenu = (event: { currentTarget: HTMLElement }) => {
+    if (menu) {
+      setMenu(null);
+      return;
+    }
+    const r = event.currentTarget.getBoundingClientRect();
+    const width = 232;
+    const left = Math.min(Math.max(r.left, 8), Math.max(8, window.innerWidth - width - 8));
+    const top = Math.min(r.bottom + 8, Math.max(8, window.innerHeight - 210));
+    setMenu({ left, top });
+  };
+
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenu(null);
+    };
+    window.addEventListener("pointerdown", close, true);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", close, true);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
+
+  const copyHandle = async () => {
+    try {
+      await navigator.clipboard.writeText(content || title);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard can be blocked; the menu still shows the value */
+    }
+  };
 
   const title = live?.title?.trim() || (configured ? content : platform.name);
   const subtitle =
@@ -186,6 +255,8 @@ function WidgetCardSurface({
             src={live?.avatar ?? null}
             decoration={live?.decoration ?? null}
             status={live?.status ?? null}
+            onMenu={interactive ? toggleMenu : undefined}
+            menuOpen={Boolean(menu)}
           />
 
           <span className="widget-card-copy">
@@ -232,6 +303,11 @@ function WidgetCardSurface({
                     {index === 0 && live?.status ? (
                       <i style={{ background: STATUS_COLORS[live.status] }} aria-hidden="true" />
                     ) : null}
+                    {/* Anything counting people who are on right now gets the
+                        same green light, so "412 online" reads at a glance. */}
+                    {/\bonline\b/i.test(item) ? (
+                      <i className="widget-card-online" aria-hidden="true" />
+                    ) : null}
                     {item}
                   </span>
                 ))}
@@ -240,6 +316,23 @@ function WidgetCardSurface({
           </span>
         </span>
       </span>
+
+      {interactive ? (
+        // Hovering the card fades this panel in over the widget: the same
+        // details, one step larger, plus where the picture's menu lives.
+        <span className="widget-card-reveal" aria-hidden="true">
+          <span className="widget-card-reveal-brand">
+            <PlatformIcon id={platform.id} size={13} />
+            {platform.name}
+          </span>
+          <b className="widget-card-reveal-title">{title}</b>
+          <span className="widget-card-reveal-sub">{subtitle}</span>
+          {meta.length ? (
+            <span className="widget-card-reveal-meta">{meta.join(" · ")}</span>
+          ) : null}
+          <span className="widget-card-reveal-hint">Press the picture for options</span>
+        </span>
+      ) : null}
 
       {onConfigure || onRemove ? (
         <span className="widget-card-actions">
@@ -265,6 +358,57 @@ function WidgetCardSurface({
           ) : null}
         </span>
       ) : null}
+
+      {menu
+        ? createPortal(
+            <div
+              className="widget-menu"
+              role="menu"
+              style={{ left: menu.left, top: menu.top }}
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <div className="widget-menu-head">
+                <span className="widget-menu-icon">
+                  <PlatformIcon id={platform.id} size={14} />
+                </span>
+                <span className="widget-menu-copy">
+                  <b>{platform.name}</b>
+                  <small>{title}</small>
+                </span>
+              </div>
+              {profileHref ? (
+                <a
+                  className="widget-menu-item"
+                  role="menuitem"
+                  href={profileHref}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  Open on {platform.name}
+                  <span aria-hidden="true">↗</span>
+                </a>
+              ) : null}
+              <button
+                type="button"
+                className="widget-menu-item"
+                role="menuitem"
+                title={content || title}
+                onClick={() => void copyHandle()}
+              >
+                {copied ? "Copied" : "Copy handle"}
+              </button>
+              <button
+                type="button"
+                className="widget-menu-item"
+                role="menuitem"
+                onClick={() => setMenu(null)}
+              >
+                Close
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
     </article>
   );
 }
@@ -275,12 +419,14 @@ export function WidgetCard({
   onConfigure,
   onRemove,
   className = "",
+  interactive = false,
 }: {
   widget: WidgetInstance;
   design: WidgetDesign;
   onConfigure?: (widget: WidgetInstance) => void;
   onRemove?: (widget: WidgetInstance) => void;
   className?: string;
+  interactive?: boolean;
 }) {
   const platform = WIDGET_PLATFORM_BY_ID.get(widget.platform);
   const result = useWidgetLive(widget);
@@ -298,6 +444,7 @@ export function WidgetCard({
       className={className}
       onConfigure={onConfigure}
       onRemove={onRemove}
+      interactive={interactive}
     />
   );
 }

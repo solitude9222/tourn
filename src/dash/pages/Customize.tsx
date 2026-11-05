@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { WIDGET_PLATFORMS, createWidgetInstance } from "../../lib/widgets";
 import { ProfilePreview } from "../../components/ProfilePreview";
+import { EntryOverlay } from "../../components/LinkerPreview";
 import { WidgetCard } from "../../components/WidgetCard";
 import { DEFAULT_BADGE_STYLE } from "../../lib/badges";
 import { DEFAULT_LINK_DESIGN } from "../../lib/links";
@@ -587,6 +588,12 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           </div>
         </div>
 
+        <div className="tw-subhead">Live preview</div>
+        {/* The real screen, not a mock — so every setting above is visible.
+            It never starts audio: the entry screen is silent here. */}
+        <div className="tw-enter-stage">
+          <EntryOverlay about={about} onEnter={() => undefined} preview />
+        </div>
       </Card>
     );
   }

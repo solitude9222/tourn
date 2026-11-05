@@ -4690,3 +4690,18 @@
 .profile-preview .lkr-widgets:has(.widget-card--wide) .widget-card:last-child:nth-child(even) {
   grid-column: 1 / -1;
 }
+
+/* The handle is part of the name, not a separate block: the gap between the
+   display name and the @handle was reading as a paragraph break. */
+.profile-preview .pv-head-text .pv-id h3 {
+  line-height: 1.02;
+}
+
+.profile-preview .pv-head-text .pv-handle {
+  margin-top: calc(3px * var(--pv-scale, 1));
+}
+
+/* Name and handle are one block: no gap between their line boxes. */
+.profile-preview .pv-head-text .pv-handle {
+  margin-top: 0;
+}
