@@ -5,8 +5,6 @@
    --------------------------------------------------------------------------- */
 
 import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
-import decorations from "../../lib/decorations.json";
-import type { CardEffectId } from "../../lib/profileAssets";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
@@ -31,18 +29,6 @@ const JOIN_OPTIONS = [
 ];
 
 const AUDIO_OPTIONS = [{ value: "bottom", label: "Screen bottom (fixed)" }];
-
-/** The effects that can run around or over the card itself. */
-const CARD_EFFECTS: { id: CardEffectId; name: string; blurb: string }[] = [
-  { id: "beam", name: "Beam", blurb: "Two light arcs chase around the edge." },
-  { id: "aurora", name: "Aurora", blurb: "A soft gradient sweep behind the card." },
-  { id: "shimmer", name: "Shimmer", blurb: "A highlight drifts across the surface." },
-  { id: "sheen", name: "Sheen", blurb: "A thin gloss line along the top edge." },
-  { id: "hologram", name: "Hologram", blurb: "Rainbow foil over the whole card." },
-  { id: "edgeGlow", name: "Edge glow", blurb: "Colour bleeding off the border." },
-  { id: "frost", name: "Frost", blurb: "Frosted glass across the card." },
-  { id: "none", name: "None", blurb: "No effect on the card." },
-];
 
 /** The three page layouts and the positions each one starts with. */
 const PAGE_LAYOUTS: {
@@ -93,12 +79,6 @@ export function LayoutPage() {
         ...current.assets,
         decoration: { ...current.assets.decoration, ...patch },
       },
-    }));
-
-  const updateCard = (patch: Partial<typeof about.assets.card>) =>
-    setAbout((current) => ({
-      ...current,
-      assets: { ...current.assets, card: { ...current.assets.card, ...patch } },
     }));
 
   // The card preview is part of the page so every slider, font and effect
@@ -329,99 +309,10 @@ export function LayoutPage() {
 
       <Card>
         <CardHead
-          icon="sparkles"
-          title="Card effect"
-          subtitle="The light that moves around your card. Beam is the ring the site uses by default."
-        />
-
-        <div className="tw-effect-grid">
-          {CARD_EFFECTS.map((effect) => (
-            <button
-              key={effect.id}
-              type="button"
-              className={`tw-effect-tile${about.assets.card.id === effect.id ? " is-active" : ""}`}
-              onClick={() => {
-                updateCard({ id: effect.id });
-                notify("Card effect", effect.id === "none" ? "Effect turned off." : `${effect.name} applied.`);
-              }}
-            >
-              <span className={`tw-effect-dot tw-effect-dot--${effect.id}`} aria-hidden="true" />
-              <b>{effect.name}</b>
-              <small>{effect.blurb}</small>
-            </button>
-          ))}
-        </div>
-
-        {/* Colour and motion only mean anything while an effect is on. */}
-        {about.assets.card.id !== "none" ? (
-          <div className="tw-split" style={{ marginTop: 18 }}>
-            <div className="tw-split-col">
-              <span className="tw-split-label">Colour</span>
-              <ColorField
-                label="Effect colour"
-                value={about.assets.card.color}
-                onChange={(value) => updateCard({ color: value })}
-              />
-            </div>
-            <div className="tw-split-col">
-              <span className="tw-split-label">Sizes &amp; sliders</span>
-              <Slider
-                label="Intensity"
-                value={about.assets.card.intensity}
-                min={0}
-                max={100}
-                suffix="%"
-                onChange={(value) => updateCard({ intensity: value })}
-              />
-              <Slider
-                label="Speed"
-                value={about.assets.card.speed}
-                min={1.5}
-                max={20}
-                step={0.5}
-                suffix="s"
-                onChange={(value) => updateCard({ speed: value })}
-              />
-            </div>
-          </div>
-        ) : (
-          <p className="tw-foot-note">Pick an effect to choose its colour and motion.</p>
-        )}
-      </Card>
-
-      <Card>
-        <CardHead
           icon="user"
           title="Profile picture"
           subtitle="Discord avatar decorations, plus how your picture sits inside the frame."
         />
-
-        <div className="tw-deco-grid">
-          <button
-            type="button"
-            className={`tw-deco tw-deco--none${!about.assets.decoration.discordUrl ? " is-active" : ""}`}
-            onClick={() => updateDecoration({ discordUrl: "" })}
-          >
-            None
-          </button>
-          {decorations.map((decoration) => (
-            <button
-              key={decoration.id}
-              type="button"
-              title={decoration.label}
-              aria-label={decoration.label}
-              className={`tw-deco${about.assets.decoration.discordUrl === decoration.url ? " is-active" : ""}`}
-              onClick={() => updateDecoration({ discordUrl: decoration.url })}
-            >
-              <img
-                src={decoration.url.replace(/size=\d+/, "size=80")}
-                alt=""
-                loading="lazy"
-                draggable={false}
-              />
-            </button>
-          ))}
-        </div>
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
           <Field label="Picture zoom">

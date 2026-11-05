@@ -329,7 +329,7 @@
   outline: 0;
   background: transparent;
   color: #c9d1d7;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 11px;
   letter-spacing: -0.02em;
 }
@@ -594,10 +594,10 @@
      caps them to the profile card width. */
   width: 100%;
   max-width: 100%;
-  min-height: 100px;
+  min-height: 112px;
   height: auto;
   flex: none;
-  padding: 12px 13px;
+  padding: 14px 15px;
   overflow: hidden;
   border: var(--wg-border-width, 1px) solid var(--wg-border-color, rgba(255, 255, 255, 0.1));
   border-radius: var(--wg-radius, 18px);
@@ -714,14 +714,14 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .widget-card-avatar {
   position: relative;
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 56px;
+  height: 56px;
   flex: none;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--wg-brand, #a8e0ff) 34%, rgba(255, 255, 255, 0.12));
@@ -788,7 +788,7 @@
 .widget-card-name b {
   overflow: hidden;
   color: #f7fafc;
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 680;
   letter-spacing: -0.018em;
   text-overflow: ellipsis;
@@ -830,7 +830,7 @@
 .widget-card-handle {
   overflow: hidden;
   color: #aab5bd;
-  font-size: 9.5px;
+  font-size: 11px;
   line-height: 1.35;
   text-overflow: ellipsis;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
@@ -948,8 +948,8 @@
 }
 
 .widget-card--preview .widget-card-avatar {
-  width: 46px;
-  height: 46px;
+  width: 56px;
+  height: 56px;
 }
 
 .widget-card--home {
@@ -1590,12 +1590,12 @@
 }
 
 .widget-card-name b {
-  font-size: 13.5px;
+  font-size: 14.5px;
   letter-spacing: -0.02em;
 }
 
 .widget-card-handle {
-  font-size: 10.5px;
+  font-size: 11px;
   color: #8f98a2;
 }
 

@@ -972,7 +972,7 @@
   border-radius: 10px;
   background: #0e0e11;
   color: var(--sub);
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 11px;
   line-height: 1.5;
   resize: vertical;
@@ -1282,7 +1282,7 @@
   padding: 46px 20px;
   background: #09080b;
   color: #fff;
-  font-family: "Lexend", "Inter", system-ui, sans-serif;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
 }
 
 .tw-gate-brand {
@@ -1784,4 +1784,83 @@
 
 .tw-prefix:focus-within {
   border-color: #3a4a72;
+}
+
+/* ── avatar decoration carousel (lives by the profile picture upload) ─── */
+.tw-deco-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 14px 0 4px;
+}
+
+.tw-deco-preview {
+  position: relative;
+  display: grid;
+  width: 140px;
+  height: 140px;
+  flex: none;
+  place-items: center;
+}
+
+.tw-deco-preview-avatar {
+  display: grid;
+  width: 140px;
+  height: 140px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1b2b3a, #0b1118);
+  color: #e8f4ff;
+  font-size: 44px;
+  font-weight: 760;
+}
+
+.tw-deco-preview-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tw-deco-preview-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 118%;
+  height: 118%;
+  translate: -50% -50%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.tw-deco-arrow {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e8f4ff;
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.tw-deco-arrow:hover {
+  border-color: rgba(168, 224, 255, 0.4);
+  background: rgba(168, 224, 255, 0.14);
+}
+
+.tw-deco-caption {
+  margin: 2px 0 0;
+  color: #9aa4ad;
+  font-size: 12px;
+  text-align: center;
 }

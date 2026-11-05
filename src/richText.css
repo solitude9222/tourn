@@ -69,7 +69,7 @@
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.28);
   color: #c8efff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 0.9em;
 }
 
@@ -86,7 +86,7 @@
     linear-gradient(180deg, rgba(168, 224, 255, 0.035), transparent 55%),
     #08090b;
   color: #d8f3ff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 10px;
   line-height: 1.55;
   white-space: pre;

@@ -232,14 +232,6 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
-      <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" />
-      {cardFx.id === "beam" ? (
-        <>
-          <span className="pv-beam-glow pv-beam-glow--tl" aria-hidden="true" />
-          <span className="pv-beam-glow pv-beam-glow--br" aria-hidden="true" />
-        </>
-      ) : null}
-
       {showViews && viewPosition === "top-right" ? (
         <span className="pv-views pv-views--corner" aria-label={`${viewCount} profile views`}>
           <EyeIcon size={12} />
@@ -267,6 +259,21 @@ export function ProfilePreview({
               />
             ) : null}
           </span>
+          <div
+            className={`pv-bio${bio ? "" : " is-empty"}${
+              bioEffect.effect !== "none" ? ` ${textEffectClass(bioEffect)}` : ""
+            }`}
+            style={bioEffect.effect !== "none" ? textEffectStyle(bioEffect) : undefined}
+          >
+            {bio ? (
+              <>
+                <RichText text={bio} />
+                <SparkleLayer settings={bioEffect} />
+              </>
+            ) : (
+              <span>A bio is on the way.</span>
+            )}
+          </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
           {locationPosition === "top" ? locationPill : null}
         </div>
@@ -295,22 +302,6 @@ export function ProfilePreview({
         {joinPosition === "under-name" && joined ? (
           <span className="pv-joined-inline">{joinedNode}</span>
         ) : null}
-
-        <div
-          className={`pv-bio${bio ? "" : " is-empty"}${
-            bioEffect.effect !== "none" ? ` ${textEffectClass(bioEffect)}` : ""
-          }`}
-          style={bioEffect.effect !== "none" ? textEffectStyle(bioEffect) : undefined}
-        >
-          {bio ? (
-            <>
-              <RichText text={bio} />
-              <SparkleLayer settings={bioEffect} />
-            </>
-          ) : (
-            <span>A bio is on the way.</span>
-          )}
-        </div>
 
         <ProfileLinks links={links} design={linkDesign ?? DEFAULT_LINK_DESIGN} />
 

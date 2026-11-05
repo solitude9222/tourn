@@ -7,6 +7,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
   const { first } = useAuth();
   const [rows, setRows] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(15);
 
   useEffect(() => {
     let active = true;
@@ -64,7 +65,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
           </div>
         ) : (
           <div className="board">
-            {rows.map((row, index) => (
+            {rows.slice(0, visible).map((row, index) => (
               <div
                 className="board-row"
                 key={row.id}
@@ -86,6 +87,11 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                 <span className="board-joined">Joined {formatJoined(new Date(row.joinedAt))}</span>
               </div>
             ))}
+            {rows.length > visible ? (
+              <button type="button" className="btn btn-ghost" onClick={() => setVisible((count) => count + 15)}>
+                Load 15 more
+              </button>
+            ) : null}
           </div>
         )}
       </div>

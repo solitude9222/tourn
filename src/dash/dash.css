@@ -29,7 +29,7 @@
   --r-tile: 12px;
   --r-input: 10px;
   --r-bar: 14px;
-  --font: "Lexend", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Segoe UI", "Lexend", system-ui, -apple-system, sans-serif;
 
   --rail-w: 320px;
 
@@ -3074,7 +3074,7 @@
 }
 
 .tw-color-readout code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font);
   letter-spacing: 0.02em;
 }
 

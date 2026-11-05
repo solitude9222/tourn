@@ -22,7 +22,7 @@
   --spotify: #1db954;
   --steam: #66c0f4;
   /* Lexend: geometric, round letterforms, open even spacing. */
-  --font: "Lexend", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Segoe UI", "Lexend", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark;
 }
@@ -673,8 +673,9 @@ button {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
-  gap: 58px;
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+  gap: 0;
   align-items: center;
   padding-top: 42px;
   padding-bottom: 92px;
@@ -2532,7 +2533,7 @@ button {
 
 .auth-demo code {
   color: #f2dda0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "Lexend", "Segoe UI", system-ui, sans-serif;
   font-size: 10.5px;
 }
 
@@ -4324,8 +4325,8 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
    "tourn.lol" is wider than that, so it ran underneath the card. */
 @media (min-width: 1221px) {
   .hero-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 660px);
-    gap: 48px;
+    grid-template-columns: minmax(0, 760px);
+    gap: 0;
   }
 
   .hero-card-slot {

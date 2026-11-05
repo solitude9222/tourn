@@ -5,6 +5,7 @@
 import { useRef, useState } from "react";
 import { formatJoined } from "../../lib/format";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
+import decorations from "../../lib/decorations.json";
 import { useDash } from "../context";
 import { copyText, fileToDataUrl, imageToDataUrl } from "../files";
 import {
@@ -17,6 +18,7 @@ import {
   Field,
   Icon,
   IconButton,
+  Modal,
   Select,
   Slider,
   TextInput,
@@ -31,6 +33,7 @@ export function AccountProfilePage() {
   const { user, about, setAbout, notify, go } = useDash();
   const avatarInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [decoOpen, setDecoOpen] = useState(false);
 
   const avatarUrl = about.assets.avatarUrl || user.avatarUrl || "";
   const joined = formatJoined(new Date(user.joinedAt));
@@ -60,6 +63,22 @@ export function AccountProfilePage() {
   const assets = about.assets;
   const updateAssets = (patch: Partial<typeof assets>) =>
     setAbout((current) => ({ ...current, assets: { ...current.assets, ...patch } }));
+
+  // Decoration carousel: index 0 is "none", the rest are Discord's presets.
+  const decoOptions = [
+    { id: "none", label: "No decoration", url: "" },
+    ...decorations.map((entry) => ({ id: entry.id, label: entry.label, url: entry.url })),
+  ];
+  const decoIndex = Math.max(
+    0,
+    decoOptions.findIndex((entry) => entry.url === assets.decoration.discordUrl),
+  );
+  const activeDeco = decoOptions[decoIndex] ?? decoOptions[0];
+  const pickDeco = (index: number) => {
+    const next = decoOptions[(index + decoOptions.length) % decoOptions.length];
+    if (!next) return;
+    updateAssets({ decoration: { ...assets.decoration, discordUrl: next.url } });
+  };
 
   const picker = useRef<HTMLInputElement>(null);
   const pickHandler = useRef<((file: File) => Promise<void>) | null>(null);
@@ -142,6 +161,9 @@ export function AccountProfilePage() {
                   Remove
                 </Button>
               ) : null}
+              <Button icon="sparkles" onClick={() => setDecoOpen(true)}>
+                {about.assets.decoration.discordUrl ? "Change decoration" : "Add decoration"}
+              </Button>
             </div>
           </div>
           <input
@@ -155,6 +177,82 @@ export function AccountProfilePage() {
             }}
           />
         </div>
+
+        <Modal
+          open={decoOpen}
+          title="Avatar decoration"
+          subtitle="Decorate the picture that shows on your profile."
+          onClose={() => setDecoOpen(false)}
+          footer={
+            <Button variant="primary" onClick={() => setDecoOpen(false)}>
+              Done
+            </Button>
+          }
+        >
+          <div className="tw-deco-stage">
+            <button
+              type="button"
+              className="tw-deco-arrow"
+              aria-label="Previous decoration"
+              onClick={() => pickDeco(decoIndex - 1)}
+            >
+              ‹
+            </button>
+            <span className="tw-deco-preview">
+              <span className="tw-deco-preview-avatar">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" />
+                ) : (
+                  (about.displayName || user.username).slice(0, 1).toUpperCase()
+                )}
+              </span>
+              {activeDeco.url ? (
+                <img
+                  className="tw-deco-preview-overlay"
+                  src={activeDeco.url.replace(/size=\d+/, "size=160")}
+                  alt=""
+                  draggable={false}
+                />
+              ) : null}
+            </span>
+            <button
+              type="button"
+              className="tw-deco-arrow"
+              aria-label="Next decoration"
+              onClick={() => pickDeco(decoIndex + 1)}
+            >
+              ›
+            </button>
+          </div>
+          <p className="tw-deco-caption">{activeDeco.label}</p>
+
+          <div className="tw-form-grid" style={{ marginTop: 18 }}>
+            <Field label="Picture zoom">
+              <Slider
+                label="Zoom"
+                value={Math.round((assets.decoration.zoom ?? 1) * 100)}
+                min={60}
+                max={200}
+                suffix="%"
+                onChange={(value) =>
+                  updateAssets({ decoration: { ...assets.decoration, zoom: value / 100 } })
+                }
+              />
+            </Field>
+            <Field label="Picture rotation">
+              <Slider
+                label="Rotation"
+                value={assets.decoration.rotate ?? 0}
+                min={-180}
+                max={180}
+                suffix="°"
+                onChange={(value) =>
+                  updateAssets({ decoration: { ...assets.decoration, rotate: value } })
+                }
+              />
+            </Field>
+          </div>
+        </Modal>
 
         <div className="tw-form-grid" style={{ marginTop: 22 }}>
           <Field label="Display name" help>

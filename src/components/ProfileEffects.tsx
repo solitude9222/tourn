@@ -7,7 +7,6 @@ import type {
 } from "../lib/profileAssets";
 import { TEXT_EFFECT_PARAM } from "../lib/profileAssets";
 import { mountBgEffect } from "../lib/bgEffects";
-import { loadGoogleFont } from "../lib/fonts";
 
 function randomish(index: number, salt = 1): number {
   const n = Math.sin(index * 12.9898 + salt * 78.233) * 43758.5453;
@@ -155,7 +154,7 @@ export function textEffectStyle(settings: TextEffectSettings): CSSProperties {
     "--fx-amp": `${amount}px`,
     "--fx-band": `${100 + amount * 2}%`,
     "--fx-dim": `${1 - settings.params.amount / 100}`,
-    fontFamily: settings.font || undefined,
+    fontFamily: '"Segoe UI", "Lexend", system-ui, sans-serif',
   } as CSSProperties;
 }
 
@@ -168,14 +167,6 @@ export function textEffectClass(settings: TextEffectSettings): string {
     : settings.effect === "neon" && flagOff ? " fx-no-flicker"
     : "";
   return `fx-text-wrap fx-text-wrap--${settings.effect}${flagClass}`;
-}
-
-/** Ensures a chosen Google Font is actually requested wherever text using it
- *  renders — the editor, a live preview, and a saved public page alike. */
-function useEffectFont(family: string) {
-  useEffect(() => {
-    if (family) loadGoogleFont(family);
-  }, [family]);
 }
 
 function Sparkles({ settings }: { settings: TextEffectSettings }) {
@@ -209,12 +200,11 @@ export function EffectText({
   settings: TextEffectSettings;
   className?: string;
 }) {
-  useEffectFont(settings.font);
   const style = textEffectStyle(settings);
   const classes = `fx-text ${className}${textEffectClass(settings) ? ` ${textEffectClass(settings)}` : ""}`;
 
   if (settings.effect === "none") {
-    return <span className={classes} style={settings.font ? { fontFamily: settings.font } : undefined}>{text}</span>;
+    return <span className={classes}>{text}</span>;
   }
 
   if (settings.effect === "wave" || settings.effect === "bounce") {

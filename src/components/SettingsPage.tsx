@@ -16,8 +16,10 @@ type SettingsNavigateTarget = "about" | "widgets" | "links";
 
 export function SettingsPage({
   onNavigate,
+  onReset,
 }: {
   onNavigate?: (page: SettingsNavigateTarget) => void;
+  onReset?: () => void;
 }) {
   const { user, isPremiumUser, setAlias, setAlias2, security, configured, isAdmin, linkDiscord } =
     useAuth();
@@ -311,6 +313,29 @@ export function SettingsPage({
             .
           </p>
         ) : null}
+      </Card>
+
+      <Card>
+        <CardHead
+          icon="refresh"
+          title="Reset"
+          subtitle="Put your profile appearance back to the tourn.lol defaults."
+        />
+        <div className="tw-set-row">
+          <span className="tw-set-row-icon">
+            <Icon name="refresh" size={16} />
+          </span>
+          <span className="tw-set-row-copy">
+            <b>Reset to defaults</b>
+            <small>
+              Card colours, layout, widget style and effects go back to how they shipped. Your bio,
+              links and uploaded artwork stay.
+            </small>
+          </span>
+          <Button icon="refresh" disabled={!onReset} onClick={onReset}>
+            Reset to defaults
+          </Button>
+        </div>
       </Card>
     </div>
   );

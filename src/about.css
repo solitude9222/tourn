@@ -224,7 +224,7 @@
 }
 
 .rich-tool i {
-  font-family: Georgia, serif;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 13px;
 }
 
@@ -263,7 +263,7 @@
 }
 
 .rich-tool-quote {
-  font-family: Georgia, serif;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 16px;
   transform: translateY(-1px);
 }
@@ -273,7 +273,7 @@
 }
 
 .rich-tool-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 8.5px;
   letter-spacing: -0.08em;
 }
@@ -351,7 +351,7 @@
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.04);
   color: #8fb6c8;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 8.5px;
 }
 
@@ -642,8 +642,7 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-image:
-    radial-gradient(240px 130px at 22% 0%, rgba(255, 255, 255, 0.18), transparent 70%),
-    linear-gradient(120deg, color-mix(in srgb, var(--pv-accent) 55%, transparent), transparent 72%);
+    radial-gradient(240px 130px at 22% 0%, rgba(255, 255, 255, 0.18), transparent 70%);
 }
 
 .pv-banner::after {
@@ -772,15 +771,6 @@
   opacity: 0.36;
 }
 
-.pv-theme-portfolio::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 62px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--pv-accent) 16%, transparent), transparent);
-  pointer-events: none;
-}
-
 .pv-theme-modern {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--pv-accent) 14%, transparent),
@@ -798,6 +788,36 @@
   align-items: center;
   gap: calc(12px * var(--pv-scale, 1));
   margin-bottom: calc(20px * var(--pv-scale, 1));
+}
+
+/* The bio lives in the avatar row now. It sits quietly under the picture,
+   clamped to two lines, and opens up when the avatar row is hovered or
+   focused so long descriptions stay reachable without a second block. */
+.pv-topline .pv-bio {
+  min-width: 0;
+  flex: 1 1 200px;
+  max-width: 380px;
+  margin: 0;
+  font-size: max(11px, calc(var(--pv-bio-size, 20px) * 0.68));
+  line-height: 1.45;
+  opacity: 0.55;
+  max-height: calc(1.45em * 2);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
+  mask-image: linear-gradient(180deg, #000 60%, transparent);
+  transition: opacity 0.25s ease, max-height 0.3s ease;
+}
+
+.pv-topline:hover .pv-bio,
+.pv-topline:focus-within .pv-bio {
+  opacity: 0.95;
+  max-height: 16em;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.pv-topline .pv-bio.is-empty {
+  display: none;
 }
 
 .pv-avatar {
@@ -1051,7 +1071,9 @@
 .pv-layout-left .pv-topline {
   grid-column: 1;
   grid-row: 1 / span 3;
+  flex-direction: column;
   align-items: flex-start;
+  gap: calc(10px * var(--pv-scale, 1));
   margin-bottom: 0;
 }
 
@@ -1081,12 +1103,10 @@
   margin-top: 0;
 }
 
-.pv-layout-left .pv-bio {
-  grid-column: 1 / -1;
-  grid-row: 4;
-  justify-self: stretch;
-  margin-top: calc(16px * var(--pv-scale, 1));
-  text-align: center;
+.pv-layout-left .pv-topline .pv-bio {
+  max-width: calc(220px * var(--pv-scale, 1));
+  margin-top: 0;
+  text-align: left;
 }
 
 /* widgets stay inside the card here, but shrink into a horizontal row. */

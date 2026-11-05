@@ -16,7 +16,7 @@
   --adm-muted: #a1a1aa;
   --adm-dim: #71717a;
   --adm-green: #6ee7b7;
-  --adm-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
+  --adm-mono: "Segoe UI", "Lexend", system-ui, sans-serif;
   display: grid;
   align-content: start;
   gap: 14px;

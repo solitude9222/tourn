@@ -73,6 +73,7 @@ export function AssetBrowserPage() {
   const [uploadType, setUploadType] = useState<LibraryAssetType>("Avatar");
   const [viewing, setViewing] = useState<LibraryAsset | null>(null);
   const [busy, setBusy] = useState(false);
+  const [visible, setVisible] = useState(15);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const persist = (next: LibraryAsset[]) => {
@@ -167,7 +168,7 @@ export function AssetBrowserPage() {
 
   const grid = (assets: LibraryAsset[]) => (
     <div className="tw-asset-grid">
-      {assets.map((asset) => (
+      {assets.slice(0, visible).map((asset) => (
         <article className="tw-asset-card" key={asset.id}>
           <div className="tw-asset-preview">
             {asset.type === "Avatar" || asset.type === "Background" ? (
@@ -205,6 +206,11 @@ export function AssetBrowserPage() {
           </div>
         </article>
       ))}
+      {assets.length > visible ? (
+        <button type="button" className="btn btn-ghost" onClick={() => setVisible((count) => count + 15)}>
+          Load 15 more
+        </button>
+      ) : null}
     </div>
   );
 
@@ -373,6 +379,7 @@ export function LeaderboardPage() {
   const { user, profileViews } = useDash();
   const [rows, setRows] = useState<LeaderboardEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [shown, setShown] = useState(15);
 
   useEffect(() => {
     let alive = true;
@@ -418,7 +425,7 @@ export function LeaderboardPage() {
         </div>
       ) : rows.length ? (
         <div className="tw-lb">
-          {rows.map((row, index) => (
+          {rows.slice(0, shown).map((row, index) => (
             <a
               key={row.username}
               className={`tw-lb-row${row.username === user.username ? " is-you" : ""}`}
@@ -440,6 +447,11 @@ export function LeaderboardPage() {
               </span>
             </a>
           ))}
+          {rows.length > shown ? (
+            <button type="button" className="btn btn-ghost" onClick={() => setShown((count) => count + 15)}>
+              Load 15 more
+            </button>
+          ) : null}
         </div>
       ) : (
         <EmptyState
@@ -533,6 +545,8 @@ export function TemplatesPage() {
 
   const [shares, setShares] = useState<TemplateShare[]>(() => loadShares(user.id));
   const [received, setReceived] = useState<TemplateShare[]>(() => loadReceived(user.id));
+  const [shownShares, setShownShares] = useState(15);
+  const [shownReceived, setShownReceived] = useState(15);
   const [preview, setPreview] = useState<{ name: string; snapshot: TemplateSnapshot } | null>(null);
   const [applying, setApplying] = useState<{ name: string; snapshot: TemplateSnapshot } | null>(null);
   const [pickedParts, setPickedParts] = useState<TemplatePart[]>([]);
@@ -676,7 +690,7 @@ export function TemplatesPage() {
         />
         {shares.length ? (
           <div className="tw-share-list">
-            {shares.map((share) => (
+            {shares.slice(0, shownShares).map((share) => (
               <div className="tw-share-row" key={share.id}>
                 <span className="tw-share-thumb">
                   {(() => {
@@ -708,6 +722,15 @@ export function TemplatesPage() {
                 </div>
               </div>
             ))}
+            {shares.length > shownShares ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setShownShares((count) => count + 15)}
+              >
+                Load 15 more
+              </button>
+            ) : null}
           </div>
         ) : (
           <EmptyState
@@ -737,7 +760,7 @@ export function TemplatesPage() {
         />
         {received.length ? (
           <div className="tw-share-list">
-            {received.map((share) => {
+            {received.slice(0, shownReceived).map((share) => {
               const snapshot = decodeTemplate(share.code);
               return (
                 <div className="tw-share-row" key={share.id}>
@@ -777,6 +800,15 @@ export function TemplatesPage() {
                 </div>
               );
             })}
+            {received.length > shownReceived ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setShownReceived((count) => count + 15)}
+              >
+                Load 15 more
+              </button>
+            ) : null}
           </div>
         ) : (
           <EmptyState
