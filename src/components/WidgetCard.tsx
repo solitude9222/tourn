@@ -150,6 +150,8 @@ function WidgetCardSurface({
     "--wg-radius": `${design.radius}px`,
     "--wg-brand": platform.color,
     "--wg-scale": design.scale,
+    "--wg-edge": design.outlineColor,
+    "--wg-edge-speed": `${design.outlineSpeed || 4}s`,
   } as CSSProperties;
 
   return (
@@ -159,6 +161,10 @@ function WidgetCardSurface({
       }${loading && !live ? " is-loading" : ""}${error ? " has-error" : ""}${
         compact ? " is-compact" : ""
       }${bare ? " is-bare" : ""}${preview ? " widget-card--preview" : ""}${
+        design.outlineEffect && design.outlineEffect !== "none"
+          ? ` has-edge-${design.outlineEffect}`
+          : ""
+      }${design.hoverLift === false ? " no-lift" : ""}${
         className ? ` ${className}` : ""
       }`}
       style={style}

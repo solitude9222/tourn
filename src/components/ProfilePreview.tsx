@@ -3,16 +3,16 @@ import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
 import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
-import { DEFAULT_BADGE_STYLE, badgeDef, type BadgeInstance, type BadgeStyle } from "../lib/badges";
+import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
 import { useTilt } from "../lib/useTilt";
 import { EffectText, SparkleLayer, textEffectClass, textEffectStyle } from "./ProfileEffects";
-import { BadgeChip, BadgeRow } from "./BadgeRow";
+import { BadgeRow } from "./BadgeRow";
 import { ProfileLinks } from "./ProfileLinks";
 import { AudioPlayer } from "./AudioPlayer";
 import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
-import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
+import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
 
 /** The card is full-bleed on phones, so its type has to follow the screen. */
@@ -82,11 +82,13 @@ export function ProfilePreview({
   // never show a tooltip; only these two do.
   const tooltips = design.tooltips ?? DEFAULT_ABOUT_DESIGN.tooltips;
   const uid = accountUid(user);
-  const [badgeInfo, setBadgeInfo] = useState(false);
   const tiltEnabled = (design.tilt ?? 0) > 0;
   const tilt = useTilt(design.tilt ?? 0, Boolean(design.tiltInvert));
   const viewPosition = design.viewPosition ?? "top-right";
-  const joinPosition = design.joinPosition ?? "footer";
+  // The join date is part of the identity now: display name, handle, then the
+  // date. "footer" is still accepted from older saved profiles but reads the
+  // same as "under-name" so nobody's card silently loses the date.
+  const joinPosition = design.joinPosition === "hidden" ? "hidden" : "under-name";
   const locationPosition = design.locationPosition ?? "under-name";
   const viewCount = typeof views === "number" ? views : null;
   const showViews = viewCount !== null && viewPosition !== "hidden";
@@ -96,7 +98,9 @@ export function ProfilePreview({
   const hasLinks = visibleLinks.length > 0;
   const hasAudio = assets.audio.style !== "none" && Boolean(assets.audio.fileUrl);
   const showJoined = Boolean(joined) && joinPosition !== "hidden";
-  const wornBadges = badges.filter((badge) => badge.visible && badgeDef(badge.id));
+  // The badge rail carries no explanation popover any more: the little arrow
+  // that opened it pushed the rail away from the name. Each badge still shows
+  // its own tooltip on hover.
   const badgeRow =
     badges.length > 0 && design.badgePosition !== "hidden" ? (
       <div className={`pv-badges pv-badges--${design.badgePosition}`}>
@@ -108,38 +112,7 @@ export function ProfilePreview({
             tooltipStyle={tooltips.style}
             tooltipEnabled={tooltips.enabled}
           />
-          {wornBadges.length ? (
-            <button
-              type="button"
-              className={`pv-badge-more${badgeInfo ? " is-open" : ""}`}
-              aria-expanded={badgeInfo}
-              aria-label="What these badges mean"
-              onClick={(event) => {
-                event.stopPropagation();
-                setBadgeInfo((open) => !open);
-              }}
-            >
-              <ChevronIcon size={10} />
-            </button>
-          ) : null}
         </span>
-
-        {badgeInfo && wornBadges.length ? (
-          <div className="pv-badge-list">
-            {wornBadges.map((badge) => {
-              const def = badgeDef(badge.id);
-              if (!def) return null;
-              return (
-                <div className="pv-badge-list-row" key={badge.id}>
-                  <BadgeChip badge={badge} style={badgeStyle ?? DEFAULT_BADGE_STYLE} size={16} />
-                  <span>
-                    <b>{def.name}</b> {def.requirement}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
       </div>
     ) : null;
 
@@ -268,6 +241,8 @@ export function ProfilePreview({
               identifies the person (name, handle, badges, bio) stacked in the
               column beside it. */}
           <div className="pv-head-text">
+            {/* name and badges share one line, so the rail sits right beside
+                the name instead of floating to the far edge of the card */}
             <div className="pv-id">
               <h3>
                 {/* The account number belongs to the name, not the picture:
@@ -276,14 +251,19 @@ export function ProfilePreview({
                   <EffectText text={displayName} settings={assets.effects.text.name} />
                 </Tooltip>
               </h3>
+              {inlineBadges || design.badgePosition === "default" || design.badgePosition === "above-name"
+                ? badgeRow
+                : null}
             </div>
 
             <div className="pv-ident">
               <span className="pv-handle">
                 <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
               </span>
-              {inlineBadges || design.badgePosition === "default" ? badgeRow : null}
             </div>
+
+            {showJoined ? <span className="pv-joined-inline">{joinedNode}</span> : null}
+            {locationPosition === "under-name" ? locationPill : null}
 
             <div
               className={`pv-bio${bio ? "" : " is-empty"}${
@@ -306,35 +286,26 @@ export function ProfilePreview({
         </div>
 
         {design.badgePosition === "top-right" && !inlineBadges ? badgeRow : null}
-        {design.badgePosition === "above-name" && !inlineBadges ? badgeRow : null}
-
-        {locationPosition === "under-name" ? locationPill : null}
-        {joinPosition === "under-name" && joined ? (
-          <span className="pv-joined-inline">{joinedNode}</span>
-        ) : null}
 
         {children}
 
         {hasLinks ? (
           <div className="pv-links-block">
-            <span className="pv-section-title">Links</span>
             <ProfileLinks links={visibleLinks} design={linkDesign ?? DEFAULT_LINK_DESIGN} />
           </div>
         ) : null}
 
         {hideAudio || !hasAudio ? null : (
           <div className="pv-audio-block">
-            <span className="pv-section-title">Music</span>
             <AudioPlayer settings={assets.audio} enabled={!entryActive} />
           </div>
         )}
 
         {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
 
-        {showJoined && (joinPosition === "footer" || viewPosition === "footer") ? (
+        {locationPosition === "footer" || viewPosition === "footer" ? (
           <div className="pv-foot">
-            {joinPosition === "footer" && joined ? joinedNode : <span />}
-            {locationPosition === "footer" && locationPill}
+            {locationPosition === "footer" ? locationPill : <span />}
             {viewPosition === "footer" ? viewsNode : null}
           </div>
         ) : null}

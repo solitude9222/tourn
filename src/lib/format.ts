@@ -28,23 +28,42 @@ export function formatJoined(date: Date): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
+/**
+ * Reads the join date the API sends. Postgres emits `2025-01-15 12:00:00+00`
+ * for a timestamptz, and that space-separated form is not ISO 8601 — Safari
+ * returns an invalid date for it, which made the card print a broken date.
+ */
+export function parseDate(value: string | Date | null | undefined): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  let text = value.trim();
+  if (!text) return null;
+  if (text.includes(" ")) text = text.replace(" ", "T");
+  // `+00` is not a valid ISO offset — Postgres omits the minutes.
+  if (/[+-]\d{2}$/.test(text)) text += ":00";
+  const date = new Date(text);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 /** Join date in the format chosen in Customize › Profile. */
 export function formatJoinDate(
-  date: Date,
+  value: Date | string | null | undefined,
   format: "relative" | "us" | "eu" = "relative",
 ): string {
+  const date = parseDate(value);
+  if (!date) return "";
   if (format === "relative") {
-    const months = Math.max(
-      0,
-      Math.round((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24 * 30.44)),
-    );
-    if (months < 1) return "just now";
+    // Calendar-accurate from the first day: "just now" used to swallow the
+    // whole first month, so a three-day-old account read as if it had just
+    // signed up and a year was rounded up with Math.round.
+    const days = Math.floor((Date.now() - date.getTime()) / 86_400_000);
+    if (days <= 0) return "today";
+    if (days === 1) return "yesterday";
+    if (days < 30) return `${days} days ago`;
+    const months = Math.floor(days / 30.4375);
     if (months < 12) return `${months} ${months === 1 ? "month" : "months"} ago`;
     const years = Math.floor(months / 12);
-    const rest = months % 12;
-    return rest
-      ? `${years}y ${rest}m ago`
-      : `${years} ${years === 1 ? "year" : "years"} ago`;
+    return `${years} ${years === 1 ? "year" : "years"} ago`;
   }
   const day = date.getDate();
   const month = date.getMonth() + 1;

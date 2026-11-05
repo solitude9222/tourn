@@ -112,6 +112,9 @@ export function widgetProfileUrl(platformId: string, content: string): string | 
 
 export type WidgetBackground = "frosted" | "gradient" | "rgb" | "solid" | "art";
 
+/** A line of light that runs around the widget's edge. */
+export type WidgetOutlineEffect = "none" | "trace" | "march" | "pulse" | "glow";
+
 export type WidgetDesign = {
   backgroundStyle: WidgetBackground;
   borderWidth: number;
@@ -131,6 +134,14 @@ export type WidgetDesign = {
   showMeta: boolean;
   /** Show every Discord badge the account carries on the card. */
   showBadges: boolean;
+  /** A line of light travelling around the card edge. */
+  outlineEffect: WidgetOutlineEffect;
+  /** Colour of that line. */
+  outlineColor: string;
+  /** Seconds for one full lap — lower is faster. */
+  outlineSpeed: number;
+  /** Lift the card a pixel on hover. */
+  hoverLift: boolean;
 };
 
 export type WidgetStore = {
@@ -153,6 +164,10 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   scale: 1,
   showMeta: true,
   showBadges: true,
+  outlineEffect: "none",
+  outlineColor: "#b4bffa",
+  outlineSpeed: 4,
+  hoverLift: true,
 };
 
 const baseOptions = (): WidgetOption[] => [
@@ -938,6 +953,14 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
         scale: clamp(rawDesign.scale, DEFAULT_WIDGET_DESIGN.scale, 0.85, 1.15),
         showMeta: rawDesign.showMeta !== false,
         showBadges: rawDesign.showBadges !== false,
+        outlineEffect: (["none", "trace", "march", "pulse", "glow"] as const).includes(
+          rawDesign.outlineEffect as WidgetOutlineEffect,
+        )
+          ? (rawDesign.outlineEffect as WidgetOutlineEffect)
+          : DEFAULT_WIDGET_DESIGN.outlineEffect,
+        outlineColor: color(rawDesign.outlineColor, DEFAULT_WIDGET_DESIGN.outlineColor),
+        outlineSpeed: clamp(rawDesign.outlineSpeed, DEFAULT_WIDGET_DESIGN.outlineSpeed, 1, 12),
+        hoverLift: rawDesign.hoverLift !== false,
       },
     };
   } catch {

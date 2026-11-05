@@ -3662,66 +3662,6 @@
   gap: calc(10px * var(--pv-scale, 1));
 }
 
-/* A small arrow on the rail, so the badges can explain themselves. */
-.pv-badge-more {
-  display: grid;
-  width: calc(14px * var(--pv-scale, 1));
-  height: calc(14px * var(--pv-scale, 1));
-  flex: none;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: rgba(255, 255, 255, 0.45);
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-
-.pv-badge-more svg {
-  transition: transform 0.18s ease;
-}
-
-.pv-badge-more:hover,
-.pv-badge-more.is-open {
-  color: #ffffff;
-}
-
-.pv-badge-more.is-open svg {
-  transform: rotate(180deg);
-}
-
-.pv-badge-list {
-  display: grid;
-  width: 100%;
-  gap: calc(7px * var(--pv-scale, 1));
-  margin-top: calc(10px * var(--pv-scale, 1));
-  padding: calc(11px * var(--pv-scale, 1)) calc(13px * var(--pv-scale, 1));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: calc(12px * var(--pv-scale, 1));
-  background: rgba(10, 12, 18, 0.72);
-  backdrop-filter: blur(10px);
-  text-align: left;
-}
-
-.pv-badge-list-row {
-  display: flex;
-  align-items: flex-start;
-  gap: calc(8px * var(--pv-scale, 1));
-  color: var(--pv-muted);
-  font-size: max(10px, calc(12px * var(--pv-scale, 1)));
-  line-height: 1.45;
-}
-
-.pv-badge-list-row b {
-  margin-right: 2px;
-  color: var(--pv-text);
-  font-weight: 600;
-}
-
-.pv-badge-list-row > span:only-child {
-  min-width: 0;
-}
-
 .profile-preview[data-name="left"] .pv-badges,
 .profile-preview[data-name="default"] .pv-badges {
   margin-left: 0;
@@ -4582,4 +4522,160 @@
   .profile-preview .lkr-widgets {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ═══ Identity header, matched to the reference card ══════════════
+   Picture on the left; the name with its badge rail on one line; the
+   handle directly under the name; the join date under the handle; the
+   bio last. Anything the settings still allow (badges beside the
+   picture, top-right, bottom) keeps working, it just is not the head.
+   ═══════════════════════════════════════════════════════════════ */
+
+.profile-preview .pv-head-text {
+  gap: 0;
+}
+
+/* The name row: name and badge rail share one line, so the rail can
+   never drift to the far edge of the card again. */
+.profile-preview .pv-id {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: calc(12px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-id h3 {
+  margin: 0;
+}
+
+.profile-preview .pv-id .pv-badges {
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: calc(5px * var(--pv-scale, 1)) calc(10px * var(--pv-scale, 1));
+  gap: calc(8px * var(--pv-scale, 1));
+  border-radius: 999px;
+  background: var(--pv-pill-bg, rgba(255, 255, 255, 0.06));
+  backdrop-filter: blur(var(--pv-pill-blur, 6px));
+}
+
+.profile-preview .pv-ident {
+  display: block;
+}
+
+/* Handle: bright and bold, directly under the name. */
+.profile-preview .pv-head-text .pv-handle {
+  display: inline-block;
+  margin-top: calc(8px * var(--pv-scale, 1));
+  color: var(--pv-text, #ffffff);
+  font-size: calc(18px * var(--pv-scale, 1));
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Join date: the third line of the identity block. */
+.profile-preview .pv-joined-inline {
+  display: flex;
+  align-items: center;
+  margin-top: calc(8px * var(--pv-scale, 1));
+  color: var(--pv-muted);
+  font-size: calc(13px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-joined-inline .pv-foot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-head-text .pv-location {
+  width: fit-content;
+  max-width: 100%;
+  margin: calc(10px * var(--pv-scale, 1)) 0 0;
+}
+
+.profile-preview .pv-head-text .pv-bio {
+  margin-top: calc(14px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-topline {
+  gap: calc(18px * var(--pv-scale, 1));
+}
+
+/* ── links: one centred row of large brand icons, like the reference ── */
+
+.profile-preview .pv-links-block {
+  margin-top: calc(24px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-links-block .pv-link-icons,
+.profile-preview[data-name="center"] .pv-links-block .pv-link-icons,
+.profile-preview[data-pfp="above"] .pv-links-block .pv-link-icons {
+  justify-content: center;
+  gap: calc(28px * var(--pv-scale, 1));
+  margin-top: 0;
+}
+
+.profile-preview .pv-links-block .pv-link-icon {
+  width: calc(42px * var(--pv-scale, 1));
+  height: calc(42px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-links-block .pv-link-icon svg {
+  width: calc(26px * var(--pv-scale, 1));
+  height: calc(26px * var(--pv-scale, 1));
+}
+
+/* Older per-layout rules centred the name row; the reference keeps the
+   identity flush left with the picture. */
+.profile-preview .pv-id {
+  justify-content: flex-start;
+}
+
+.profile-preview.pv-layout-centered .pv-id {
+  justify-content: center;
+}
+
+/* The old "centre the name" switch used to split the head in half. The
+   reference keeps picture and identity flush left; the centred layout is
+   the one that centres them, together. */
+.profile-preview[data-name="center"] .pv-id,
+.profile-preview[data-name="center"] .pv-handle,
+.profile-preview[data-name="center"] .pv-joined-inline {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.profile-preview.pv-layout-centered .pv-id {
+  justify-content: center;
+}
+
+.profile-preview.pv-layout-centered .pv-handle,
+.profile-preview.pv-layout-centered .pv-joined-inline {
+  justify-content: center;
+  text-align: center;
+}
+
+/* The pinned location reads as a quiet line under the join date — same
+   weight as the date, no pill chrome, so the identity block stays one
+   column of text. */
+.profile-preview .pv-head-text .pv-location {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: var(--pv-muted);
+  font-size: calc(13px * var(--pv-scale, 1));
+  margin-top: calc(7px * var(--pv-scale, 1));
+}
+
+/* Social icons: the reference draws them large, coloured and glowing. */
+.profile-preview .pv-links-block .pv-link-icon {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--lnk-brand, #ffffff) 45%, transparent));
+}
+
+.profile-preview .pv-links-block .pv-link-icon:hover {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--lnk-brand, #ffffff) 70%, transparent)) brightness(1.15);
+  transform: translateY(-2px);
 }

@@ -286,7 +286,6 @@ export function LinkerPreview({
 
   const widgetStack = orderedWidgets.length ? (
     <div className="lkr-widgets-block">
-      <span className="lkr-widgets-title">Connections</span>
       <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
         {orderedWidgets.slice(0, 4).map((widget) => (
           <WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker" />
@@ -328,7 +327,6 @@ export function LinkerPreview({
       {stacked && hasTrack ? (
         <div className="lkr-stack">
           <div className="lkr-audio">
-            <span className="lkr-widgets-title">Music</span>
             <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
           </div>
         </div>

@@ -10,6 +10,7 @@ import {
   WIDGET_PLATFORMS,
   WIDGET_PLATFORM_BY_ID,
   createWidgetInstance,
+  type WidgetDesign,
   type WidgetInstance,
   type WidgetPlatform,
 } from "../../lib/widgets";
@@ -382,6 +383,52 @@ export function WidgetsPage() {
                 max={28}
                 suffix="px"
                 onChange={(value) => setDesign({ radius: value })}
+              />
+            </div>
+
+            <div className="tw-subhead">Edge</div>
+            <Field label="Edge animation">
+              <Select
+                value={design.outlineEffect}
+                options={[
+                  { value: "none", label: "None" },
+                  { value: "trace", label: "Trace — a line runs the border" },
+                  { value: "march", label: "March — dashes chase each other" },
+                  { value: "pulse", label: "Pulse — the ring breathes" },
+                  { value: "glow", label: "Glow — halo around the card" },
+                ]}
+                onChange={(value) =>
+                  setDesign({ outlineEffect: value as WidgetDesign["outlineEffect"] })
+                }
+              />
+            </Field>
+
+            <div className="tw-form-grid">
+              <ColorField
+                label="Edge colour"
+                value={design.outlineColor}
+                onChange={(value) => setDesign({ outlineColor: value })}
+              />
+              <Slider
+                label="Edge speed"
+                value={design.outlineSpeed}
+                min={1}
+                max={12}
+                step={0.5}
+                suffix="s"
+                onChange={(value) => setDesign({ outlineSpeed: value })}
+              />
+            </div>
+
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Lift on hover</b>
+                <small>Nudge the card up a pixel when the pointer is on it.</small>
+              </span>
+              <Toggle
+                checked={design.hoverLift !== false}
+                onChange={(checked) => setDesign({ hoverLift: checked })}
+                label="Lift on hover"
               />
             </div>
 

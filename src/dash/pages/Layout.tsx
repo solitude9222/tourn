@@ -22,7 +22,6 @@ const LOCATION_OPTIONS = [
 ];
 
 const JOIN_OPTIONS = [
-  { value: "footer", label: "Card footer" },
   { value: "under-name", label: "Under your name" },
   { value: "hidden", label: "Hidden" },
 ];
@@ -43,7 +42,7 @@ const PAGE_LAYOUTS: {
     description:
       "One card: your details, the two-by-two widget block, links and the player below.",
     viewPosition: "top-right",
-    joinPosition: "footer",
+    joinPosition: "under-name",
   },
   {
     id: "left",
@@ -58,7 +57,7 @@ const PAGE_LAYOUTS: {
     name: "Centered",
     description: "Picture and name centred, with the widget and link blocks below.",
     viewPosition: "top-right",
-    joinPosition: "footer",
+    joinPosition: "under-name",
   },
 ];
 
@@ -178,7 +177,7 @@ export function LayoutPage() {
               updateDesign({
                 viewPosition: "top-right",
                 locationPosition: "under-name",
-                joinPosition: "footer",
+                joinPosition: "under-name",
               });
               notify("Widget positions", "Reset to the defaults — save to publish it.");
             }}

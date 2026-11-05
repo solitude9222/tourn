@@ -289,7 +289,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   bioPosition: "center",
   avatarShape: "circle",
   viewPosition: "top-right",
-  joinPosition: "footer",
+  joinPosition: "under-name",
   locationPosition: "under-name",
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
@@ -354,7 +354,7 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
 
 const PFP_POSITIONS: readonly PfpPosition[] = ["default", "center", "top-right", "left", "right", "above"];
 const VIEW_POSITIONS: readonly ViewPosition[] = ["top-right", "footer", "hidden"];
-const JOIN_POSITIONS: readonly JoinPosition[] = ["footer", "under-name", "hidden"];
+const JOIN_POSITIONS: readonly JoinPosition[] = ["under-name", "hidden"];
 const LOCATION_POSITIONS: readonly LocationPosition[] = ["top", "under-name", "footer", "hidden"];
 const BADGE_POSITIONS: readonly BadgePosition[] = [
   "default",
@@ -532,7 +532,11 @@ function loadDesign(input: unknown): AboutDesign {
       ? DEFAULT_ABOUT_DESIGN.avatarShape
       : oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
     viewPosition: oneOf(raw.viewPosition, VIEW_POSITIONS, DEFAULT_ABOUT_DESIGN.viewPosition),
-    joinPosition: oneOf(raw.joinPosition, JOIN_POSITIONS, DEFAULT_ABOUT_DESIGN.joinPosition),
+    // Older documents saved "footer"; the date lives under the handle now, so
+    // it is read as "under-name" instead of disappearing.
+    joinPosition: raw.joinPosition === "footer"
+      ? "under-name"
+      : oneOf(raw.joinPosition, JOIN_POSITIONS, DEFAULT_ABOUT_DESIGN.joinPosition),
     locationPosition: oneOf(
       raw.locationPosition,
       LOCATION_POSITIONS,

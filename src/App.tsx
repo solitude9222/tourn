@@ -399,7 +399,7 @@ function ProfilePage({
           links={links}
           interactive
           views={views}
-          joined={formatJoinDate(new Date(user.joinedAt), about.metadata.joinFormat)}
+          joined={formatJoinDate(user.joinedAt, about.metadata.joinFormat)}
         />
       </section>
     );
@@ -436,7 +436,7 @@ function ProfilePage({
           interactive
           views={views}
           joined={formatJoinDate(
-            new Date(remote.data.account.joinedAt),
+            remote.data.account.joinedAt,
             document.about.metadata.joinFormat,
           )}
         />

@@ -151,14 +151,13 @@ export function ProfileCard() {
         links={live?.links ?? FALLBACK_LINKS}
         linkDesign={live?.linkDesign ?? FALLBACK_LINK_DESIGN}
         views={views}
-        joined={live?.joined ?? "Nov 2026"}
+        joined={live?.joined}
         // The hero is a preview: no music and no player chrome, but the widget
         // block stays so the card reads like a real profile.
         hideAudio
       >
         {heroCards.length ? (
           <div className="lkr-widgets-block">
-            <span className="lkr-widgets-title">Connections</span>
             <div className="lkr-widgets" style={{ gap: heroWidgets.design.gap }}>
               {heroCards}
             </div>

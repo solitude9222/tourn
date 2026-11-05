@@ -687,7 +687,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
             title="Join Date"
             description="Show when you joined"
             checked={joinOn}
-            onChange={(checked) => updateDesign({ joinPosition: checked ? "footer" : "hidden" })}
+            onChange={(checked) => updateDesign({ joinPosition: checked ? "under-name" : "hidden" })}
           />
           <ToggleTile
             icon="music"
