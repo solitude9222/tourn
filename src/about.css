@@ -3074,13 +3074,14 @@
   left: 50%;
   z-index: 50;
   transform: translateX(-50%);
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 550;
+  padding: 9px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.005em;
   white-space: nowrap;
   pointer-events: none;
-  animation: ttSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: ttSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Anchored tooltip — sits centred above its element (or below it when there is
@@ -3096,24 +3097,24 @@
   animation: none;
 }
 
-/* The bubble itself is placed by an inline transform, so the entrance runs on
-   an inner span: it swipes up while fading in, clipped from the bottom edge. */
+/* The bubble is placed by an inline transform, so the fade runs on an inner
+   span: it rises and settles into place, and fades back out when the pointer
+   leaves instead of disappearing mid-word. */
 .tt-in {
   display: block;
-  animation: ttSwipeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+  opacity: 0;
+  translate: 0 7px;
+  scale: 0.96;
+  transition:
+    opacity 0.2s ease,
+    translate 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    scale 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes ttSwipeIn {
-  from {
-    opacity: 0;
-    translate: 0 7px;
-    clip-path: inset(0 0 100% 0 round 8px);
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-    clip-path: inset(0 0 0 0 round 8px);
-  }
+.tt.is-in .tt-in {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
 }
 
 .tt--default {
@@ -3149,8 +3150,9 @@
 .tt--minimal {
   background: transparent;
   border: none;
-  color: #a0aab2;
-  font-size: 9px;
+  color: #b6bec6;
+  font-size: 12px;
+  font-weight: 600;
   padding: 2px 6px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
@@ -3898,9 +3900,9 @@
 
 /* Long tooltip text wraps instead of running off screen. */
 .tt {
-  max-width: min(320px, 70vw);
+  max-width: min(360px, 72vw);
   white-space: normal;
-  line-height: 1.35;
+  line-height: 1.4;
   text-align: center;
 }
 
@@ -4678,4 +4680,13 @@
 .profile-preview .pv-links-block .pv-link-icon:hover {
   filter: drop-shadow(0 0 14px color-mix(in srgb, var(--lnk-brand, #ffffff) 70%, transparent)) brightness(1.15);
   transform: translateY(-2px);
+}
+
+/* The Discord card leads the widget block on its own full-width row, so the
+   presence card is centred above the two-by-two stack instead of sitting in
+   one cell of it. An odd last card takes the full row too, rather than
+   leaving a hole beside it. */
+.profile-preview .lkr-widgets .widget-card--wide,
+.profile-preview .lkr-widgets:has(.widget-card--wide) .widget-card:last-child:nth-child(even) {
+  grid-column: 1 / -1;
 }

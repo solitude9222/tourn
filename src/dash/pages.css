@@ -1862,3 +1862,45 @@
   font-size: 12px;
   text-align: center;
 }
+
+/* ── decoration gallery: preview + search + every preset at once ──────── */
+.tw-deco-side {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.tw-deco-side b {
+  color: #f1f5f9;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.tw-deco-side small {
+  color: #8b95a1;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tw-deco-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+
+.tw-deco-search .tw-control {
+  flex: 1 1 auto;
+}
+
+.tw-deco-count {
+  flex: none;
+  color: #78828f;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

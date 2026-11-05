@@ -1,6 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { TooltipStyle } from "../lib/links";
+
+/** How long the pointer has to rest on the element before the bubble opens. */
+const OPEN_DELAY = 220;
+/** Matches the fade-out in about.css, so the bubble is not cut off. */
+const CLOSE_MS = 180;
 
 /**
  * A hover tooltip. It sits centred directly above the element it belongs to
@@ -16,6 +21,11 @@ import type { TooltipStyle } from "../lib/links";
  * get "stuck" on screen when React swaps the hovered node out from under the
  * cursor (polling widgets, virtualised lists, HMR) and pointerleave never
  * fires.
+ *
+ * It opens after a short rest so sweeping the pointer across a row of icons
+ * does not flash a dozen bubbles, and it closes with a fade instead of
+ * vanishing: `mounted` keeps it in the DOM for the length of that fade while
+ * `open` drives the class the CSS transitions on.
  */
 export function Tooltip({
   text,
@@ -26,16 +36,26 @@ export function Tooltip({
   style?: TooltipStyle;
   children: ReactNode;
 }) {
-  const [show, setShow] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<{ left: number; top: number; below: boolean } | null>(null);
   const wrapRef = useRef<HTMLSpanElement>(null);
   const tipRef = useRef<HTMLSpanElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const openTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const frame = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const hide = useCallback(() => {
+    clearTimeout(openTimer.current);
+    clearTimeout(closeTimer.current);
+    setOpen(false);
+    closeTimer.current = setTimeout(() => setMounted(false), CLOSE_MS);
+  }, []);
 
   // Measure after the bubble is in the DOM but before the browser paints, so
   // it is placed correctly on its very first frame (no jump from 0,0).
   useLayoutEffect(() => {
-    if (!show) {
+    if (!mounted) {
       setCoords(null);
       return;
     }
@@ -45,7 +65,7 @@ export function Tooltip({
 
     const anchor = wrap.getBoundingClientRect();
     const bubble = tip.getBoundingClientRect();
-    const gap = 8;
+    const gap = 10;
     const below = anchor.top - gap - bubble.height < 6;
 
     // Centred on the element, nudged back inside the viewport at the edges.
@@ -59,10 +79,10 @@ export function Tooltip({
     const top = below ? anchor.bottom + gap : anchor.top - gap;
 
     setCoords({ left, top, below });
-  }, [show, text]);
+  }, [mounted, text]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!mounted) return;
     const wrap = wrapRef.current;
     if (!wrap) return;
 
@@ -75,9 +95,8 @@ export function Tooltip({
         event.clientX <= r.right + 6 &&
         event.clientY >= r.top - 40 &&
         event.clientY <= r.bottom + 6;
-      if (!inside) setShow(false);
+      if (!inside) hide();
     };
-    const hide = () => setShow(false);
 
     document.addEventListener("pointermove", onDocMove, { passive: true });
     window.addEventListener("scroll", hide, true);
@@ -91,30 +110,40 @@ export function Tooltip({
       window.removeEventListener("pointerdown", hide, true);
       window.removeEventListener("blur", hide);
     };
-  }, [show]);
+  }, [mounted, hide]);
 
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(openTimer.current);
+      clearTimeout(closeTimer.current);
+      if (frame.current !== undefined) clearTimeout(frame.current);
+    },
+    [],
+  );
 
   if (!text) return <>{children}</>;
 
   const enter = () => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setShow(true), 120);
-  };
-
-  const leave = () => {
-    clearTimeout(timeoutRef.current);
-    setShow(false);
+    clearTimeout(openTimer.current);
+    clearTimeout(closeTimer.current);
+    openTimer.current = setTimeout(() => {
+      setMounted(true);
+      // One paint closed, then open — otherwise the bubble mounts already
+      // finished and the transition never runs. A timer rather than a frame,
+      // so it still opens when the tab is not painting (hidden, or a machine
+      // with animations paused).
+      frame.current = window.setTimeout(() => setOpen(true), 16);
+    }, OPEN_DELAY);
   };
 
   return (
-    <span ref={wrapRef} className="tt-wrap" onPointerEnter={enter} onPointerLeave={leave}>
+    <span ref={wrapRef} className="tt-wrap" onPointerEnter={enter} onPointerLeave={hide}>
       {children}
-      {show
+      {mounted
         ? createPortal(
             <span
               ref={tipRef}
-              className={`tt tt--fixed tt--${style}`}
+              className={`tt tt--fixed tt--${style}${open ? " is-in" : ""}`}
               role="tooltip"
               style={{
                 left: coords?.left ?? 0,

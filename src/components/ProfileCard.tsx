@@ -127,12 +127,18 @@ export function ProfileCard() {
     design: DEFAULT_WIDGET_DESIGN,
   };
   const heroVisible = heroWidgets.widgets.filter((widget) => widget.visible !== false);
-  const heroCards = heroVisible.slice(0, 4).map((widget) => (
+  // Same lead card as the real profile: Discord on its own full-width row.
+  const heroOrdered = [...heroVisible].sort((a, b) =>
+    a.platform === "discord" ? -1 : b.platform === "discord" ? 1 : 0,
+  );
+  const heroCards = heroOrdered.slice(0, 4).map((widget) => (
     <WidgetCard
       key={widget.id}
       widget={widget}
       design={heroWidgets.design}
-      className="widget-card--linker"
+      className={`widget-card--linker${
+        widget.platform === "discord" ? " widget-card--wide" : ""
+      }`}
     />
   ));
 

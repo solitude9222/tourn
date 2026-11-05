@@ -34,6 +34,7 @@ export function AccountProfilePage() {
   const avatarInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [decoOpen, setDecoOpen] = useState(false);
+  const [decoQuery, setDecoQuery] = useState("");
 
   const avatarUrl = about.assets.avatarUrl || user.avatarUrl || "";
   const joined = formatJoined(new Date(user.joinedAt));
@@ -79,6 +80,16 @@ export function AccountProfilePage() {
     if (!next) return;
     updateAssets({ decoration: { ...assets.decoration, discordUrl: next.url } });
   };
+  // "None" always stays in the grid so removing a decoration never needs a
+  // second trip; the search only narrows the presets.
+  const decoResults = decoQuery.trim()
+    ? [
+        decoOptions[0],
+        ...decoOptions
+          .slice(1)
+          .filter((entry) => entry.label.toLowerCase().includes(decoQuery.trim().toLowerCase())),
+      ]
+    : decoOptions;
 
   const picker = useRef<HTMLInputElement>(null);
   const pickHandler = useRef<((file: File) => Promise<void>) | null>(null);
@@ -190,14 +201,6 @@ export function AccountProfilePage() {
           }
         >
           <div className="tw-deco-stage">
-            <button
-              type="button"
-              className="tw-deco-arrow"
-              aria-label="Previous decoration"
-              onClick={() => pickDeco(decoIndex - 1)}
-            >
-              ‹
-            </button>
             <span className="tw-deco-preview">
               <span className="tw-deco-preview-avatar">
                 {avatarUrl ? (
@@ -215,16 +218,76 @@ export function AccountProfilePage() {
                 />
               ) : null}
             </span>
-            <button
-              type="button"
-              className="tw-deco-arrow"
-              aria-label="Next decoration"
-              onClick={() => pickDeco(decoIndex + 1)}
-            >
-              ›
-            </button>
+            <div className="tw-deco-side">
+              <b>{activeDeco.label}</b>
+              <small>
+                {activeDeco.url
+                  ? "Discord avatar decoration"
+                  : "Your picture, with no frame around it."}
+              </small>
+              <div className="tw-row" style={{ marginTop: 10 }}>
+                <Button
+                  icon="sparkles"
+                  onClick={() =>
+                    pickDeco(Math.floor(Math.random() * Math.max(1, decoOptions.length - 1)) + 1)
+                  }
+                >
+                  Surprise me
+                </Button>
+                {activeDeco.url ? (
+                  <Button
+                    icon="trash"
+                    variant="danger"
+                    onClick={() =>
+                      updateAssets({ decoration: { ...assets.decoration, discordUrl: "" } })
+                    }
+                  >
+                    Remove
+                  </Button>
+                ) : null}
+              </div>
+            </div>
           </div>
-          <p className="tw-deco-caption">{activeDeco.label}</p>
+
+          <div className="tw-deco-search">
+            <TextInput
+              icon="search"
+              placeholder="Search decorations"
+              value={decoQuery}
+              onChange={(event) => setDecoQuery(event.target.value)}
+            />
+            <span className="tw-deco-count">
+              {decoOptions.length - 1} decorations
+              {decoQuery.trim() ? ` · ${decoResults.length - 1} match` : ""}
+            </span>
+          </div>
+
+          <div className="tw-deco-grid">
+            {decoResults.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className={`tw-deco${
+                  entry.url === assets.decoration.discordUrl ? " is-active" : ""
+                }${entry.url ? "" : " tw-deco--none"}`}
+                title={entry.label}
+                aria-label={entry.label}
+                aria-pressed={entry.url === assets.decoration.discordUrl}
+                onClick={() =>
+                  updateAssets({ decoration: { ...assets.decoration, discordUrl: entry.url } })
+                }
+              >
+                {entry.url ? (
+                  <img src={entry.url.replace(/size=\d+/, "size=96")} alt="" loading="lazy" />
+                ) : (
+                  "None"
+                )}
+              </button>
+            ))}
+          </div>
+          {decoResults.length <= 1 ? (
+            <p className="tw-deco-caption">Nothing matches “{decoQuery.trim()}”.</p>
+          ) : null}
 
           <div className="tw-form-grid" style={{ marginTop: 18 }}>
             <Field label="Picture zoom">

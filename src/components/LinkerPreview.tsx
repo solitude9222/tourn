@@ -275,20 +275,24 @@ export function LinkerPreview({
   } as CSSProperties;
 
   const visibleWidgets = widgets.widgets.filter((widget) => widget.visible !== false);
-  // Stacked puts Discord presence first, then the rest in the order they were
-  // arranged; the other layouts keep the saved order.
-  const orderedWidgets =
-    design.layout === "stacked"
-      ? [...visibleWidgets].sort((a, b) =>
-          a.platform === "discord" ? -1 : b.platform === "discord" ? 1 : 0,
-        )
-      : visibleWidgets;
+  // Discord presence is the lead card on every layout: it takes the full top
+  // row, with the rest of the stack in the order they were arranged below it.
+  const orderedWidgets = [...visibleWidgets].sort((a, b) =>
+    a.platform === "discord" ? -1 : b.platform === "discord" ? 1 : 0,
+  );
 
   const widgetStack = orderedWidgets.length ? (
     <div className="lkr-widgets-block">
       <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
         {orderedWidgets.slice(0, 4).map((widget) => (
-          <WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker" />
+          <WidgetCard
+            key={widget.id}
+            widget={widget}
+            design={widgets.design}
+            className={`widget-card--linker${
+              widget.platform === "discord" ? " widget-card--wide" : ""
+            }`}
+          />
         ))}
       </div>
     </div>
