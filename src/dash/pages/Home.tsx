@@ -3,8 +3,8 @@
    --------------------------------------------------------------------------- */
 
 import { useMemo, useState } from "react";
-import { useDash } from "../context";
-import { Button, Card, CardHead, EmptyState, Icon, Segmented } from "../ui";
+import { useDash, type Page } from "../context";
+import { Button, Card, CardHead, EmptyState, Icon, Segmented, type IconName } from "../ui";
 
 const PERIODS = [
   { value: "24h", label: "Last 24 hours" },
@@ -70,7 +70,7 @@ export function ViewsChart({ total, days = 7 }: { total: number | null; days?: n
 }
 
 export function HomePage() {
-  const { user, about, settings, links, profileViews, go, notify } = useDash();
+  const { user, about, settings, links, widgets, badges, profileViews, go, notify } = useDash();
   const [period, setPeriod] = useState("7d");
   const [feedback, setFeedback] = useState("received");
 
@@ -97,6 +97,27 @@ export function HomePage() {
     },
   ];
 
+  const done = checklist.filter((item) => item.done).length;
+
+  // A quick read of the page at a glance — the four numbers the dashboard can
+  // actually count, each one a link into the page that owns it.
+  const stats: { icon: IconName; label: string; value: string | number; page: Page }[] = [
+    { icon: "eye", label: "Profile views", value: profileViews ?? "—", page: "analytics" },
+    {
+      icon: "link",
+      label: "Social links",
+      value: links.links.filter((link) => link.visible).length,
+      page: "links",
+    },
+    {
+      icon: "grid",
+      label: "Widgets",
+      value: widgets.widgets.filter((widget) => widget.visible !== false).length,
+      page: "widgets",
+    },
+    { icon: "shield", label: "Badges", value: badges.equipped.length, page: "badges" },
+  ];
+
   const views = profileViews ?? 0;
   const days =
     period === "24h" ? 1 : period === "3d" ? 3 : period === "7d" ? 7 : period === "30d" ? 30 : 90;
@@ -104,34 +125,79 @@ export function HomePage() {
   return (
     <>
       <div className="tw-home-top">
-        <div className="tw-checklist">
-          {checklist.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              className="tw-check-row"
-              onClick={item.target}
-            >
-              <span className={`tw-check-mark${item.done ? " is-done" : ""}`}>
-                {item.done ? <Icon name="check" size={12} strokeWidth={2.4} /> : null}
+        <Card className="tw-home-setup">
+          <CardHead
+            icon="check"
+            title="Finish your page"
+            subtitle="A few small steps and your profile is ready to share."
+            actions={
+              <span className="tw-home-progress-label">
+                {done} of {checklist.length} done
               </span>
-              <b>{item.label}</b>
-              <Icon name="chevron-right" size={14} className="tw-chevron" />
-            </button>
-          ))}
-        </div>
+            }
+          />
 
-        <div className="tw-home-actions">
-          <Button variant="primary" icon="crown" onClick={() => go("premium")}>
-            Get Premium
-          </Button>
-          <Button
-            icon="eye"
-            onClick={() => window.open(`/${encodeURIComponent(user.username)}`, "_blank")}
+          <div
+            className="tw-home-progress"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={checklist.length}
+            aria-valuenow={done}
           >
-            View your profile
-          </Button>
-        </div>
+            <span style={{ width: `${(done / checklist.length) * 100}%` }} />
+          </div>
+
+          <div className="tw-checklist">
+            {checklist.map((item) => (
+              <button key={item.label} type="button" className="tw-check-row" onClick={item.target}>
+                <span className={`tw-check-mark${item.done ? " is-done" : ""}`}>
+                  {item.done ? <Icon name="check" size={12} strokeWidth={2.4} /> : null}
+                </span>
+                <b>{item.label}</b>
+                <Icon name="chevron-right" size={14} className="tw-chevron" />
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="tw-home-actions">
+          <CardHead
+            icon="sparkles"
+            title="Quick actions"
+            subtitle="The two things you reach for most."
+          />
+          <div className="tw-home-actions-buttons">
+            <Button variant="primary" icon="crown" onClick={() => go("premium")}>
+              Get Premium
+            </Button>
+            <Button
+              icon="eye"
+              onClick={() => window.open(`/${encodeURIComponent(user.username)}`, "_blank")}
+            >
+              View your profile
+            </Button>
+          </div>
+        </Card>
+      </div>
+
+      <div className="tw-home-stats">
+        {stats.map((stat) => (
+          <button
+            key={stat.label}
+            type="button"
+            className="tw-home-stat"
+            onClick={() => go(stat.page)}
+          >
+            <span className="tw-home-stat-icon">
+              <Icon name={stat.icon} size={17} />
+            </span>
+            <span className="tw-home-stat-copy">
+              <b>{stat.value}</b>
+              <small>{stat.label}</small>
+            </span>
+            <Icon name="chevron-right" size={13} className="tw-home-stat-chev" />
+          </button>
+        ))}
       </div>
 
       <Card>

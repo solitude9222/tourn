@@ -5,7 +5,6 @@
    --------------------------------------------------------------------------- */
 
 import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
-import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle } from "../ui";
 
@@ -41,7 +40,8 @@ const PAGE_LAYOUTS: {
   {
     id: "stacked",
     name: "Stacked",
-    description: "Card, then Discord presence, then the rest of the widgets, audio at the bottom.",
+    description:
+      "One card: your details, the two-by-two widget block, links and the player below.",
     viewPosition: "top-right",
     joinPosition: "footer",
   },
@@ -49,14 +49,14 @@ const PAGE_LAYOUTS: {
     id: "left",
     name: "Left side",
     description:
-      "Avatar and handle top left, name and join date beside it, bio centred, widgets in one small row, links under them.",
+      "Picture on the left, name and badges beside it, join date under the name, widgets and links below.",
     viewPosition: "top-right",
     joinPosition: "under-name",
   },
   {
     id: "centered",
     name: "Centered",
-    description: "One narrow column, everything centred.",
+    description: "Picture and name centred, with the widget and link blocks below.",
     viewPosition: "top-right",
     joinPosition: "footer",
   },
@@ -81,34 +81,8 @@ export function LayoutPage() {
       },
     }));
 
-  // The card preview is part of the page so every slider, font and effect
-  // shows its result immediately — editing blind is how a change looks like it
-  // "did nothing".
-  const preview = (
-    <aside className="tw-card-preview" aria-label="Card preview">
-      <div className="tw-card-preview-inner">
-        <LinkerPreview
-          user={{
-            id: user.id,
-            username: user.username,
-            avatarUrl: about.assets.avatarUrl || user.avatarUrl,
-          }}
-          about={about}
-          widgets={widgets}
-          badges={badges}
-          links={links}
-          views={profileViews}
-          showEntry={false}
-          showMetadata={false}
-          interactive={false}
-        />
-      </div>
-    </aside>
-  );
-
   return (
     <div className="tw-card-page">
-      <div className="tw-card-main">
       <Card>
         <CardHead
           icon="layout"
@@ -131,11 +105,22 @@ export function LayoutPage() {
               }
             >
               <div className={`tw-layout-thumb tw-layout-thumb--page-${preset.id}`}>
-                <div className={`tw-layout-wire tw-layout-wire--page-${preset.id}`}>
-                  <i />
-                  <i style={{ width: 52 }} />
-                  <i style={{ width: 38 }} />
-                </div>
+                <span className="tw-layout-mini">
+                  <span className="tw-layout-mini-head">
+                    <span className="tw-layout-mini-avatar" />
+                    <span className="tw-layout-mini-lines">
+                      <i />
+                      <i />
+                    </span>
+                  </span>
+                  <span className="tw-layout-mini-grid">
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="tw-layout-mini-foot" />
+                </span>
               </div>
               <b>{preset.name}</b>
               <small>{preset.description}</small>
@@ -337,8 +322,6 @@ export function LayoutPage() {
           </Field>
         </div>
       </Card>
-      </div>
-      {preview}
     </div>
   );
 }

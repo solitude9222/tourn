@@ -181,9 +181,9 @@
   border: 0;
   border-radius: 14px;
   background: none;
-  color: var(--nav);
+  color: #a6adba;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
   transition: background 140ms ease, color 140ms ease;
@@ -191,8 +191,8 @@
 
 .tw-nav-item:hover,
 .tw-group-head:hover {
-  color: #b9bec9;
-  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .tw-nav-item.is-active {
@@ -237,17 +237,17 @@
   border-left: 2px solid transparent;
   border-radius: 8px;
   background: none;
-  color: var(--subnav);
-  font-size: 14px;
-  font-weight: 500;
+  color: #9098a7;
+  font-size: 14.5px;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
   transition: color 140ms ease, background 140ms ease;
 }
 
 .tw-subnav:hover {
-  color: #d6d9e0;
-  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .tw-subnav.is-active {
@@ -2401,15 +2401,119 @@
   gap: 12px;
 }
 
+/* The setup card holds the checklist; the bar reads its progress. */
+.tw-home-top .tw-home-setup {
+  margin-top: 0;
+}
+
+.tw-home-progress-label {
+  margin-left: auto;
+  color: #9aa1ad;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tw-home-progress {
+  height: 6px;
+  margin: 16px 0 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tw-home-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #ffffff));
+  transition: width 240ms ease;
+}
+
+/* Four counters under the top row, each one a way into its page. */
+.tw-home-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.tw-home-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.tw-home-stat:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  transform: translateY(-1px);
+}
+
+.tw-home-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.tw-home-stat-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tw-home-stat-copy b {
+  color: var(--title);
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.tw-home-stat-copy small {
+  color: #8a919c;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.tw-home-stat-chev {
+  color: #5b606b;
+}
+
+@media (max-width: 1200px) {
+  .tw-home-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The right-hand card is a normal card: titled head, then the buttons. */
 .tw-home-actions {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 10px;
+  justify-content: flex-start;
+  min-width: 0;
+  margin-top: 0;
   padding: 18px;
-  border: 2px solid var(--border);
-  border-radius: 16px;
-  background: var(--card);
+}
+
+.tw-home-actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .tw-home-actions .tw-btn {
@@ -2521,99 +2625,134 @@
 .tw-layout-thumb {
   display: grid;
   place-items: center;
-  height: 116px;
+  height: 132px;
   margin-bottom: 12px;
-  border-radius: 10px;
-  background: #161619;
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.055), transparent 62%),
+    #141519;
 }
 
-.tw-layout-wire {
+/* A miniature of the real card: picture + identity, a two-by-two widget
+   block, and the footer line. */
+.tw-layout-mini {
   display: flex;
+  width: 78%;
   flex-direction: column;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tw-layout-mini-head {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  width: 92px;
-  padding: 10px 8px;
-  border-radius: 6px;
-  background: #232327;
+  gap: 7px;
 }
 
-.tw-layout-wire i {
+.tw-layout-mini-avatar {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #2b3550);
+}
+
+.tw-layout-mini-lines {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tw-layout-mini-lines i {
   display: block;
+  width: 74%;
   height: 4px;
-  border-radius: 2px;
-  background: #3c3c43;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.38);
 }
 
-.tw-layout-wire i:first-child {
+.tw-layout-mini-lines i:last-child {
+  width: 46%;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.tw-layout-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.tw-layout-mini-grid i {
+  display: block;
+  height: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tw-layout-mini-foot {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Centred: picture above the name, everything in the head centred. */
+.tw-layout-thumb--page-centered .tw-layout-mini-head {
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tw-layout-thumb--page-centered .tw-layout-mini-avatar {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
-  background: #34343b;
+}
+
+.tw-layout-thumb--page-centered .tw-layout-mini-lines {
+  width: 100%;
+  align-items: center;
+}
+
+.tw-layout-thumb--page-centered .tw-layout-mini-lines i,
+.tw-layout-thumb--page-centered .tw-layout-mini-lines i:last-child {
+  width: 56%;
+}
+
+.tw-layout-thumb--page-centered .tw-layout-mini-foot {
+  display: none;
+}
+
+/* Left side: the join date sits under the name, not in the footer. */
+.tw-layout-thumb--page-left .tw-layout-mini-lines::after {
+  content: "";
+  display: block;
+  width: 34%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.tw-layout-thumb--page-left .tw-layout-mini-foot {
+  display: none;
 }
 
 .tw-layout-card b {
   display: block;
   color: var(--title);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .tw-layout-card small {
   display: block;
-  margin-top: 2px;
-  color: #7f8590;
+  margin-top: 3px;
+  color: #8a919c;
   font-size: 11.5px;
-}
-
-/* Per-layout widget wireframes. */
-.tw-layout-thumb--default .tw-layout-wire {
-  gap: 6px;
-}
-
-.tw-layout-thumb--compact .tw-layout-wire {
-  gap: 4px;
-  padding: 8px 7px;
-}
-
-.tw-layout-thumb--minimal .tw-layout-wire {
-  gap: 3px;
-  width: 74px;
-  padding: 7px 6px;
-}
-
-.tw-layout-thumb--minimal .tw-layout-wire i:first-child {
-  width: 16px;
-  height: 16px;
-}
-
-/* Page-layout wireframes: one column, card-plus-column, narrow centred. */
-.tw-layout-thumb--page-stacked .tw-layout-wire,
-.tw-layout-thumb--page-centered .tw-layout-wire {
-  width: 56%;
-}
-
-.tw-layout-thumb--page-centered .tw-layout-wire i {
-  margin: 0 auto;
-}
-
-.tw-layout-thumb--page-left .tw-layout-wire {
-  width: 44%;
-  margin-right: 42%;
-}
-
-.tw-layout-thumb--page-left .tw-layout-wire::after {
-  content: "";
-  position: absolute;
-  width: 26%;
-  height: 44%;
-  margin-left: 44%;
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--accent) 26%, #232327);
-}
-
-.tw-layout-thumb--page-left .tw-layout-wire {
-  position: relative;
+  line-height: 1.4;
 }
 
 /* Colour presets on the merged Card page. */
@@ -2707,7 +2846,11 @@
   .tw-asset-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
 
+/* The quick-actions card fits beside the checklist on a laptop; only a genuinely
+   narrow main column stacks it underneath. */
+@media (max-width: 1024px) {
   .tw-home-top {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -3393,43 +3536,8 @@
   font-weight: 550;
 }
 
-/* ── card page: settings on the left, the live card on the right ───────── */
+/* ── card page: the settings, full width (no live preview aside) ───────── */
 .tw-card-page {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 332px;
-  gap: 14px;
-  align-items: start;
-}
-
-.tw-card-main {
-  display: flex;
+  display: block;
   min-width: 0;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.tw-card-preview {
-  position: sticky;
-  top: 12px;
-  height: 470px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: #08070c;
-}
-
-.tw-card-preview-inner {
-  width: 200%;
-  height: 200%;
-  zoom: 0.5;
-}
-
-@media (max-width: 1240px) {
-  .tw-card-page {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .tw-card-preview {
-    display: none;
-  }
 }

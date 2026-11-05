@@ -38,6 +38,8 @@ export type Account = {
   isOwner?: boolean;
   /** True once a Discord account is attached to this account. */
   discordLinked?: boolean;
+  /** The owner's Discord id — used to prefill live presence. */
+  discordId?: string | null;
 };
 
 type AuthResult = { error?: string; needsConfirmation?: boolean };

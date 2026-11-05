@@ -216,19 +216,21 @@ function WidgetCardSurface({
             <span className={`widget-card-handle${error ? " is-error" : ""}`} title={subtitle}>
               {subtitle}
             </span>
-          </span>
-        </span>
-
-        <span className="widget-card-bottom">
-          <span className="widget-card-meta">
-            {meta.map((item, index) => (
-              <span className="widget-card-chip" key={`${item}-${index}`} title={item}>
-                {index === 0 && live?.status ? (
-                  <i style={{ background: STATUS_COLORS[live.status] }} aria-hidden="true" />
-                ) : null}
-                {item}
+            {/* The stats live inside the text column, under the subtitle, like a
+                real profile card — a separate bottom row made every card with
+                meta taller than the one beside it. */}
+            <span className="widget-card-bottom">
+              <span className="widget-card-meta">
+                {meta.map((item, index) => (
+                  <span className="widget-card-chip" key={`${item}-${index}`} title={item}>
+                    {index === 0 && live?.status ? (
+                      <i style={{ background: STATUS_COLORS[live.status] }} aria-hidden="true" />
+                    ) : null}
+                    {item}
+                  </span>
+                ))}
               </span>
-            ))}
+            </span>
           </span>
         </span>
       </span>

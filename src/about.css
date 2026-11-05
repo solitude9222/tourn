@@ -808,13 +808,9 @@
   transition: opacity 0.25s ease, max-height 0.3s ease;
 }
 
-.pv-topline:hover .pv-bio,
-.pv-topline:focus-within .pv-bio {
-  opacity: 0.95;
-  max-height: 16em;
-  -webkit-mask-image: none;
-  mask-image: none;
-}
+/* The bio is clamped, full stop. Hovering used to unlock its height and the
+   card jumped as the whole stack was pushed down. Long bios are clipped with
+   a soft fade instead of expanding. */
 
 .pv-topline .pv-bio.is-empty {
   display: none;
@@ -4304,4 +4300,286 @@
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+
+/* ═══ Reference card theme ══════════════════════════════════════
+   Every layout shares one card structure, taken from the linker-bio
+   reference: a 32px padded glass panel, a 120px picture beside a
+   left-aligned name / handle / badge / bio column, then a titled
+   two-by-two widget block, a titled links row and a titled player.
+   These rules sit last so they win over the older per-layout grids above.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.profile-preview .pv-body {
+  display: block;
+  padding: var(--pv-pad, 32px);
+  text-align: left;
+}
+
+/* Older per-layout grids sized these blocks to their content, which left a
+   dead half on the right of the card. Every block fills the padded body. */
+.profile-preview .pv-body > .pv-topline,
+.profile-preview .pv-body > .lkr-widgets-block,
+.profile-preview .pv-body > .pv-links-block,
+.profile-preview .pv-body > .pv-audio-block,
+.profile-preview .pv-body > .pv-foot {
+  width: 100%;
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+/* ── head: picture on the left, identity stacked beside it ───────── */
+
+.profile-preview .pv-topline,
+.profile-preview[data-pfp="above"] .pv-topline,
+.profile-preview[data-pfp="center"] .pv-topline,
+.profile-preview[data-pfp="top-right"] .pv-topline,
+.profile-preview[data-pfp="right"] .pv-topline {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+/* The centred layout keeps its name: the picture and the identity column sit
+   centred, while the widget, links and music blocks below stay labelled rows. */
+.profile-preview.pv-layout-centered .pv-topline {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-preview.pv-layout-centered .pv-head-text {
+  align-items: center;
+  text-align: center;
+}
+
+.profile-preview.pv-layout-centered .pv-head-text .pv-id,
+.profile-preview.pv-layout-centered .pv-head-text .pv-id > span,
+.profile-preview.pv-layout-centered .pv-head-text .pv-bio {
+  text-align: center;
+}
+
+.profile-preview.pv-layout-centered .pv-ident {
+  justify-content: center;
+}
+
+.profile-preview.pv-layout-centered .pv-location {
+  display: flex;
+  width: fit-content;
+  margin: calc(9px * var(--pv-scale, 1)) auto 0;
+}
+
+
+.pv-head-text {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+/* The identity column ignores the old centre/right name and bio switches. */
+.profile-preview .pv-head-text .pv-id,
+.profile-preview .pv-head-text .pv-id > span,
+.profile-preview .pv-head-text .pv-bio {
+  grid-column: auto;
+  grid-row: auto;
+  text-align: left;
+}
+
+.profile-preview .pv-head-text .pv-id h3 {
+  overflow: visible;
+  font-size: var(--pv-name, 36px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  white-space: normal;
+}
+
+.profile-preview .pv-head-text .pv-ident {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.profile-preview .pv-head-text .pv-handle {
+  margin: 0;
+  color: var(--pv-muted);
+  font-size: calc(18px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-head-text .pv-bio {
+  max-width: none;
+  max-height: 5.8em;
+  min-height: calc(28px * var(--pv-scale, 1));
+  flex: none;
+  margin-top: 12px;
+  overflow: hidden;
+  color: var(--pv-muted);
+  font-size: calc(var(--pv-bio-size, 20px) * var(--pv-scale, 1));
+  line-height: 1.4;
+  opacity: 1;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+
+
+/* ── titled sections ──────────────────────────────────────── */
+
+.pv-section-title,
+.lkr-widgets-title {
+  display: block;
+  margin: 0 0 10px;
+  color: var(--pv-muted, rgba(255, 255, 255, 0.6));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.profile-preview .lkr-widgets-block,
+.profile-preview .pv-links-block,
+.profile-preview .pv-audio-block {
+  margin-top: 22px;
+}
+
+/* ── widgets: four cards, two to a line ───────────────────── */
+
+.profile-preview .lkr-widgets {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 0;
+}
+
+.profile-preview .lkr-widgets .widget-card {
+  width: 100%;
+  min-height: 82px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 16px;
+}
+
+/* A single widget would sit in half a grid; let it use the full row. */
+.profile-preview .lkr-widgets:has(.widget-card:only-child) .widget-card {
+  grid-column: 1 / -1;
+}
+
+.profile-preview .widget-card-head {
+  gap: 12px;
+}
+
+.profile-preview .widget-card-avatar {
+  width: 56px;
+  height: 56px;
+}
+
+.profile-preview .widget-card-name b {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-preview .widget-card-handle,
+.profile-preview .widget-card-chip {
+  color: var(--pv-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  text-shadow: none;
+}
+
+/* The reference lists widget stats as plain text, not pills. */
+.profile-preview .widget-card-chip {
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  backdrop-filter: none;
+}
+
+.profile-preview .widget-card-inner {
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.profile-preview .widget-card-copy {
+  gap: 1px;
+}
+
+.profile-preview .widget-card-meta {
+  gap: 12px;
+  margin-top: 2px;
+}
+
+/* ── links and player: titled rows under the widget block ────────── */
+
+.profile-preview .pv-links-block,
+.profile-preview .pv-audio-block {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.profile-preview .pv-links {
+  justify-content: flex-start;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.profile-preview .pv-links-block .pv-link-icons,
+.profile-preview[data-name="center"] .pv-links-block .pv-link-icons,
+.profile-preview[data-pfp="above"] .pv-links-block .pv-link-icons {
+  justify-content: flex-start;
+  gap: 20px;
+  margin-top: 0;
+}
+
+/* The pinned pill follows the left-aligned head instead of floating centred. */
+.profile-preview[data-location="under-name"]:not(.pv-layout-centered) .pv-location {
+  margin: calc(9px * var(--pv-scale, 1)) 0 0;
+}
+
+.profile-preview .pv-audio-block .ap {
+  margin-top: 0;
+}
+
+/* ── footer ────────────────────────────────────────────────── */
+
+.profile-preview .pv-foot {
+  justify-content: flex-start;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 0;
+  border-top: 0;
+  font-size: calc(13px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-foot-item {
+  padding: 0;
+  border: 0;
+  background: none;
+  backdrop-filter: none;
+}
+
+@media (max-width: 560px) {
+  .profile-preview .pv-topline {
+    gap: 14px;
+  }
+
+  .profile-preview .pv-topline .pv-avatar {
+    width: calc(var(--pv-avatar) * 0.72);
+    height: calc(var(--pv-avatar) * 0.72);
+  }
+
+  .profile-preview .lkr-widgets {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

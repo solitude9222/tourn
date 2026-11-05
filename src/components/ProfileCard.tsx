@@ -6,8 +6,10 @@ import { DEFAULT_LINK_DESIGN, type LinkInstance, type LinkStore } from "../lib/l
 import { formatJoined } from "../lib/format";
 import { getViewCount } from "../lib/views";
 import { fetchPublicProfile, readCachedProfile, type ProfilePayload } from "../lib/serverProfile";
+import { DEFAULT_WIDGET_DESIGN, type WidgetStore } from "../lib/widgets";
 import { ArrowUpRight } from "./Icons";
 import { ProfilePreview } from "./ProfilePreview";
+import { WidgetCard } from "./WidgetCard";
 
 /**
  * The home page's example card.
@@ -36,6 +38,8 @@ const FALLBACK_BADGES: BadgeInstance[] = [
 
 const FALLBACK_LINKS: LinkInstance[] = [];
 
+
+
 const FALLBACK_LINK_DESIGN = { ...DEFAULT_LINK_DESIGN };
 
 type LiveCard = {
@@ -44,6 +48,7 @@ type LiveCard = {
   badgeStyle: BadgeStyle;
   links: LinkInstance[];
   linkDesign: typeof FALLBACK_LINK_DESIGN | LinkStore["design"];
+  widgets: WidgetStore;
   username: string;
   avatar: string;
   joined: string;
@@ -61,6 +66,7 @@ function toLiveCard(data: ProfilePayload): LiveCard | null {
     badgeStyle: document.badges.style ?? DEFAULT_BADGE_STYLE,
     links: document.links.links,
     linkDesign: document.links.design ?? DEFAULT_LINK_DESIGN,
+    widgets: document.widgets,
     username: data.account.username,
     avatar: data.account.avatarUrl || "/logo.png",
     joined: formatJoined(new Date(data.account.joinedAt)),
@@ -114,6 +120,22 @@ export function ProfileCard() {
       }
     : FALLBACK_ABOUT;
 
+  // The hero shows the widgets saved on the real profile. Nothing is invented:
+  // an account with no widgets simply gets a card without that block.
+  const heroWidgets: WidgetStore = live?.widgets ?? {
+    widgets: [],
+    design: DEFAULT_WIDGET_DESIGN,
+  };
+  const heroVisible = heroWidgets.widgets.filter((widget) => widget.visible !== false);
+  const heroCards = heroVisible.slice(0, 4).map((widget) => (
+    <WidgetCard
+      key={widget.id}
+      widget={widget}
+      design={heroWidgets.design}
+      className="widget-card--linker"
+    />
+  ));
+
   return (
     <aside className="hero-profile" aria-label="The live tourn.lol profile card">
       <ProfilePreview
@@ -130,9 +152,19 @@ export function ProfileCard() {
         linkDesign={live?.linkDesign ?? FALLBACK_LINK_DESIGN}
         views={views}
         joined={live?.joined ?? "Nov 2026"}
-        // The hero is a preview: no music, no widget stack, no player chrome.
+        // The hero is a preview: no music and no player chrome, but the widget
+        // block stays so the card reads like a real profile.
         hideAudio
-      />
+      >
+        {heroCards.length ? (
+          <div className="lkr-widgets-block">
+            <span className="lkr-widgets-title">Connections</span>
+            <div className="lkr-widgets" style={{ gap: heroWidgets.design.gap }}>
+              {heroCards}
+            </div>
+          </div>
+        ) : null}
+      </ProfilePreview>
       <a className="hero-profile-link" href={`/${encodeURIComponent(live?.username ?? HOME_HANDLE)}`}>
         tourn.lol/{live?.username ?? HOME_HANDLE}
         <ArrowUpRight size={11} />

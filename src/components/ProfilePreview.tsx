@@ -90,6 +90,11 @@ export function ProfilePreview({
   const locationPosition = design.locationPosition ?? "under-name";
   const viewCount = typeof views === "number" ? views : null;
   const showViews = viewCount !== null && viewPosition !== "hidden";
+  // The links row and the player are titled sections too, so the card reads as
+  // labelled blocks (Connections, Links, Music) instead of one long stack.
+  const visibleLinks = links.filter((link) => link.visible && link.url.trim());
+  const hasLinks = visibleLinks.length > 0;
+  const hasAudio = assets.audio.style !== "none" && Boolean(assets.audio.fileUrl);
   const showJoined = Boolean(joined) && joinPosition !== "hidden";
   const wornBadges = badges.filter((badge) => badge.visible && badgeDef(badge.id));
   const badgeRow =
@@ -259,20 +264,42 @@ export function ProfilePreview({
               />
             ) : null}
           </span>
-          <div
-            className={`pv-bio${bio ? "" : " is-empty"}${
-              bioEffect.effect !== "none" ? ` ${textEffectClass(bioEffect)}` : ""
-            }`}
-            style={bioEffect.effect !== "none" ? textEffectStyle(bioEffect) : undefined}
-          >
-            {bio ? (
-              <>
-                <RichText text={bio} />
-                <SparkleLayer settings={bioEffect} />
-              </>
-            ) : (
-              <span>A bio is on the way.</span>
-            )}
+          {/* The reference header: picture on the left, and everything that
+              identifies the person (name, handle, badges, bio) stacked in the
+              column beside it. */}
+          <div className="pv-head-text">
+            <div className="pv-id">
+              <h3>
+                {/* The account number belongs to the name, not the picture:
+                    hover the name to read it. */}
+                <Tooltip text={tooltips.enabled ? `#${uid}` : ""} style={tooltips.style}>
+                  <EffectText text={displayName} settings={assets.effects.text.name} />
+                </Tooltip>
+              </h3>
+            </div>
+
+            <div className="pv-ident">
+              <span className="pv-handle">
+                <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
+              </span>
+              {inlineBadges || design.badgePosition === "default" ? badgeRow : null}
+            </div>
+
+            <div
+              className={`pv-bio${bio ? "" : " is-empty"}${
+                bioEffect.effect !== "none" ? ` ${textEffectClass(bioEffect)}` : ""
+              }`}
+              style={bioEffect.effect !== "none" ? textEffectStyle(bioEffect) : undefined}
+            >
+              {bio ? (
+                <>
+                  <RichText text={bio} />
+                  <SparkleLayer settings={bioEffect} />
+                </>
+              ) : (
+                <span>A bio is on the way.</span>
+              )}
+            </div>
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
           {locationPosition === "top" ? locationPill : null}
@@ -281,33 +308,26 @@ export function ProfilePreview({
         {design.badgePosition === "top-right" && !inlineBadges ? badgeRow : null}
         {design.badgePosition === "above-name" && !inlineBadges ? badgeRow : null}
 
-        <div className="pv-id">
-          <h3>
-            {/* The account number belongs to the name, not the picture: hover
-                the name to read it. */}
-            <Tooltip text={tooltips.enabled ? `#${uid}` : ""} style={tooltips.style}>
-              <EffectText text={displayName} settings={assets.effects.text.name} />
-            </Tooltip>
-          </h3>
-        </div>
-
-        <div className="pv-ident">
-          <span className="pv-handle">
-            <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
-          </span>
-          {inlineBadges || design.badgePosition === "default" ? badgeRow : null}
-        </div>
-
         {locationPosition === "under-name" ? locationPill : null}
         {joinPosition === "under-name" && joined ? (
           <span className="pv-joined-inline">{joinedNode}</span>
         ) : null}
 
-        <ProfileLinks links={links} design={linkDesign ?? DEFAULT_LINK_DESIGN} />
-
-        {hideAudio ? null : <AudioPlayer settings={assets.audio} enabled={!entryActive} />}
-
         {children}
+
+        {hasLinks ? (
+          <div className="pv-links-block">
+            <span className="pv-section-title">Links</span>
+            <ProfileLinks links={visibleLinks} design={linkDesign ?? DEFAULT_LINK_DESIGN} />
+          </div>
+        ) : null}
+
+        {hideAudio || !hasAudio ? null : (
+          <div className="pv-audio-block">
+            <span className="pv-section-title">Music</span>
+            <AudioPlayer settings={assets.audio} enabled={!entryActive} />
+          </div>
+        )}
 
         {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
 

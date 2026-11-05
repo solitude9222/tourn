@@ -285,16 +285,19 @@ export function LinkerPreview({
       : visibleWidgets;
 
   const widgetStack = orderedWidgets.length ? (
-    <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
-      {orderedWidgets.map((widget) => (
-        <WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker" />
-      ))}
+    <div className="lkr-widgets-block">
+      <span className="lkr-widgets-title">Connections</span>
+      <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
+        {orderedWidgets.slice(0, 4).map((widget) => (
+          <WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker" />
+        ))}
+      </div>
     </div>
   ) : (
     <p className="lkr-empty">No widgets yet.</p>
   );
 
-  const profileCard = (insideCard: boolean) => (
+  const profileCard = () => (
     <ProfilePreview
       user={user}
       about={about}
@@ -308,24 +311,24 @@ export function LinkerPreview({
       entryActive={entryOpen}
       hideAudio={design.layout === "stacked"}
     >
-      {insideCard && widgets.widgets.length ? widgetStack : null}
+      {widgets.widgets.length ? widgetStack : null}
     </ProfilePreview>
   );
 
   // The card stays in the middle of the page for every layout; the layouts
-  // rearrange what is inside it. `stacked` is the exception: it lifts every
-  // widget out into its own card underneath, so they stack down the page.
-  // Stacked gives the widgets and the player their own cards under the profile
-  // card, so the page is a column of separate bubbles instead of one block.
+  // rearrange what is inside it. `stacked` is the exception: it lifts the
+  // player out under the card so the track has its own titled panel.
   const stacked = design.layout === "stacked";
+  const hasTrack =
+    about.assets.audio.style !== "none" && Boolean(about.assets.audio.fileUrl);
 
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
-      {profileCard(!stacked)}
-      {stacked ? (
+      {profileCard()}
+      {stacked && hasTrack ? (
         <div className="lkr-stack">
-          {orderedWidgets.length ? widgetStack : null}
           <div className="lkr-audio">
+            <span className="lkr-widgets-title">Music</span>
             <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
           </div>
         </div>

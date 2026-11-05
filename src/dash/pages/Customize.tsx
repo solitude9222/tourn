@@ -5,11 +5,10 @@
    disabled rather than pretending to save.
    --------------------------------------------------------------------------- */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { WIDGET_PLATFORMS, createWidgetInstance } from "../../lib/widgets";
 import { ProfilePreview } from "../../components/ProfilePreview";
-import { EntryOverlay } from "../../components/LinkerPreview";
 import { WidgetCard } from "../../components/WidgetCard";
 import { DEFAULT_BADGE_STYLE } from "../../lib/badges";
 import { DEFAULT_LINK_DESIGN } from "../../lib/links";
@@ -96,11 +95,17 @@ function DiscordPresenceCard() {
   const linked = Boolean(authUser?.discordLinked);
   const platform = WIDGET_PLATFORMS.find((entry) => entry.id === "discord");
   const widget = widgets.widgets.find((entry) => entry.platform === "discord");
-  const [discordId, setDiscordId] = useState(widget?.content || settings.discordUserId);
+  const [discordId, setDiscordId] = useState(
+    widget?.content || settings.discordUserId || authUser?.discordId || "",
+  );
   const [busy, setBusy] = useState(false);
 
-  // No connected Discord account, no presence section — there is nothing to
-  // read and nothing to configure.
+  // The session resolves after the first paint, so the signed-in account's
+  // Discord id fills the field as soon as it arrives instead of leaving the
+  // user to paste an id they already linked.
+  useEffect(() => {
+    if (!discordId && authUser?.discordId) setDiscordId(authUser.discordId);
+  }, [authUser?.discordId, discordId]);
 
   const updateOption = (key: string, value: boolean | string) => {
     if (!widget) return;
@@ -145,14 +150,12 @@ function DiscordPresenceCard() {
     setBusy(false);
   };
 
-  if (!linked) return null;
-
   return (
     <Card>
       <CardHead
         icon="discord"
         title="Discord Presence"
-        subtitle="Driven by your connected Discord account — no widget to add."
+        subtitle="Your live status, activity and platform, shown on the profile card."
       />
 
       <div className="tw-discord-connect">
@@ -181,7 +184,7 @@ function DiscordPresenceCard() {
         <Field
           label="Discord user ID"
           help
-          hint="Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID."
+          hint="Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID. Live status comes from Lanyard, so the account has to be in the Lanyard server (discord.gg/lanyard) for the dot and activity to update."
         >
           <TextInput
             icon="discord"
@@ -584,11 +587,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           </div>
         </div>
 
-        <div className="tw-subhead">Live preview</div>
-        {/* The real screen, not a mock — so every setting above is visible. */}
-        <div className="tw-enter-stage">
-          <EntryOverlay about={about} onEnter={() => undefined} preview />
-        </div>
       </Card>
     );
   }

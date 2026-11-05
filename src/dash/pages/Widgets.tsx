@@ -450,45 +450,6 @@ export function WidgetsPage() {
             </div>
           </div>
 
-          <div className="tw-widget-preview">
-            <div className="tw-widget-preview-head">
-              <small>Real preview</small>
-              <span className="tw-widget-preview-note">
-                {active.length
-                  ? `${active.length} active widget${active.length === 1 ? "" : "s"}`
-                  : "sample cards"}
-              </span>
-            </div>
-            <div className="tw-widget-scroll">
-              <div className="tw-widget-scroll-track">
-                {[0, 1].map((pass) => (
-                  <div
-                    className="tw-widget-scroll-pass"
-                    key={pass}
-                    aria-hidden={pass === 1 ? "true" : undefined}
-                  >
-                    {active.length
-                      ? active.map((widget) => (
-                          <WidgetCard
-                            key={`${pass}-${widget.id}`}
-                            widget={widget}
-                            design={design}
-                            className="widget-card--reel"
-                          />
-                        ))
-                      : ["discord", "discordbot", "spotify", "roblox"].map((id) => (
-                          <WidgetCardPreview
-                            key={`${pass}-${id}`}
-                            design={design}
-                            platformId={id}
-                            className="widget-card--reel"
-                          />
-                        ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       </Card>
 

@@ -259,6 +259,8 @@ function accountOf(row) {
     isOwner: Boolean(row.is_owner),
     /** True once a Discord account is attached (sign-up or linked later). */
     discordLinked: Boolean(row.discord_id),
+    /** The signed-in owner's Discord id. Never part of the public payload. */
+    discordId: row.discord_id ?? null,
   };
 }
 

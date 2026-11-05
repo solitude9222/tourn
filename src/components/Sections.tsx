@@ -6,6 +6,7 @@ import type { WidgetStore } from "../lib/widgets";
 import type { SiteStats } from "../lib/siteStats";
 import { formatCompactNumber } from "../lib/format";
 import { Bento } from "./Bento";
+import { ProfileCard } from "./ProfileCard";
 import {
   ArrowRight,
   CheckIcon,
@@ -55,6 +56,9 @@ export function Hero({
               <CheckIcon size={13} /> Email or Discord sign-in
             </span>
           </div>
+        </div>
+        <div className="hero-card-slot">
+          <ProfileCard />
         </div>
       </div>
     </section>
