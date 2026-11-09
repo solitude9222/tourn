@@ -12,6 +12,7 @@ import { FEATURED_TRACK, inviteCode, spotifyTrackId, type Settings } from "../co
 import { discordBadges, guildTagBadge, primaryGuildTag } from "../lib/discord";
 import { fetchSteamProfile, steamProfileTarget } from "../lib/steam";
 import { ScrollText } from "./Marquee";
+import { Tooltip } from "./Tooltip";
 import {
   CalendarIcon,
   ClockIcon,
@@ -161,11 +162,9 @@ export function DiscordCard({
               {badges.length ? (
                 <span className="bcard-badges">
                   {badges.slice(0, 3).map((badge) => (
-                    <DiscordBadgeIcon
-                      key={`${badge.kind}-${badge.flag}`}
-                      kind={badge.kind}
-                      label={badge.label}
-                    />
+                    <Tooltip key={`${badge.kind}-${badge.flag}`} text={badge.label}>
+                      <DiscordBadgeIcon kind={badge.kind} label={badge.label} />
+                    </Tooltip>
                   ))}
                 </span>
               ) : null}
@@ -225,11 +224,9 @@ export function DiscordCard({
           {badges.length ? (
             <span className="bcard-badges">
               {badges.slice(0, 3).map((badge) => (
-                <DiscordBadgeIcon
-                  key={`${badge.kind}-${badge.flag}`}
-                  kind={badge.kind}
-                  label={badge.label}
-                />
+                <Tooltip key={`${badge.kind}-${badge.flag}`} text={badge.label}>
+                  <DiscordBadgeIcon kind={badge.kind} label={badge.label} />
+                </Tooltip>
               ))}
             </span>
           ) : null}

@@ -5,6 +5,7 @@
 import { useMemo, useState } from "react";
 import { useDash, type Page } from "../context";
 import { Button, Card, CardHead, EmptyState, Icon, Segmented, type IconName } from "../ui";
+import { WidgetCardPreview } from "../../components/WidgetCard";
 
 const PERIODS = [
   { value: "24h", label: "Last 24 hours" },
@@ -122,6 +123,27 @@ export function HomePage() {
   const days =
     period === "24h" ? 1 : period === "3d" ? 3 : period === "7d" ? 7 : period === "30d" ? 30 : 90;
 
+  // The home preview stacks the first few widgets the way visitors see them,
+  // but with no surface of their own so the cards read as one cascade.
+  const previewWidgets = widgets.widgets.filter((widget) => widget.visible !== false).slice(0, 3);
+  const previewItems = previewWidgets.length
+    ? previewWidgets.map((widget) => ({ platform: widget.platform, content: widget.content }))
+    : [
+        { platform: "discord", content: "" },
+        { platform: "github", content: "" },
+        { platform: "spotify", content: "" },
+      ];
+  const previewDesign = {
+    ...widgets.design,
+    backgroundStyle: "solid" as const,
+    backgroundOpacity: 0,
+    borderWidth: 0,
+    borderOpacity: 0,
+    outlineEffect: "none" as const,
+    hoverLift: false,
+    scale: 1,
+  };
+
   return (
     <>
       <div className="tw-home-top">
@@ -199,6 +221,39 @@ export function HomePage() {
           </button>
         ))}
       </div>
+
+      <Card className="tw-home-widgets">
+        <div className="tw-home-widgets-copy">
+          <CardHead
+            icon="grid"
+            title="Your widgets"
+            subtitle="Live cards, stacked the way visitors see them."
+          />
+          <p className="tw-home-widgets-note">
+            Widgets sit beside your profile card in the order you arrange them. Connect an account
+            and the card fills itself in — no screenshots, no manual updates.
+          </p>
+          <Button trailingIcon="arrow-right" onClick={() => go("widgets")}>
+            Customise widgets
+          </Button>
+        </div>
+
+        <div className="tw-home-widgets-stage" aria-hidden="true">
+          {previewItems.map((item, index) => (
+            <div
+              key={`${item.platform}-${index}`}
+              className="tw-home-widget-stair"
+              style={{ top: index * 88, left: index * 26, zIndex: index + 1 }}
+            >
+              <WidgetCardPreview
+                design={previewDesign}
+                platformId={item.platform}
+                content={item.content || undefined}
+              />
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card>
         <CardHead

@@ -4,10 +4,9 @@
 
 import { useRef, useState } from "react";
 import { formatJoined } from "../../lib/format";
-import { AUDIO_STYLES } from "../../lib/profileAssets";
 import decorations from "../../lib/decorations.json";
 import { useDash } from "../context";
-import { copyText, fileToDataUrl, imageToDataUrl } from "../files";
+import { copyText, imageToDataUrl } from "../files";
 import {
   Button,
   Card,
@@ -28,6 +27,8 @@ import {
 import { ViewsChart } from "./Home";
 
 const BIO_LIMIT = 800;
+/** Presets mount a page at a time: the full set is ~200 animated PNGs. */
+const DECO_PAGE = 36;
 
 export function AccountProfilePage() {
   const { user, about, setAbout, notify, go } = useDash();
@@ -35,6 +36,7 @@ export function AccountProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [decoOpen, setDecoOpen] = useState(false);
   const [decoQuery, setDecoQuery] = useState("");
+  const [decoLimit, setDecoLimit] = useState(DECO_PAGE);
 
   const avatarUrl = about.assets.avatarUrl || user.avatarUrl || "";
   const joined = formatJoined(new Date(user.joinedAt));
@@ -90,6 +92,7 @@ export function AccountProfilePage() {
           .filter((entry) => entry.label.toLowerCase().includes(decoQuery.trim().toLowerCase())),
       ]
     : decoOptions;
+  const decoVisible = decoResults.slice(0, decoLimit);
 
   const picker = useRef<HTMLInputElement>(null);
   const pickHandler = useRef<((file: File) => Promise<void>) | null>(null);
@@ -113,19 +116,6 @@ export function AccountProfilePage() {
     const url = await imageToDataUrl(file, 2000, 900);
     updateAssets({ banner: { ...assets.banner, enabled: true, imageUrl: url } });
     notify("Banner", "Banner image updated — save to publish.");
-  };
-
-  const uploadAudio = async (file: File) => {
-    const url = await fileToDataUrl(file);
-    updateAssets({
-      audio: {
-        ...assets.audio,
-        fileUrl: url,
-        style: assets.audio.style === "none" ? "compact" : assets.audio.style,
-        title: assets.audio.title || file.name.replace(/\.[^.]+$/, ""),
-      },
-    });
-    notify("Audio", "Track uploaded — set a title and save.");
   };
 
   const uploadCursor = async (file: File) => {
@@ -172,7 +162,13 @@ export function AccountProfilePage() {
                   Remove
                 </Button>
               ) : null}
-              <Button icon="sparkles" onClick={() => setDecoOpen(true)}>
+              <Button
+                icon="sparkles"
+                onClick={() => {
+                  setDecoLimit(DECO_PAGE);
+                  setDecoOpen(true);
+                }}
+              >
                 {about.assets.decoration.discordUrl ? "Change decoration" : "Add decoration"}
               </Button>
             </div>
@@ -254,7 +250,10 @@ export function AccountProfilePage() {
               icon="search"
               placeholder="Search decorations"
               value={decoQuery}
-              onChange={(event) => setDecoQuery(event.target.value)}
+              onChange={(event) => {
+                setDecoLimit(DECO_PAGE);
+                setDecoQuery(event.target.value);
+              }}
             />
             <span className="tw-deco-count">
               {decoOptions.length - 1} decorations
@@ -263,7 +262,7 @@ export function AccountProfilePage() {
           </div>
 
           <div className="tw-deco-grid">
-            {decoResults.map((entry) => (
+            {decoVisible.map((entry) => (
               <button
                 key={entry.id}
                 type="button"
@@ -278,13 +277,26 @@ export function AccountProfilePage() {
                 }
               >
                 {entry.url ? (
-                  <img src={entry.url.replace(/size=\d+/, "size=96")} alt="" loading="lazy" />
+                  <img
+                    src={entry.url.replace(/size=\d+/, "size=64")}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
                   "None"
                 )}
               </button>
             ))}
           </div>
+          {decoResults.length > decoLimit ? (
+            <div className="tw-deco-more">
+              <Button onClick={() => setDecoLimit((value) => value + DECO_PAGE)}>
+                Show more decorations
+              </Button>
+              <small>{decoResults.length - decoLimit} still hidden</small>
+            </div>
+          ) : null}
           {decoResults.length <= 1 ? (
             <p className="tw-deco-caption">Nothing matches “{decoQuery.trim()}”.</p>
           ) : null}
@@ -411,7 +423,7 @@ export function AccountProfilePage() {
         <CardHead
           icon="palette"
           title="Artwork"
-          subtitle="Background, banner, player and cursor."
+          subtitle="Background, banner and cursor."
         />
 
         <div className="tw-subhead">Background</div>
@@ -562,61 +574,6 @@ export function AccountProfilePage() {
             />
           </div>
         ) : null}
-
-        <div className="tw-subhead">Player</div>
-        <div className="tw-form-grid">
-          <Field label="Player style">
-            <Select
-              value={assets.audio.style}
-              options={AUDIO_STYLES.map((entry) => ({ value: entry.id, label: entry.name }))}
-              onChange={(value) =>
-                updateAssets({
-                  audio: { ...assets.audio, style: value as typeof assets.audio.style },
-                })
-              }
-            />
-          </Field>
-          <Field label="Audio file">
-            <div className="tw-row">
-              <Button icon="upload" onClick={() => pick("audio/*", uploadAudio)}>
-                {assets.audio.fileUrl ? "Replace audio" : "Upload audio"}
-              </Button>
-              {assets.audio.fileUrl ? (
-                <Button
-                  variant="danger"
-                  icon="trash"
-                  onClick={() =>
-                    updateAssets({ audio: { ...assets.audio, fileUrl: "", style: "none" } })
-                  }
-                >
-                  Remove
-                </Button>
-              ) : null}
-            </div>
-          </Field>
-          <Field label="Track title">
-            <TextInput
-              icon="music"
-              value={assets.audio.title}
-              maxLength={80}
-              placeholder="Track title"
-              onChange={(event) =>
-                updateAssets({ audio: { ...assets.audio, title: event.target.value.slice(0, 80) } })
-              }
-            />
-          </Field>
-          <Field label="Artist">
-            <TextInput
-              icon="user"
-              value={assets.audio.artist}
-              maxLength={80}
-              placeholder="Artist"
-              onChange={(event) =>
-                updateAssets({ audio: { ...assets.audio, artist: event.target.value.slice(0, 80) } })
-              }
-            />
-          </Field>
-        </div>
 
         <div className="tw-subhead">Cursor</div>
         <div className="tw-form-grid">

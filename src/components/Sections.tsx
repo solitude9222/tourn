@@ -111,27 +111,33 @@ export function BentoSection({
   return (
     <section className="section" id="example">
       <div className="wrap">
-        <div className="section-head section-head--center" data-reveal>
-          <h2 className="section-title">
-            Your profile, <span className="accent">live.</span>
-          </h2>
-          <p className="section-sub">
-            Who you are, where you hang out, what's playing, what you're grinding. Widgets,
-            connected once, current forever.
-          </p>
-        </div>
+        <div className="bento-feature">
+          <div className="bento-copy" data-reveal>
+            <h2 className="section-title">
+              Your profile, <span className="accent">live.</span>
+            </h2>
+            <p className="section-sub">
+              Who you are, where you hang out, what's playing, what you're grinding. Widgets,
+              connected once, current forever.
+            </p>
+            <div className="bento-actions">
+              <button type="button" className="btn btn-primary" onClick={onOpenWidgets}>
+                {signedIn ? "Open your dashboard" : "Start your stack"}
+              </button>
+            </div>
+            <p className="bento-foot">
+              {signedIn
+                ? "This is the example stack — your own widgets live on your public page."
+                : "This is an example stack. Build your own in the dashboard."}
+            </p>
+          </div>
 
-        {/* The home page ALWAYS shows the default example stack — your own
-            widgets live on your public page and in the dashboard preview. */}
-        <Bento lanyard={lanyard} settings={settings} onConfigure={onConfigure} />
-        <p className="bento-foot" data-reveal data-reveal-delay="240">
-          {signedIn
-            ? "This is the example stack — your own widgets live on your public page."
-            : "This is an example stack. Build your own in the dashboard."}
-          <button type="button" onClick={onOpenWidgets}>
-            {signedIn ? "Open your dashboard" : "Start your stack"}
-          </button>
-        </p>
+          {/* The home page ALWAYS shows the default example stack — your own
+              widgets live on your public page and in the dashboard preview. */}
+          <div className="bento-stage">
+            <Bento lanyard={lanyard} settings={settings} onConfigure={onConfigure} />
+          </div>
+        </div>
       </div>
     </section>
   );

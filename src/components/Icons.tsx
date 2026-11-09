@@ -432,7 +432,6 @@ export function DiscordBadgeIcon({
   return (
     <span
       className={`bcard-badge bcard-badge--${kind}`}
-      title={label}
       role="img"
       aria-label={label}
     >

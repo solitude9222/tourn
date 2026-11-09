@@ -5,8 +5,9 @@
    disabled rather than pretending to save.
    --------------------------------------------------------------------------- */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
+import { fileToDataUrl } from "../files";
 import { WIDGET_PLATFORMS, createWidgetInstance } from "../../lib/widgets";
 import { ProfilePreview } from "../../components/ProfilePreview";
 import { EntryOverlay } from "../../components/LinkerPreview";
@@ -37,13 +38,13 @@ import {
 
 const JOIN_FORMATS = [
   { value: "relative", label: "Relative (e.g. “9 months ago”)" },
-  { value: "us", label: "US (12/23/2025)" },
-  { value: "eu", label: "EU (23/12/2025)" },
+  { value: "us", label: "US (12/23/2026)" },
+  { value: "eu", label: "EU (23/12/2026)" },
 ];
 
 const DATE_FORMATS = [
-  { value: "us", label: "US (12/23/2025)" },
-  { value: "eu", label: "EU (23/12/2025)" },
+  { value: "us", label: "US (12/23/2026)" },
+  { value: "eu", label: "EU (23/12/2026)" },
 ];
 
 const ENTRY_ANIMATIONS = [
@@ -67,25 +68,180 @@ const FILTERS = [
   { value: "deep", label: "Deep blur" },
 ];
 
-function PlayerStyleCard() {
-  const { about, setAbout } = useDash();
-  const style = about.assets.audio.style;
+function AudioSettingsCard() {
+  const { about, setAbout, notify } = useDash();
+  const audio = about.assets.audio;
+  const audioInput = useRef<HTMLInputElement>(null);
+  const lyricsInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const updateAudio = (patch: Partial<typeof audio>) =>
+    setAbout((current) => ({
+      ...current,
+      assets: {
+        ...current.assets,
+        audio: { ...current.assets.audio, ...patch },
+      },
+    }));
+
+  const uploadTrack = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await fileToDataUrl(file);
+      updateAudio({
+        fileUrl: url,
+        style: audio.style === "none" ? "compact" : audio.style,
+        title: audio.title || file.name.replace(/\.[^.]+$/, ""),
+      });
+      notify("Audio", "Track uploaded — save to publish it.");
+    } catch {
+      notify("Upload failed", "That audio file could not be read.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // A real .lrc / .txt file read, not just a textarea: the player already
+  // parses [mm:ss.xx] timestamps, so the file becomes synced lyrics as-is.
+  const uploadLyrics = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const text = (await file.text()).slice(0, 40_000);
+      updateAudio({ lyrics: text, autoLyrics: false });
+      notify("Lyrics", `${file.name} loaded — save to publish it.`);
+    } catch {
+      notify("Lyrics", "That lyrics file could not be read.");
+    }
+  };
+
   return (
     <Card>
-      <CardHead icon="music" title="Player style" />
-      <Field label="Player style" hint="How the player looks on your profile.">
-        <Select
-          icon="music"
-          value={style}
-          options={AUDIO_STYLES.map((entry) => ({ value: entry.id, label: entry.name }))}
-          onChange={(value) =>
-            setAbout((current) => ({
-              ...current,
-              assets: { ...current.assets, audio: { ...current.assets.audio, style: value as typeof style } },
-            }))
-          }
+      <CardHead
+        icon="music"
+        title="Audio player"
+        subtitle="The track, cover text and lyrics visitors get on your profile."
+      />
+
+      <div className="tw-form-grid">
+        <Field label="Player style" hint="How the player looks on your profile.">
+          <Select
+            icon="music"
+            value={audio.style}
+            options={AUDIO_STYLES.map((entry) => ({ value: entry.id, label: entry.name }))}
+            onChange={(value) => updateAudio({ style: value as typeof audio.style })}
+          />
+        </Field>
+
+        <Field label="Audio file" hint="MP3, WAV or M4A. Stored with your profile.">
+          <div className="tw-row">
+            <Button
+              icon="upload"
+              disabled={uploading}
+              onClick={() => audioInput.current?.click()}
+            >
+              {uploading ? "Uploading…" : audio.fileUrl ? "Replace audio" : "Upload audio"}
+            </Button>
+            {audio.fileUrl ? (
+              <Button
+                variant="danger"
+                icon="trash"
+                onClick={() => updateAudio({ fileUrl: "", style: "none" })}
+              >
+                Remove
+              </Button>
+            ) : null}
+          </div>
+        </Field>
+
+        <Field label="Track title">
+          <TextInput
+            icon="music"
+            value={audio.title}
+            maxLength={80}
+            placeholder="Track title"
+            onChange={(event) => updateAudio({ title: event.target.value.slice(0, 80) })}
+          />
+        </Field>
+
+        <Field label="Artist">
+          <TextInput
+            icon="user"
+            value={audio.artist}
+            maxLength={80}
+            placeholder="Artist"
+            onChange={(event) => updateAudio({ artist: event.target.value.slice(0, 80) })}
+          />
+        </Field>
+
+        <Field
+          label="Lyrics file"
+          className="tw-span-2"
+          hint="Upload a .lrc file with [mm:ss.xx] timestamps for synced lyrics, or a .txt file for plain lines."
+        >
+          <div className="tw-row">
+            <Button icon="upload" onClick={() => lyricsInput.current?.click()}>
+              {audio.lyrics ? "Replace lyrics" : "Upload .lrc"}
+            </Button>
+            {audio.lyrics ? (
+              <Button
+                variant="danger"
+                icon="trash"
+                onClick={() => updateAudio({ lyrics: "" })}
+              >
+                Remove
+              </Button>
+            ) : null}
+          </div>
+        </Field>
+
+        <Field
+          label="Lyrics"
+          className="tw-span-2"
+          hint={`${audio.lyrics.length} / 40000`}
+        >
+          <Textarea
+            rows={6}
+            maxLength={40_000}
+            placeholder={"[00:12.40] First line\n[00:16.10] Second line"}
+            value={audio.lyrics}
+            onChange={(event) => updateAudio({ lyrics: event.target.value.slice(0, 40_000) })}
+          />
+        </Field>
+      </div>
+
+      <div className="tw-inline-toggle" style={{ marginTop: 14 }}>
+        <span>
+          <b>Auto-fetch lyrics</b>
+          <small>Used when no lyrics text or .lrc file is set.</small>
+        </span>
+        <Toggle
+          checked={audio.autoLyrics}
+          onChange={(checked) => updateAudio({ autoLyrics: checked })}
+          label="Auto-fetch lyrics"
         />
-      </Field>
+      </div>
+
+      <input
+        ref={audioInput}
+        type="file"
+        accept="audio/*"
+        hidden
+        onChange={(event) => {
+          void uploadTrack(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={lyricsInput}
+        type="file"
+        accept=".lrc,.txt,text/plain"
+        hidden
+        onChange={(event) => {
+          void uploadLyrics(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
     </Card>
   );
 }
@@ -286,6 +442,9 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 
   const design = about.design;
   const entry = design.entry;
+  // Remounting the real entry overlay replays its animation, so the preview
+  // reacts to settings changes instead of looking static.
+  const [previewToken, setPreviewToken] = useState(0);
 
   const updateDesign = (patch: Partial<typeof design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
@@ -497,6 +656,46 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           />
         </div>
 
+        <div className="tw-subhead">Text</div>
+        <div className="tw-form-grid">
+          <Field label="Enter text" help>
+            <TextInput
+              icon="at"
+              placeholder="Enter text"
+              value={entry.title}
+              maxLength={48}
+              onChange={(event) => updateEntry({ title: event.target.value.slice(0, 48) })}
+            />
+          </Field>
+          <Field label="Text alignment">
+            <Select
+              value={entry.align}
+              options={[
+                { value: "center", label: "Center" },
+                { value: "top", label: "Top" },
+                { value: "bottom", label: "Bottom" },
+              ]}
+              onChange={(value) => updateEntry({ align: value as typeof entry.align })}
+            />
+          </Field>
+          <Field label="Subtitle">
+            <TextInput
+              placeholder="Subtitle under the enter text"
+              value={entry.subtitle}
+              maxLength={96}
+              onChange={(event) => updateEntry({ subtitle: event.target.value.slice(0, 96) })}
+            />
+          </Field>
+          <Field label="Hint">
+            <TextInput
+              placeholder="e.g. click anywhere to enter"
+              value={entry.hint}
+              maxLength={60}
+              onChange={(event) => updateEntry({ hint: event.target.value.slice(0, 60) })}
+            />
+          </Field>
+        </div>
+
         <div className="tw-split" style={{ marginTop: 18 }}>
           <div className="tw-split-col">
             <span className="tw-split-label">Colours</span>
@@ -509,6 +708,16 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               label="Text colour"
               value={entry.titleColor}
               onChange={(value) => updateEntry({ titleColor: value })}
+            />
+            <ColorField
+              label="Subtitle colour"
+              value={entry.subtitleColor}
+              onChange={(value) => updateEntry({ subtitleColor: value })}
+            />
+            <ColorField
+              label="Hint colour"
+              value={entry.hintColor}
+              onChange={(value) => updateEntry({ hintColor: value })}
             />
             {entry.divider ? (
               <ColorField
@@ -545,6 +754,38 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               suffix="px"
               ticks={["24px", "48px", "72px"]}
               onChange={(value) => updateEntry({ titleSize: value })}
+            />
+            <Slider
+              label="Subtitle size"
+              value={entry.subtitleSize}
+              min={8}
+              max={32}
+              suffix="px"
+              onChange={(value) => updateEntry({ subtitleSize: value })}
+            />
+            <Slider
+              label="Hint size"
+              value={entry.hintSize}
+              min={8}
+              max={24}
+              suffix="px"
+              onChange={(value) => updateEntry({ hintSize: value })}
+            />
+            <Slider
+              label="Letter spacing"
+              value={Math.round(entry.letterSpacing * 100)}
+              min={-12}
+              max={32}
+              format={(value) => `${(value / 100).toFixed(2)}em`}
+              onChange={(value) => updateEntry({ letterSpacing: value / 100 })}
+            />
+            <Slider
+              label="Content width"
+              value={entry.contentWidth}
+              min={40}
+              max={100}
+              suffix="%"
+              onChange={(value) => updateEntry({ contentWidth: value })}
             />
             <div className="tw-inline-toggle">
               <span>
@@ -588,11 +829,16 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           </div>
         </div>
 
-        <div className="tw-subhead">Live preview</div>
+        <div className="tw-enter-preview-head">
+          <span className="tw-subhead">Live preview</span>
+          <Button icon="refresh" onClick={() => setPreviewToken((value) => value + 1)}>
+            Replay
+          </Button>
+        </div>
         {/* The real screen, not a mock — so every setting above is visible.
             It never starts audio: the entry screen is silent here. */}
         <div className="tw-enter-stage">
-          <EntryOverlay about={about} onEnter={() => undefined} preview />
+          <EntryOverlay key={previewToken} about={about} onEnter={() => undefined} preview />
         </div>
       </Card>
     );
@@ -601,7 +847,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
   if (tab === "integrations") {
     return (
       <>
-        <PlayerStyleCard />
+        <AudioSettingsCard />
         <DiscordPresenceCard />
       </>
     );

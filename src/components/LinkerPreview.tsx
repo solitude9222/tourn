@@ -296,7 +296,6 @@ export function LinkerPreview({
             className={`widget-card--linker${
               widget.platform === "discord" ? " widget-card--wide" : ""
             }`}
-            interactive={interactive}
           />
         ))}
       </div>

@@ -4450,3 +4450,135 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
     gap: 42px;
   }
 }
+
+/* ------------------------------------------- home example stack: stairs */
+
+.bento-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  align-items: center;
+  gap: 56px;
+}
+
+.bento-copy {
+  max-width: 520px;
+}
+
+.bento-copy .section-title {
+  margin-top: 0;
+}
+
+.bento-copy .section-sub {
+  max-width: 47ch;
+}
+
+.bento-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.bento-copy .bento-foot {
+  margin-top: 18px;
+  text-align: left;
+}
+
+.bento-stage {
+  position: relative;
+  width: 430px;
+  max-width: 100%;
+  justify-self: end;
+}
+
+.bento-stage .bento-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+  padding: 0;
+  perspective: none;
+}
+
+/* The example stack is type and avatars only: no plate, no art bleed. */
+.bento-stage .bento-grid > .bcard {
+  width: 350px;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transform: none;
+}
+
+.bento-stage .bento-grid > .bcard:hover {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transform: none;
+}
+
+.bento-stage .bcard-art,
+.bento-stage .bcard-tint,
+.bento-stage .bcard-scrim,
+.bento-stage .bcard-sheen {
+  display: none;
+}
+
+.bento-stage .bento-grid > .bcard:nth-child(n + 2) {
+  margin-top: -6px;
+}
+
+.bento-stage .bento-grid > .bcard:nth-child(2) {
+  margin-left: 26px;
+}
+
+.bento-stage .bento-grid > .bcard:nth-child(3) {
+  margin-left: 52px;
+}
+
+.bento-stage .bento-grid > .bcard:nth-child(4) {
+  margin-left: 78px;
+}
+
+@media (max-width: 1000px) {
+  .bento-feature {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .bento-copy {
+    max-width: 620px;
+  }
+
+  .bento-stage {
+    justify-self: start;
+    width: min(430px, 100%);
+  }
+}
+
+@media (max-width: 560px) {
+  .bento-stage {
+    width: 100%;
+  }
+
+  .bento-stage .bento-grid > .bcard {
+    width: calc(100% - 48px);
+  }
+
+  .bento-stage .bento-grid > .bcard:nth-child(2) {
+    margin-left: 16px;
+  }
+
+  .bento-stage .bento-grid > .bcard:nth-child(3) {
+    margin-left: 32px;
+  }
+
+  .bento-stage .bento-grid > .bcard:nth-child(4) {
+    margin-left: 48px;
+  }
+}
