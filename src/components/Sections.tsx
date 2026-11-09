@@ -113,6 +113,7 @@ export function BentoSection({
       <div className="wrap">
         <div className="bento-feature">
           <div className="bento-copy" data-reveal>
+            <span className="eyebrow eyebrow--sm">widgets</span>
             <h2 className="section-title">
               Your profile, <span className="accent">live.</span>
             </h2>
@@ -237,7 +238,8 @@ export function FaqSection() {
   return (
     <section className="section section--tight" id="faq">
       <div className="wrap faq-wrap">
-        <div className="section-head" data-reveal>
+        <div className="section-head section-head--center" data-reveal>
+          <span className="eyebrow eyebrow--sm">faq</span>
           <h2 className="section-title">Questions, answered.</h2>
           <p className="section-sub">
             Short version: one link, your bio and a live widget stack. No clutter. The long version

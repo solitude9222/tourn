@@ -189,20 +189,40 @@ button {
   padding: 16px 20px 0;
 }
 
+/* As the bar closes into its pill, the wordmark and the actions ease inward
+   with it instead of staying parked at the old edges. */
+.head-inner .brand,
+.head-inner .head-actions {
+  transition: transform 0.35s var(--ease-out);
+}
+
+.site-head.is-scrolled .head-inner .brand {
+  transform: translateX(10px);
+}
+
+.site-head.is-scrolled .head-inner .head-actions {
+  transform: translateX(-10px);
+}
+
+/* Closed into a compact, flat bar: solid dark, no white highlight and no
+   backdrop bloom, so it can never flash brighter as it forms. */
 .site-head.is-scrolled .head-inner {
-  max-width: 1220px;
+  max-width: 760px;
   margin: 0 auto;
-  height: 62px;
+  height: 56px;
   padding: 0 12px 0 20px;
-  border: 1px solid rgba(125, 211, 252, 0.16);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(9, 26, 41, 0.94), rgba(2, 9, 16, 0.95));
-  box-shadow:
-    0 26px 70px -34px #000,
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(22px) saturate(150%);
-  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border: 0;
+  border-radius: 10px;
+  background: #0b0d12;
+  box-shadow: 0 22px 50px -30px #000;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@media (max-width: 980px) {
+  .site-head.is-scrolled .head-inner {
+    max-width: 480px;
+  }
 }
 
 .brand {
@@ -212,6 +232,7 @@ button {
   flex: none;
 }
 
+/* Still used by the footer brand; the header now shows the wordmark alone. */
 .brand-logo {
   width: 32px;
   height: 32px;
@@ -223,7 +244,7 @@ button {
 .brand-text {
   font-size: 18px;
   font-weight: 800;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.01em;
   color: #f4fbff;
 }
 
@@ -231,18 +252,18 @@ button {
   color: var(--ice-2);
 }
 
+/* Plain text links, like the reference: no inner pill, no outline. */
 .head-links {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
-  border: 1px solid rgba(125, 211, 252, 0.1);
-  background: rgba(2, 10, 18, 0.5);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .head-link {
@@ -250,9 +271,9 @@ button {
   font-size: 13px;
   font-weight: 520;
   color: #9db8ca;
-  padding: 8px 18px;
-  border-radius: 999px;
-  transition: color 0.2s ease, background 0.25s ease, box-shadow 0.25s ease;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: color 0.2s ease;
 }
 
 .head-link:hover {
@@ -260,11 +281,8 @@ button {
 }
 
 .head-link.is-active {
-  color: #f4fcff;
-  background: linear-gradient(180deg, rgba(125, 211, 252, 0.24), rgba(56, 189, 248, 0.08));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 0 20px -8px rgba(56, 189, 248, 0.55);
+  color: #ffffff;
+  font-weight: 620;
 }
 
 .head-actions {
@@ -569,18 +587,22 @@ button {
   cursor: not-allowed;
 }
 
+/* One flat colour, no gradient and no glow. */
 .btn-primary {
   color: var(--ink);
-  background: linear-gradient(180deg, #bae6fd 0%, #7dd3fc 46%, #38bdf8 100%);
-  border-color: rgba(186, 230, 253, 0.75);
-  box-shadow:
-    0 16px 34px -16px rgba(56, 189, 248, 0.9),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: #7dd3fc;
+  border-color: #7dd3fc;
+  box-shadow: none;
+}
+
+.btn-primary::after {
+  display: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #d8f4ff 0%, #8bdcff 46%, #4cc7ff 100%);
-  box-shadow: 0 20px 44px -16px rgba(56, 189, 248, 1);
+  background: #9adfff;
+  border-color: #9adfff;
+  box-shadow: none;
   transform: translateY(-1px);
 }
 
@@ -765,10 +787,12 @@ button {
   /* Lexend sets wider than the old stack, so the ceiling drops a notch: at
      122px the headline measured 467px against a 472px copy column and nearly
      touched the hero card. */
-  font-size: clamp(60px, 10.2vw, 112px);
-  line-height: 0.88;
+  font-size: clamp(54px, 9vw, 92px);
+  line-height: 0.9;
   font-weight: 800;
-  letter-spacing: -0.065em;
+  /* The wordmark is the page's name: let the letters breathe instead of
+     locking them together. */
+  letter-spacing: 0.02em;
   background: linear-gradient(100deg, #ffffff 0%, #e4f7ff 32%, #b9e6fa 66%, #8dcfe8 100%);
   background-size: 180% 100%;
   -webkit-background-clip: text;
@@ -1256,11 +1280,11 @@ button {
 
 .section {
   position: relative;
-  padding: 92px 0;
+  padding: 108px 0;
 }
 
 .section--tight {
-  padding: 62px 0;
+  padding: 76px 0;
 }
 
 .section-head {
@@ -1282,7 +1306,7 @@ button {
 
 .section-title {
   margin: 13px 0 0;
-  font-size: clamp(28px, 3.5vw, 42px);
+  font-size: clamp(30px, 3.8vw, 46px);
   line-height: 1.06;
   font-weight: 760;
   letter-spacing: -0.04em;
@@ -1735,7 +1759,28 @@ button {
   border: 0;
   background: none;
   color: #cfe6f4;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+/* The corner action is a hover affordance: it appears with the card, and on
+   keyboard focus so it stays reachable without a pointer. */
+.bcard:hover .bcard-action,
+.bcard:focus-within .bcard-action {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .bcard-action {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .bcard-action:hover {
@@ -1823,26 +1868,20 @@ button {
 /* ------------------------------------------------------------------ faq */
 
 .faq-wrap {
-  display: grid;
-  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
-  gap: 56px;
-  align-items: start;
+  display: block;
+  max-width: 660px;
 }
 
 .faq-wrap .section-head {
-  margin-bottom: 0;
-  position: sticky;
-  top: 112px;
+  margin-bottom: 26px;
 }
 
 .faq-list {
   display: grid;
   gap: 10px;
-  counter-reset: faq;
 }
 
 .faq-item {
-  counter-increment: faq;
   padding: 0 18px;
   border-radius: 16px;
   border: 1px solid rgba(125, 211, 252, 0.1);
@@ -1900,28 +1939,6 @@ button {
   align-items: center;
   gap: 13px;
   text-align: left;
-}
-
-.faq-q::before {
-  display: grid;
-  flex: none;
-  width: 27px;
-  height: 27px;
-  place-items: center;
-  border: 1px solid rgba(125, 211, 252, 0.16);
-  border-radius: 8px;
-  background: rgba(125, 211, 252, 0.055);
-  color: #8ccce7;
-  content: counter(faq, decimal-leading-zero);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.faq-item[open] .faq-q::before {
-  border-color: rgba(125, 211, 252, 0.34);
-  background: rgba(125, 211, 252, 0.12);
-  color: #c7efff;
 }
 
 .faq-chevron {
@@ -2090,22 +2107,17 @@ button {
 
 /* --------------------------------------------------------------- footer */
 
+/* No rule across the bottom: the footer fades in from the page instead. */
 .footer {
   position: relative;
-  padding-top: 48px;
-  border-top: 1px solid rgba(125, 211, 252, 0.1);
-  background: linear-gradient(180deg, rgba(2, 8, 14, 0.6), rgba(0, 3, 8, 0.92));
-}
-
-.footer::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  width: min(620px, 70%);
-  height: 1px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.5), transparent);
+  padding-top: 56px;
+  border-top: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(2, 8, 14, 0) 0%,
+    rgba(2, 8, 14, 0.42) 26%,
+    rgba(0, 3, 8, 0.92) 100%
+  );
 }
 
 .footer-inner {
@@ -2186,7 +2198,7 @@ button {
   justify-content: space-between;
   gap: 12px;
   padding: 18px 24px 30px;
-  border-top: 1px solid rgba(125, 211, 252, 0.08);
+  border-top: 0;
   font-size: 10.5px;
   color: #5d7a8c;
 }
@@ -3495,14 +3507,11 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .head-inner {
   border-color: rgba(255, 255, 255, 0.09);
   background: linear-gradient(180deg, rgba(24, 25, 29, 0.9), rgba(13, 14, 17, 0.94));
-  box-shadow:
-    0 26px 65px -38px #000,
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow: 0 26px 65px -38px #000;
 }
 
 .app--site .site-head:not(.is-scrolled) .head-inner {
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
@@ -3510,12 +3519,17 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .site-head.is-scrolled .head-inner {
-  background: linear-gradient(180deg, rgba(22, 23, 27, 0.96), rgba(12, 13, 16, 0.97));
+  border: 0;
+  background: #0b0d12;
+  box-shadow: 0 22px 50px -30px #000;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .app--site .head-links {
-  border-color: rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.035);
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .app--site .head-link {
@@ -3527,11 +3541,9 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .head-link.is-active {
-  color: #f5fbff;
-  background: linear-gradient(180deg, rgba(168, 224, 255, 0.18), rgba(168, 224, 255, 0.06));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.09),
-    0 0 20px -12px rgba(143, 216, 255, 0.5);
+  color: #ffffff;
+  background: none;
+  box-shadow: none;
 }
 
 .app--site .head-signin {
@@ -3904,13 +3916,15 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   box-shadow: 0 0 0 3px rgba(168, 224, 255, 0.08);
 }
 
+/* No rule across the bottom: the footer fades in from the page instead. */
 .app--site .footer {
-  border-top-color: rgba(255, 255, 255, 0.07);
-  background: linear-gradient(180deg, rgba(11, 12, 15, 0.7), rgba(6, 7, 9, 0.95));
-}
-
-.app--site .footer::before {
-  background: linear-gradient(90deg, transparent, rgba(168, 224, 255, 0.3), transparent);
+  border-top: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 12, 15, 0) 0%,
+    rgba(11, 12, 15, 0.5) 28%,
+    rgba(6, 7, 9, 0.95) 100%
+  );
 }
 
 .app--site .footer-cols h4,
@@ -4237,11 +4251,9 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   align-content: start;
   gap: 12px;
   padding: 22px;
-  border: 1px solid rgba(244, 194, 236, 0.3);
-  border-radius: 20px;
-  background:
-    radial-gradient(130% 170% at 0% 0%, rgba(244, 114, 182, 0.16), transparent 58%),
-    rgba(8, 14, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(8, 14, 20, 0.6);
 }
 
 .premium-hero-badge {
@@ -4271,10 +4283,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 1;
-  background: linear-gradient(180deg, #ffffff 25%, #f9c6e5 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #fff;
 }
 
 .premium-hero-price span {
@@ -4305,10 +4314,16 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .premium-hero-points li {
   display: flex;
   gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.022);
+  padding: 0 0 12px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+  background: none;
+}
+
+.premium-hero-points li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .premium-perk-icon {
@@ -4338,11 +4353,11 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .premium-table {
-  margin-top: 14px;
+  margin-top: 20px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: none;
 }
 
 .premium-table-head,
@@ -4361,7 +4376,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.02);
+  background: none;
 }
 
 .premium-table-head--premium {
@@ -4425,6 +4440,18 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   width: min(100%, var(--pv-width));
 }
 
+/* The hero card is a preview: it still tilts with the pointer, but its links,
+   copy buttons, tooltips and corner action never open or pop out. */
+.hero-profile a,
+.hero-profile button,
+.hero-profile .tt-wrap {
+  pointer-events: none;
+}
+
+.hero-profile .bcard-action {
+  display: none;
+}
+
 /* The hero card tilts like a real profile card — it is the same component. */
 
 /* The hero card settles without an opacity/blur fade — the blur-in was the
@@ -4450,32 +4477,30 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   font-weight: 550;
 }
 
+/* One readable column: the section list is a simple wrapped row instead of a
+   sticky sidebar. */
 .legal-wrap {
-  display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
-  gap: 32px;
-  align-items: start;
-  padding-block: 28px 72px;
+  display: block;
+  padding-block: 24px 64px;
 }
 
 .legal-toc {
-  position: sticky;
-  top: 96px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.02);
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 22px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .legal-toc a {
-  padding: 6px 8px;
-  border-radius: 8px;
-  color: #98a2b3;
-  font-size: 11.5px;
-  line-height: 1.35;
+  padding: 5px 8px;
+  border-radius: 7px;
+  color: #8d9aa5;
+  font-size: 11px;
+  line-height: 1.3;
   text-decoration: none;
 }
 
@@ -4528,15 +4553,9 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 860px) {
-  .legal-wrap {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
   .legal-toc {
-    position: static;
-    max-height: 220px;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
   }
 }
 
@@ -4565,7 +4584,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .bento-feature {
   display: grid;
-  grid-template-columns: minmax(0, 520px) 430px;
+  grid-template-columns: minmax(0, 520px) 480px;
   justify-content: start;
   align-items: center;
   gap: 56px;
@@ -4597,40 +4616,53 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .bento-stage {
   position: relative;
-  width: 430px;
+  width: 480px;
   max-width: 100%;
   justify-self: end;
 }
 
+/* Four boxes in a 2×2 grid, each tilting toward the pointer. */
 .bento-stage .bento-grid {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   width: 100%;
   padding: 0;
-  perspective: none;
+  perspective: 900px;
 }
 
-/* The example stack is type and avatars only: no plate, no art bleed. */
+/* Type and avatars only: no art bleed, but each box keeps a quiet plate so
+   the grid reads as four panels instead of four loose text blocks. */
 .bento-stage .bento-grid > .bcard {
-  width: 350px;
-  max-width: 100%;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  width: 100%;
+  height: 92px;
+  border: 1px solid rgba(125, 211, 252, 0.12);
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(11, 38, 56, 0.68), rgba(3, 11, 19, 0.58));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 18px 38px -32px #000;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  transform: none;
+  transform:
+    perspective(900px)
+    rotateX(var(--bento-tilt-y, 0deg))
+    rotateY(var(--bento-tilt-x, 0deg))
+    translateY(var(--bento-lift, 0px));
+  transform-style: preserve-3d;
+  transition: transform 0.18s var(--ease-out), border-color 0.24s ease, background 0.24s ease;
+  will-change: transform;
 }
 
-.bento-stage .bento-grid > .bcard:hover {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+.bento-stage .bento-grid > .bcard:hover,
+.bento-stage .bento-grid > .bcard:focus-within {
+  border-color: rgba(154, 218, 255, 0.26);
+  background: linear-gradient(160deg, rgba(15, 48, 70, 0.8), rgba(4, 14, 24, 0.66));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 24px 44px -30px #000;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  transform: none;
 }
 
 .bento-stage .bcard-art,
@@ -4640,20 +4672,58 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   display: none;
 }
 
-.bento-stage .bento-grid > .bcard:nth-child(n + 2) {
-  margin-top: -6px;
+.bento-stage .bcard-body {
+  gap: 10px;
+  padding: 10px 11px;
 }
 
-.bento-stage .bento-grid > .bcard:nth-child(2) {
-  margin-left: 26px;
+.bento-stage .bcard-media {
+  width: 38px;
+  height: 38px;
+  box-shadow: none;
 }
 
-.bento-stage .bento-grid > .bcard:nth-child(3) {
-  margin-left: 52px;
+.bento-stage .bcard-main {
+  gap: 1px;
+  padding-right: 18px;
 }
 
-.bento-stage .bento-grid > .bcard:nth-child(4) {
-  margin-left: 78px;
+.bento-stage .bcard-title {
+  font-size: 12.5px;
+  text-shadow: none;
+}
+
+.bento-stage .bcard-sub {
+  font-size: 10.5px;
+  text-shadow: none;
+}
+
+.bento-stage .bcard-meta {
+  gap: 7px;
+  padding-right: 12px;
+  font-size: 9px;
+}
+
+.bento-stage .bcard-badges,
+.bento-stage .bcard-guild-tag {
+  display: none;
+}
+
+/* The example stack is a preview: tiles still tilt, but nothing inside them
+   navigates or pops a link button out. */
+.bento-stage .bcard a,
+.bento-stage .bcard button,
+.bento-stage .tt-wrap {
+  pointer-events: none;
+}
+
+.bento-stage .bcard-action {
+  display: none;
+}
+
+.bento-stage .bcard--button {
+  pointer-events: none;
+  cursor: default;
 }
 
 @media (max-width: 1000px) {
@@ -4668,7 +4738,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
   .bento-stage {
     justify-self: start;
-    width: min(430px, 100%);
+    width: min(480px, 100%);
   }
 }
 
@@ -4677,20 +4747,8 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
     width: 100%;
   }
 
-  .bento-stage .bento-grid > .bcard {
-    width: calc(100% - 48px);
-  }
-
-  .bento-stage .bento-grid > .bcard:nth-child(2) {
-    margin-left: 16px;
-  }
-
-  .bento-stage .bento-grid > .bcard:nth-child(3) {
-    margin-left: 32px;
-  }
-
-  .bento-stage .bento-grid > .bcard:nth-child(4) {
-    margin-left: 48px;
+  .bento-stage .bento-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -4699,6 +4757,9 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 /* A deep-blue field with one soft overhead glow and a very quiet bolt
    watermark, so the home page reads as a place instead of pure black. */
 .app--home .site-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100vh;
   background:
     radial-gradient(1100px 720px at 50% -12%, rgba(56, 189, 248, 0.2), transparent 66%),
     radial-gradient(760px 620px at 100% 6%, rgba(37, 99, 235, 0.16), transparent 64%),
@@ -4706,22 +4767,28 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
     linear-gradient(180deg, #061a2e 0%, #04101f 38%, #02070f 72%, #000 100%);
 }
 
-/* The watermark is the site's own mark from the favicon, not a bolt glyph. */
-.app--home .site-backdrop::before {
-  content: "";
+/* The site's own mark, stamped small and rotated across the top of the page
+   instead of tiled as wallpaper. Positions come from Chrome.tsx. */
+.site-mark {
+  display: none;
+}
+
+.app--home .site-mark {
   position: absolute;
-  inset: 0;
+  display: block;
   background-image: url("/favicon-rounded.png");
-  background-position: 0 0;
-  background-size: 240px 240px;
-  background-repeat: space;
-  opacity: 0.07;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: var(--mark-opacity, 0.06);
+  transform: rotate(var(--mark-rotate, 0deg));
+  filter: saturate(0.85) brightness(1.25);
   pointer-events: none;
 }
 
 @media (max-width: 700px) {
-  .app--home .site-backdrop::before {
-    background-size: 180px 180px;
+  .app--home .site-mark {
+    transform: rotate(var(--mark-rotate, 0deg)) scale(0.68);
   }
 }
 

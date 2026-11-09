@@ -40,7 +40,7 @@ const BADGES: DiscordBadge[] = [
   },
   {
     kind: "bug",
-    label: "Bug Hunter",
+    label: "Bug Hunter Silver",
     flag: 1 << 3,
     art: "/badges/discord/bug_hunter_level_1.svg",
   },
@@ -85,15 +85,9 @@ const BADGES: DiscordBadge[] = [
   },
   {
     kind: "moderator",
-    label: "Certified Moderator",
+    label: "Moderator Program Alumni",
     flag: 1 << 18,
     art: "/badges/discord/certified_moderator.svg",
-  },
-  {
-    kind: "developer",
-    label: "Active Developer",
-    flag: 1 << 22,
-    art: "/badges/discord/active_developer.svg",
   },
 ];
 

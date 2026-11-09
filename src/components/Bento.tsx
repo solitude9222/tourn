@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import {
   fetchGuildInvite,
   fetchSpotifyMeta,
@@ -553,6 +553,55 @@ export function SteamCard({
 
 /* ----------------------------------------------------------------- bento */
 
+function resetTilt(card: HTMLElement) {
+  card.style.setProperty("--bento-tilt-x", "0deg");
+  card.style.setProperty("--bento-tilt-y", "0deg");
+  card.style.setProperty("--bento-lift", "0px");
+}
+
+/**
+ * The preview disables the cards' own links, so the tilt is worked out from
+ * the pointer position against the card boxes instead of the event target —
+ * that keeps the animation running while nothing inside the card opens.
+ */
+function cardAtPoint(grid: HTMLElement, clientX: number, clientY: number) {
+  for (const card of grid.querySelectorAll<HTMLElement>(".bcard")) {
+    const rect = card.getBoundingClientRect();
+    if (
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom
+    ) {
+      return card;
+    }
+  }
+  return null;
+}
+
+let tiltedCard: HTMLElement | null = null;
+
+function tiltCard(event: ReactPointerEvent<HTMLDivElement>) {
+  if (event.pointerType === "touch") return;
+  const card = cardAtPoint(event.currentTarget, event.clientX, event.clientY);
+  if (tiltedCard && tiltedCard !== card) resetTilt(tiltedCard);
+  tiltedCard = card;
+  if (!card) return;
+  const rect = card.getBoundingClientRect();
+  const x = (event.clientX - rect.left) / rect.width - 0.5;
+  const y = (event.clientY - rect.top) / rect.height - 0.5;
+  // Written straight to the node: pointer moves are far too frequent to put
+  // through React state.
+  card.style.setProperty("--bento-tilt-x", `${(x * 11).toFixed(2)}deg`);
+  card.style.setProperty("--bento-tilt-y", `${(-y * 9).toFixed(2)}deg`);
+  card.style.setProperty("--bento-lift", "-4px");
+}
+
+function untiltCard() {
+  if (tiltedCard) resetTilt(tiltedCard);
+  tiltedCard = null;
+}
+
 export function Bento({
   lanyard,
   settings,
@@ -588,7 +637,12 @@ export function Bento({
     : null;
 
   return (
-    <div className="bento-grid" data-reveal>
+    <div
+      className="bento-grid"
+      data-reveal
+      onPointerMove={tiltCard}
+      onPointerLeave={untiltCard}
+    >
       <DiscordCard
         lanyard={lanyard}
         identity={identity}
