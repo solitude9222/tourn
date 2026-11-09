@@ -163,7 +163,11 @@ export function DiscordCard({
                 <span className="bcard-badges">
                   {badges.slice(0, 3).map((badge) => (
                     <Tooltip key={`${badge.kind}-${badge.flag}`} text={badge.label}>
-                      <DiscordBadgeIcon kind={badge.kind} label={badge.label} />
+                      <DiscordBadgeIcon
+                        kind={badge.kind}
+                        label={badge.label}
+                        art={badge.art}
+                      />
                     </Tooltip>
                   ))}
                 </span>
@@ -225,7 +229,7 @@ export function DiscordCard({
             <span className="bcard-badges">
               {badges.slice(0, 3).map((badge) => (
                 <Tooltip key={`${badge.kind}-${badge.flag}`} text={badge.label}>
-                  <DiscordBadgeIcon kind={badge.kind} label={badge.label} />
+                  <DiscordBadgeIcon kind={badge.kind} label={badge.label} art={badge.art} />
                 </Tooltip>
               ))}
             </span>

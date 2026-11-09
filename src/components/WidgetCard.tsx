@@ -16,7 +16,7 @@ import {
   type WidgetLive,
 } from "../lib/widgetLive";
 import { STATUS_COLORS } from "../lib/hooks";
-import type { DiscordBadge } from "../lib/discord";
+import { discordBadges, type DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
 import { PlatformIcon } from "./PlatformIcons";
 import { DiscordBadgeIcon, SettingsIcon, TrashIcon } from "./Icons";
@@ -205,7 +205,12 @@ function WidgetCardSurface({
                 <span className="widget-card-badges">
                   {live.badges.map((badge) => (
                     <Tooltip key={`${badge.kind}-${badge.flag}`} text={badge.label}>
-                      <DiscordBadgeIcon kind={badge.kind} label={badge.label} size={12} />
+                      <DiscordBadgeIcon
+                        kind={badge.kind}
+                        label={badge.label}
+                        art={badge.art}
+                        size={12}
+                      />
                     </Tooltip>
                   ))}
                 </span>
@@ -305,13 +310,9 @@ export function WidgetCard({
  *  instead of a grey placeholder. Connected widgets preview their real data. */
 type SampleBadge = DiscordBadge;
 
-const SAMPLE_BADGES: SampleBadge[] = [
-  { kind: "staff", label: "Discord Staff", flag: 1 },
-  { kind: "partner", label: "Partnered Server Owner", flag: 2 },
-  { kind: "hypesquad", label: "HypeSquad Events", flag: 4 },
-  { kind: "early", label: "Early Supporter", flag: 512 },
-  { kind: "developer", label: "Early Verified Bot Developer", flag: 131072 },
-];
+const SAMPLE_BADGES: SampleBadge[] = discordBadges(
+  (1 << 0) | (1 << 1) | (1 << 2) | (1 << 9) | (1 << 17),
+);
 
 const SAMPLE_LIVE: Record<
   string,

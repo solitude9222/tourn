@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 type IconProps = { size?: number; className?: string; style?: CSSProperties };
 
@@ -382,12 +382,17 @@ export function ShieldIcon({ size = 16, className }: IconProps) {
 export function DiscordBadgeIcon({
   kind,
   label,
+  art,
   size = 11,
 }: {
   kind: string;
   label: string;
+  /** Official Discord badge image; falls back to the local glyph if it fails. */
+  art?: string;
   size?: number;
 }) {
+  const [failedArt, setFailedArt] = useState<string | null>(null);
+  const showArt = Boolean(art) && failedArt !== art;
   const shapes: Record<string, ReactNode> = {
     staff: (
       <>
@@ -435,9 +440,23 @@ export function DiscordBadgeIcon({
       role="img"
       aria-label={label}
     >
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        {shapes[kind] ?? shapes.staff}
-      </svg>
+      {showArt ? (
+        <img
+          className="bcard-badge-img"
+          src={art}
+          alt=""
+          width={size}
+          height={size}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          onError={() => setFailedArt(art ?? null)}
+        />
+      ) : (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          {shapes[kind] ?? shapes.staff}
+        </svg>
+      )}
     </span>
   );
 }

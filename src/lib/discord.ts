@@ -15,6 +15,8 @@ export type DiscordBadge = {
   kind: DiscordBadgeKind;
   label: string;
   flag: number;
+  /** Official Discord badge artwork, served locally so it can't break. */
+  art?: string;
 };
 
 /**
@@ -23,19 +25,76 @@ export type DiscordBadge = {
  * are not part of `public_flags`.
  */
 const BADGES: DiscordBadge[] = [
-  { kind: "staff", label: "Discord Staff", flag: 1 << 0 },
-  { kind: "partner", label: "Partnered Server Owner", flag: 1 << 1 },
-  { kind: "hypesquad", label: "HypeSquad Events", flag: 1 << 2 },
-  { kind: "bug", label: "Bug Hunter", flag: 1 << 3 },
-  { kind: "bravery", label: "HypeSquad Bravery", flag: 1 << 6 },
-  { kind: "brilliance", label: "HypeSquad Brilliance", flag: 1 << 7 },
-  { kind: "balance", label: "HypeSquad Balance", flag: 1 << 8 },
-  { kind: "early", label: "Early Supporter", flag: 1 << 9 },
-  { kind: "bug", label: "Bug Hunter Gold", flag: 1 << 14 },
+  { kind: "staff", label: "Discord Staff", flag: 1 << 0, art: "/badges/discord/staff.svg" },
+  {
+    kind: "partner",
+    label: "Partnered Server Owner",
+    flag: 1 << 1,
+    art: "/badges/discord/partnered_server_owner.svg",
+  },
+  {
+    kind: "hypesquad",
+    label: "HypeSquad Events",
+    flag: 1 << 2,
+    art: "/badges/discord/hypesquad_events.svg",
+  },
+  {
+    kind: "bug",
+    label: "Bug Hunter",
+    flag: 1 << 3,
+    art: "/badges/discord/bug_hunter_level_1.svg",
+  },
+  {
+    kind: "bravery",
+    label: "HypeSquad Bravery",
+    flag: 1 << 6,
+    art: "/badges/discord/hypesquad_bravery.svg",
+  },
+  {
+    kind: "brilliance",
+    label: "HypeSquad Brilliance",
+    flag: 1 << 7,
+    art: "/badges/discord/hypesquad_brilliance.svg",
+  },
+  {
+    kind: "balance",
+    label: "HypeSquad Balance",
+    flag: 1 << 8,
+    art: "/badges/discord/hypesquad_balance.svg",
+  },
+  {
+    kind: "early",
+    label: "Early Supporter",
+    flag: 1 << 9,
+    art: "/badges/discord/early_supporter.svg",
+  },
+  {
+    kind: "bug",
+    label: "Bug Hunter Gold",
+    flag: 1 << 14,
+    art: "/badges/discord/bug_hunter_level_2.svg",
+  },
+  // Discord exposes a flag for verified bots but has no badge artwork for it
+  // in the profile badge set, so this one keeps the local robot icon.
   { kind: "bot", label: "Verified Bot", flag: 1 << 16 },
-  { kind: "developer", label: "Early Verified Bot Developer", flag: 1 << 17 },
-  { kind: "moderator", label: "Certified Moderator", flag: 1 << 18 },
-  { kind: "developer", label: "Active Developer", flag: 1 << 22 },
+  {
+    kind: "developer",
+    label: "Early Verified Bot Developer",
+    flag: 1 << 17,
+    art: "/badges/discord/early_verified_developer.svg",
+  },
+  {
+    kind: "moderator",
+    label: "Certified Moderator",
+    flag: 1 << 18,
+    art: "/badges/discord/certified_moderator.svg",
+  },
+  {
+    kind: "developer",
+    label: "Active Developer",
+    flag: 1 << 22,
+    art: "/badges/discord/active_developer.svg",
+  },
 ];
 
 export function discordBadges(flags: number | null | undefined): DiscordBadge[] {
