@@ -20,7 +20,7 @@ type ProfileData = {
 /**
  * /demo — the real public link page, not the marketing home page.
  *
- * - The owner account (VITE_OWNER_EMAIL) sees their live dashboard data.
+ * - The owner account (flagged server-side) sees their live dashboard data.
  * - Any signed-in account previews its own public page.
  * - Visitors see the owner's profile row (Railway Postgres) once it exists.
  * - With no owner configured, the home page's ambient background and logo

@@ -201,7 +201,9 @@ async function discordLive(
   const decoration = decorationAsset ? decorationUrl(decorationAsset) : null;
   const banner = lookup?.banner_url || null;
   const showBanner = widget.options.show_banner !== false;
-  const flags = user?.public_flags ?? lookupUser?.public_flags ?? 0;
+  // Lanyard can omit flags or return 0 while the lookup endpoint still has
+  // them; OR the two public payloads instead of letting the first one win.
+  const flags = (user?.public_flags ?? 0) | (lookupUser?.public_flags ?? 0);
   const badges = discordBadges(flags);
   const lookupGuild = lookupUser?.primary_guild;
   const tag =

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { api } from "../lib/backend";
+import { api, post } from "../lib/backend";
 import { useAuth, type Account } from "../lib/auth";
 import { formatJoined } from "../lib/format";
 import { ArrowRight, BoltIcon, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
@@ -176,8 +176,8 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
 
         <div className="shop-note" data-reveal data-reveal-delay="220">
           <p>
-            Checkout isn't live during the beta. Create an account now and anything you unlock later
-            attaches to the same handle.
+            Premium runs through Stripe's secure checkout. Create an account now and anything you
+            unlock later attaches to the same handle.
           </p>
           <button type="button" className="btn btn-primary btn-sm" onClick={onSignUp}>
             Create your account
@@ -228,7 +228,7 @@ const PREMIUM_PERKS = [
 const PREMIUM_FAQ = [
   {
     q: "How much is it?",
-    a: `Premium is ${PREMIUM_PRICE}/month once checkout goes live. While tourn.lol is in beta it costs nothing — early accounts keep the perks they've been granted.`,
+    a: `Premium is ${PREMIUM_PRICE}/month, billed securely through Stripe. You can cancel from the billing portal at any time, and an early grant made during the beta stays on your account.`,
   },
   {
     q: "How do I get it during the beta?",
@@ -241,7 +241,40 @@ const PREMIUM_FAQ = [
 ];
 
 export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
-  const { user, isPremiumUser } = useAuth();
+  const { user, isPremiumUser, retryAuth } = useAuth();
+  const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState<string | null>(null);
+
+  /* Checkout is created on the server with the price id it owns, so the
+     browser can never pick an amount. Signed-out visitors get the sign-up
+     dialog first; everything else is a normal redirect to Stripe. */
+  const buyPremium = async () => {
+    if (!user) {
+      onSignUp();
+      return;
+    }
+    setBuying(true);
+    setBuyError(null);
+    const result = await post<{ url?: string }>("/api/billing/checkout");
+    if (result.ok && result.data.url) {
+      window.location.href = result.data.url;
+      return;
+    }
+    setBuying(false);
+    setBuyError(result.ok ? "Checkout didn't return a link." : result.error);
+  };
+
+  const [checkoutState] = useState(() =>
+    new URLSearchParams(window.location.search).get("checkout"),
+  );
+
+  // Stripe redirects back before its webhook has necessarily landed. Re-check
+  // the account once so the page flips to Premium without a manual reload.
+  useEffect(() => {
+    if (checkoutState !== "success") return;
+    const timer = window.setTimeout(() => void retryAuth(), 1800);
+    return () => window.clearTimeout(timer);
+  }, [checkoutState, retryAuth]);
 
   return (
     <section className="page">
@@ -252,8 +285,8 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
         </h1>
         <p className="page-sub">
           The core bio link stays free forever. Premium is one plan that turns on every effect,
-          every audio style and a second claim on swats.bio — {PREMIUM_PRICE}/month when checkout
-          opens, free while the beta runs.
+          every audio style and a second claim on swats.bio — {PREMIUM_PRICE}/month, billed
+          securely through Stripe. Cancel anytime.
         </p>
       </div>
 
@@ -262,7 +295,7 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
           <div className="premium-hero-plan">
             <span className="premium-hero-badge">
               <BoltIcon size={13} />
-              {isPremiumUser ? "Active on your account" : "Free while in beta"}
+              {isPremiumUser ? "Active on your account" : "Secure checkout · cancel anytime"}
             </span>
             <div className="premium-hero-price">
               <b>{PREMIUM_PRICE}</b>
@@ -278,11 +311,26 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
                 <ArrowRight size={13} />
               </a>
             ) : (
-              <button type="button" className="btn btn-primary btn-sm" onClick={onSignUp}>
-                {user ? "Open your dashboard" : "Create your account"}
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => void buyPremium()}
+                disabled={buying}
+              >
+                {buying ? "Opening checkout…" : "Buy premium"}
                 <ArrowRight size={13} />
               </button>
             )}
+            {buyError ? (
+              <p className="premium-buy-note" role="alert">
+                {buyError}
+              </p>
+            ) : null}
+            {checkoutState === "success" && !isPremiumUser ? (
+              <p className="premium-buy-note premium-buy-note--ok" role="status">
+                Payment received — Stripe is confirming your plan. This page updates in a moment.
+              </p>
+            ) : null}
           </div>
           <ul className="premium-hero-points">
             {PREMIUM_PERKS.map((perk) => (
@@ -338,7 +386,7 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
           <p>
             {isPremiumUser
               ? "Premium is already active on this account — everything on this page is unlocked."
-              : "Premium isn't purchasable during the beta. Claim your handle now and any grant attaches to the same account later."}
+              : "Payments run through Stripe. tourn.lol never sees or stores your card details, and a grant made during the beta stays on your account."}
           </p>
           <a className="btn btn-ghost btn-sm" href="#/legal">
             Read the terms

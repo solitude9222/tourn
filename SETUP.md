@@ -33,10 +33,11 @@ FRONTEND_URL=http://127.0.0.1:5180
 BACKEND_URL=http://127.0.0.1:8787
 ```
 
-Nothing else is needed: the frontend always calls its own origin (`/api/*`,
-`/env.js`) and Vite forwards those to `http://127.0.0.1:8787` in dev/preview,
-just like `vercel.json` does in production. The Railway host never appears in
-the page.
+Nothing else is needed: the frontend always calls its own origin (`/api/*`)
+and Vite forwards `/api/*` to `http://127.0.0.1:8787` in dev/preview, just like
+`vercel.json` does in production. `/env.js` is the static public file in
+`public/` (API base only), so it needs no backend. The Railway host never
+appears in the page.
 
 ### 2) Supabase-free database (Railway Postgres)
 
@@ -58,7 +59,7 @@ JWT_SECRET=              # openssl rand -hex 32
 FRONTEND_URL=https://tourn.lol,https://swats.bio   # comma-separated list; apex + www both work
 BACKEND_URL=https://tourn-production.up.railway.app
 OAUTH_REDIRECT_URI=      # optional, see §4 — hides the API host from sign-in
-VITE_OWNER_EMAIL=you@example.com
+OWNER_EMAIL=you@example.com       # server-only; never exposed via /env.js
 ADMIN_EMAIL=             # optional seeded admin (gets is_admin + is_owner)
 ADMIN_PASSWORD=
 VITE_DISCORD_CLIENT_ID=1557279875423932467
@@ -96,15 +97,15 @@ ever created becomes owner + admin**.
 ### 5) Vercel — frontend, zero env
 
 Import `solitude9222/tourn`, preset **Vite**, deploy. **No environment
-variables** — `index.html` loads the public config from its own `/env.js` at
-runtime. `vercel.json` rewrites `/api/*` and `/env.js` to the Railway service,
-so every request the browser makes is to `tourn.lol` itself: no backend URL in
-the markup, no cross-site cookie. Update `FRONTEND_URL` in Railway to your
-final domain (used for the OAuth return).
+variables** — the build ships `public/env.js` (API base only), which is served
+as a static, `no-store` file. `vercel.json` rewrites `/api/*` to the Railway
+service, so every request the browser makes is to `tourn.lol` itself: no
+backend URL in the markup, no cross-site cookie. Update `FRONTEND_URL` in
+Railway to your final domain (used for the OAuth return).
 
 ### 6) Make yourself the owner
 
-Sign up with Discord → your email matches `VITE_OWNER_EMAIL` (or the seeded
+Sign up with Discord → your email matches `OWNER_EMAIL` (or the seeded
 `ADMIN_EMAIL`) → owner + admin. Then **Settings → Security** → set a password,
 **Settings → Claims** → claim your alias. `/demo` and the home card show your
 page immediately.
@@ -121,7 +122,7 @@ VITE_API_BASE_URL=            # leave empty: the site is same-origin (proxied)
 DATABASE_URL=                 # Railway Postgres connection string
 JWT_SECRET=                   # openssl rand -hex 32
 
-VITE_OWNER_EMAIL=             # your email → owner profile on home + /demo
+OWNER_EMAIL=                  # server-only; never exposed via /env.js
 ADMIN_EMAIL=                  # optional seeded admin (owner + admin)
 ADMIN_PASSWORD=
 
@@ -135,9 +136,10 @@ SPOTIFY_CLIENT_SECRET=
 
 VIEW_SECRET=
 
-VITE_STRIPE_PUBLISHABLE_KEY=  # Premium checkout (later)
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
+VITE_STRIPE_PUBLISHABLE_KEY=  # optional — checkout is a server redirect
+STRIPE_SECRET_KEY=            # sk_live_… / sk_test_… — backend only, never VITE_
+STRIPE_PRICE_ID=              # price_… for the monthly Premium plan
+STRIPE_WEBHOOK_SECRET=        # whsec_… from the Stripe webhook endpoint
 
 VITE_TURNSTILE_SITE_KEY=0x4AAAAAAFThWr36t2uJbW1e
 TURNSTILE_SECRET_KEY=
@@ -148,10 +150,77 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
-`VITE_` values are public — the backend re-serves them via `/env.js`. Plain
-values are secrets, backend only.
+`/env.js` exposes only `VITE_API_BASE_URL` (empty = same origin). The owner
+email and every private key stay on the backend. OAuth client ids and the
+Turnstile site key are public identifiers the browser must have; they are not
+secrets.
 
 ---
+
+## Turning on Premium checkout
+
+Premium is sold as one recurring Stripe subscription. The backend stores only
+the entitlement (`users.premium`); Stripe owns the card, the invoice and the
+subscription. The price is chosen on the server, so a browser cannot change
+what is charged.
+
+1. In the Stripe dashboard create a product **tourn.lol Premium** with a
+   recurring monthly price (the page shows `$3`). Copy its price id
+   (`price_…`).
+2. On the **Railway backend** service add:
+   `STRIPE_SECRET_KEY` (secret key), `STRIPE_PRICE_ID` and
+   `STRIPE_WEBHOOK_SECRET`. Never put any of these in a `VITE_` variable or
+   the client bundle — anything prefixed `VITE_` is compiled into the browser
+   JavaScript.
+3. Add a webhook endpoint pointing at
+   `https://<backend-host>/api/billing/webhook` and subscribe it to
+   `checkout.session.completed` and `customer.subscription.*`. Copy the
+   signing secret into `STRIPE_WEBHOOK_SECRET`.
+4. Deploy the backend, sign in on `/premium`, press **Buy premium** and pay
+   with Stripe's test card `4242 4242 4242 4242` while using test keys. The
+   webhook flips `premium` on; cancelling in the Stripe portal flips it off.
+
+Admin grants made in the admin console keep working independently of Stripe,
+and an account can hold either kind. The dashboard reads `premium` from
+`/api/auth/me` on every load, so a webhook change shows up on the next refresh.
+
+What the checkout path already enforces:
+
+- price and mode are server-side constants — no client-supplied amount;
+- every webhook is verified with the Stripe signature secret before any row is
+  written, and events are idempotent;
+- checkout/portal require a live session (JWT **and** `token_version`);
+- mutations must come from a configured site origin, and billing is rate-limited;
+- `premium` is never read from localStorage or a request body.
+
+## Cloudflare
+
+`tourn.lol` already resolves through Cloudflare nameservers
+(`martin.ns.cloudflare.com`, `haley.ns.cloudflare.com`), but the records are
+**DNS-only** — the apex currently answers with the hosting provider's IP, not a
+Cloudflare edge IP. Two ways to finish the connection:
+
+**A. Proxy the existing host (fastest, no migration).** In Cloudflare → DNS,
+set the `tourn.lol` and `www` records to **Proxied** (orange cloud), then set
+SSL/TLS → Overview to **Full (strict)**. Add a WAF rate-limit rule for
+`/api/auth/*` if the site is public. Vercel/Railway keep serving; Cloudflare
+now terminates TLS, caches the static assets and fronts the API.
+
+**B. Host the static build on Cloudflare Pages.** The repo now has
+`wrangler.toml`, `public/_headers` and `functions/_middleware.js` (the latter
+proxies only `/api/*` to Railway; `/env.js` is the static public file). Run:
+
+```bash
+npm run build
+npx wrangler pages deploy dist --project-name tourn
+```
+
+Set `BACKEND_URL=https://tourn-production.up.railway.app` in the Pages project,
+then add `tourn.lol` as a custom domain there and point the DNS records at the
+Pages project. The backend stays on Railway; only the static site moves.
+
+Neither step can be completed from the repo alone — both need a logged-in
+Cloudflare account (dashboard or `npx wrangler login`).
 
 ## API the backend exposes (for reference)
 

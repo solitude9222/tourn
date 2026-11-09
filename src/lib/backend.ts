@@ -1,8 +1,8 @@
 /* ---------------------------------------------------------------------------
    Backend client — every account call is SAME-ORIGIN. The site proxies
-   /api/* (and /env.js) through its own host to the Express backend, so the
-   API domain never appears in page markup, in requests or in the address
-   bar, and the session cookie stays first-party.
+   /api/* through its own host to the Express backend, so the API domain never
+   appears in page markup, in requests or in the address bar, and the session
+   cookie stays first-party. /env.js is a static public file, not proxied.
 
    `VITE_API_BASE_URL` still works for deliberately pointing at another host
    (e.g. `http://127.0.0.1:8787` when running the frontend without the dev

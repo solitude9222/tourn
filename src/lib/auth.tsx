@@ -8,8 +8,6 @@ import {
   type ReactNode,
 } from "react";
 import { api, post } from "./backend";
-import { publicEnv } from "./runtimeEnv";
-import { loadIsPremium } from "./premium";
 import {
   forgetAccount as forgetStoredAccount,
   loadAccounts,
@@ -122,12 +120,6 @@ type AuthValue = {
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
-
-/** Owner is the account whose email matches VITE_OWNER_EMAIL. */
-export function isOwnerEmail(email: string | null): boolean {
-  const owner = publicEnv("VITE_OWNER_EMAIL").toLowerCase();
-  return Boolean(owner && email && email.trim().toLowerCase() === owner);
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Account | null>(null);
@@ -343,8 +335,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const ownPremium = user ? Boolean(user.premium) || loadIsPremium(user.id) : false;
-  const isOwner = isOwnerEmail(user?.email ?? null) || Boolean(user?.isOwner);
+  const ownPremium = Boolean(user?.premium);
+  // The backend decides owner status; an email no longer reaches the browser.
+  const isOwner = Boolean(user?.isOwner);
   const isAdmin = isOwner || Boolean(user?.isAdmin);
 
   const accountWithProfile = useMemo<Account | null>(

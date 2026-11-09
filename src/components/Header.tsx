@@ -10,10 +10,11 @@ import {
   SettingsIcon,
 } from "./Icons";
 
-/* The site header is three links: the site, the legal pages and the plan.
-   Leaderboard, shop and the admin console live in the dashboard instead. */
+/* The site header: the site, the board, the plan and the legal pages. The
+   shop and admin console live in the dashboard instead. */
 const LINKS: { label: string; route: Route }[] = [
   { label: "Home", route: "" },
+  { label: "Leaderboard", route: "leaderboard" },
   { label: "Legal", route: "legal" },
   { label: "Premium", route: "premium" },
 ];

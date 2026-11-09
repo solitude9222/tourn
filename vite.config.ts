@@ -152,12 +152,24 @@ function robloxProxy(): Plugin {
 
 export default defineConfig({
   plugins: [react(), steamProfileProxy(), robloxProxy()],
+  build: {
+    // Locked production bundle: no source maps back to the source, no console
+    // or debugger calls, and aggressively mangled identifiers. Browser code
+    // can never be made secret — this just removes the free guided tour.
+    sourcemap: false,
+    minify: "terser",
+    terserOptions: {
+      compress: { drop_console: true, drop_debugger: true, passes: 2 },
+      mangle: { toplevel: true, safari10: true },
+      format: { comments: false },
+    },
+  },
   server: {
     port: 5180,
     host: "127.0.0.1",
     // The app talks to its own origin in every environment; in development
-    // that origin forwards /api and /env.js to the local Express backend on
-    // :8787, exactly like the production host does.
+    // that origin forwards /api to the local Express backend on :8787, exactly
+    // like the production host does. /env.js is the static public file.
     proxy: {
       "/api": {
         target: "http://127.0.0.1:8787",
@@ -168,7 +180,6 @@ export default defineConfig({
             ? req.url
             : undefined,
       },
-      "/env.js": { target: "http://127.0.0.1:8787" },
     },
   },
   preview: {
@@ -182,7 +193,6 @@ export default defineConfig({
             ? req.url
             : undefined,
       },
-      "/env.js": { target: "http://127.0.0.1:8787" },
     },
   },
 });

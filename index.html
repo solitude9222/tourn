@@ -37,9 +37,10 @@
       />
     </noscript>
     <!--
-      Runtime public env (/env.js → API, whitelisted public values only) is
-      fetched by src/lib/backend.ts instead of being a blocking script here,
-      so the bundle starts without waiting for the API host.
+      The static /env.js holds only the public API base (no owner email, keys
+      or OAuth secrets) and is fetched by src/lib/backend.ts instead of being
+      a blocking script here, so the bundle starts without waiting for the
+      API host.
     -->
     <!-- First paint: a plain black screen. Nothing to download, nothing to
          animate — a profile page paints the moment React has its data, and an

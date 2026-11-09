@@ -21,7 +21,6 @@ import {
   saveLinkStore,
   type LinkStore,
 } from "./lib/links";
-import { loadIsPremium } from "./lib/premium";
 import { fetchLanyard } from "./lib/api";
 import { usePolled } from "./lib/hooks";
 import { useHashRoute, profileHandleFromLocation } from "./lib/router";
@@ -583,8 +582,8 @@ function Site() {
     setWidgets(user ? loadWidgetStore(user.id) : EMPTY_WIDGET_STORE);
     setBadges(user ? loadBadgeStore(user.id) : EMPTY_BADGE_STORE);
     setProfileLinks(user ? loadLinkStore(user.id) : EMPTY_LINK_STORE);
-    // Premium = granted by an admin on the profile row, or the local testing flag.
-    setIsPremiumState(user ? Boolean(user.premium) || loadIsPremium(user.id) : false);
+    // Premium is server-owned: the account's premium flag is the only source.
+    setIsPremiumState(Boolean(user?.premium));
     setSettings(loadSettings(user?.id ?? null));
   }, [user?.id]);
 
@@ -917,7 +916,9 @@ function Site() {
                 <Hero
                   signedIn={Boolean(user)}
                   onPrimary={openPrimary}
-                  onExample={() => scrollTo("example")}
+                  onPremium={() => {
+                    window.location.hash = "#/premium";
+                  }}
                 />
                 <StatsBand stats={siteStats} />
                 <BentoSection

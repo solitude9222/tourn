@@ -6,6 +6,7 @@ export type DiscordBadgeKind =
   | "early"
   | "developer"
   | "moderator"
+  | "active"
   | "bot"
   | "bravery"
   | "brilliance"
@@ -88,6 +89,12 @@ const BADGES: DiscordBadge[] = [
     label: "Moderator Program Alumni",
     flag: 1 << 18,
     art: "/badges/discord/certified_moderator.svg",
+  },
+  {
+    kind: "active",
+    label: "Active Developer",
+    flag: 1 << 22,
+    art: "/badges/discord/active_developer.svg",
   },
 ];
 

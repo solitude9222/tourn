@@ -12,7 +12,7 @@
       OAUTH_REDIRECT_URI        optional; the exact Discord callback URL
     CLOUDINARY_*              media/file hosting — the only external besides
                               Postgres (declared here, wired per feature)
-     VITE_OWNER_EMAIL          owner account email
+     OWNER_EMAIL               owner account email (server-only)
      ADMIN_EMAIL / ADMIN_PASSWORD
      VITE_DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET / DISCORD_BOT_TOKEN
      VITE_SPOTIFY_CLIENT_ID / VITE_TURNSTILE_SITE_KEY / VITE_STRIPE_PUBLISHABLE_KEY
@@ -32,6 +32,7 @@ import { fileURLToPath } from "node:url";
 import { frontendOrigins } from "./origins.js";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
+import Stripe from "stripe";
 
 const {
   DATABASE_URL,
@@ -39,7 +40,8 @@ const {
   FRONTEND_URL = "http://127.0.0.1:5180",
   BACKEND_URL = "https://tourn-production.up.railway.app",
   OAUTH_REDIRECT_URI = "",
-  VITE_OWNER_EMAIL = "",
+  OWNER_EMAIL = "",
+  VITE_OWNER_EMAIL = "", // legacy name; never exposed to the browser
   ADMIN_EMAIL = "",
   ADMIN_PASSWORD = "",
   VITE_DISCORD_CLIENT_ID = "",
@@ -49,6 +51,9 @@ const {
   VITE_SPOTIFY_CLIENT_ID = "",
   VITE_TURNSTILE_SITE_KEY = "",
   VITE_STRIPE_PUBLISHABLE_KEY = "",
+  STRIPE_SECRET_KEY = "",
+  STRIPE_PRICE_ID = "",
+  STRIPE_WEBHOOK_SECRET = "",
   PORT = 8787,
 } = process.env;
 
@@ -62,6 +67,14 @@ if (!DATABASE_URL) {
 if (!JWT_SECRET) {
   console.error("JWT_SECRET is required (openssl rand -hex 32)");
 }
+
+/* The owner email is server-only. It used to be published through /env.js,
+   which put a personal address in every visitor's source view. */
+const OWNER_EMAIL_ADDRESS = (OWNER_EMAIL || VITE_OWNER_EMAIL).trim().toLowerCase();
+
+/* Billing is optional: with no secret key + price id the site still runs, and
+   the checkout route explains what is missing instead of failing at boot. */
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 /* ── frontend origins ──────────────────────────────────────────────────── */
 
@@ -122,6 +135,8 @@ create table if not exists users (
   alias text unique,
   alias2 text unique,
   premium boolean not null default false,
+  stripe_customer_id text,
+  stripe_subscription_id text,
   is_admin boolean not null default false,
   is_owner boolean not null default false,
   badges jsonb not null default '[]'::jsonb,
@@ -176,6 +191,12 @@ async function initDb() {
   // Databases created before admin-granted badges existed.
   await pool.query(
     "alter table users add column if not exists badges jsonb not null default '[]'::jsonb",
+  );
+  // Billing columns added when Premium checkout went live.
+  await pool.query("alter table users add column if not exists stripe_customer_id text");
+  await pool.query("alter table users add column if not exists stripe_subscription_id text");
+  await pool.query(
+    "create index if not exists users_stripe_customer_idx on users (stripe_customer_id)",
   );
   // Seed the backend admin account if configured and not present yet.
   if (ADMIN_EMAIL && ADMIN_PASSWORD) {
@@ -286,15 +307,30 @@ async function userById(id) {
   return withUid(rows[0] ?? null);
 }
 
-function requireAuth(req, res, next) {
+/* Verifies the JWT *and* the account's token_version, so signing out other
+   devices (or a password change) invalidates old cookies immediately instead
+   of leaving a stolen 30-day token usable. */
+async function requireAuth(req, res, next) {
   const token = req.cookies?.[COOKIE];
   if (!token) return res.status(401).json({ error: "Sign in first." });
+  let payload;
   try {
-    req.auth = jwt.verify(token, JWT_SECRET);
+    payload = jwt.verify(token, JWT_SECRET);
   } catch {
     return res.status(401).json({ error: "Your session expired — sign in again." });
   }
-  next();
+  try {
+    const user = await userById(payload.sub);
+    if (!user || user.token_version !== payload.v) {
+      clearSession(res);
+      return res.status(401).json({ error: "Your session expired — sign in again." });
+    }
+    req.auth = payload;
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(500).json({ error: "Couldn't verify your session. Try again." });
+  }
 }
 
 async function requireAdmin(req, res, next) {
@@ -539,11 +575,52 @@ async function sendDiscordDm(discordId, content) {
 
 /* ── app ───────────────────────────────────────────────────────────────── */
 
+/* In-memory limits: the API runs as one Railway instance. They blunt password
+   guessing, sign-up spam and checkout abuse without a Redis dependency. */
+function rateLimit({ windowMs, max, message }) {
+  const hits = new Map();
+  return (req, res, next) => {
+    const now = Date.now();
+    const key = req.ip ?? "unknown";
+    const entry = hits.get(key);
+    if (!entry || entry.reset <= now) {
+      hits.set(key, { count: 1, reset: now + windowMs });
+      if (hits.size > 10_000) hits.clear();
+      return next();
+    }
+    entry.count += 1;
+    if (entry.count > max) {
+      res.set("Retry-After", String(Math.ceil((entry.reset - now) / 1000)));
+      return res.status(429).json({ error: message });
+    }
+    return next();
+  };
+}
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: 40,
+  message: "Too many sign-in attempts — wait a few minutes and try again.",
+});
+const billingLimiter = rateLimit({
+  windowMs: 10 * 60_000,
+  max: 20,
+  message: "Too many billing attempts — wait a few minutes and try again.",
+});
+
 const app = express();
 app.set("trust proxy", 1);
 app.use(cookieParser());
+/* Security headers for every API response. There is no HTML served from the
+   API routes, so these stay conservative and never break the JSON clients. */
+app.disable("x-powered-by");
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.set("Cross-Origin-Opener-Policy", "same-origin");
+  if (secureCookie) res.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   next();
 });
 app.use(
@@ -556,6 +633,24 @@ app.use(
     credentials: true,
   }),
 );
+
+/* Cookie-authenticated writes must come from one of the site's own origins.
+   Browsers always send Origin on cross-site POST/PATCH, so a request forged by
+   another site is rejected before it reaches a handler. Requests with no
+   Origin (Stripe's webhook, curl) are allowed through and still need a valid
+   session or signature. */
+app.use((req, res, next) => {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return next();
+  const origin = req.get("origin");
+  if (!origin || FRONTEND_ORIGINS.has(origin)) return next();
+  return res.status(403).json({ error: "Cross-origin request blocked." });
+});
+
+/* Signed-in responses and billing must never sit in a shared cache. */
+app.use(["/api/auth", "/api/billing"], (_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 
 /* ── profile documents ─────────────────────────────────────────────────── */
 /* A saved profile carries the bio, links, badges and widget stack — including
@@ -590,23 +685,172 @@ app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req,
   }
 });
 
+/* ── billing (Stripe) ──────────────────────────────────────────────────── */
+/* Checkout is created here, never in the browser: the price comes from
+   STRIPE_PRICE_ID and Premium is only switched on by a signed webhook. */
+
+const STRIPE_READY = Boolean(STRIPE_SECRET_KEY && STRIPE_PRICE_ID);
+
+function requireStripe(res) {
+  if (STRIPE_READY && stripe) return true;
+  res.status(503).json({
+    error: "Checkout isn't configured yet — add STRIPE_SECRET_KEY, STRIPE_PRICE_ID and STRIPE_WEBHOOK_SECRET to the backend.",
+  });
+  return false;
+}
+
+/** Applies a subscription state to the account that owns it. */
+async function applySubscription({ userId, customerId, subscriptionId, active }) {
+  if (userId) {
+    await pool.query(
+      `update users set premium = $2,
+         stripe_customer_id = coalesce($3, stripe_customer_id),
+         stripe_subscription_id = coalesce($4, stripe_subscription_id)
+       where id = $1`,
+      [userId, active, customerId ?? null, subscriptionId ?? null],
+    );
+    return;
+  }
+  if (customerId) {
+    await pool.query(
+      `update users set premium = $2,
+         stripe_subscription_id = coalesce($3, stripe_subscription_id)
+       where stripe_customer_id = $1`,
+      [customerId, active, subscriptionId ?? null],
+    );
+  }
+}
+
+app.post("/api/billing/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  if (!stripe || !STRIPE_WEBHOOK_SECRET) {
+    return res.status(503).json({ error: "Billing webhook isn't configured." });
+  }
+  const signature = req.get("stripe-signature");
+  if (!signature) return res.status(400).json({ error: "Missing Stripe signature." });
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, signature, STRIPE_WEBHOOK_SECRET);
+  } catch {
+    return res.status(400).json({ error: "Invalid Stripe signature." });
+  }
+
+  try {
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const userId = session.client_reference_id || session.metadata?.userId || null;
+      const customerId = typeof session.customer === "string" ? session.customer : null;
+      if (session.subscription) {
+        const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
+        await applySubscription({
+          userId,
+          customerId,
+          subscriptionId: subscription.id,
+          active: ["active", "trialing"].includes(subscription.status),
+        });
+      } else if (userId) {
+        await applySubscription({
+          userId,
+          customerId,
+          active: session.payment_status === "paid",
+        });
+      }
+    } else if (event.type.startsWith("customer.subscription.")) {
+      const subscription = event.data.object;
+      await applySubscription({
+        userId: subscription.metadata?.userId || null,
+        customerId: typeof subscription.customer === "string" ? subscription.customer : null,
+        subscriptionId: subscription.id,
+        active: ["active", "trialing"].includes(subscription.status),
+      });
+    }
+    res.json({ received: true });
+  } catch (error) {
+    console.error("[billing] webhook failed:", error.message);
+    res.status(500).json({ error: "Webhook processing failed." });
+  }
+});
+
+app.post("/api/billing/checkout", billingLimiter, requireAuth, async (req, res) => {
+  if (!requireStripe(res)) return;
+  try {
+    const { rows } = await pool.query(
+      "select id, email, username, premium, stripe_customer_id from users where id = $1",
+      [req.auth.sub],
+    );
+    const user = rows[0];
+    if (!user) return res.status(401).json({ error: "Sign in first." });
+    if (user.premium) return res.status(409).json({ error: "Premium is already active on this account." });
+
+    let customerId = user.stripe_customer_id;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email || undefined,
+        name: user.username,
+        metadata: { userId: user.id },
+      });
+      customerId = customer.id;
+      await pool.query("update users set stripe_customer_id = $2 where id = $1", [
+        user.id,
+        customerId,
+      ]);
+    }
+
+    const origin = returnOriginFromReferer(req);
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
+      allow_promotion_codes: true,
+      client_reference_id: user.id,
+      subscription_data: { metadata: { userId: user.id } },
+      success_url: `${origin}/premium?checkout=success`,
+      cancel_url: `${origin}/premium?checkout=cancelled`,
+    });
+    if (!session.url) return res.status(502).json({ error: "Stripe didn't return a checkout link." });
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error("[billing] checkout failed:", error.message);
+    res.status(502).json({ error: "Couldn't open checkout — try again in a moment." });
+  }
+});
+
+app.post("/api/billing/portal", billingLimiter, requireAuth, async (req, res) => {
+  if (!requireStripe(res)) return;
+  try {
+    const { rows } = await pool.query(
+      "select stripe_customer_id from users where id = $1",
+      [req.auth.sub],
+    );
+    const customerId = rows[0]?.stripe_customer_id;
+    if (!customerId) return res.status(400).json({ error: "No billing profile on this account yet." });
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${returnOriginFromReferer(req)}/premium`,
+    });
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error("[billing] portal failed:", error.message);
+    res.status(502).json({ error: "Couldn't open the billing portal — try again in a moment." });
+  }
+});
+
 app.use(express.json({ limit: "256kb" }));
 
 /* ── runtime public env (the only config the static site needs) ────────── */
 
 app.get("/env.js", (_req, res) => {
   res.set("Content-Type", "application/javascript; charset=utf-8");
-  res.set("Cache-Control", "public, max-age=60");
+  res.set("Cache-Control", "no-store, max-age=0");
   res.send(
     `window.__ENV__ = ${JSON.stringify({
-      // Empty = same origin. The site proxies /api/* and /env.js through its
-      // own host, so the API domain never shows up in markup or requests.
+      // Empty = same origin. The site proxies /api/* through its own host, so
+      // the API domain never shows up in markup or requests. /env.js itself is
+      // a static public file in the site build; this route is the fallback.
+      // Nothing else belongs here: OAuth ids, keys and the owner email are
+      // server-side only, and the browser never needs them.
       VITE_API_BASE_URL: "",
-      VITE_OWNER_EMAIL: VITE_OWNER_EMAIL,
-      VITE_DISCORD_CLIENT_ID: VITE_DISCORD_CLIENT_ID,
-      VITE_SPOTIFY_CLIENT_ID: VITE_SPOTIFY_CLIENT_ID,
-      VITE_TURNSTILE_SITE_KEY: VITE_TURNSTILE_SITE_KEY,
-      VITE_STRIPE_PUBLISHABLE_KEY: VITE_STRIPE_PUBLISHABLE_KEY,
     })};`,
   );
 });
@@ -716,7 +960,7 @@ app.get("/api/auth/me", async (req, res) => {
   }
 });
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", authLimiter, async (req, res) => {
   try {
     const email = String(req.body?.email ?? "").trim().toLowerCase();
     const password = String(req.body?.password ?? "");
@@ -737,7 +981,7 @@ app.post("/api/auth/login", async (req, res) => {
 
 /* Email + password sign-up. Discord used to be the only door in, so a broken
    Discord handshake meant nobody could create an account at all. */
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", authLimiter, async (req, res) => {
   try {
     const email = String(req.body?.email ?? "").trim().toLowerCase();
     const password = String(req.body?.password ?? "");
@@ -771,7 +1015,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     const username = await uniqueUsername(email.split("@")[0]);
     const hash = await bcrypt.hash(password, 12);
-    const ownerEmail = VITE_OWNER_EMAIL.trim().toLowerCase();
+    const ownerEmail = OWNER_EMAIL_ADDRESS;
     const adminEmail = ADMIN_EMAIL.trim().toLowerCase();
     const isOwner = Boolean(ownerEmail && email === ownerEmail);
     const isAdmin = Boolean((adminEmail && email === adminEmail) || isOwner);
@@ -1061,7 +1305,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       user = byEmail.rows[0] ?? null;
     }
 
-    const ownerEmail = VITE_OWNER_EMAIL.trim().toLowerCase();
+    const ownerEmail = OWNER_EMAIL_ADDRESS;
     const adminEmail = ADMIN_EMAIL.trim().toLowerCase();
     const isOwner = Boolean(ownerEmail && email && email === ownerEmail);
     const isAdmin = Boolean(

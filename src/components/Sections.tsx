@@ -21,11 +21,11 @@ import {
 export function Hero({
   signedIn,
   onPrimary,
-  onExample,
+  onPremium,
 }: {
   signedIn: boolean;
   onPrimary: () => void;
-  onExample: () => void;
+  onPremium: () => void;
 }) {
   return (
     <section className="hero" id="top">
@@ -44,8 +44,8 @@ export function Hero({
               {signedIn ? "Open your dashboard" : "Claim your link"}
               <ArrowRight size={15} />
             </button>
-            <button type="button" className="btn btn-ghost" onClick={onExample}>
-              See a live bio
+            <button type="button" className="btn btn-ghost" onClick={onPremium}>
+              Buy premium
             </button>
           </div>
           <div className="hero-meta">
@@ -77,14 +77,19 @@ export function StatsBand({ stats }: { stats: SiteStats }) {
           <b className="stats-band-value">
             {stats.users === null ? "—" : formatCompactNumber(stats.users)}
           </b>
-          <span className="stats-band-label">creators signed up</span>
+          <span className="stats-band-label">
+            <span className="stats-band-dot" aria-hidden="true" />
+            {stats.users === 1 ? "creator signed up" : "creators signed up"}
+          </span>
         </div>
-        <span className="stats-band-divider" aria-hidden="true" />
         <div className="stats-band-item">
           <b className="stats-band-value">
             {stats.views === null ? "—" : formatCompactNumber(stats.views)}
           </b>
-          <span className="stats-band-label">profile views</span>
+          <span className="stats-band-label">
+            <span className="stats-band-dot" aria-hidden="true" />
+            {stats.views === 1 ? "profile view" : "profile views"}
+          </span>
         </div>
       </div>
     </section>

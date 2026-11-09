@@ -28,8 +28,8 @@ npm run build     # typecheck + production bundle in dist/
 ```
 
 Deploy: backend service on Railway (root directory `backends`, Postgres
-attached, env vars from SETUP.md) + frontend on Vercel with **zero env
-vars** (config arrives at runtime from `/env.js`).
+attached, env vars from SETUP.md) + frontend on Vercel with **zero env vars**
+(the build ships a static `/env.js` with only the public API base).
 
 Or host **everything on Railway**: run `npm run build` (or make the backend
 build it) and leave the service's root directory at the repo root — the
@@ -43,9 +43,9 @@ backend serves the `dist/` bundle and the SPA alongside the API, so
 - **Email + password sign-in** works for accounts that added a password in
   **Settings → Security** (Discord accounts can set one; leave "current
   password" empty the first time).
-- **Owner** = the account whose email matches `VITE_OWNER_EMAIL`, or the
-  seeded `ADMIN_EMAIL`, or the first account created. Owner profile renders
-  on the home card and at `/demo`.
+- **Owner** = the account whose email matches `OWNER_EMAIL` (the legacy
+  `VITE_OWNER_EMAIL` name still works), or the seeded `ADMIN_EMAIL`, or the
+  first account created. Owner profile renders on the home card and at `/demo`.
 - There are **no demo accounts** — without a reachable backend, sign-in is
   disabled and the UI says so.
 
@@ -97,8 +97,9 @@ claim prompt — never fake data).
 
 `#/premium` — price hero, Free-vs-Premium table, FAQ. Perks: background /
 overlay effects beyond None, flashier audio styles + upload audio, Glass/Glow
-link styles, second claim on swats.bio. Checkout disabled during beta; grants
-are admin-issued (admin console → premium toggle).
+link styles, second claim on swats.bio. Checkout runs through Stripe
+(`POST /api/billing/checkout` + a signed webhook); grants can also be issued
+in the admin console. See SETUP.md for the keys and webhook setup.
 
 ## Security posture
 
@@ -106,10 +107,16 @@ are admin-issued (admin console → premium toggle).
   "kill other sessions" revokes stolen devices instantly.
 - Passwords hashed with bcrypt; admin actions gated server-side
   (`requireAdmin`), self-demotion blocked.
-- Secrets live only in Railway; the static site receives public values via
-  `/env.js` (hard whitelist).
+- Secrets live only in Railway. `/env.js` exposes only `VITE_API_BASE_URL`
+  (empty = same origin); the owner email and every key stay server-side.
 - Verification codes: hashed, single-use, 10-minute expiry, rate-limited,
   DM-only delivery.
+- Premium checkout: the price id is server-side, webhooks are signature-
+  verified and idempotent, checkout/portal are rate-limited, and entitlement
+  is read only from `users.premium` — never from the browser.
+- Cookie-authenticated mutations must match a configured site origin; auth
+  and billing responses are `no-store`; `requireAuth` re-checks
+  `token_version` on every request so revoked sessions stop working.
 
 ## Structure
 
@@ -136,5 +143,7 @@ src/
 
 - The only "server" code in dev is the backend (`npm run server`) plus the
   Roblox/Steam proxies in Vite dev/preview.
-- The shop is a preview — checkout is intentionally disabled until the beta
-  ends.
+- The credits shop is a preview; Premium checkout is live through Stripe once
+  its keys are set on the backend.
+- Cloudflare Pages config lives in `wrangler.toml` + `functions/_middleware.js`;
+  `public/_headers` carries the security headers for a Pages deploy.

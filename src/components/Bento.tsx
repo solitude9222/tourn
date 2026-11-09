@@ -29,6 +29,17 @@ import {
 
 /* ------------------------------------------------------------------ shell */
 
+/* The home stack is the shop window. The example account carries no public
+   flags, so without a sample the Discord card rendered with no badges at all.
+   Real payload badges always win; these are only the fallback for the demo. */
+const PREVIEW_BADGES = discordBadges(
+  (1 << 0) | (1 << 1) | (1 << 2) | (1 << 9) | (1 << 17),
+);
+
+function withPreviewBadges(badges: ReturnType<typeof discordBadges>) {
+  return badges.length ? badges : PREVIEW_BADGES;
+}
+
 type CardTone = "discord" | "server" | "spotify" | "steam";
 
 function Card({
@@ -137,17 +148,22 @@ export function DiscordCard({
   identity,
   guildId,
   onConfigure,
+  previewBadges = false,
 }: {
   lanyard: Polled<LanyardData>;
   /** Public profile used when Lanyard isn't watching this account. */
   identity?: DiscordIdentity | null;
   guildId: string | null;
   onConfigure: () => void;
+  /** Home showcase: show sample flags when the example account has none. */
+  previewBadges?: boolean;
 }) {
   if (!lanyard.data) {
     if (lanyard.loading) return <SkeletonCard label="Discord" />;
     if (identity) {
-      const badges = discordBadges(identity.publicFlags);
+      const badges = previewBadges
+        ? withPreviewBadges(discordBadges(identity.publicFlags))
+        : discordBadges(identity.publicFlags);
       return (
         <Card
           tone="discord"
@@ -202,7 +218,9 @@ export function DiscordCard({
   const user = lanyard.data.discord_user;
   const game = currentGame(lanyard.data.activities);
   const custom = customStatus(lanyard.data.activities);
-  const badges = discordBadges(user.public_flags);
+  const badges = previewBadges
+    ? withPreviewBadges(discordBadges(user.public_flags))
+    : discordBadges(user.public_flags);
   const guildTag = primaryGuildTag(user.primary_guild);
   const guildBadge = guildTagBadge(user.primary_guild);
   const displayName = user.display_name || user.global_name || user.username;
@@ -648,6 +666,7 @@ export function Bento({
         identity={identity}
         guildId={invite.data?.guild?.id ?? null}
         onConfigure={onConfigure}
+        previewBadges
       />
       <ServerCard request={invite} invite={settings.discordInvite} onConfigure={onConfigure} />
       <SpotifyCard lanyard={lanyard} track={settings.spotifyTrack} />
