@@ -35,6 +35,7 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 118px;
   background: var(--bg);
+  overflow-x: clip;
   scrollbar-width: thin;
   scrollbar-color: #1a6a86 #02070d;
 }
@@ -1800,8 +1801,8 @@ button {
 
 .faq-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
-  gap: 48px;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: 56px;
   align-items: start;
 }
 
@@ -1813,41 +1814,46 @@ button {
 
 .faq-list {
   display: grid;
-  gap: 9px;
+  gap: 10px;
+  counter-reset: faq;
 }
 
 .faq-item {
-  padding: 0 16px;
-  border-radius: 13px;
-  border: 1px solid var(--line);
+  counter-increment: faq;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(125, 211, 252, 0.1);
   background:
-    linear-gradient(180deg, rgba(125, 211, 252, 0.04), rgba(125, 211, 252, 0.01)),
-    rgba(5, 15, 24, 0.6);
+    linear-gradient(180deg, rgba(125, 211, 252, 0.035), rgba(125, 211, 252, 0.008)),
+    rgba(4, 13, 22, 0.58);
   transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
 }
 
 .faq-item:hover {
-  border-color: rgba(125, 211, 252, 0.22);
+  border-color: rgba(125, 211, 252, 0.24);
+  background:
+    linear-gradient(180deg, rgba(125, 211, 252, 0.055), rgba(125, 211, 252, 0.012)),
+    rgba(5, 15, 25, 0.66);
 }
 
 .faq-item[open] {
   border-color: rgba(125, 211, 252, 0.28);
   background:
-    linear-gradient(180deg, rgba(125, 211, 252, 0.07), rgba(125, 211, 252, 0.02)),
-    rgba(6, 17, 27, 0.7);
-  box-shadow: 0 18px 40px -30px #000;
+    linear-gradient(180deg, rgba(125, 211, 252, 0.075), rgba(125, 211, 252, 0.015)),
+    rgba(6, 18, 29, 0.72);
+  box-shadow: 0 24px 60px -46px #000, inset 0 1px 0 rgba(186, 230, 253, 0.06);
 }
 
 .faq-item summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 15px 0;
+  gap: 16px;
+  padding: 17px 0;
   cursor: pointer;
   list-style: none;
-  font-size: 13px;
-  font-weight: 550;
+  font-size: 13.5px;
+  font-weight: 560;
   color: #d5e9f4;
   transition: color 0.18s ease;
 }
@@ -1856,28 +1862,93 @@ button {
   display: none;
 }
 
+.faq-item summary:focus-visible {
+  outline-offset: -2px;
+  border-radius: 12px;
+}
+
 .faq-item[open] summary {
   color: #fff;
 }
 
-.faq-chevron {
-  color: #6b899b;
-  transition: transform 0.3s var(--ease-out), color 0.2s ease;
+.faq-q {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+}
+
+.faq-q::before {
+  display: grid;
   flex: none;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 8px;
+  background: rgba(125, 211, 252, 0.055);
+  color: #8ccce7;
+  content: counter(faq, decimal-leading-zero);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.faq-item[open] .faq-q::before {
+  border-color: rgba(125, 211, 252, 0.34);
+  background: rgba(125, 211, 252, 0.12);
+  color: #c7efff;
+}
+
+.faq-chevron {
+  display: grid;
+  flex: none;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid rgba(125, 211, 252, 0.12);
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.035);
+  color: #6b899b;
+  transition: transform 0.3s var(--ease-out), color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
 .faq-item[open] .faq-chevron {
   transform: rotate(180deg);
+  border-color: rgba(125, 211, 252, 0.28);
+  background: rgba(125, 211, 252, 0.1);
   color: var(--ice);
 }
 
 .faq-body p {
   margin: 0;
-  padding-bottom: 16px;
+  padding: 0 6px 18px 40px;
   max-width: 66ch;
-  font-size: 12.5px;
+  font-size: 12.8px;
   line-height: 1.72;
   color: #90adbf;
+}
+
+@media (max-width: 980px) {
+  .faq-wrap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .faq-wrap .section-head {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .faq-item {
+    padding: 0 14px;
+  }
+
+  .faq-body p {
+    padding-left: 0;
+  }
 }
 
 /* ------------------------------------------------------------------ cta */
@@ -4462,7 +4533,8 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .bento-feature {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 430px;
+  grid-template-columns: minmax(0, 520px) 430px;
+  justify-content: start;
   align-items: center;
   gap: 56px;
 }
@@ -4588,4 +4660,32 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   .bento-stage .bento-grid > .bcard:nth-child(4) {
     margin-left: 48px;
   }
+}
+
+/* --------------------------------------------------------------- home theme */
+
+/* A deep-blue field with one soft overhead glow and a very quiet bolt
+   watermark, so the home page reads as a place instead of pure black. */
+.app--home .site-backdrop {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cpath d='M132 18 96 110h35l-19 112 66-130h-37l18-74z' fill='none' stroke='%237dd3fc' stroke-opacity='.10' stroke-width='2'/%3E%3C/svg%3E") 0 0 / 240px 240px repeat,
+    radial-gradient(1100px 720px at 50% -12%, rgba(56, 189, 248, 0.2), transparent 66%),
+    radial-gradient(760px 620px at 100% 6%, rgba(37, 99, 235, 0.16), transparent 64%),
+    radial-gradient(700px 540px at 0% 42%, rgba(14, 165, 233, 0.08), transparent 70%),
+    linear-gradient(180deg, #061a2e 0%, #04101f 38%, #02070f 72%, #000 100%);
+}
+
+.app--home .hero-bg {
+  background:
+    radial-gradient(920px 520px at 74% -8%, rgba(56, 189, 248, 0.11), transparent 70%),
+    radial-gradient(760px 560px at 4% 4%, rgba(14, 165, 233, 0.06), transparent 70%);
+}
+
+.app--home .site-head::before {
+  background: linear-gradient(
+    180deg,
+    rgba(4, 16, 30, 0.95) 0%,
+    rgba(4, 16, 30, 0.66) 45%,
+    transparent 100%
+  );
 }

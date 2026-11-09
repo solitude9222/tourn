@@ -95,12 +95,45 @@ export function AudioPlayer({
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
+  const pillViewport = useRef<HTMLSpanElement>(null);
+  const pillText = useRef<HTMLSpanElement>(null);
+  const [pillOverflow, setPillOverflow] = useState(0);
 
   useEffect(() => {
     setPlaying(false);
     setPosition(0);
     setDuration(0);
   }, [settings.fileUrl]);
+
+  // Measure the pill's title strip after layout and fonts settle. The shift
+  // and duration are CSS variables, so the back-and-forth marquee runs on the
+  // compositor instead of updating React on every frame.
+  useEffect(() => {
+    if (settings.style !== "pill") return;
+    const viewport = pillViewport.current;
+    const text = pillText.current;
+    if (!viewport || !text) {
+      setPillOverflow(0);
+      return;
+    }
+    let cancelled = false;
+    const measure = () => {
+      if (cancelled) return;
+      const next = Math.max(0, text.scrollWidth - viewport.clientWidth);
+      setPillOverflow((current) => (Math.abs(current - next) > 1 ? next : current));
+    };
+    measure();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    observer?.observe(viewport);
+    observer?.observe(text);
+    window.addEventListener("resize", measure);
+    void document.fonts?.ready.then(measure);
+    return () => {
+      cancelled = true;
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [settings.style, settings.fileUrl, title, artist, hasTrack]);
 
   // Autoplay is held while the entry screen is up: the song starts when the
   // visitor actually enters, not while the intro is still covering the page.
@@ -224,6 +257,59 @@ export function AudioPlayer({
       <PlayIcon size={13} />
     </span>
   );
+
+  if (settings.style === "pill") {
+    const durationSeconds = Math.min(26, Math.max(8, pillOverflow / 16));
+    const pillStyle = {
+      "--ap-pill-end": `-${pillOverflow}px`,
+      "--ap-pill-duration": `${durationSeconds.toFixed(1)}s`,
+    } as CSSProperties;
+
+    return (
+      <div
+        className={`ap ap--pill${playing ? " is-playing" : ""}${pillOverflow ? " is-scrolling" : ""}`}
+        style={cardStyle}
+      >
+        {audioEl}
+        <div className="ap-pill">
+          <span className="ap-cover ap-pill-cover">{coverNode}</span>
+          <span className="ap-pill-viewport" ref={pillViewport}>
+            <span
+              className={`ap-pill-text${pillOverflow ? "" : " is-static"}`}
+              ref={pillText}
+              style={pillStyle}
+            >
+              <b>{title}</b>
+              <span className="ap-pill-sep" aria-hidden="true">
+                ·
+              </span>
+              <span className="ap-pill-artist">{artist || "Uploaded track"}</span>
+            </span>
+          </span>
+          <button
+            type="button"
+            className="ap-play ap-pill-play"
+            onClick={togglePlay}
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
+          </button>
+        </div>
+        <div
+          className="ap-pill-progress is-seekable"
+          onClick={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            seekToFraction((event.clientX - rect.left) / rect.width);
+          }}
+        >
+          <span
+            className="ap-progress-fill"
+            style={{ width: `${duration ? (position / duration) * 100 : 0}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`ap ap--${settings.style}`} style={cardStyle}>

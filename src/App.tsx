@@ -830,7 +830,7 @@ function Site() {
   }, [user, about, widgets, badges, profileLinks]);
 
   return (
-    <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}`}>
+    <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}${route === "" ? " app--home" : ""}`}>
       <Suspense fallback={null}>
       {route === "demo" || route === "profile" ? null : <SiteBackdrop />}
 

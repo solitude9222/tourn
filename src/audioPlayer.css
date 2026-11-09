@@ -357,6 +357,94 @@
   text-overflow: ellipsis;
 }
 
+/* ── long pill ───────────────────────────────────────────────────────── */
+
+.ap--pill {
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ap-accent) 16%, transparent), rgba(8, 11, 15, 0.94) 52%),
+    rgba(8, 11, 15, 0.94);
+}
+
+.ap-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px 3px;
+}
+
+.ap-pill-cover {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+}
+
+.ap-pill-viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ap--pill.is-scrolling .ap-pill-viewport {
+  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+
+.ap-pill-text {
+  display: inline-flex;
+  width: max-content;
+  align-items: baseline;
+  gap: 7px;
+  padding-inline: 2px;
+  white-space: nowrap;
+  animation: apPillSlide var(--ap-pill-duration, 12s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.ap-pill-text.is-static {
+  animation: none;
+}
+
+.ap-pill-text b {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #f5fbff;
+}
+
+.ap-pill-artist {
+  font-size: 10.5px;
+  color: #9fb0bb;
+}
+
+.ap-pill-sep {
+  color: var(--ap-accent);
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.ap-pill-play {
+  flex: none;
+}
+
+.ap-pill-progress {
+  position: relative;
+  height: 2px;
+  margin: 0 18px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+@keyframes apPillSlide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--ap-pill-end, 0px));
+  }
+}
+
 /* The player's own motion (the scrolling title strip, the spinning vinyl) is
    part of what the page owner chose to show, so — like the rest of the profile
    effects — it is not switched off by the OS reduced-motion flag. Stalling it

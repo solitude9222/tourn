@@ -221,7 +221,7 @@ function FaqItem({ q, a, delay }: { q: string; a: string; delay: number }) {
   return (
     <details className="faq-item" ref={details} data-reveal data-reveal-delay={delay}>
       <summary onClick={onSummaryClick}>
-        {q}
+        <span className="faq-q">{q}</span>
         <span className="faq-chevron" aria-hidden="true">
           <ChevronIcon size={16} />
         </span>

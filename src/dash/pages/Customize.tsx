@@ -73,6 +73,7 @@ function AudioSettingsCard() {
   const audio = about.assets.audio;
   const audioInput = useRef<HTMLInputElement>(null);
   const lyricsInput = useRef<HTMLInputElement>(null);
+  const coverInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const updateAudio = (patch: Partial<typeof audio>) =>
@@ -99,6 +100,17 @@ function AudioSettingsCard() {
       notify("Upload failed", "That audio file could not be read.");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const uploadCover = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const url = await fileToDataUrl(file);
+      updateAudio({ coverUrl: url });
+      notify("Cover art", "Cover updated — save to publish it.");
+    } catch {
+      notify("Upload failed", "That image could not be read.");
     }
   };
 
@@ -148,6 +160,22 @@ function AudioSettingsCard() {
                 icon="trash"
                 onClick={() => updateAudio({ fileUrl: "", style: "none" })}
               >
+                Remove
+              </Button>
+            ) : null}
+          </div>
+        </Field>
+
+        <Field label="Cover art" hint="Square image shown on the player.">
+          <div className="tw-row">
+            {audio.coverUrl ? (
+              <img className="tw-audio-cover" src={audio.coverUrl} alt="" />
+            ) : null}
+            <Button icon="upload" onClick={() => coverInput.current?.click()}>
+              {audio.coverUrl ? "Replace cover" : "Upload cover"}
+            </Button>
+            {audio.coverUrl ? (
+              <Button variant="danger" icon="trash" onClick={() => updateAudio({ coverUrl: "" })}>
                 Remove
               </Button>
             ) : null}
@@ -239,6 +267,16 @@ function AudioSettingsCard() {
         hidden
         onChange={(event) => {
           void uploadLyrics(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={coverInput}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(event) => {
+          void uploadCover(event.target.files?.[0]);
           event.target.value = "";
         }}
       />

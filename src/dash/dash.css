@@ -2566,6 +2566,14 @@
   height: 280px;
 }
 
+.tw-audio-cover {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  object-fit: cover;
+}
+
 .tw-home-widget-stair {
   position: absolute;
   width: 300px;

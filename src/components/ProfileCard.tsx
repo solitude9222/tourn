@@ -7,7 +7,6 @@ import { formatJoined } from "../lib/format";
 import { getViewCount } from "../lib/views";
 import { fetchPublicProfile, readCachedProfile, type ProfilePayload } from "../lib/serverProfile";
 import { DEFAULT_WIDGET_DESIGN, type WidgetStore } from "../lib/widgets";
-import { ArrowUpRight } from "./Icons";
 import { ProfilePreview } from "./ProfilePreview";
 import { WidgetCard } from "./WidgetCard";
 
@@ -170,10 +169,6 @@ export function ProfileCard() {
           </div>
         ) : null}
       </ProfilePreview>
-      <a className="hero-profile-link" href={`/${encodeURIComponent(live?.username ?? HOME_HANDLE)}`}>
-        tourn.lol/{live?.username ?? HOME_HANDLE}
-        <ArrowUpRight size={11} />
-      </a>
     </aside>
   );
 }
