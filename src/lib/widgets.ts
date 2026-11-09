@@ -132,7 +132,7 @@ export type WidgetDesign = {
   scale: number;
   /** Show the live meta chips (members, followers, scrobbles…). */
   showMeta: boolean;
-  /** Show every Discord badge the account carries on the card. */
+  /** Show Discord's public-flag badges on the card. */
   showBadges: boolean;
   /** A line of light travelling around the card edge. */
   outlineEffect: WidgetOutlineEffect;

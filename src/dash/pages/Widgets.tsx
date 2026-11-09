@@ -479,7 +479,7 @@ export function WidgetsPage() {
             <div className="tw-inline-toggle">
               <span>
                 <b>Show badges</b>
-                <small>Every Discord badge the account carries, next to the name.</small>
+                <small>Public flags only: Staff, Partner, HypeSquad, Bug Hunter, Early Supporter and Active Developer. Game Time, Variety, Nitro, Booster and Quests aren't exposed by Discord's API.</small>
               </span>
               <Toggle
                 checked={design.showBadges}
