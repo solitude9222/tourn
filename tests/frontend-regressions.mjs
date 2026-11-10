@@ -28,7 +28,7 @@ await context.route('**/*',async route=>{
  return route.continue();
 });
 await page.goto('http://127.0.0.1:5180/');
-await page.getByRole('heading',{name:'Your corner of the internet.'}).waitFor();
+await page.getByRole('heading',{name:'tourn.lol',exact:true}).waitFor();
 await page.screenshot({path:'.tmp/home-desktop.png',fullPage:true});
 await page.evaluate(()=>location.hash='#/dashboard');
 await page.locator('.tw-dash').waitFor();
@@ -97,7 +97,7 @@ await page.screenshot({path:'.tmp/dashboard-desktop.png',fullPage:true});
 assert.deepEqual(errors,[]);
 console.log('PASS hydration guard and runtime errors');
 await page.setViewportSize({width:390,height:844});await page.evaluate(()=>location.hash='#/');
-await page.getByRole('heading',{name:'Your corner of the internet.'}).waitFor();
+await page.getByRole('heading',{name:'tourn.lol',exact:true}).waitFor();
 await page.screenshot({path:'.tmp/home-mobile.png',fullPage:true});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Mobile overflow');
 console.log('visual smoke passed',writes.length);
@@ -145,9 +145,26 @@ const stillDraws=await page.evaluate(async()=>{
  await new Promise(r=>setTimeout(r,400));const first=count;await new Promise(r=>setTimeout(r,400));const last=count;
  api.destroy();host.remove();CanvasRenderingContext2D.prototype.clearRect=clear;return {first,last};
 });
-assert(stillDraws.first>0);assert.equal(stillDraws.first,stillDraws.last);
-console.log('PASS reduced motion still frame');
+assert(stillDraws.first>0);assert(stillDraws.last>stillDraws.first,'Selected effects froze under reduced motion');
+console.log('PASS selected effects remain animated with reduced motion');
 assert.deepEqual(errors,[],'Runtime errors after effect and tooltip checks');
+// Exercise the actual React background wrapper under the OS setting that
+// previously froze rain, and sample the first drop across drawn frames.
+const rain=await page.evaluate(async()=>{
+ const ReactModule=await import('/node_modules/.vite/deps/react.js');const React=ReactModule.default || ReactModule;
+ const dom=await import('/node_modules/.vite/deps/react-dom_client.js');const createRoot=dom.createRoot || dom.default.createRoot;
+ const {BackgroundEffectLayer}=await import('/src/components/ProfileEffects.tsx');
+ const host=document.createElement('div');host.style.cssText='position:fixed;inset:0;width:400px;height:600px;pointer-events:none';document.body.append(host);
+ const samples=[];const clear=CanvasRenderingContext2D.prototype.clearRect;const move=CanvasRenderingContext2D.prototype.moveTo;let first=false;
+ CanvasRenderingContext2D.prototype.clearRect=function(...args){if(host.contains(this.canvas))first=true;return clear.apply(this,args);};
+ CanvasRenderingContext2D.prototype.moveTo=function(x,y){if(host.contains(this.canvas)&&first){samples.push([x,y]);first=false;}return move.call(this,x,y);};
+ const root=createRoot(host);root.render(React.createElement(BackgroundEffectLayer,{settings:{id:'rain',intensity:70,speed:9,color:'#a5cfff',params:{amount:50,flag:true}}}));
+ await new Promise(r=>setTimeout(r,700));
+ root.unmount();host.remove();CanvasRenderingContext2D.prototype.clearRect=clear;CanvasRenderingContext2D.prototype.moveTo=move;
+ return {frames:samples.length,moved:samples.some(([x,y])=>x!==samples[0][0] || y!==samples[0][1])};
+});
+assert(rain.frames>10 && rain.moved,JSON.stringify(rain));
+console.log('PASS rain drop movement through React wrapper',rain);
 await page.emulateMedia({reducedMotion:'no-preference'});
 await page.evaluate(()=>location.hash='#/dashboard');await page.locator('.tw-dash').waitFor();
 await page.screenshot({path:'.tmp/dashboard-mobile.png',fullPage:true});

@@ -7,16 +7,16 @@
    --------------------------------------------------------------------------- */
 
 .tw-dash {
-  --page: #0b0e14;
-  --rail: #10141c;
-  --card: #121822;
-  --bar: #0e141d;
-  --tile: #18212d;
-  --border: #253040;
-  --input-border: #354255;
-  --accent: #79b8ff;
-  --accent-soft: #1c3047;
-  --accent-text: #a5cfff;
+  --page: #09080b;
+  --rail: #0d0d0d;
+  --card: #111111;
+  --bar: #0c0c0c;
+  --tile: #18171a;
+  --border: #1f1f1f;
+  --input-border: #333333;
+  --accent: #3965e6;
+  --accent-soft: #1b233b;
+  --accent-text: #79a1f7;
   --title: #ffffff;
   --sub: #9fa2af;
   --desc: #a3a2ab;
@@ -31,7 +31,7 @@
   --r-bar: 14px;
   --font: "Segoe UI", "Lexend", system-ui, -apple-system, sans-serif;
 
-  --rail-w: 256px;
+  --rail-w: 320px;
 
   display: grid;
   grid-template-columns: var(--rail-w) minmax(0, 1fr);
@@ -2947,7 +2947,7 @@
 
 @media (max-width: 900px) {
   .tw-dash {
-    --rail-w: 256px;
+    --rail-w: 320px;
     grid-template-columns: minmax(0, 1fr);
   }
 

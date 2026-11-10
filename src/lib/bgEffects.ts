@@ -232,7 +232,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const gust = 0.5 + s.amount / 100;
       const wind = (3 + f * 8) * gust;
-      const n = Math.min(100, Math.floor(500 * (0.2 + f * 0.8)));
+      const n = Math.floor(500 * (0.2 + f * 0.8));
       ctx.lineCap = "round";
       for (let i = 0; i < n; i++) {
         const p = P[i];
@@ -268,7 +268,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const drift = 0.4 + s.amount / 100;
       const gust = Math.sin(t / 3200) * 0.5 + Math.sin(t / 1100) * 0.15;
-      const n = Math.min(65, Math.floor(180 * Math.min(1, f * 2)));
+      const n = Math.floor(180 * Math.min(1, f * 2));
       const S = [
         { s: 7, a: 0.6, v: 0.45, sw: 0.25 },
         { s: 13, a: 0.75, v: 0.9, sw: 0.5 },
@@ -305,7 +305,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const slant = 0.1 + s.amount / 100 * 0.4;
       ctx.lineCap = "round";
-      const n = Math.min(90, Math.floor(300 * Math.min(1, f * 2)));
+      const n = Math.floor(300 * Math.min(1, f * 2));
       for (let i = 0; i < n; i++) {
         const p = P[i];
         pushAway(p, 1.3);
@@ -337,7 +337,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         splash.x += (splash.vx) * motionStep;
         splash.y += (splash.vy) * motionStep;
         splash.vy += (0.28) * motionStep;
-        if (--splash.l <= 0) X.splice(i, 1);
+        if ((splash.l -= motionStep) <= 0) X.splice(i, 1);
       }
       ctx.globalAlpha = 1;
     },
@@ -373,13 +373,13 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         ctx.globalAlpha = 1;
         star.x += (star.vx) * motionStep;
         star.y += (star.vy) * motionStep;
-        if (++star.l > star.m) meteors.splice(i, 1);
+        if ((star.l += motionStep) > star.m) meteors.splice(i, 1);
       }
     },
 
     blur() {
       const f = s.intensity / 100;
-      const px = Math.min(10, Math.max(0, f * 12 + (s.amount / 100) * 4)).toFixed(1) + "px";
+      const px = Math.max(0, f * 24 + (s.amount / 100) * 8).toFixed(1) + "px";
       if (T.px !== px) {
         T.px = px;
         bl.style.backdropFilter = `blur(${px})`;
@@ -512,7 +512,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     dust(t) {
       const f = s.intensity / 100;
       const sizeBoost = 0.5 + s.amount / 100;
-      const n = Math.min(70, Math.floor(220 * Math.min(1, f * 2)));
+      const n = Math.floor(220 * Math.min(1, f * 2));
       for (let i = 0; i < n; i++) {
         const p = P[i];
         p.ph += (0.006 + (p.z ?? 0) * 0.004) * motionStep;
@@ -607,7 +607,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     // The clock always advances; only the paint is throttled.
     clock += dt * speedMul;
     const noise = mode === "tv" || mode === "fuzzy" || mode === "dither";
-    const fps = Math.min(s.maxFps || 30, noise ? 15 : 30);
+    const fps = noise ? Math.min(s.maxFps || 45, 15) : (s.maxFps || 45);
     const budget = 1000 / fps;
     if (budget && lastDrawn && now - lastDrawn < budget - 1) {
       raf = requestAnimationFrame(loop);
@@ -616,15 +616,17 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     lastDrawn = lastDrawn
       ? lastDrawn + budget * Math.max(1, Math.floor((now - lastDrawn + 1) / budget))
       : now;
-    motionStep = Math.min(3, Math.max(0, (clock - paintedClock) / (1000 / 60)));
+    // Preserve the old 30 FPS particle pace while making speed independent
+    // of the display refresh rate and the effect paint cap.
+    motionStep = Math.min(4, Math.max(0, (clock - paintedClock) / (1000 / 30)));
     paintedClock = clock;
     draw(clock);
-    if (reducedMotion.matches || mode === "blur") return;
+    if (mode === "blur") return;
     raf = requestAnimationFrame(loop);
   }
 
   function start() {
-    // Reduced motion paints a still frame; hidden and offscreen effects pause.
+    // Keep selected effects animated; hidden and offscreen effects pause.
     if (!raf && visible && !document.hidden) {
       last = performance.now();
       paintedClock = clock;

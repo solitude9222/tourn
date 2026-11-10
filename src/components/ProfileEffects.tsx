@@ -43,7 +43,7 @@ function CanvasEffectLayer({
   const apiRef = useRef<ReturnType<typeof mountBgEffect> | null>(null);
   const reduced = typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const calmIntensity = Math.min(intensity, 55);
+  const calmIntensity = reduced ? Math.round(intensity * 0.6) : intensity;
   const calmSpeed = reduced ? speed * 2.2 : speed;
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export function BackgroundEffectLayer({
       amount={settings.params.amount}
       flag={settings.params.flag}
       hostClass="profile-fx-bg profile-fx-canvas"
-      maxFps={30}
+      maxFps={45}
     />
   );
 }
@@ -112,7 +112,7 @@ export function BackgroundEffectLayer({
 /* ------------------------------------------------------------ overlay effect */
 
 export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettings }) {
-  const opacity = Math.min(0.35, Math.max(0, settings.opacity));
+  const opacity = Math.min(0.9, Math.max(0, settings.opacity));
   return (
     <span className="profile-fx-overlay profile-fx-overlay--canvas" style={{ "--fx-opacity": opacity } as CSSProperties} aria-hidden="true">
       {/* The overlay is a wash over the card, not a second background: capping
@@ -125,7 +125,7 @@ export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettin
         amount={settings.params.amount}
         flag={settings.params.flag}
         hostClass="profile-fx-canvas profile-fx-canvas--fill"
-        maxFps={15}
+        maxFps={20}
       />
     </span>
   );
@@ -269,7 +269,7 @@ export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
 export function ProfileCursor({ settings }: { settings: CursorSettings }) {
   const layerRef = useRef<HTMLSpanElement>(null);
   const trailRef = useRef<(HTMLSpanElement | null)[]>([]);
-  const dots = Math.min(settings.trailLength, 12);
+  const dots = settings.trailLength;
   // The system cursor (and a custom image, which the page sets itself) has no
   // marker of its own, but it can still leave a trail.
   const showPoint = settings.style !== "default" && settings.style !== "custom";
