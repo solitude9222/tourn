@@ -12,7 +12,7 @@ export type CardEffectId =
 export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
 /** How the pointer trail is drawn. */
 export type CursorTrailType = "dots" | "line" | "glow" | "comet";
-export type ProfileBackgroundStyle = "solid" | "gradient" | "image";
+export type ProfileBackgroundStyle = "solid" | "gradient" | "image" | "video";
 /** Canvas background effects — the same twelve engines power both the
  *  behind-the-card layer and the above-everything overlay layer. */
 export type BackgroundEffectId =
@@ -29,7 +29,7 @@ export type BackgroundEffectId =
   | "rain"
   | "dust"
   | "leaf";
-export type OverlayEffectId = BackgroundEffectId;
+export type OverlayEffectId = BackgroundEffectId | "grain" | "scanlines" | "vignette" | "bloom" | "fog" | "chromatic" | "custom";
 export type AudioStyle = "none" | "compact" | "lyrics" | "pill";
 export type TextEffectId =
   | "none"
@@ -109,8 +109,9 @@ export const BACKGROUND_EFFECT_PARAM: Record<BackgroundEffectId, EffectParamSpec
   leaf: { kind: "slider", key: "spin", label: "Spin & flip", min: 0, max: 100, step: 5, unit: "%", default: 50 },
 };
 
-export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | null> =
-  BACKGROUND_EFFECT_PARAM;
+export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | null> = {
+  ...BACKGROUND_EFFECT_PARAM, grain: null, scanlines: null, vignette: null, bloom: null, fog: null, chromatic: null, custom: null,
+};
 
 export type DecorationSettings = {
   style: AvatarDecorationStyle;
@@ -141,6 +142,12 @@ export type BackgroundSettings = {
   from: string;
   to: string;
   imageUrl: string;
+  videoUrl: string;
+  videoAudio: boolean;
+  videoVolume: number;
+  saturation: number;
+  contrast: number;
+  brightness: number;
   blur: number;
   dim: number;
   /** Gradient animation: "none" | "shift" | "pulse" | "aurora" | "sweep" */
@@ -197,6 +204,7 @@ export type BackgroundEffectSettings = {
 };
 
 export type OverlayEffectSettings = {
+  imageUrl: string;
   id: OverlayEffectId;
   /** Canvas layer opacity, 0–1. */
   opacity: number;
@@ -222,7 +230,17 @@ export type TextEffectSettings = {
   font: string;
 };
 
+export type InteractionSettings = {
+  sound: "none" | "soft" | "tick" | "pop" | "custom";
+  fileUrl: string;
+  volume: number;
+  ripple: boolean;
+  allClicks: boolean;
+  color: string;
+};
+
 export type ProfileAssets = {
+  interactions: InteractionSettings;
   avatarUrl: string;
   /** Card-level light treatment (shimmer, sheen, hologram, …). */
   card: CardEffectSettings;
@@ -249,6 +267,7 @@ export const DEFAULT_TEXT_EFFECT: TextEffectSettings = {
 };
 
 export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
+  interactions: { sound: "none", fileUrl: "", volume: 0.35, ripple: false, allClicks: false, color: "#ffffff" },
   avatarUrl: "",
   card: {
     // Two beams chase each other around the card's edge — the default look.
@@ -278,6 +297,12 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     from: "#0b0d10",
     to: "#16233a",
     imageUrl: "",
+    videoUrl: "",
+    videoAudio: false,
+    videoVolume: 0.5,
+    saturation: 1,
+    contrast: 1,
+    brightness: 1,
     blur: 0,
     dim: 0.25,
     gradientAnim: "none",
@@ -312,6 +337,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
       params: defaultParamsFor(null),
     },
     overlay: {
+      imageUrl: "",
       id: "none",
       opacity: 0.9,
       scale: 1,
@@ -364,8 +390,17 @@ export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: s
   { id: "leaf", name: "Leaf Fall", hint: "Autumn leaves that spin and sway as they fall" },
 ];
 
-export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] =
-  BACKGROUND_EFFECTS;
+export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] = [
+  { id: "none", name: "None", hint: "A clear page" },
+  { id: "custom", name: "Custom image overlay", hint: "Your transparent image or animated GIF" },
+  { id: "grain", name: "Film grain", hint: "Fine animated film texture" },
+  { id: "scanlines", name: "Scanlines", hint: "Subtle CRT lines" },
+  { id: "vignette", name: "Vignette", hint: "Soft dark corners" },
+  { id: "bloom", name: "Soft bloom", hint: "A gentle coloured wash" },
+  { id: "fog", name: "Drifting fog", hint: "Slow, translucent haze" },
+  { id: "chromatic", name: "Chromatic edges", hint: "Coloured light at the edges" },
+  ...BACKGROUND_EFFECTS.filter((effect) => effect.id !== "none"),
+];
 
 export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "Plain text" },
@@ -373,7 +408,7 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
   { id: "wave", name: "Wave", hint: "Letters rise and fall" },
   { id: "typewriter", name: "Typewriter", hint: "Reveal letter by letter" },
   { id: "glow", name: "Glow", hint: "Soft coloured halo" },
-  { id: "sparkle", name: "Sparkle", hint: "Tiny moving stars" },
+  { id: "sparkle", name: "Sparkle", hint: "Fine glitter inside the letters" },
   { id: "shimmer", name: "Shimmer", hint: "Light sweeps across the letters" },
   { id: "glitch", name: "Glitch", hint: "Digital interference" },
   { id: "neon", name: "Neon", hint: "Bright tube glow" },
@@ -480,6 +515,7 @@ function loadAudio(value: unknown): AudioSettings {
 
 export function loadProfileAssets(input: unknown): ProfileAssets {
   const raw = (input ?? {}) as Partial<ProfileAssets>;
+  const interactions = raw.interactions ?? DEFAULT_PROFILE_ASSETS.interactions;
   const decoration = (raw.decoration ?? {}) as Partial<DecorationSettings>;
   const cursor = (raw.cursor ?? {}) as Partial<CursorSettings>;
   const background = (raw.background ?? {}) as Partial<BackgroundSettings>;
@@ -494,6 +530,14 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
   const cursorImage = textIn(cursor.imageUrl, "", 250_000);
 
   return {
+    interactions: {
+      sound: choiceIn(interactions.sound, ["none", "soft", "tick", "pop", "custom"] as const, "none"),
+      fileUrl: textIn(interactions.fileUrl, "", 750_000),
+      volume: numberIn(interactions.volume, 0.35, 0, 1),
+      ripple: boolIn(interactions.ripple, false),
+      allClicks: boolIn(interactions.allClicks, false),
+      color: colorIn(interactions.color, "#ffffff"),
+    },
     avatarUrl: textIn(raw.avatarUrl, "", 2_500_000),
     card: {
       id: choiceIn(card.id, CARD_EFFECTS.map((item) => item.id), DEFAULT_PROFILE_ASSETS.card.id),
@@ -531,13 +575,21 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
     background: {
       style: choiceIn(
         background.style,
-        ["solid", "gradient", "image"] as const,
+        ["solid", "gradient", "image", "video"] as const,
         DEFAULT_PROFILE_ASSETS.background.style,
       ),
       color: colorIn(background.color, DEFAULT_PROFILE_ASSETS.background.color),
       from: colorIn(background.from, DEFAULT_PROFILE_ASSETS.background.from),
       to: colorIn(background.to, DEFAULT_PROFILE_ASSETS.background.to),
       imageUrl: textIn(background.imageUrl, "", 2_500_000),
+      videoUrl: textIn(background.videoUrl, "", 6_000_000),
+      videoAudio: boolIn(background.videoAudio, false),
+      videoVolume: numberIn(background.videoVolume, 0.5, 0, 1),
+      saturation: numberIn(background.saturation, 1, 0, 2),
+      contrast: numberIn(background.contrast, 1, .5, 2),
+      brightness: numberIn(background.brightness, 1, .3, 2),
+      gradientAnim: choiceIn(background.gradientAnim, ["none", "shift", "pulse", "aurora", "sweep"] as const, "none"),
+      angle: numberIn(background.angle, 160, 0, 360),
       blur: numberIn(background.blur, DEFAULT_PROFILE_ASSETS.background.blur, 0, 30),
       dim: numberIn(background.dim, DEFAULT_PROFILE_ASSETS.background.dim, 0, 0.85),
     },
@@ -581,6 +633,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
         );
         return {
           id,
+          imageUrl: textIn(overlay.imageUrl, "", 1_000_000),
           opacity: numberIn(overlay.opacity, DEFAULT_PROFILE_ASSETS.effects.overlay.opacity, 0, 1),
           scale: numberIn(overlay.scale, DEFAULT_PROFILE_ASSETS.effects.overlay.scale, 0.5, 3),
           intensity: numberIn(overlay.intensity, DEFAULT_PROFILE_ASSETS.effects.overlay.intensity, 0, 100),

@@ -193,6 +193,7 @@ function AudioSettingsCard() {
 
         {musicTab === "appearance" ? <ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} /> : null}
         {musicTab === "track" ? <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div> : null}
+        <Field label="Hosted audio URL" className={musicTab !== "track" ? "tw-music-hidden" : ""} hint="Use a direct audio URL instead of an upload for larger tracks."><TextInput value={audio.fileUrl.startsWith("data:") ? "" : audio.fileUrl} placeholder="https://.../track.mp3" onChange={(event) => updateAudio({ fileUrl: event.target.value, style: audio.style === "none" ? "compact" : audio.style })} /></Field>
         <Field label="Track title" className={musicTab !== "track" ? "tw-music-hidden" : ""}>
           <TextInput
             value={audio.title}
@@ -694,6 +695,15 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           />
         </div>
 
+        <details className="tw-entry-media"><summary>Entry image and layout</summary><div className="tw-form-grid">
+          <Field label="Entry image URL" hint="Images and animated GIFs are supported."><TextInput value={entry.imageUrl} onChange={(event) => updateEntry({ imageUrl: event.target.value })} /></Field>
+          <Field label="Entry image upload"><input aria-label="Entry image upload" type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Entry image", "Choose an image or GIF under 500 KB."); return; } updateEntry({ imageUrl: await fileToDataUrl(file) }); }} /></Field>
+          <Slider label="Entry image size" value={entry.imageSize} min={24} max={250} suffix="px" onChange={(imageSize) => updateEntry({ imageSize })} />
+          <Slider label="Entry image radius" value={entry.imageRadius} min={0} max={100} suffix="px" onChange={(imageRadius) => updateEntry({ imageRadius })} />
+          <Slider label="Entry content gap" value={entry.contentGap} min={0} max={60} suffix="px" onChange={(contentGap) => updateEntry({ contentGap })} />
+          <Slider label="Entry transition duration" value={entry.animationDuration} min={100} max={2000} step={50} suffix="ms" onChange={(animationDuration) => updateEntry({ animationDuration })} />
+          <div className="tw-inline-toggle"><b>Show once per session</b><Toggle label="Entry once per session" checked={entry.oncePerSession} onChange={(oncePerSession) => updateEntry({ oncePerSession })} /></div>
+        </div></details>
         <div className="tw-subhead">Text</div>
         <div className="tw-form-grid">
           <Field label="Enter text" help>

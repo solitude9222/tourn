@@ -24,8 +24,8 @@ export function FontPicker({
     if (!open) return;
     // Loading every catalogued family up front keeps the picker itself from
     // showing fallback glyphs the first time it opens.
-    FONT_CATEGORIES.forEach((category) => category.fonts.forEach((font) => loadGoogleFont(font.family)));
-  }, [open]);
+    if (value) loadGoogleFont(value);
+  }, [open, value]);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -126,6 +126,8 @@ export function FontPicker({
                       key={font.family}
                       className={`font-picker-item${value === font.family ? " is-active" : ""}`}
                       style={{ fontFamily: font.family }}
+                      onPointerEnter={() => loadGoogleFont(font.family)}
+                      onFocus={() => loadGoogleFont(font.family)}
                       onClick={() => choose(font.family)}
                     >
                       {font.family}

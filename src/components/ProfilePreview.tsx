@@ -1,10 +1,11 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
 import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
+import { loadGoogleFont } from "../lib/fonts";
 import { useTilt } from "../lib/useTilt";
 import { EffectText, SparkleLayer, textEffectClass, textEffectStyle } from "./ProfileEffects";
 import { BadgeRow } from "./BadgeRow";
@@ -118,7 +119,7 @@ export function ProfilePreview({
 
   // The left layout puts the badges on the same line as the handle, so it
   // renders that row itself instead of using the free-floating badge slots.
-  const inlineBadges = design.layout === "left";
+  const inlineBadges = design.badgePosition === "default";
 
   const locationPill = location ? (
     <span className="pv-location">
@@ -145,11 +146,28 @@ export function ProfilePreview({
   // narrower card shrinks its type, avatar and spacing with it instead of
   // keeping full-size text in a small box.
   const narrow = useNarrowCard();
-  const renderedWidth = narrow ? Math.min(design.cardWidth, 400) : design.cardWidth;
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const element = tilt.ref.current;
+    if (!element) return;
+    const measure = () => setMeasuredWidth(element.getBoundingClientRect().width);
+    measure(); const observer = new ResizeObserver(measure); observer.observe(element);
+    return () => observer.disconnect();
+  }, [tilt.ref]);
+  useEffect(() => { if (design.font) loadGoogleFont(design.font); }, [design.font]);
+  useEffect(() => {
+    if (!design.customFontUrl || !window.FontFace) return;
+    let active = true;
+    const face = new FontFace(`tourn-${user.id}`, `url(${JSON.stringify(design.customFontUrl)})`);
+    void face.load().then((loaded) => { if (active) document.fonts.add(loaded); }).catch(() => undefined);
+    return () => { active = false; document.fonts.delete(face); };
+  }, [design.customFontUrl, user.id]);
+  const renderedWidth = measuredWidth || (narrow ? Math.min(design.cardWidth, 400) : design.cardWidth);
   const scale = Math.max(0.45, Math.min(1.6, renderedWidth / 726));
 
   const style = {
     "--pv-scale": scale,
+    "--pv-font": design.customFontUrl ? `"tourn-${user.id}", sans-serif` : design.font ? `"${design.font.replace(/["\\]/g, "")}", sans-serif` : '"Segoe UI", system-ui, sans-serif',
     "--pv-accent": design.colors.accent,
     "--pv-text": design.colors.text,
     "--pv-muted": design.colors.muted,
@@ -163,7 +181,7 @@ export function ProfilePreview({
     "--pv-blur": `${design.backgroundBlur}px`,
     "--pv-pad": `calc(${design.cardPadding}px * var(--pv-scale))`,
     "--pv-name": `calc(${design.nameSize}px * var(--pv-scale))`,
-    "--pv-bio-size": `calc(${design.bioSize}px * var(--pv-scale))`,
+    "--pv-bio-size": `${design.bioSize}px`,
     "--pv-card-fx-color": cardFx.color,
     "--pv-card-fx-strength": cardFx.intensity / 100,
     "--pv-card-fx-speed": `${Math.max(1.5, cardFx.speed)}s`,
@@ -197,6 +215,8 @@ export function ProfilePreview({
       data-join={joinPosition}
       data-location={locationPosition}
     >
+      {cardFx.id !== "none" ? <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" /> : null}
+      {cardFx.id === "beam" ? <><span className="pv-beam-glow pv-beam-glow--tl" aria-hidden="true" /><span className="pv-beam-glow pv-beam-glow--br" aria-hidden="true" /></> : null}
       {hasBanner ? (
         <div
           className={`pv-banner${banner.imageUrl ? " pv-banner--image" : ""}`}

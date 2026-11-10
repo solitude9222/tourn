@@ -143,7 +143,12 @@ export const DEFAULT_PILL_STYLE: PillStyle = {
   blur: 6,
 };
 
+export type ProfileSection = { id: string; title: string; text: string; image: string; url: string; kind: "text" | "project" };
+
 export type AboutDesign = {
+  sections: ProfileSection[];
+  audioPosition: "auto" | "inside" | "below" | "fixed-bottom" | "hidden";
+  customFontUrl: string;
   theme: AboutTheme;
   layout: AboutLayout;
   cardStyle: CardStyle;
@@ -261,6 +266,9 @@ export const DEFAULT_ENTRY: EntrySettings = {
 };
 
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
+  sections: [],
+  audioPosition: "auto",
+  customFontUrl: "",
   theme: "default",
   layout: "stacked",
   cardStyle: "default",
@@ -463,9 +471,19 @@ function loadDesign(input: unknown): AboutDesign {
 
   return {
     theme,
+    audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "fixed-bottom", "hidden"] as const, "auto"),
+    sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 12).filter((section) => section && typeof section === "object").map((section, index) => ({
+      id: typeof section.id === "string" ? section.id.slice(0, 80) : `section-${index}`,
+      title: typeof section.title === "string" ? section.title.slice(0, 100) : "",
+      text: typeof section.text === "string" ? section.text.slice(0, 4000) : "",
+      image: typeof section.image === "string" ? section.image.slice(0, 1_000_000) : "",
+      url: typeof section.url === "string" && /^https?:\/\//i.test(section.url) ? section.url.slice(0, 1000) : "",
+      kind: section.kind === "project" ? "project" as const : "text" as const,
+    })) : [],
     layout,
     cardStyle,
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
+    customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
     version: 2,
     cardWidth: legacy
       ? DEFAULT_ABOUT_DESIGN.cardWidth
@@ -493,7 +511,7 @@ function loadDesign(input: unknown): AboutDesign {
       : numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 0, 48),
     cardPadding: legacy
       ? DEFAULT_ABOUT_DESIGN.cardPadding
-      : numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 8, 64),
+      : numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 0, 64),
     nameSize: legacy
       ? DEFAULT_ABOUT_DESIGN.nameSize
       : numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 64),

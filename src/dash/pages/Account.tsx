@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { formatJoined } from "../../lib/format";
 import decorations from "../../lib/decorations.json";
 import { useDash } from "../context";
-import { copyText, imageToDataUrl } from "../files";
+import { copyText, imageToDataUrl, fileToDataUrl } from "../files";
 import {
   Button,
   Card,
@@ -435,6 +435,7 @@ export function AccountProfilePage() {
                 { value: "solid", label: "Solid colour" },
                 { value: "gradient", label: "Gradient" },
                 { value: "image", label: "Image" },
+                { value: "video", label: "Video" },
               ]}
               onChange={(value) =>
                 updateAssets({
@@ -447,6 +448,12 @@ export function AccountProfilePage() {
             />
           </Field>
 
+          {assets.background.style === "video" ? <div className="tw-stack">
+            <Field label="Background video URL" hint="Use a direct MP4 or WebM URL. Video plays behind the whole page."><TextInput value={assets.background.videoUrl} placeholder="https://.../background.mp4" onChange={(event) => updateAssets({ background: { ...assets.background, videoUrl: event.target.value } })} /></Field>
+            <Field label="Upload a short background video" hint="Up to 4 MB. Use a hosted URL for larger videos."><input type="file" aria-label="Background video file" accept="video/mp4,video/webm" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("video/") || file.size > 4_000_000) { notify("Video", "Choose a video under 4 MB, or use a hosted URL."); return; } updateAssets({ background: { ...assets.background, videoUrl: await fileToDataUrl(file), style: "video" } }); }} /></Field>
+            <div className="tw-inline-toggle"><span><b>Video sound</b><small>Unmutes after the visitor clicks the page.</small></span><Toggle label="Video sound" checked={assets.background.videoAudio} onChange={(videoAudio) => updateAssets({ background: { ...assets.background, videoAudio } })} /></div>
+            <Slider label="Video volume" value={Math.round(assets.background.videoVolume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAssets({ background: { ...assets.background, videoVolume: volume / 100 } })} />
+          </div> : null}
           {assets.background.style === "image" ? (
             <Field label="Background image">
               <div className="tw-row">
@@ -495,6 +502,9 @@ export function AccountProfilePage() {
             />
           )}
 
+          <Slider label="Background saturation" value={Math.round(assets.background.saturation * 100)} min={0} max={200} suffix="%" onChange={(value) => updateAssets({ background: { ...assets.background, saturation: value / 100 } })} />
+          <Slider label="Background contrast" value={Math.round(assets.background.contrast * 100)} min={50} max={200} suffix="%" onChange={(value) => updateAssets({ background: { ...assets.background, contrast: value / 100 } })} />
+          <Slider label="Background brightness" value={Math.round(assets.background.brightness * 100)} min={30} max={200} suffix="%" onChange={(value) => updateAssets({ background: { ...assets.background, brightness: value / 100 } })} />
           <Slider
             label="Background blur"
             value={assets.background.blur}
@@ -507,12 +517,12 @@ export function AccountProfilePage() {
           />
           <Slider
             label="Dim"
-            value={assets.background.dim}
+            value={Math.round(assets.background.dim * 100)}
             min={0}
-            max={100}
+            max={85}
             suffix="%"
             onChange={(value) =>
-              updateAssets({ background: { ...assets.background, dim: value } })
+              updateAssets({ background: { ...assets.background, dim: value / 100 } })
             }
           />
         </div>

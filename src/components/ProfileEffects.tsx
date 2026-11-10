@@ -6,6 +6,7 @@ import type {
   TextEffectSettings,
 } from "../lib/profileAssets";
 import { TEXT_EFFECT_PARAM } from "../lib/profileAssets";
+import { loadGoogleFont } from "../lib/fonts";
 import { mountBgEffect } from "../lib/bgEffects";
 
 function randomish(index: number, salt = 1): number {
@@ -113,6 +114,10 @@ export function BackgroundEffectLayer({
 
 export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettings }) {
   const opacity = Math.min(0.9, Math.max(0, settings.opacity));
+  if (settings.id === "custom") return settings.imageUrl ? <span className="profile-overlay profile-overlay--custom" style={{ "--overlay-opacity": opacity, "--overlay-strength": settings.intensity / 100 } as CSSProperties}><img src={settings.imageUrl} alt="" /></span> : null;
+  if (["grain", "scanlines", "vignette", "bloom", "fog", "chromatic"].includes(settings.id)) {
+    return <span className={`profile-overlay profile-overlay--${settings.id}`} style={{ "--overlay-opacity": opacity, "--overlay-color": settings.color, "--overlay-speed": `${settings.speed}s`, "--overlay-strength": settings.intensity / 100 } as CSSProperties} aria-hidden="true" />;
+  }
   return (
     <span className="profile-fx-overlay profile-fx-overlay--canvas" style={{ "--fx-opacity": opacity } as CSSProperties} aria-hidden="true">
       {/* The overlay is a wash over the card, not a second background: capping
@@ -140,10 +145,12 @@ export function textEffectStyle(settings: TextEffectSettings): CSSProperties {
     "--fx-color-b": settings.colorB,
     "--fx-speed": `${settings.speed}s`,
     "--fx-strength": settings.strength,
+    "--fx-glitter-contrast": 1 + settings.strength / 50,
+    "--fx-grain": `${Math.max(7, 26 - amount)}px`,
     "--fx-amp": `${amount}px`,
     "--fx-band": `${100 + amount * 2}%`,
     "--fx-dim": `${1 - settings.params.amount / 100}`,
-    fontFamily: '"Segoe UI", "Lexend", system-ui, sans-serif',
+    fontFamily: settings.font ? `"${settings.font.replace(/["\\]/g, "")}", sans-serif` : undefined,
   } as CSSProperties;
 }
 
@@ -189,6 +196,7 @@ export function EffectText({
   settings: TextEffectSettings;
   className?: string;
 }) {
+  useEffect(() => { if (settings.font) loadGoogleFont(settings.font); }, [settings.font]);
   const style = textEffectStyle(settings);
   const classes = `fx-text ${className}${textEffectClass(settings) ? ` ${textEffectClass(settings)}` : ""}`;
 
@@ -229,7 +237,6 @@ export function EffectText({
     return (
       <span className={`${classes} fx-text--sparkle`} style={style}>
         {text}
-        <Sparkles settings={settings} />
       </span>
     );
   }
@@ -261,7 +268,7 @@ export function EffectText({
 
 export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
   if (settings.effect !== "sparkle") return null;
-  return <Sparkles settings={settings} />;
+  return null;
 }
 
 /* -------------------------------------------------------------------- cursor */
@@ -282,6 +289,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
 
     const positions: { x: number; y: number }[] = [];
     let frame = 0;
+    let idleTimer = 0;
     let next = { x: 0, y: 0 };
 
     const paint = () => {
@@ -311,6 +319,9 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
 
     const onMove = (event: PointerEvent) => {
       next = { x: event.clientX, y: event.clientY };
+      layer.classList.remove("is-idle");
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => layer.classList.add("is-idle"), 180);
       layer.classList.add("is-active");
       if (frame) return;
       frame = window.requestAnimationFrame(paint);
@@ -318,6 +329,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
 
     const onLeave = () => {
       layer.classList.remove("is-active");
+      window.clearTimeout(idleTimer);
       positions.length = 0;
       if (frame) window.cancelAnimationFrame(frame);
       frame = 0;
@@ -326,6 +338,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
     window.addEventListener("blur", onLeave);
     host.addEventListener("pointermove", onMove, { passive: true });
     return () => {
+      window.clearTimeout(idleTimer);
       host.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("blur", onLeave);
       host.removeEventListener("pointermove", onMove);

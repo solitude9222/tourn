@@ -10,6 +10,7 @@ import { ProfileLinks } from "./ProfileLinks";
 import { ProfileMetadata } from "./ProfileMetadata";
 import { BackgroundEffectLayer, OverlayEffectLayer, ProfileCursor } from "./ProfileEffects";
 import { WidgetCard } from "./WidgetCard";
+import { ProfileInteractions } from "./ProfileInteractions";
 import { AudioPlayer } from "./AudioPlayer";
 import { ChevronIcon } from "./Icons";
 import "../about.css";
@@ -225,6 +226,16 @@ export function LinkerPreview({
 }) {
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.volume = assets.background.videoVolume;
+    video.muted = true;
+    const unlock = () => { if (interactive && assets.background.videoAudio) { video.muted = false; void video.play().catch(() => undefined); } };
+    document.addEventListener("pointerdown", unlock, { once: true });
+    return () => document.removeEventListener("pointerdown", unlock);
+  }, [assets.background.style, assets.background.videoUrl, assets.background.videoAudio, assets.background.videoVolume, interactive]);
   const entrySeenKey = `tourn.lol/entry-seen/v1/${user.username}`;
   // One question, asked both on mount and whenever the entry settings change,
   // so the "seen this visit" flag cannot be ignored (which reopened the entry
@@ -273,9 +284,13 @@ export function LinkerPreview({
     "--lkr-bg-to": assets.background.to,
     "--lkr-bg-blur": `${assets.background.blur}px`,
     "--lkr-bg-dim": assets.background.dim,
-    cursor: assets.cursor.imageUrl.trim()
+    "--lkr-bg-angle": `${assets.background.angle || 160}deg`,
+    "--lkr-bg-saturation": assets.background.saturation,
+    "--lkr-bg-contrast": assets.background.contrast,
+    "--lkr-bg-brightness": assets.background.brightness,
+    cursor: assets.cursor.style === "custom" && assets.cursor.imageUrl.trim()
       ? `url("${assets.cursor.imageUrl.trim().replace(/"/g, '\\"')}") 4 4, auto`
-      : undefined,
+      : assets.cursor.style !== "default" && assets.cursor.style !== "custom" ? "none" : undefined,
   } as CSSProperties;
 
   const visibleWidgets = widgets.widgets.filter((widget) => widget.visible !== false);
@@ -288,7 +303,7 @@ export function LinkerPreview({
   const widgetStack = orderedWidgets.length ? (
     <div className="lkr-widgets-block">
       <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
-        {orderedWidgets.slice(0, 4).map((widget) => (
+        {orderedWidgets.map((widget) => (
           <WidgetCard
             key={widget.id}
             widget={widget}
@@ -304,7 +319,8 @@ export function LinkerPreview({
     <p className="lkr-empty">No widgets yet.</p>
   );
 
-  const profileCard = () => (
+  const audioPosition = design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
+  const profileCard = (includeWidgets = true) => (
     <ProfilePreview
       user={user}
       about={about}
@@ -316,29 +332,35 @@ export function LinkerPreview({
       views={views}
       joined={joined}
       entryActive={entryOpen}
-      hideAudio={hideAudio || design.layout === "stacked"}
+      hideAudio={hideAudio || audioPosition !== "inside"}
     >
-      {widgets.widgets.length ? widgetStack : null}
+      {includeWidgets && widgets.widgets.length ? widgetStack : null}
     </ProfilePreview>
   );
 
   // The card stays in the middle of the page for every layout; the layouts
   // rearrange what is inside it. `stacked` is the exception: it lifts the
   // player out under the card so the track has its own titled panel.
-  const stacked = design.layout === "stacked";
   const hasTrack =
-    about.assets.audio.style !== "none" && Boolean(about.assets.audio.fileUrl);
+    !hideAudio && audioPosition !== "hidden" && about.assets.audio.style !== "none" && Boolean(about.assets.audio.fileUrl);
 
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
-      {profileCard()}
-      {stacked && hasTrack ? (
+      {profileCard(design.layout !== "left")}
+      {design.layout === "left" && orderedWidgets.length ? <aside className="lkr-side-widgets">{widgetStack}</aside> : null}
+      {audioPosition === "below" && hasTrack ? (
         <div className="lkr-stack">
           <div className="lkr-audio">
             <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
           </div>
         </div>
       ) : null}
+      {design.sections.map((section) => <section className={`lkr-custom-section lkr-section--${section.kind}`} key={section.id}>
+        {section.title ? <h2>{section.title}</h2> : null}
+        {section.image ? <img src={section.image} alt="" loading="lazy" /> : null}
+        {section.text ? <p>{section.text}</p> : null}
+        {/^https?:\/\//i.test(section.url) ? <a href={section.url} target="_blank" rel="noreferrer">{section.kind === "project" ? "View project" : "Open link"}</a> : null}
+      </section>)}
     </div>
   );
 
@@ -348,18 +370,21 @@ export function LinkerPreview({
       style={style}
       data-interactive={interactive ? "true" : undefined}
     >
+      {interactive ? <ProfileInteractions settings={assets.interactions} /> : null}
       {showMetadata ? <ProfileMetadata about={about} user={user} /> : null}
-      <div className={`lkr-bg lkr-bg--${assets.background.style}`} aria-hidden="true">
+      <div className={`lkr-bg lkr-bg--${assets.background.style} lkr-bg-anim-${assets.background.gradientAnim || "none"}`} aria-hidden="true">
         {assets.background.style === "image" && assets.background.imageUrl ? (
           <span
             className="lkr-bg-image"
             style={{ backgroundImage: `url("${assets.background.imageUrl.replace(/"/g, '\\"')}")` }}
           />
         ) : null}
+        {assets.background.style === "video" && assets.background.videoUrl ? <video ref={videoRef} className="lkr-bg-video" src={assets.background.videoUrl} autoPlay muted loop playsInline preload="metadata" /> : null}
         <span className="lkr-bg-dim" />
       </div>
       <BackgroundEffectLayer settings={assets.effects.background} />
       {page}
+      {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       <ProfileCursor settings={assets.cursor} />
       {entryOpen ? (
