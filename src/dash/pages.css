@@ -1970,3 +1970,17 @@
 @media(max-width: 1200px) { .tw-widget-showcase-grid { grid-template-columns: 1fr; } }
 
 [id^="dash-section-"] { scroll-margin-top: 24px; }
+
+.tw-music-hidden { display: none !important; }
+.tw-music-tabs { margin-bottom: 20px; }
+.tw-audio-live-preview { max-width: 520px; margin: 0 0 24px; }
+.tw-presence-status { padding: 14px; margin: 16px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; line-height: 1.7; color: var(--sub); }
+.tw-presence-status a { color: var(--accent-text); text-decoration: underline; }
+
+.tw-discord-live-preview { max-width: 460px; margin-top: 20px; }
+.tw-extra-discord-badges { margin-block: 20px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; }
+.tw-extra-discord-badges summary { cursor: pointer; font-size: 13px; }
+.tw-extra-badge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 14px; }
+.tw-extra-badge-grid button { display: flex; gap: 10px; align-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--bar); padding: 10px; color: var(--sub); font: inherit; font-size: 11px; cursor: pointer; }
+.tw-extra-badge-grid button[aria-pressed="true"] { border-color: var(--accent-text); color: var(--title); }
+.tw-extra-badge-grid img { width: 24px; height: 24px; object-fit: contain; }

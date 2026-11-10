@@ -5,10 +5,10 @@ import {
   WidgetError,
 } from "./api";
 import { currentGame, customStatus, avatarUrl, decorationUrl, snowflakeDate, formatJoined } from "./format";
-import { discordBadges, primaryGuildTag, readableGuildTag, type DiscordBadge } from "./discord";
+import { discordBadges, discordProfileBadges, primaryGuildTag, readableGuildTag, type DiscordBadge } from "./discord";
 import { usePolled } from "./hooks";
 import { fetchSteamProfile } from "./steam";
-import { spotifyTrackId } from "../config";
+import { FEATURED_TRACK, spotifyTrackId } from "../config";
 import { WIDGET_PLATFORM_BY_ID, type WidgetInstance } from "./widgets";
 
 export type LiveStatus = "online" | "idle" | "dnd" | "offline" | null;
@@ -27,6 +27,7 @@ export type WidgetLive = {
   badges: DiscordBadge[];
   status: LiveStatus;
   timezone?: string;
+  presenceNotice?: string;
 };
 
 const STATUS_LABELS: Record<Exclude<LiveStatus, null>, string> = {
@@ -42,6 +43,8 @@ type DiscordLookupUser = {
   global_name: string | null;
   avatar: string | null;
   public_flags?: number;
+  premium_type?: number;
+  badges?: unknown[];
   banner?: string | null;
   accent_color?: number | null;
   banner_color?: string | null;
@@ -57,6 +60,7 @@ type DiscordLookupUser = {
 
 type DiscordLookup = {
   user: DiscordLookupUser;
+  badges?: unknown[];
   avatar_url: string | null;
   banner_url: string | null;
   banner_color: string | null;
@@ -123,14 +127,17 @@ const discordInviteCode = (input: string): string | null => {
 };
 
 async function fetchDiscordLookup(id: string, signal: AbortSignal): Promise<DiscordLookup> {
-  const res = await fetch(`https://discord-lookup.lookupbotdc.workers.dev/search/${encodeURIComponent(id)}`, {
-    signal,
-    headers: { Accept: "application/json" },
-  });
-  if (res.status === 404) throw new WidgetError("not_found", "That Discord ID has no public profile");
-  if (res.status === 429) throw new WidgetError("rate_limited", "Discord lookup is rate limited");
-  if (!res.ok) throw new WidgetError("http", `Discord lookup responded ${res.status}`);
-  return (await res.json()) as DiscordLookup;
+  const local = await fetch(`/api/discord/${encodeURIComponent(id)}`, { signal, headers: { Accept: "application/json" } }).catch(() => null);
+  if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+  if (local?.ok) {
+    const body = await local.json().catch(() => null);
+    if (body?.user?.id) return body as DiscordLookup;
+  }
+  const res = await fetch(`https://discord-lookup.lookupbotdc.workers.dev/search/${encodeURIComponent(id)}`, { signal, headers: { Accept: "application/json" } });
+  if (!res.ok) throw new WidgetError("network", "Discord profile lookup is unavailable. Try again shortly.");
+  const body = await res.json();
+  if (!body?.user?.id) throw new WidgetError("not_found", "No Discord profile was returned for that ID.");
+  return body as DiscordLookup;
 }
 
 async function discordLive(
@@ -174,13 +181,16 @@ async function discordLive(
     };
   }
 
-  const [lookup, presence] = await Promise.all([
-    fetchDiscordLookup(id, signal).catch(() => null),
-    fetchLanyard(id, signal).catch(() => null),
+  const [lookupResult, presenceResult] = await Promise.allSettled([
+    fetchDiscordLookup(id, signal), fetchLanyard(id, signal),
   ]);
+  if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+  const lookup = lookupResult.status === "fulfilled" ? lookupResult.value : null;
+  const presence = presenceResult.status === "fulfilled" ? presenceResult.value : null;
+  const presenceError = presenceResult.status === "rejected" ? presenceResult.reason : null;
 
   if (!lookup && !presence) {
-    throw new WidgetError("not_found", "No public Discord profile found for that ID");
+    throw presenceError instanceof WidgetError ? presenceError : new WidgetError("network", "Discord profile lookup is temporarily unavailable");
   }
 
   const user = presence?.discord_user;
@@ -204,7 +214,7 @@ async function discordLive(
   // Lanyard can omit flags or return 0 while the lookup endpoint still has
   // them; OR the two public payloads instead of letting the first one win.
   const flags = (user?.public_flags ?? 0) | (lookupUser?.public_flags ?? 0);
-  const badges = discordBadges(flags);
+  const badges = discordProfileBadges(flags, { ...lookupUser, badges: lookup?.badges || lookupUser?.badges });
   const lookupGuild = lookupUser?.primary_guild;
   const tag =
     primaryGuildTag(user?.primary_guild) ||
@@ -222,7 +232,7 @@ async function discordLive(
         ? `https://cdn.discordapp.com/guild-tag-badges/${guildId}/${guildBadge}.png?size=32`
         : null
     : null;
-  const status = presence?.discord_status ?? null;
+  const status = widget.options.status === false ? null : presence?.discord_status ?? null;
   const game = presence ? currentGame(presence.activities) : null;
   const custom = presence ? customStatus(presence.activities) : null;
   const spotify = presence?.spotify ?? null;
@@ -281,7 +291,7 @@ async function discordLive(
   }
   if (widget.options.status !== false && status) meta.push(STATUS_LABELS[status]);
   if (platforms.length && widget.options.status !== false) meta.push(platforms.join(" · "));
-  if (activity) meta.push(activity);
+  if (activity && widget.options.status !== false) meta.push(activity);
   if (joined) meta.push(`Joined ${formatJoined(joined)}`);
 
   return {
@@ -297,6 +307,9 @@ async function discordLive(
     tagBadge,
     badges,
     status,
+    presenceNotice: presence || widget.options.status === false ? undefined : presenceError instanceof WidgetError && presenceError.code === "not_monitored"
+      ? "Live status needs Lanyard. Join discord.gg/lanyard, then refresh."
+      : "Live status is temporarily unavailable. Your Discord profile is still shown.",
   };
 }
 
@@ -544,7 +557,10 @@ async function statsfmLive(input: string, signal: AbortSignal): Promise<WidgetLi
 async function spotifyLive(input: string, signal: AbortSignal): Promise<WidgetLive> {
   const id = spotifyTrackId(input);
   if (!id) throw new WidgetError("invalid", "Paste a Spotify track link");
-  const track = await fetchSpotifyMeta(id, signal);
+  const track = await fetchSpotifyMeta(id, signal).catch((error) => {
+    if (id === FEATURED_TRACK.id && !signal.aborted) return { id, title: `${FEATURED_TRACK.title} - ${FEATURED_TRACK.artist}`, image: FEATURED_TRACK.art };
+    throw error;
+  });
   return {
     title: track.title,
     subtitle: "Spotify track",
@@ -773,5 +789,5 @@ export function useWidgetLive(widget: WidgetInstance) {
 
   const interval = widget.platform === "discord" ? 15_000 : widget.platform === "timezone" ? 60_000 : 180_000;
 
-  return usePolled(enabled, key, (signal) => liveForWidget(widget, signal), interval);
+  return usePolled(enabled, key, (signal) => liveForWidget(widget, signal), interval, 120_000);
 }

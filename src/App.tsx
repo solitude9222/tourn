@@ -28,6 +28,7 @@ import { formatJoinDate } from "./lib/format";
 import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
+import { Hero, StatsBand, BentoSection, FaqSection, Footer } from "./components/Sections";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
 import { SiteBackdrop } from "./components/Chrome";
 import { Oneko } from "./components/Oneko";
@@ -44,13 +45,7 @@ const Dashboard = lazy(() =>
 const DemoPage = lazy(() =>
   import("./components/DemoPage").then((module) => ({ default: module.DemoPage })),
 );
-const Hero = lazy(() => import("./components/Sections").then((m) => ({ default: m.Hero })));
-const StatsBand = lazy(() => import("./components/Sections").then((m) => ({ default: m.StatsBand })));
-const BentoSection = lazy(() =>
-  import("./components/Sections").then((m) => ({ default: m.BentoSection })),
-);
-const FaqSection = lazy(() => import("./components/Sections").then((m) => ({ default: m.FaqSection })));
-const Footer = lazy(() => import("./components/Sections").then((m) => ({ default: m.Footer })));
+
 const LeaderboardPage = lazy(() =>
   import("./components/Pages").then((m) => ({ default: m.LeaderboardPage })),
 );
@@ -60,11 +55,6 @@ const PremiumPage = lazy(() =>
 );
 const LegalPage = lazy(() => import("./components/Pages").then((m) => ({ default: m.LegalPage })));
 
-/* The hero card (and its canvas effects) lives in the marketing chunk. Waiting
-   for the first render to ask for that chunk added a whole round-trip before
-   the card could paint, which read as the card "loading slowly". Start the
-   download with the bundle instead. */
-void import("./components/Sections");
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
 import {
@@ -559,8 +549,7 @@ function Site() {
   useEffect(() => {
     const preload = () => {
       void import("./dash/DashboardApp");
-      void import("./components/Sections");
-      void import("./components/Pages");
+            void import("./components/Pages");
     };
     const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number })
       .requestIdleCallback;
@@ -745,16 +734,6 @@ function Site() {
     15_000,
   );
 
-  // The home page's example stack is site data, not the viewer's, so it keeps
-  // polling the demo accounts even after someone signs in.
-  const exampleLanyard = usePolled(
-    Boolean(DEFAULT_SETTINGS.discordUserId),
-    DEFAULT_SETTINGS.discordUserId,
-    (signal) => fetchLanyard(DEFAULT_SETTINGS.discordUserId, signal),
-    15_000,
-  );
-
-
   const closeAuth = useCallback(() => setAuthMode(null), []);
 
   const openPrimary = useCallback(() => {
@@ -831,7 +810,6 @@ function Site() {
 
   return (
     <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}${route === "" ? " app--home" : ""}`}>
-      <Suspense fallback={<div className="route-loading" role="status">Loading your page…</div>}>
       {route === "demo" || route === "profile" ? null : <SiteBackdrop />}
 
       {route !== "dashboard" && route !== "demo" && route !== "profile" ? (
@@ -846,6 +824,7 @@ function Site() {
         />
       ) : null}
 
+      <Suspense fallback={<div className="route-loading" role="status">Loading your page…</div>}>
       {route === "demo" ? (
         <DemoPage
           user={user}
@@ -926,18 +905,7 @@ function Site() {
                   }}
                 />
                 <StatsBand stats={siteStats} />
-                <BentoSection
-                  lanyard={exampleLanyard}
-                  settings={DEFAULT_SETTINGS}
-                  signedIn={Boolean(user)}
-                  widgets={widgets}
-                  onConfigure={() => {
-                    window.location.hash = "#/dashboard";
-                  }}
-                  onOpenWidgets={() => {
-                    window.location.hash = "#/dashboard";
-                  }}
-                />
+                <BentoSection signedIn={Boolean(user)} onOpenWidgets={() => { window.location.hash = "#/dashboard/widgets"; }} />
                 <FaqSection />
               </>
             )}

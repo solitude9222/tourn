@@ -1841,3 +1841,7 @@
   box-shadow: 0 0 6px rgba(61, 220, 132, 0.9);
 }
 
+
+.widget-card-presence-notice { margin: 8px 14px 12px; color: #a5adbb; font-size: 10px; line-height: 1.5; }
+
+.widget-card-presence-notice { position: relative; z-index: 2; color: #bac5d5; }

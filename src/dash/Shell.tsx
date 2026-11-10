@@ -520,9 +520,6 @@ export function Shell({
         </div>
 
         <header className="tw-page-head">
-          <span className="tw-page-icon">
-            <Icon name={icon} size={26} />
-          </span>
           <div className="tw-page-copy">
             <h1>{title}</h1>
             <p>{subtitle}</p>
@@ -540,7 +537,6 @@ export function Shell({
                 className={`tw-tab${tab.id === activeTab ? " is-active" : ""}`}
                 onClick={() => onTab(tab.id)}
               >
-                <Icon name={tab.icon} size={16} />
                 {tab.label}
               </button>
             ))}
@@ -581,7 +577,7 @@ function Toasts() {
       const detail = (event as CustomEvent<{ title: string; message: string }>).detail;
       if (!detail) return;
       const id = Date.now() + Math.random();
-      setItems((current) => [...current, { id, ...detail }]);
+      setItems((current) => [...current.filter((item) => item.title !== detail.title || item.message !== detail.message), { id, ...detail }].slice(-3));
       window.setTimeout(() => {
         setItems((current) => current.filter((item) => item.id !== id));
       }, 4200);

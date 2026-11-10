@@ -163,3 +163,10 @@ intercept API requests, so they do not change production accounts or counts.
 
 Dashboard links such as `#/dashboard/analytics` and
 `#/dashboard/customize-profile/integrations` support refresh and browser history.
+
+Discord widgets use the same-origin `/api/discord/:id` lookup (an optional bot
+credential stays on the backend), with the public lookup as a fallback. Live
+presence still requires Lanyard monitoring. Additional badge display choices are
+stored with the widget; badges that Discord does not expose are labelled as
+unverified display choices. Their artwork sources are documented in
+`public/badges/discord/SOURCES.md`.

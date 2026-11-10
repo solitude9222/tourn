@@ -8,12 +8,14 @@ const browser = await chromium.launch({executablePath:process.env.BROWSER_PATH |
 try {
 const context = await browser.newContext({viewport:{width:1440,height:1000}});
 const page = await context.newPage();
+await page.addInitScript(() => { window.qaLoadingFallback = false; new MutationObserver(() => { if (document.querySelector(".route-loading")) window.qaLoadingFallback = true; }).observe(document, {childList:true,subtree:true}); });
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const account={id:'qa-user',username:'reviewer',email:null,avatarUrl:null,joinedAt:'2026-01-01',premium:true};
-let document=null; const writes=[]; let failWrites=false; let failReads=false; let readDelay=0; let failAnalytics=false; const analyticsRequests=[]; let failViewWrite=false; let viewWrites=0;
+let document=null; const writes=[]; let failWrites=false; let failReads=false; let readDelay=0; let failAnalytics=false; const analyticsRequests=[]; let failViewWrite=false; let viewWrites=0; let presenceMonitored=false;
 await context.route('**/*',async route=>{
  const url=new URL(route.request().url());
  if(url.pathname.startsWith('/api/')) {
+  if(url.pathname.startsWith('/api/discord/'))return route.fulfill({json:{user:{id:url.pathname.split('/').pop(),username:'presence-user',global_name:'Presence Test',avatar:'avatar-hash',public_flags:64},avatar_url:'http://127.0.0.1:5180/favicon-rounded.png',banner_url:'http://127.0.0.1:5180/favicon-rounded.png'}});
   if(url.pathname==='/api/analytics') {
    analyticsRequests.push(url.searchParams.get('period'));
    if(failAnalytics)return route.fulfill({status:503,json:{error:'Analytics temporarily unavailable'}});
@@ -36,6 +38,11 @@ await context.route('**/*',async route=>{
   if(url.pathname==='/api/profiles/owner')return route.fulfill({json:{owner:null}});
   return route.fulfill({json:{users:0,views:0,count:0,accounts:[]}});
  }
+ if(url.hostname==='api.lanyard.rest') {
+  if(!presenceMonitored)return route.fulfill({status:404,json:{success:false,error:{code:'user_not_monitored'}}});
+  return route.fulfill({json:{success:true,data:{discord_user:{id:url.pathname.split('/').pop(),username:'presence-user',global_name:'Presence Test',avatar:'avatar-hash',public_flags:64},discord_status:'online',activities:[{name:'Minecraft',type:0}],spotify:null,listening_to_spotify:false,active_on_discord_desktop:true,active_on_discord_mobile:false,active_on_discord_web:false}}});
+ }
+ if(url.hostname==='open.spotify.com' && url.pathname==='/oembed')return route.fulfill({json:{title:'Example track',thumbnail_url:'http://127.0.0.1:5180/favicon-rounded.png'}});
  if(url.hostname==='api.github.com')return route.fulfill({json:{login:'octocat',name:'The Octocat',avatar_url:'http://127.0.0.1:5180/favicon-rounded.png',bio:'GitHub mascot',followers:1234,public_repos:8}});
  if(url.hostname==='geocoding-api.open-meteo.com')return route.fulfill({json:{results:[{name:'Auckland',country_code:'NZ',latitude:-36.85,longitude:174.76}]}});
  if(url.hostname==='api.open-meteo.com')return route.fulfill({json:{current:{temperature_2m:19,weather_code:2}}});
@@ -44,12 +51,17 @@ await context.route('**/*',async route=>{
 });
 await page.goto('http://127.0.0.1:5180/');
 await page.getByRole('heading',{name:'tourn.lol',exact:true}).waitFor();
+await page.locator('.home-real-widgets .widget-card.has-art').first().waitFor();
+await page.waitForFunction(()=>document.querySelectorAll('.home-real-widgets .widget-card-art').length===3);
+assert.equal(await page.locator('.home-real-widgets .widget-card').count(),3);
+assert.equal(await page.evaluate(()=>window.qaLoadingFallback),false,'Home flashed a route loading fallback');
+console.log('PASS artwork-backed production widgets and cold home without loading flash');
 await page.screenshot({path:'.tmp/home-desktop.png',fullPage:true});
 await page.evaluate(()=>location.hash='#/dashboard');
 await page.locator('.tw-dash').waitFor();
 await page.locator('.tw-widget-showcase').getByText('The Octocat',{exact:true}).waitFor();
 assert.equal(await page.locator('.tw-widget-showcase .widget-card').count(),3,'Missing live examples');
-await page.locator('.tw-widget-showcase').getByText('Auckland, NZ',{exact:true}).waitFor();
+await page.locator('.tw-widget-showcase').getByText('Spotify track',{exact:true}).waitFor();
 // Each setup action must reach the actual editor, including its scroll position.
 await page.getByRole('button',{name:'Add a background',exact:true}).click();
 await page.locator('#dash-section-background').waitFor();
@@ -72,6 +84,34 @@ await presence.locator('input').first().fill('1546745348020772915');
 await presence.getByRole('button',{name:'Save presence',exact:true}).click();
 await page.waitForTimeout(1000);
 assert(document.widgets.widgets.some(w=>w.platform==='discord'),'Discord presence was not published');
+await presence.getByText('Live status needs Lanyard. Join discord.gg/lanyard, then refresh.',{exact:true}).waitFor();
+await presence.locator('summary').filter({hasText:'Additional Discord badges'}).click();
+await presence.getByRole('button',{name:'Orbs',exact:true}).click();
+await page.waitForTimeout(900);
+assert(document.widgets.widgets.find(w=>w.platform==='discord').options.profile_badges.includes('orbs'),'Additional badge was not saved');
+await presence.locator('img[src="/badges/discord/orbs.svg"]').first().waitFor();
+await page.screenshot({path:'.tmp/discord-settings.png',fullPage:true});
+presenceMonitored=true;
+await presence.getByRole('button',{name:'Refresh presence',exact:true}).click();
+await presence.locator('.widget-card-avatar.is-online').waitFor();
+assert.equal(await presence.getByText('Live status needs Lanyard. Join discord.gg/lanyard, then refresh.',{exact:true}).count(),0);
+await page.getByRole('tab',{name:'Player',exact:true}).click();
+await page.getByText('Player accent',{exact:true}).waitFor();
+assert.equal(await page.getByText('Track title',{exact:true}).isVisible(),false,'Music track fields bleed into Player tab');
+await page.getByRole('tab',{name:'Lyrics',exact:true}).click();
+await page.getByText('Auto-fetch lyrics',{exact:true}).first().waitFor();
+await page.getByRole('tab',{name:'Track',exact:true}).click();
+await page.evaluate(()=>location.hash='#/dashboard/customize-profile/profile');
+await page.getByText('Profile appearance',{exact:true}).waitFor();
+assert.equal(await page.getByText('Enter Text',{exact:true}).count(),0,'Entry settings are duplicated in Profile');
+await page.evaluate(()=>location.hash='#/dashboard/customize-profile/experience');
+await page.getByText('Entry animation',{exact:true}).waitFor();
+await page.locator('.tw-field').filter({has:page.getByText('Entry animation',{exact:true})}).locator('.tw-select-btn').click();
+await page.getByRole('option',{name:'Fade in',exact:true}).click();
+await page.locator('.tw-enter-stage .lkr-entry--fade').waitFor();
+await page.evaluate(()=>location.hash='#/dashboard/customize-profile/integrations');
+console.log('PASS Discord status recovery, new badge persistence, music organization and entry setting ownership');
+
 await page.getByRole('button',{name:'Home',exact:true}).click();
 assert.equal(await page.getByRole('button',{name:'Connect Discord account',exact:true}).locator('.is-done').count(),1,'Saved Discord presence did not complete setup');
 await page.evaluate(()=>location.hash='#/dashboard/widgets');

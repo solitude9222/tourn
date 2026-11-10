@@ -4845,3 +4845,12 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .route-loading { min-height: 70vh; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+
+/* Home examples are the same artwork-backed cards as the public profile. */
+.home-real-widgets { display: grid; gap: 14px; width: 100%; }
+.home-real-widgets .widget-card { width: 100%; min-height: 130px; }
+.home-real-widgets .widget-card-art { opacity: 1; }
+.home-real-widgets .widget-card:hover .widget-card-art { opacity: 1; }
+.app--home .hero-copy, .app--home .hero-title, .app--home .hero-card-slot { animation-delay: 0s; animation-fill-mode: none; }
+
+.app--dash { background: #09080b; min-height: 100vh; }

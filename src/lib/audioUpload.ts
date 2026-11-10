@@ -1,4 +1,4 @@
-const MAX_AUDIO_BYTES = 6 * 1024 * 1024;
+const MAX_AUDIO_BYTES = 4 * 1024 * 1024;
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -20,7 +20,7 @@ export async function audioFileToDataUrl(file: File): Promise<string> {
     throw new Error("Choose an MP3, WAV, OGG or M4A file.");
   }
   if (file.size > MAX_AUDIO_BYTES) {
-    throw new Error("That file is too large. Keep it under 6 MB — roughly a minute of average-quality MP3.");
+    throw new Error("That file is too large. Keep it under 4 MB — roughly a minute of average-quality MP3.");
   }
   return readAsDataUrl(file);
 }

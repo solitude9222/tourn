@@ -6,12 +6,17 @@
    --------------------------------------------------------------------------- */
 
 import { useEffect, useRef, useState } from "react";
+import { audioFileToDataUrl } from "../../lib/audioUpload";
+import { AudioPlayer } from "../../components/AudioPlayer";
+import { imageToDataUrl } from "../files";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { fileToDataUrl } from "../files";
 import { WIDGET_PLATFORMS, createWidgetInstance } from "../../lib/widgets";
 import { ProfilePreview } from "../../components/ProfilePreview";
 import { EntryOverlay } from "../../components/LinkerPreview";
 import { WidgetCard } from "../../components/WidgetCard";
+import { ADDITIONAL_DISCORD_BADGES } from "../../lib/discord";
+import { ENTRY_ANIMATIONS as ENTRY_TRANSITIONS } from "../../lib/about";
 import { DEFAULT_BADGE_STYLE } from "../../lib/badges";
 import { DEFAULT_LINK_DESIGN } from "../../lib/links";
 import { formatJoinDate } from "../../lib/format";
@@ -47,7 +52,7 @@ const DATE_FORMATS = [
   { value: "eu", label: "EU (23/12/2026)" },
 ];
 
-const ENTRY_ANIMATIONS = [
+const TITLE_ANIMATIONS = [
   { value: "none", label: "None" },
   { value: "cycle", label: "Cycle" },
   { value: "typewriter", label: "Typewriter" },
@@ -75,6 +80,7 @@ function AudioSettingsCard() {
   const lyricsInput = useRef<HTMLInputElement>(null);
   const coverInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [musicTab, setMusicTab] = useState("track");
 
   const updateAudio = (patch: Partial<typeof audio>) =>
     setAbout((current) => ({
@@ -89,15 +95,15 @@ function AudioSettingsCard() {
     if (!file) return;
     setUploading(true);
     try {
-      const url = await fileToDataUrl(file);
+      const url = await audioFileToDataUrl(file);
       updateAudio({
         fileUrl: url,
         style: audio.style === "none" ? "compact" : audio.style,
         title: audio.title || file.name.replace(/\.[^.]+$/, ""),
       });
-      notify("Audio", "Track uploaded — save to publish it.");
-    } catch {
-      notify("Upload failed", "That audio file could not be read.");
+      notify("Audio", "Track added. Changes save automatically.");
+    } catch (error) {
+      notify("Upload failed", error instanceof Error ? error.message : "That audio file could not be read.");
     } finally {
       setUploading(false);
     }
@@ -106,9 +112,9 @@ function AudioSettingsCard() {
   const uploadCover = async (file: File | undefined) => {
     if (!file) return;
     try {
-      const url = await fileToDataUrl(file);
+      const url = await imageToDataUrl(file, 512, 512);
       updateAudio({ coverUrl: url });
-      notify("Cover art", "Cover updated — save to publish it.");
+      notify("Cover art", "Cover updated. Changes save automatically.");
     } catch {
       notify("Upload failed", "That image could not be read.");
     }
@@ -121,7 +127,7 @@ function AudioSettingsCard() {
     try {
       const text = (await file.text()).slice(0, 40_000);
       updateAudio({ lyrics: text, autoLyrics: false });
-      notify("Lyrics", `${file.name} loaded — save to publish it.`);
+      notify("Lyrics", `${file.name} loaded. Changes save automatically.`);
     } catch {
       notify("Lyrics", "That lyrics file could not be read.");
     }
@@ -132,20 +138,23 @@ function AudioSettingsCard() {
       <CardHead
         icon="music"
         title="Audio player"
-        subtitle="The track, cover text and lyrics visitors get on your profile."
+        subtitle="Upload a track, choose a player and preview it here."
       />
 
+      <div className="tw-tabs tw-music-tabs" role="tablist" aria-label="Music settings">
+        {[["track", "Track"], ["appearance", "Player"], ["lyrics", "Lyrics"]].map(([id, label]) => <button key={id} type="button" className={`tw-tab${musicTab === id ? " is-active" : ""}`} role="tab" aria-selected={musicTab === id} onClick={() => setMusicTab(id)}>{label}</button>)}
+      </div>
+      {audio.fileUrl && audio.style !== "none" ? <div className="tw-audio-live-preview"><AudioPlayer settings={{ ...audio, autoplay: false }} /></div> : <p className="tw-foot-note">Add an audio file to preview your player.</p>}
       <div className="tw-form-grid">
-        <Field label="Player style" hint="How the player looks on your profile.">
+        <Field label="Player style" className={musicTab !== "appearance" ? "tw-music-hidden" : ""} hint="How the player looks on your profile.">
           <Select
-            icon="music"
             value={audio.style}
             options={AUDIO_STYLES.map((entry) => ({ value: entry.id, label: entry.name }))}
             onChange={(value) => updateAudio({ style: value as typeof audio.style })}
           />
         </Field>
 
-        <Field label="Audio file" hint="MP3, WAV or M4A. Stored with your profile.">
+        <Field label="Audio file" className={musicTab !== "track" ? "tw-music-hidden" : ""} hint="MP3, WAV, OGG or M4A. Up to 4 MB.">
           <div className="tw-row">
             <Button
               icon="upload"
@@ -166,7 +175,7 @@ function AudioSettingsCard() {
           </div>
         </Field>
 
-        <Field label="Cover art" hint="Square image shown on the player.">
+        <Field label="Cover art" className={musicTab !== "appearance" ? "tw-music-hidden" : ""} hint="Square image shown on the player.">
           <div className="tw-row">
             {audio.coverUrl ? (
               <img className="tw-audio-cover" src={audio.coverUrl} alt="" />
@@ -182,9 +191,10 @@ function AudioSettingsCard() {
           </div>
         </Field>
 
-        <Field label="Track title">
+        {musicTab === "appearance" ? <ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} /> : null}
+        {musicTab === "track" ? <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div> : null}
+        <Field label="Track title" className={musicTab !== "track" ? "tw-music-hidden" : ""}>
           <TextInput
-            icon="music"
             value={audio.title}
             maxLength={80}
             placeholder="Track title"
@@ -192,9 +202,8 @@ function AudioSettingsCard() {
           />
         </Field>
 
-        <Field label="Artist">
+        <Field label="Artist" className={musicTab !== "track" ? "tw-music-hidden" : ""}>
           <TextInput
-            icon="user"
             value={audio.artist}
             maxLength={80}
             placeholder="Artist"
@@ -204,7 +213,7 @@ function AudioSettingsCard() {
 
         <Field
           label="Lyrics file"
-          className="tw-span-2"
+          className={`tw-span-2${musicTab !== "lyrics" ? " tw-music-hidden" : ""}`}
           hint="Upload a .lrc file with [mm:ss.xx] timestamps for synced lyrics, or a .txt file for plain lines."
         >
           <div className="tw-row">
@@ -225,7 +234,7 @@ function AudioSettingsCard() {
 
         <Field
           label="Lyrics"
-          className="tw-span-2"
+          className={`tw-span-2${musicTab !== "lyrics" ? " tw-music-hidden" : ""}`}
           hint={`${audio.lyrics.length} / 40000`}
         >
           <Textarea
@@ -238,7 +247,7 @@ function AudioSettingsCard() {
         </Field>
       </div>
 
-      <div className="tw-inline-toggle" style={{ marginTop: 14 }}>
+      <div className={`tw-inline-toggle${musicTab !== "lyrics" ? " tw-music-hidden" : ""}`} style={{ marginTop: 14 }}>
         <span>
           <b>Auto-fetch lyrics</b>
           <small>Used when no lyrics text or .lrc file is set.</small>
@@ -294,6 +303,7 @@ function DiscordPresenceCard() {
     widget?.content || settings.discordUserId || authUser?.discordId || "",
   );
   const [busy, setBusy] = useState(false);
+  const [presenceRefresh, setPresenceRefresh] = useState(0);
 
   // The session resolves after the first paint, so the signed-in account's
   // Discord id fills the field as soon as it arrives instead of leaving the
@@ -313,6 +323,9 @@ function DiscordPresenceCard() {
       ),
     }));
   };
+
+  let displayedBadges: string[] = [];
+  try { const value = JSON.parse(String(widget?.options.profile_badges || "[]")); if (Array.isArray(value)) displayedBadges = value.filter((id): id is string => typeof id === "string"); } catch { /* empty */ }
 
   const savePresence = () => {
     if (!platform) return;
@@ -379,7 +392,7 @@ function DiscordPresenceCard() {
         <Field
           label="Discord user ID"
           help
-          hint="Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID. Live status comes from Lanyard, so the account has to be in the Lanyard server (discord.gg/lanyard) for the dot and activity to update."
+          hint="Enable Developer Mode in Discord, then right-click your profile and copy your user ID."
         >
           <TextInput
             icon="discord"
@@ -416,10 +429,18 @@ function DiscordPresenceCard() {
         <Button variant="primary" onClick={savePresence}>
           Save presence
         </Button>
+        {widget ? <Button onClick={() => setPresenceRefresh((n) => n + 1)}>Refresh presence</Button> : null}
       </div>
 
+      {widget ? <div className="tw-discord-live-preview"><WidgetCard widget={widget} refreshKey={presenceRefresh} design={{ ...widgets.design, backgroundStyle: "art", backgroundOpacity: 0.8 }} /></div> : null}
+      <p className="tw-presence-status">Connecting Discord confirms your identity. Live status and activity also require your account to join <a href="https://discord.gg/UrXF2cfJ7F" target="_blank" rel="noreferrer">Lanyard</a>. Your profile still displays when live status is unavailable.</p>
       {platform && widget ? (
         <>
+          <details className="tw-extra-discord-badges">
+            <summary>Additional Discord badges</summary>
+            <p className="tw-foot-note">Available badges are detected automatically. Choose additional badges to display here; Discord does not verify these selections.</p>
+            <div className="tw-extra-badge-grid">{ADDITIONAL_DISCORD_BADGES.map((badge) => <button key={badge.id} type="button" aria-pressed={displayedBadges.includes(badge.id)} onClick={() => updateOption("profile_badges", JSON.stringify(displayedBadges.includes(badge.id) ? displayedBadges.filter((id) => id !== badge.id) : [...displayedBadges, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span></button>)}</div>
+          </details>
           <div className="tw-subhead">Presence options</div>
           <div className="tw-option-grid">
             {platform.options
@@ -517,7 +538,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
         <Card>
           <CardHead
             icon="sliders"
-            title="General Customization"
+            title="Profile appearance"
             subtitle="Profile details and visual styling"
           />
 
@@ -535,34 +556,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
                   }))
                 }
               />
-            </Field>
-
-            <Field label="Enter Text" help>
-              <TextInput
-                icon="at"
-                placeholder="enter"
-                value={entry.title}
-                maxLength={48}
-                onChange={(event) => updateEntry({ title: event.target.value.slice(0, 48) })}
-              />
-            </Field>
-
-            <Field label="Enter Text Animation" help>
-              {isPremium ? (
-                <Select
-                  value={entry.animation}
-                  options={[
-                    { value: "split", label: "Split apart" },
-                    { value: "fade", label: "Fade in" },
-                    { value: "zoom", label: "Zoom in" },
-                    { value: "bottom-right", label: "From bottom right" },
-                    { value: "top-left", label: "From top left" },
-                  ]}
-                  onChange={(value) => updateEntry({ animation: value as typeof entry.animation })}
-                />
-              ) : (
-                <LockedBlock onClick={() => go("premium")} />
-              )}
             </Field>
 
             <Field label="Background Filters" help>
@@ -646,7 +639,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
         </Card>
 
         <Card>
-          <CardHead icon="code" title="Page Title" />
+          <CardHead icon="code" title="Browser tab title" />
           <div className="tw-form-grid">
             <Field label="Custom Title Text">
               <TextInput
@@ -661,13 +654,20 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               <Select
                 icon="code"
                 value={about.metadata.animation}
-                options={ENTRY_ANIMATIONS}
+                options={TITLE_ANIMATIONS}
                 onChange={(value) =>
                   updateMetadata({ animation: value as typeof about.metadata.animation })
                 }
               />
             </Field>
           </div>
+          {about.metadata.animation !== "none" ? <div className="tw-form-grid" style={{ marginTop: 16 }}>
+            <Field label="Title messages" hint="One message per line. Up to 8 messages, 60 characters each.">
+              <Textarea value={about.metadata.messages.join("\n")} rows={4} onChange={(event) => updateMetadata({ messages: event.target.value.split("\n").slice(0, 8).map((line) => line.slice(0, 60)) })} />
+            </Field>
+            <Slider label="Message interval" value={about.metadata.interval} min={2} max={30} suffix="s" onChange={(value) => updateMetadata({ interval: value })} />
+          </div> : null}
+
         </Card>
       </>
     );
@@ -678,8 +678,8 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
       <Card>
         <CardHead
           icon="expand"
-          title="Enter Screen Customization"
-          subtitle="Everything below is the same screen visitors see, live."
+          title="Entry screen"
+          subtitle="Choose what visitors see before opening your profile."
         />
 
         <div className="tw-inline-toggle">
@@ -704,6 +704,9 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               maxLength={48}
               onChange={(event) => updateEntry({ title: event.target.value.slice(0, 48) })}
             />
+          </Field>
+          <Field label="Entry animation">
+            <Select value={entry.animation} options={ENTRY_TRANSITIONS.map((animation) => ({ value: animation.id, label: animation.name }))} onChange={(value) => updateEntry({ animation: value as typeof entry.animation })} />
           </Field>
           <Field label="Text alignment">
             <Select

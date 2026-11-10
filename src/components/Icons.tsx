@@ -394,6 +394,7 @@ export function DiscordBadgeIcon({
   const [failedArt, setFailedArt] = useState<string | null>(null);
   const showArt = Boolean(art) && failedArt !== art;
   const shapes: Record<string, ReactNode> = {
+    profile: <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.8" />,
     staff: (
       <>
         <path d="M12 3 5 6v5c0 4.6 3 7.7 7 9 4-1.3 7-4.4 7-9V6l-7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />

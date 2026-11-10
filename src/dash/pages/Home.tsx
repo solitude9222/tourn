@@ -9,12 +9,13 @@ import { WidgetCard } from "../../components/WidgetCard";
 import { DEFAULT_WIDGET_DESIGN, WIDGET_PLATFORM_BY_ID, defaultWidgetOptions, type WidgetInstance } from "../../lib/widgets";
 import { AnalyticsPanel } from "../Analytics";
 import { copyText } from "../files";
+import { DEFAULT_SETTINGS } from "../../config";
 import { DEFAULT_PROFILE_ASSETS } from "../../lib/profileAssets";
 
 const EXAMPLE_WIDGETS: WidgetInstance[] = [
   { id: "example-github", platform: "github", content: "octocat", visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("github")!) },
-  { id: "example-weather", platform: "weather", content: "Auckland", visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("weather")!) },
-  { id: "example-timezone", platform: "timezone", content: "Pacific/Auckland", visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("timezone")!) },
+  { id: "example-discord", platform: "discord", content: DEFAULT_SETTINGS.discordUserId, visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("discord")!) },
+  { id: "example-spotify", platform: "spotify", content: DEFAULT_SETTINGS.spotifyTrack, visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("spotify")!) },
 ];
 
 export function HomePage() {
@@ -163,7 +164,7 @@ export function HomePage() {
         <div className="tw-widget-showcase-grid">
           {showcase.map((widget) => <div className="tw-widget-showcase-item" key={widget.id}>
             <span>{WIDGET_PLATFORM_BY_ID.get(widget.platform)?.name}{widget.id.startsWith("example-") ? " / Live example" : " / Your widget"}</span>
-            <WidgetCard widget={widget} design={widget.id.startsWith("example-") ? DEFAULT_WIDGET_DESIGN : widgets.design} />
+            <WidgetCard widget={widget} design={widget.id.startsWith("example-") ? { ...DEFAULT_WIDGET_DESIGN, backgroundStyle: "art", backgroundOpacity: 0.8 } : widgets.design} />
           </div>)}
         </div>
       </Card>

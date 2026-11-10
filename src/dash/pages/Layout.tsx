@@ -63,7 +63,7 @@ const PAGE_LAYOUTS: {
 ];
 
 export function LayoutPage() {
-  const { about, setAbout, widgets, badges, links, profileViews, user, notify } = useDash();
+  const { about, setAbout, widgets, badges, links, profileViews, user, notify, go } = useDash();
   const design = about.design;
 
   const updateDesign = (patch: Partial<typeof design>) =>
@@ -193,8 +193,8 @@ export function LayoutPage() {
             />
           </Field>
 
-          <Field label="Audio player" hint="The player always sits at the bottom of the page.">
-            <Select icon="music" value="bottom" options={AUDIO_OPTIONS} onChange={() => undefined} />
+          <Field label="Audio player" hint="Manage the track and player under Music & Discord.">
+            <Button onClick={() => go("customize-profile", "integrations")}>Open music settings</Button>
           </Field>
         </div>
 

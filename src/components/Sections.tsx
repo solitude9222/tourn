@@ -1,11 +1,9 @@
 import { useRef } from "react";
-import type { LanyardData } from "../lib/api";
-import type { Polled } from "../lib/hooks";
-import type { Settings } from "../config";
-import type { WidgetStore } from "../lib/widgets";
 import type { SiteStats } from "../lib/siteStats";
 import { formatCompactNumber } from "../lib/format";
-import { Bento } from "./Bento";
+import { WidgetCard } from "./WidgetCard";
+import { DEFAULT_WIDGET_DESIGN, WIDGET_PLATFORM_BY_ID, defaultWidgetOptions, type WidgetInstance } from "../lib/widgets";
+import { DEFAULT_SETTINGS } from "../config";
 import { ProfileCard } from "./ProfileCard";
 import {
   ArrowRight,
@@ -15,6 +13,13 @@ import {
   SpotifyIcon,
   SteamIcon,
 } from "./Icons";
+
+const HOME_WIDGETS: WidgetInstance[] = [
+  { id: "home-discord", platform: "discord", content: DEFAULT_SETTINGS.discordUserId, visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("discord")!) },
+  { id: "home-spotify", platform: "spotify", content: DEFAULT_SETTINGS.spotifyTrack, visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("spotify")!) },
+  { id: "home-github", platform: "github", content: "octocat", visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("github")!) },
+];
+const HOME_WIDGET_DESIGN = { ...DEFAULT_WIDGET_DESIGN, backgroundStyle: "art" as const, backgroundOpacity: 0.8, borderOpacity: 0.16 };
 
 /* ------------------------------------------------------------------- hero */
 
@@ -45,7 +50,7 @@ export function Hero({
               <ArrowRight size={15} />
             </button>
             <button type="button" className="btn btn-ghost" onClick={onPremium}>
-              Buy premium
+              View Premium
             </button>
           </div>
           <div className="hero-meta">
@@ -98,19 +103,8 @@ export function StatsBand({ stats }: { stats: SiteStats }) {
 
 /* ------------------------------------------------------------- bento bio */
 
-export function BentoSection({
-  lanyard,
-  settings,
-  signedIn,
-  widgets,
-  onConfigure,
-  onOpenWidgets,
-}: {
-  lanyard: Polled<LanyardData>;
-  settings: Settings;
+export function BentoSection({ signedIn, onOpenWidgets }: {
   signedIn: boolean;
-  widgets: WidgetStore;
-  onConfigure: () => void;
   onOpenWidgets: () => void;
 }) {
   return (
@@ -123,12 +117,11 @@ export function BentoSection({
               Your profile, <span className="accent">live.</span>
             </h2>
             <p className="section-sub">
-              Who you are, where you hang out, what's playing, what you're grinding. Widgets,
-              connected once, current forever.
+              Show your Discord profile, favourite track and other accounts in one place.
             </p>
             <div className="bento-actions">
               <button type="button" className="btn btn-primary" onClick={onOpenWidgets}>
-                {signedIn ? "Open your dashboard" : "Start your stack"}
+                {signedIn ? "Open your dashboard" : "Build your profile"}
               </button>
             </div>
             <p className="bento-foot">
@@ -141,7 +134,7 @@ export function BentoSection({
           {/* The home page ALWAYS shows the default example stack — your own
               widgets live on your public page and in the dashboard preview. */}
           <div className="bento-stage">
-            <Bento lanyard={lanyard} settings={settings} onConfigure={onConfigure} />
+            <div className="home-real-widgets">{HOME_WIDGETS.map((widget) => <WidgetCard key={widget.id} widget={widget} design={HOME_WIDGET_DESIGN} />)}</div>
           </div>
         </div>
       </div>
@@ -174,11 +167,11 @@ const FAQS = [
   },
   {
     q: "Can I just use Discord to sign in?",
-    a: "That's the second option. Discord OAuth asks for the minimum scope (identify), then creates the same profile you'd get from email. Either way you end up with one handle.",
+    a: "Yes. Create your account with Discord. You can add an email and password later in Account Settings.",
   },
   {
     q: "Can other people see my IDs?",
-    a: "Only the public profile is visible to visitors. Your Discord user ID and invite stay in your browser's local storage and are only used to fetch the data the cards show.",
+    a: "Your public page uses the account IDs and links you choose for its widgets. Keep private information out of your profile.",
   },
 ];
 

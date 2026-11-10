@@ -10,7 +10,8 @@ export type DiscordBadgeKind =
   | "bot"
   | "bravery"
   | "brilliance"
-  | "balance";
+  | "balance"
+  | "profile";
 
 export type DiscordBadge = {
   kind: DiscordBadgeKind;
@@ -22,8 +23,8 @@ export type DiscordBadge = {
 
 /**
  * Discord public flags. These are the only badges a public user payload can
- * expose — Nitro and booster badges are intentionally not shown because they
- * are not part of `public_flags`.
+ * expose. Extra profile data and additional display choices are handled
+ * separately because newer badges are not part of `public_flags`.
  */
 const BADGES: DiscordBadge[] = [
   { kind: "staff", label: "Discord Staff", flag: 1 << 0, art: "/badges/discord/staff.svg" },
@@ -101,6 +102,36 @@ const BADGES: DiscordBadge[] = [
 export function discordBadges(flags: number | null | undefined): DiscordBadge[] {
   if (!flags) return [];
   return BADGES.filter((badge) => (flags & badge.flag) === badge.flag);
+}
+
+export const ADDITIONAL_DISCORD_BADGES = [
+  ["account-age", "Account Age"], ["game-time", "Game Time"], ["game-variety", "Game Variety"],
+  ["gifting", "Gifting"], ["nitro", "Nitro"], ["orbs", "Orbs"], ["quests", "Quests"],
+  ["booster", "Server Booster"], ["streaming", "Streaming"], ["last-meadow", "Last Meadow Online"], ["legacy-username", "Legacy Username"],
+].map(([id, label]) => ({ id, label, art: `/badges/discord/${id}.svg` }));
+
+export function discordProfileBadges(flags: number, input: unknown, selected: string[] = []): DiscordBadge[] {
+  const badges = discordBadges(flags);
+  const raw = input && typeof input === "object" ? input as Record<string, unknown> : {};
+  const list = Array.isArray(raw.badges) ? raw.badges : [];
+  for (const item of list.slice(0, 40)) {
+    if (!item || typeof item !== "object") continue;
+    const badge = item as Record<string, unknown>;
+    const label = String(badge.description || badge.name || badge.id || "Discord badge").slice(0, 120);
+    const icon = String(badge.icon || "");
+    const url = String(badge.icon_url || "");
+    const art = /^[a-zA-Z0-9_]+$/.test(icon) ? `https://cdn.discordapp.com/badge-icons/${icon}.png` : /^https:\/\/(cdn|media)\.discordapp\.(com|net)\//.test(url) ? url : undefined;
+    if (art && !badges.some((entry) => entry.label === label)) badges.push({ kind: "profile", flag: 0, label, art });
+  }
+  const extras = [...selected];
+  if (Number(raw.premium_type) > 0) extras.push("nitro");
+  for (const id of new Set(extras)) {
+    const badge = ADDITIONAL_DISCORD_BADGES.find((entry) => entry.id === id);
+    if (badge && !badges.some((entry) => entry.art === badge.art || entry.label.toLowerCase().includes(badge.label.toLowerCase()))) {
+      badges.push({ kind: "profile", flag: 0, label: selected.includes(id) ? `${badge.label} (profile display)` : badge.label, art: badge.art });
+    }
+  }
+  return badges;
 }
 
 export type DiscordPrimaryGuild = {

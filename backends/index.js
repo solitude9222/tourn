@@ -1743,6 +1743,33 @@ app.get("/api/leaderboard", async (_req, res) => {
   }
 });
 
+const discordLookupCache = new Map();
+app.get("/api/discord/:id", async (req, res) => {
+  const id = String(req.params.id);
+  if (!/^\d{16,20}$/.test(id)) return res.status(400).json({ error: "Enter a Discord user ID." });
+  const cached = discordLookupCache.get(id);
+  if (cached && cached.until > Date.now()) return res.json(cached.data);
+  try {
+    let data = null;
+    if (DISCORD_BOT_TOKEN) {
+      const response = await fetch(`https://discord.com/api/v10/users/${id}`, { headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }, signal: AbortSignal.timeout(6000) });
+      if (response.ok) {
+        const user = await response.json();
+        data = { user, avatar_url: user.avatar ? `https://cdn.discordapp.com/avatars/${id}/${user.avatar}.png?size=256` : null, banner_url: user.banner ? `https://cdn.discordapp.com/banners/${id}/${user.banner}.png?size=512` : null };
+      }
+    }
+    if (!data) {
+      const response = await fetch(`https://discord-lookup.lookupbotdc.workers.dev/search/${id}`, { signal: AbortSignal.timeout(6000) });
+      if (!response.ok) return res.status(503).json({ error: "Discord lookup is temporarily unavailable." });
+      data = await response.json();
+    }
+    if (!data?.user?.id) return res.status(404).json({ error: "Discord profile not found." });
+    if (discordLookupCache.size > 1000) discordLookupCache.clear();
+    discordLookupCache.set(id, { data, until: Date.now() + 60_000 });
+    res.json(data);
+  } catch { res.status(503).json({ error: "Discord lookup timed out. Try again shortly." }); }
+});
+
 async function canonicalViewHandle(input) {
   const handle = cleanHandle(input);
   if (!handle) return null;

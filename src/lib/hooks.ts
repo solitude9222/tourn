@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { WidgetError, type DiscordStatus } from "./api";
 
 export function useNow(intervalMs = 1000): number {
@@ -17,6 +17,14 @@ export type Polled<T> = {
   refresh: () => void;
 };
 
+function readPollCache<T>(key: string, maxAge: number): T | null {
+  if (!maxAge) return null;
+  try {
+    const entry = JSON.parse(sessionStorage.getItem(`tourn.lol/widget-live/v1/${key}`) || "null");
+    return entry && typeof entry.at === "number" && Date.now() - entry.at < maxAge && entry.data && typeof entry.data.title === "string" && Array.isArray(entry.data.meta) && Array.isArray(entry.data.badges) ? entry.data as T : null;
+  } catch { return null; }
+}
+
 /**
  * Polls a real API on an interval, keyed by `key`. Previous data stays on screen
  * while a refresh is in flight so widgets never flash empty.
@@ -26,11 +34,12 @@ export function usePolled<T>(
   key: string,
   fetcher: (signal: AbortSignal) => Promise<T>,
   intervalMs: number,
+  cacheMs = 0,
 ): Polled<T> {
   const [state, setState] = useState<{ data: T | null; error: WidgetError | null; loading: boolean }>({
-    data: null,
+    data: enabled ? readPollCache<T>(key, cacheMs) : null,
     error: null,
-    loading: enabled,
+    loading: enabled && !readPollCache<T>(key, cacheMs),
   });
   const [nonce, setNonce] = useState(0);
   const fetcherRef = useRef(fetcher);
@@ -41,11 +50,12 @@ export function usePolled<T>(
 
   // A different account/guild means the old payload is no longer the same widget:
   // drop it so a failure can never display data from the previous target.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (keyRef.current === key) return;
     keyRef.current = key;
-    setState({ data: null, error: null, loading: enabled });
-  }, [key, enabled]);
+    const cached = enabled ? readPollCache<T>(key, cacheMs) : null;
+    setState({ data: cached, error: null, loading: enabled && !cached });
+  }, [key, enabled, cacheMs]);
 
   useEffect(() => {
     if (!enabled) {
@@ -63,6 +73,9 @@ export function usePolled<T>(
         const data = await fetcherRef.current(controller.signal);
         if (cancelled) return;
         setState({ data, error: null, loading: false });
+        if (cacheMs) {
+          try { sessionStorage.setItem(`tourn.lol/widget-live/v1/${key}`, JSON.stringify({ at: Date.now(), data })); } catch { /* optional public-data cache */ }
+        }
       } catch (error) {
         if (cancelled || controller.signal.aborted) return;
         const widgetError =
@@ -80,7 +93,7 @@ export function usePolled<T>(
       controller.abort();
       window.clearInterval(id);
     };
-  }, [enabled, key, intervalMs, nonce]);
+  }, [enabled, key, intervalMs, nonce, cacheMs]);
 
   return { ...state, refresh };
 }

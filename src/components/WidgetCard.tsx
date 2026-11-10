@@ -16,7 +16,7 @@ import {
   type WidgetLive,
 } from "../lib/widgetLive";
 import { STATUS_COLORS } from "../lib/hooks";
-import { discordBadges, type DiscordBadge } from "../lib/discord";
+import { discordProfileBadges, discordBadges, type DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
 import { PlatformIcon } from "./PlatformIcons";
 import { DiscordBadgeIcon, SettingsIcon, TrashIcon } from "./Icons";
@@ -204,7 +204,7 @@ function WidgetCardSurface({
               {design.showBadges && live?.badges.length ? (
                 <span className="widget-card-badges">
                   {live.badges.map((badge) => (
-                    <Tooltip key={`${badge.kind}-${badge.flag}`} text={badge.label}>
+                    <Tooltip key={`${badge.label}-${badge.art || badge.flag}`} text={badge.label}>
                       <DiscordBadgeIcon
                         kind={badge.kind}
                         label={badge.label}
@@ -226,12 +226,9 @@ function WidgetCardSurface({
               <span className="widget-card-meta">
                 {meta.map((item, index) => (
                   <span className="widget-card-chip" key={`${item}-${index}`} title={item}>
-                    {index === 0 && live?.status ? (
-                      <i style={{ background: STATUS_COLORS[live.status] }} aria-hidden="true" />
-                    ) : null}
                     {/* Anything counting people who are on right now gets the
                         same green light, so "412 online" reads at a glance. */}
-                    {/\bonline\b/i.test(item) ? (
+                    {/\bonline\b/i.test(item) && !live?.status ? (
                       <i className="widget-card-online" aria-hidden="true" />
                     ) : null}
                     {item}
@@ -243,6 +240,7 @@ function WidgetCardSurface({
         </span>
       </span>
 
+      {live?.presenceNotice ? <p className="widget-card-presence-notice">{live.presenceNotice}</p> : null}
       {onConfigure || onRemove ? (
         <span className="widget-card-actions">
           {onConfigure ? (
@@ -277,18 +275,25 @@ export function WidgetCard({
   onConfigure,
   onRemove,
   className = "",
+  refreshKey = 0,
 }: {
   widget: WidgetInstance;
   design: WidgetDesign;
   onConfigure?: (widget: WidgetInstance) => void;
   onRemove?: (widget: WidgetInstance) => void;
   className?: string;
+  refreshKey?: number;
   /** Kept for older call sites; widget cards are display-only now. */
   interactive?: boolean;
 }) {
   const platform = WIDGET_PLATFORM_BY_ID.get(widget.platform);
   const result = useWidgetLive(widget);
+  useEffect(() => { if (refreshKey) result.refresh(); }, [refreshKey, result.refresh]);
 
+  let displayed: string[] = [];
+  try { const parsed = JSON.parse(String(widget.options.profile_badges || "[]")); if (Array.isArray(parsed)) displayed = parsed.filter((id): id is string => typeof id === "string"); } catch { /* no extra badges */ }
+  const extra = widget.platform === "discord" ? discordProfileBadges(0, null, displayed) : [];
+  const live = result.data ? { ...result.data, badges: [...result.data.badges, ...extra.filter((badge) => !result.data!.badges.some((entry) => entry.art === badge.art))] } : null;
   if (!platform) return null;
 
   return (
@@ -296,7 +301,7 @@ export function WidgetCard({
       widget={widget}
       platform={platform}
       design={design}
-      live={result.data}
+      live={live}
       loading={result.loading}
       error={result.error}
       className={className}
