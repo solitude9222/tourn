@@ -4,8 +4,6 @@ import type { TooltipStyle } from "../lib/links";
 
 /** How long the pointer has to rest on the element before the bubble opens. */
 const OPEN_DELAY = 220;
-/** Matches the fade-out in about.css, so the bubble is not cut off. */
-const CLOSE_MS = 180;
 
 /**
  * A hover tooltip. It sits centred directly above the element it belongs to
@@ -22,10 +20,7 @@ const CLOSE_MS = 180;
  * cursor (polling widgets, virtualised lists, HMR) and pointerleave never
  * fires.
  *
- * It opens after a short rest so sweeping the pointer across a row of icons
- * does not flash a dozen bubbles, and it closes with a fade instead of
- * vanishing: `mounted` keeps it in the DOM for the length of that fade while
- * `open` drives the class the CSS transitions on.
+ * It opens after a short rest and is removed immediately on dismissal.
  */
 export function Tooltip({
   text,
@@ -42,14 +37,13 @@ export function Tooltip({
   const wrapRef = useRef<HTMLSpanElement>(null);
   const tipRef = useRef<HTMLSpanElement>(null);
   const openTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const frame = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const hide = useCallback(() => {
     clearTimeout(openTimer.current);
-    clearTimeout(closeTimer.current);
+    clearTimeout(frame.current);
     setOpen(false);
-    closeTimer.current = setTimeout(() => setMounted(false), CLOSE_MS);
+    setMounted(false);
   }, []);
 
   // Measure after the bubble is in the DOM but before the browser paints, so
@@ -86,6 +80,15 @@ export function Tooltip({
     const wrap = wrapRef.current;
     if (!wrap) return;
 
+    const watch = window.setInterval(() => {
+      const rect = wrap.getBoundingClientRect();
+      if (!wrap.isConnected || !wrap.matches(":hover") || !rect.width || !rect.height) hide();
+    }, 100);
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") hide(); };
+    const onVisibility = () => { if (document.hidden) hide(); };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("hashchange", hide);
     const onDocMove = (event: PointerEvent) => {
       const r = wrap.getBoundingClientRect();
       // A generous box around the element: the bubble lives above it, so
@@ -104,6 +107,10 @@ export function Tooltip({
     window.addEventListener("pointerdown", hide, true);
     window.addEventListener("blur", hide);
     return () => {
+      window.clearInterval(watch);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("hashchange", hide);
       document.removeEventListener("pointermove", onDocMove);
       window.removeEventListener("scroll", hide, true);
       window.removeEventListener("resize", hide);
@@ -112,10 +119,11 @@ export function Tooltip({
     };
   }, [mounted, hide]);
 
+  useEffect(() => { hide(); }, [text, style, hide]);
+
   useEffect(
     () => () => {
       clearTimeout(openTimer.current);
-      clearTimeout(closeTimer.current);
       if (frame.current !== undefined) clearTimeout(frame.current);
     },
     [],
@@ -125,8 +133,9 @@ export function Tooltip({
 
   const enter = () => {
     clearTimeout(openTimer.current);
-    clearTimeout(closeTimer.current);
+    clearTimeout(frame.current);
     openTimer.current = setTimeout(() => {
+      if (!wrapRef.current?.matches(":hover") || document.hidden) return;
       setMounted(true);
       // One paint closed, then open — otherwise the bubble mounts already
       // finished and the transition never runs. A timer rather than a frame,

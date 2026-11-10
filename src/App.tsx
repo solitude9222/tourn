@@ -68,10 +68,10 @@ void import("./components/Sections");
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
 import {
+  clearCachedProfile,
   clearPendingDocument,
   fetchOwnProfile,
   fetchPublicProfile,
-  flushProfileDocument,
   loadPendingDocument,
   preloadProfile,
   readCachedProfile,
@@ -489,6 +489,9 @@ function Site() {
   // failed request hides every equipped badge.
   const [earned, setEarned] = useState<string[] | null>(null);
   const hydratedFor = useRef<string | null>(null);
+  const [hydratedId, setHydratedId] = useState<string | null>(null);
+  const [hydrateAttempt, setHydrateAttempt] = useState(0);
+  const [profileLoadFailed, setProfileLoadFailed] = useState(false);
   const lastSaved = useRef<string>("");
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const [siteStats, setSiteStats] = useState<SiteStats>({ users: null, views: null });
@@ -578,6 +581,10 @@ function Site() {
   // Hydrate the saved profile before paint. A plain effect painted one frame
   // of empty defaults first â€” the flash the preview showed on sign-in.
   useLayoutEffect(() => {
+    hydratedFor.current = null;
+    setHydratedId(null);
+    setProfileLoadFailed(false);
+    lastSaved.current = "";
     setAbout(user ? loadAbout(user.id) : EMPTY_ABOUT);
     setWidgets(user ? loadWidgetStore(user.id) : EMPTY_WIDGET_STORE);
     setBadges(user ? loadBadgeStore(user.id) : EMPTY_BADGE_STORE);
@@ -598,15 +605,16 @@ function Site() {
       return;
     }
     let active = true;
+    let retry = 0;
     void fetchOwnProfile().then((result) => {
       if (!active) return;
       if (!result.ok) {
-        // Publishing waits for this read, so a failed request used to mean no
-        // edit was ever published again. Keep the local copy in charge and let
-        // the next change try to push it.
-        hydratedFor.current = user.id;
+        // Do not publish an unverified local baseline over an unread server copy.
+        setProfileLoadFailed(true);
+        retry = window.setTimeout(() => setHydrateAttempt((n) => n + 1), 3000);
         return;
       }
+      setProfileLoadFailed(false);
       setEarned(result.data.earned);
       // A publish that failed last time leaves the newer document here. It has
       // to win over the server copy, or the failed publish is silently undone.
@@ -622,25 +630,14 @@ function Site() {
         saveLinkStore(user.id, pending.links);
         lastSaved.current = "";
         hydratedFor.current = user.id;
+        setHydratedId(user.id);
         return;
       }
       if (result.data.profile) {
         const document = result.data.profile;
-        // A published document with an empty section is almost always a page
-        // that was saved before its links/badges/widgets were ever uploaded.
-        // Adopting it wholesale threw away the copy on this device; keep the
-        // local section in that case (the debounced save republishes it).
-        const local = {
-          widgets: loadWidgetStore(user.id),
-          badges: loadBadgeStore(user.id),
-          links: loadLinkStore(user.id),
-        };
-        const merged = {
-          about: document.about,
-          widgets: document.widgets.widgets.length ? document.widgets : local.widgets,
-          badges: document.badges.equipped.length ? document.badges : local.badges,
-          links: document.links.links.length ? document.links : local.links,
-        };
+        // Empty arrays are valid saved deletions. Only a pending draft may
+        // override the published document.
+        const merged = document;
         setAbout(merged.about);
         setWidgets(merged.widgets);
         setBadges(merged.badges);
@@ -651,22 +648,17 @@ function Site() {
         saveLinkStore(user.id, merged.links);
         lastSaved.current = JSON.stringify(document);
       } else {
-        // First publish for this account: push what this browser already has.
-        const document = {
-          about: loadAbout(user.id),
-          widgets: loadWidgetStore(user.id),
-          badges: loadBadgeStore(user.id),
-          links: loadLinkStore(user.id),
-        };
-        lastSaved.current = JSON.stringify(document);
-        void saveProfile(document);
+        // First publish is handled by the acknowledged retrying save below.
+        lastSaved.current = "";
       }
       hydratedFor.current = user.id;
+      setHydratedId(user.id);
     });
     return () => {
       active = false;
+      window.clearTimeout(retry);
     };
-  }, [user?.id]);
+  }, [user?.id, hydrateAttempt]);
 
   // Any dashboard edit republishes the page (debounced so sliders don't spam).
   // The document only counts as saved once the backend says so: a failed PUT
@@ -680,15 +672,22 @@ function Site() {
     const publish = async (document: ProfileDocument) => {
       const serialized = JSON.stringify(document);
       if (serialized === lastSaved.current) return;
-      const result = await saveProfile(document);
+      const result = await saveProfile(document, user.id, () => !cancelled && hydratedFor.current === user.id);
       if (cancelled) return;
       if (result.ok) {
         lastSaved.current = serialized;
+        clearCachedProfile(user.username);
+        if (user.alias) clearCachedProfile(user.alias);
+        if (user.alias2) clearCachedProfile(user.alias2);
         retryRef.current = 0;
-        clearPendingDocument(user.id);
+        const pending = loadPendingDocument(user.id);
+        if (pending && JSON.stringify(pending) === serialized) clearPendingDocument(user.id);
+        window.dispatchEvent(new CustomEvent("tourn:toast", { detail: {
+          title: "Profile published", message: "Your changes are live.",
+        } }));
         return;
       }
-      savePendingDocument(user.id, document);
+      if (!loadPendingDocument(user.id)) savePendingDocument(user.id, document);
       // 2s, 4s, 8s, 16s, then every 30s while the tab stays open.
       const delay = Math.min(30_000, 2000 * 2 ** retryRef.current);
       if (retryRef.current === 0) {
@@ -708,23 +707,25 @@ function Site() {
     const document = { about, widgets, badges, links: profileLinks };
     const serialized = JSON.stringify(document);
     if (serialized === lastSaved.current) return;
+    savePendingDocument(user.id, document);
     const timer = window.setTimeout(() => void publish(document), 700);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
       window.clearTimeout(retryTimer);
     };
-  }, [user?.id, about, widgets, badges, profileLinks]);
+  }, [user?.id, hydratedId, about, widgets, badges, profileLinks]);
 
   // Closing the tab or switching away must not throw away the last edit: write
   // it down and send it with keepalive, which survives the page going away.
   useEffect(() => {
-    if (!user) return;
+    if (!user || hydratedFor.current !== user.id) return;
     const flush = () => {
-      const document = { about, widgets, badges, links: profileLinks };
+      const document = loadPendingDocument(user.id) ?? { about, widgets, badges, links: profileLinks };
       if (JSON.stringify(document) === lastSaved.current) return;
       savePendingDocument(user.id, document);
-      flushProfileDocument(document);
+      // The durable pending copy is replayed on return. A second keepalive
+      // PUT could race the active request and restore an older document.
     };
     const onVisibility = () => {
       if (document.visibilityState === "hidden") flush();
@@ -735,7 +736,7 @@ function Site() {
       window.removeEventListener("pagehide", flush);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [user?.id, about, widgets, badges, profileLinks]);
+  }, [user?.id, hydratedId, about, widgets, badges, profileLinks]);
 
   const lanyard = usePolled(
     Boolean(settings.discordUserId),
@@ -830,7 +831,7 @@ function Site() {
 
   return (
     <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}${route === "" ? " app--home" : ""}`}>
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="route-loading" role="status">Loading your page…</div>}>
       {route === "demo" || route === "profile" ? null : <SiteBackdrop />}
 
       {route !== "dashboard" && route !== "demo" && route !== "profile" ? (
@@ -870,13 +871,14 @@ function Site() {
             badges={badges}
             links={profileLinks}
             earned={earned}
-            authLoading={loading}
+            authLoading={loading || Boolean(user && hydratedId !== user.id && !profileLoadFailed)}
             savedHandles={accounts.map((entry) => entry.username.toLowerCase())}
             onSignIn={() => setAuthMode("signup")}
           />
         </main>
       ) : route === "dashboard" ? (
         <Dashboard
+            key={user?.id ?? "guest"}
           user={user}
           about={about}
           lanyard={lanyard}
@@ -886,9 +888,12 @@ function Site() {
           isPremium={isPremium}
           isAdmin={isAdmin}
           onAddAccount={() => setAuthMode("signin")}
-          authLoading={loading}
-          authUnavailable={unavailable}
-          onRetryAuth={() => void retryAuth()}
+          authLoading={loading || Boolean(user && hydratedId !== user.id && !profileLoadFailed)}
+          authUnavailable={unavailable || profileLoadFailed}
+          onRetryAuth={() => {
+              if (user) { setProfileLoadFailed(false); setHydrateAttempt((n) => n + 1); }
+              else void retryAuth();
+            }}
           earned={earned ?? []}
           onSaveAbout={handleSaveAbout}
           onSaveWidgets={handleSaveWidgets}

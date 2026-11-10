@@ -9,9 +9,7 @@ import { startOneko } from "../lib/oneko";
 export function Oneko({ enabled = true }: { enabled?: boolean }) {
   useEffect(() => {
     if (!enabled) return;
-    // The rest of the site animates regardless of the OS setting, so the cat
-    // follows suit instead of being the one thing that silently never shows.
-    return startOneko({ respectReducedMotion: false });
+    return startOneko({ respectReducedMotion: true });
   }, [enabled]);
 
   return null;

@@ -15,6 +15,7 @@ import type { BadgeStore } from "../lib/badges";
 import type { LinkStore } from "../lib/links";
 import type { LanyardData } from "../lib/api";
 import type { Polled } from "../lib/hooks";
+import { savePendingDocument, loadPendingDocument } from "../lib/serverProfile";
 import { getViewCount } from "../lib/views";
 import { DashContext, type Page, type ProfileTab, type TabDef } from "./context";
 import { Shell } from "./Shell";
@@ -195,10 +196,10 @@ export function Dashboard(props: DashboardProps) {
     return "home";
   });
   const [profileTab, setProfileTab] = useState<ProfileTab>("profile");
-  const [aboutDraft, setAboutDraft] = useState<About>(about);
-  const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(widgets);
-  const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(badges);
-  const [linksDraft, setLinksDraft] = useState<LinkStore>(profileLinks);
+  const [aboutDraft, setAboutDraft] = useState<About>(() => (user && loadPendingDocument(user.id)?.about) || about);
+  const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(() => (user && loadPendingDocument(user.id)?.widgets) || widgets);
+  const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(() => (user && loadPendingDocument(user.id)?.badges) || badges);
+  const [linksDraft, setLinksDraft] = useState<LinkStore>(() => (user && loadPendingDocument(user.id)?.links) || profileLinks);
   const [profileViews, setProfileViews] = useState<number | null>(null);
 
   const lastProps = useRef({ about, widgets, badges, profileLinks });
@@ -272,7 +273,7 @@ export function Dashboard(props: DashboardProps) {
     if (serialized(widgetsDraft) !== serialized(widgets)) onSaveWidgets(widgetsDraft);
     if (serialized(badgesDraft) !== serialized(badges)) onSaveBadges(badgesDraft);
     if (serialized(linksDraft) !== serialized(profileLinks)) onSaveLinks(linksDraft);
-    notify("Changes saved", "Your profile is up to date.");
+    notify("Saved on this device", "Publishing your changes. Failed uploads are kept and retried.");
   }, [
     user,
     aboutDraft,
@@ -289,6 +290,18 @@ export function Dashboard(props: DashboardProps) {
     onSaveLinks,
     notify,
   ]);
+
+  useEffect(() => {
+    if (!user || authLoading || !dirty) return;
+    savePendingDocument(user.id, {
+      about: aboutDraft, widgets: widgetsDraft, badges: badgesDraft, links: linksDraft,
+    });
+    onSaveAbout(aboutDraft);
+    onSaveWidgets(widgetsDraft);
+    onSaveBadges(badgesDraft);
+    onSaveLinks(linksDraft);
+  }, [user?.id, authLoading, dirty, aboutDraft, widgetsDraft, badgesDraft, linksDraft,
+      onSaveAbout, onSaveWidgets, onSaveBadges, onSaveLinks]);
 
   const discard = useCallback(() => {
     setAboutDraft(about);
@@ -347,7 +360,7 @@ export function Dashboard(props: DashboardProps) {
     ],
   );
 
-  if (!user) {
+  if (!user || authLoading || authUnavailable) {
     return (
       <div className="tw-gate">
         <a className="tw-brand tw-gate-brand" href="#/">

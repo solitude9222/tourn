@@ -8,7 +8,7 @@
    --------------------------------------------------------------------------- */
 
 import type { Account } from "./auth";
-import { api, apiBase } from "./backend";
+import { api } from "./backend";
 import { normalizeAbout, type About } from "./about";
 import { normalizeWidgetStore, type WidgetStore } from "./widgets";
 import { normalizeBadgeStore, type BadgeStore } from "./badges";
@@ -147,12 +147,19 @@ export async function fetchOwnProfile(): Promise<
   return { ok: true, data: withDocument(result.data) };
 }
 
-export async function saveProfile(document: ProfileDocument): Promise<{ ok: boolean; error?: string }> {
-  const result = await api("/api/profile", {
-    method: "PUT",
-    body: JSON.stringify({ data: document }),
-  });
-  return result.ok ? { ok: true } : { ok: false, error: result.error };
+let publishQueue: Promise<unknown> = Promise.resolve();
+export function saveProfile(
+  document: ProfileDocument, accountId: string, isCurrent: () => boolean = () => true,
+): Promise<{ ok: boolean; error?: string }> {
+  const body = JSON.stringify({ data: document, accountId });
+  const publish = async () => {
+    if (!isCurrent()) return { ok: false, error: "Superseded by a newer edit." };
+    const result = await api("/api/profile", { method: "PUT", body });
+    return result.ok ? { ok: true } : { ok: false, error: result.error };
+  };
+  const result = publishQueue.then(publish, publish);
+  publishQueue = result;
+  return result;
 }
 
 /* ---------------------------------------------------------------------------
@@ -190,23 +197,5 @@ export function clearPendingDocument(userId: string): void {
     localStorage.removeItem(PENDING_PREFIX + userId);
   } catch {
     /* ignore */
-  }
-}
-
-/** Publish on the way out (tab hidden or closed), where there is no time left
- *  to await a normal request. */
-export function flushProfileDocument(document: ProfileDocument): void {
-  try {
-    const body = JSON.stringify({ data: document });
-    if (body.length > 90_000) return; // keepalive requests are size-capped
-    void fetch(`${apiBase()}/api/profile`, {
-      method: "PUT",
-      keepalive: true,
-      credentials: "include",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body,
-    });
-  } catch {
-    /* nothing else to do — the pending copy covers the next visit */
   }
 }

@@ -665,6 +665,9 @@ const PROFILE_PAGE_TTL = 20_000;
 
 app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req, res) => {
   try {
+    if (req.body?.accountId && String(req.body.accountId) !== String(req.auth.sub)) {
+      return res.status(409).json({ error: "Your account changed. Switch back to publish this draft." });
+    }
     const data = req.body?.data;
     if (!data || typeof data !== "object" || Array.isArray(data)) {
       return res.status(400).json({ error: "Send the profile document as { data }." });

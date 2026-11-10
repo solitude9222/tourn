@@ -13,7 +13,7 @@ export function useTilt(max = 8, invert = false) {
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef(0);
   const next = useRef<{ clientX: number; clientY: number } | null>(null);
-  const enabled = max > 0;
+  const enabled = max > 0 && !window.matchMedia("(prefers-reduced-motion: reduce), (pointer: coarse)").matches;
   const direction = invert ? -1 : 1;
 
   useEffect(() => {

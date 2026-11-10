@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type {
   BackgroundEffectSettings,
   CursorSettings,
@@ -41,25 +41,14 @@ function CanvasEffectLayer({
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const apiRef = useRef<ReturnType<typeof mountBgEffect> | null>(null);
-  const [hidden, setHidden] = useState(false);
-  // Reduced motion slows the effect down instead of removing it: an effect the
-  // owner picked has to be visible, just calmer.
-  const reduced =
-    typeof window !== "undefined" &&
+  const reduced = typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const calmIntensity = reduced ? Math.round(intensity * 0.6) : intensity;
+  const calmIntensity = Math.min(intensity, 55);
   const calmSpeed = reduced ? speed * 2.2 : speed;
 
   useEffect(() => {
-    const onVisibility = () => setHidden(document.hidden);
-    onVisibility();
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
-
-  useEffect(() => {
     const host = hostRef.current;
-    if (!host || effect === "none" || hidden) return;
+    if (!host || effect === "none" || intensity <= 0) return;
     apiRef.current = mountBgEffect(host, {
       effect,
       intensity: calmIntensity,
@@ -75,7 +64,7 @@ function CanvasEffectLayer({
     };
     // Mount/unmount on effect or visibility change — settings updates go through update().
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effect, hidden, reduced]);
+  }, [effect, reduced, intensity <= 0]);
 
   useEffect(() => {
     if (effect === "none") return;
@@ -88,9 +77,9 @@ function CanvasEffectLayer({
       flag,
       maxFps,
     });
-  }, [effect, calmIntensity, calmSpeed, color, amount, flag]);
+  }, [effect, calmIntensity, calmSpeed, color, amount, flag, maxFps]);
 
-  if (effect === "none" || hidden) return null;
+  if (effect === "none" || intensity <= 0) return null;
   return <span ref={hostRef} className={hostClass} aria-hidden="true" />;
 }
 
@@ -115,7 +104,7 @@ export function BackgroundEffectLayer({
       amount={settings.params.amount}
       flag={settings.params.flag}
       hostClass="profile-fx-bg profile-fx-canvas"
-      maxFps={45}
+      maxFps={30}
     />
   );
 }
@@ -123,7 +112,7 @@ export function BackgroundEffectLayer({
 /* ------------------------------------------------------------ overlay effect */
 
 export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettings }) {
-  const opacity = Math.min(0.9, Math.max(0, settings.opacity));
+  const opacity = Math.min(0.35, Math.max(0, settings.opacity));
   return (
     <span className="profile-fx-overlay profile-fx-overlay--canvas" style={{ "--fx-opacity": opacity } as CSSProperties} aria-hidden="true">
       {/* The overlay is a wash over the card, not a second background: capping
@@ -136,7 +125,7 @@ export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettin
         amount={settings.params.amount}
         flag={settings.params.flag}
         hostClass="profile-fx-canvas profile-fx-canvas--fill"
-        maxFps={20}
+        maxFps={15}
       />
     </span>
   );
@@ -280,7 +269,7 @@ export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
 export function ProfileCursor({ settings }: { settings: CursorSettings }) {
   const layerRef = useRef<HTMLSpanElement>(null);
   const trailRef = useRef<(HTMLSpanElement | null)[]>([]);
-  const dots = settings.trailLength;
+  const dots = Math.min(settings.trailLength, 12);
   // The system cursor (and a custom image, which the page sets itself) has no
   // marker of its own, but it can still leave a trail.
   const showPoint = settings.style !== "default" && settings.style !== "custom";
@@ -327,8 +316,18 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       frame = window.requestAnimationFrame(paint);
     };
 
+    const onLeave = () => {
+      layer.classList.remove("is-active");
+      positions.length = 0;
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+    };
+    host.addEventListener("pointerleave", onLeave);
+    window.addEventListener("blur", onLeave);
     host.addEventListener("pointermove", onMove, { passive: true });
     return () => {
+      host.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("blur", onLeave);
       host.removeEventListener("pointermove", onMove);
       if (frame) window.cancelAnimationFrame(frame);
     };

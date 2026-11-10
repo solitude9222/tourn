@@ -5,8 +5,6 @@ import type { Settings } from "../config";
 import type { WidgetStore } from "../lib/widgets";
 import type { SiteStats } from "../lib/siteStats";
 import { formatCompactNumber } from "../lib/format";
-import { Bento } from "./Bento";
-import { ProfileCard } from "./ProfileCard";
 import {
   ArrowRight,
   CheckIcon,
@@ -33,7 +31,7 @@ export function Hero({
       <div className="wrap hero-grid">
         <div className="hero-copy">
           <h1 className="hero-title">
-            tourn<span className="accent">.</span>lol
+            Your corner of<br /><span className="accent">the internet.</span>
           </h1>
           <p className="hero-sub">
             One short link for everything you play. Your bio, live widgets and every platform you
@@ -57,8 +55,13 @@ export function Hero({
             </span>
           </div>
         </div>
-        <div className="hero-card-slot">
-          <ProfileCard />
+        <div className="home-intro-panel">
+          <span className="home-panel-label">ONE LINK. ALL YOU.</span>
+          <div className="home-address">tourn.lol<span>/you</span></div>
+          <p>A place for your people to find you.</p>
+          <div className="home-panel-row"><span>01</span><div><b>Make it yours</b><small>Your identity, your colours, your layout.</small></div></div>
+          <div className="home-panel-row"><span>02</span><div><b>Bring everything together</b><small>Add the links and platforms you actually use.</small></div></div>
+          <div className="home-panel-row"><span>03</span><div><b>Share once</b><small>Keep one address wherever you go.</small></div></div>
         </div>
       </div>
     </section>
@@ -114,36 +117,17 @@ export function BentoSection({
   onOpenWidgets: () => void;
 }) {
   return (
-    <section className="section" id="example">
+    <section className="section home-features" id="example">
       <div className="wrap">
-        <div className="bento-feature">
-          <div className="bento-copy" data-reveal>
-            <span className="eyebrow eyebrow--sm">widgets</span>
-            <h2 className="section-title">
-              Your profile, <span className="accent">live.</span>
-            </h2>
-            <p className="section-sub">
-              Who you are, where you hang out, what's playing, what you're grinding. Widgets,
-              connected once, current forever.
-            </p>
-            <div className="bento-actions">
-              <button type="button" className="btn btn-primary" onClick={onOpenWidgets}>
-                {signedIn ? "Open your dashboard" : "Start your stack"}
-              </button>
-            </div>
-            <p className="bento-foot">
-              {signedIn
-                ? "This is the example stack — your own widgets live on your public page."
-                : "This is an example stack. Build your own in the dashboard."}
-            </p>
-          </div>
-
-          {/* The home page ALWAYS shows the default example stack — your own
-              widgets live on your public page and in the dashboard preview. */}
-          <div className="bento-stage">
-            <Bento lanyard={lanyard} settings={settings} onConfigure={onConfigure} />
-          </div>
+        <span className="eyebrow eyebrow--sm">Built around you</span>
+        <h2 className="section-title">Choose what belongs on your page.</h2>
+        <p className="section-sub">Start simple. Add more when you want to.</p>
+        <div className="home-feature-grid">
+          <article><span>01 / Identity</span><h3>More than a username.</h3><p>A photo, a few words and a look that feels like you.</p></article>
+          <article><span>02 / Connections</span><h3>Your links, together.</h3><p>Give your socials, streams and projects one easy home.</p></article>
+          <article><span>03 / Your choice</span><h3>Only what you need.</h3><p>Add live widgets when they make sense. Keep the rest clean.</p></article>
         </div>
+        <button type="button" className="btn btn-ghost" onClick={onOpenWidgets}>{signedIn ? "Edit your page" : "Create your page"}<ArrowRight size={15} /></button>
       </div>
     </section>
   );

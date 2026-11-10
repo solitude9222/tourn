@@ -153,12 +153,12 @@ export function EffectsPage() {
             onChange={(value) => setBackground({ intensity: value })}
           />
           <Slider
-            label="Speed"
+            label="Motion duration"
             value={background.speed}
-            min={0.2}
-            max={4}
-            step={0.1}
-            suffix="x"
+            min={2}
+            max={24}
+            step={1}
+            suffix="s"
             onChange={(value) => setBackground({ speed: value })}
           />
           <Slider

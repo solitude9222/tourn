@@ -108,7 +108,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   assets();
   // Overlays cover the whole card, so they render below native resolution —
   // the pattern hides it and the GPU gets a much smaller surface.
-  const dpr = Math.min(window.devicePixelRatio || 1, initial.maxFps ? 1.25 : 1.75);
+  let dpr = 1;
   if (getComputedStyle(container).position === "static") container.style.position = "relative";
   container.style.isolation = "isolate";
 
@@ -123,6 +123,8 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   let mode = "snow";
   let s: BgFxInput = { ...initial };
   let speedMul = 1;
+  let motionStep = 1;
+  let paintedClock = 0;
   let W = 0;
   let H = 0;
   let P: Flake[] = [];
@@ -151,8 +153,8 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     if (d2 > PUSH * PUSH || d2 < 1) return;
     const d = Math.sqrt(d2);
     const force = (1 - d / PUSH) * strength;
-    p.x += (dx / d) * force;
-    p.y += (dy / d) * force;
+    p.x += ((dx / d) * force) * motionStep;
+    p.y += ((dy / d) * force) * motionStep;
   };
 
   const mkStars = (n: number) => {
@@ -171,8 +173,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     ctx.globalAlpha = 1;
   };
   const lowres = (d: number) => {
-    T.w = Math.ceil(W / d);
-    T.h = Math.ceil(H / d);
+    const scale = Math.max(d, W / 320, H / 180);
+    T.w = Math.ceil(W / scale);
+    T.h = Math.ceil(H / scale);
     const c = document.createElement("canvas");
     c.width = T.w as number;
     c.height = T.h as number;
@@ -201,6 +204,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   function init() {
     W = container.clientWidth;
     H = container.clientHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 1, Math.sqrt(900_000 / Math.max(1, W * H)));
     cv.width = Math.max(1, Math.round(W * dpr));
     cv.height = Math.max(1, Math.round(H * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -228,7 +232,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const gust = 0.5 + s.amount / 100;
       const wind = (3 + f * 8) * gust;
-      const n = Math.floor(500 * (0.2 + f * 0.8));
+      const n = Math.min(100, Math.floor(500 * (0.2 + f * 0.8)));
       ctx.lineCap = "round";
       for (let i = 0; i < n; i++) {
         const p = P[i];
@@ -241,8 +245,8 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(p.x - vx * 2.2, p.y - vy * 1.2);
         ctx.stroke();
-        p.x += vx;
-        p.y += vy;
+        p.x += (vx) * motionStep;
+        p.y += (vy) * motionStep;
         if (p.x > W + 30) {
           p.x = -30;
           p.y = R(H);
@@ -264,7 +268,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const drift = 0.4 + s.amount / 100;
       const gust = Math.sin(t / 3200) * 0.5 + Math.sin(t / 1100) * 0.15;
-      const n = Math.floor(180 * Math.min(1, f * 2));
+      const n = Math.min(65, Math.floor(180 * Math.min(1, f * 2)));
       const S = [
         { s: 7, a: 0.6, v: 0.45, sw: 0.25 },
         { s: 13, a: 0.75, v: 0.9, sw: 0.5 },
@@ -274,9 +278,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         const p = P[i];
         const q = S[p.L ?? 1];
         pushAway(p, 0.9);
-        p.ph += 0.015;
-        p.y += q.v;
-        p.x += Math.sin(p.ph) * q.sw * drift + gust * q.v * 1.2 * drift;
+        p.ph += (0.015) * motionStep;
+        p.y += (q.v) * motionStep;
+        p.x += (Math.sin(p.ph) * q.sw * drift + gust * q.v * 1.2 * drift) * motionStep;
         if (p.y > H + 20) {
           p.y = -20;
           p.x = R(W);
@@ -301,7 +305,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const slant = 0.1 + s.amount / 100 * 0.4;
       ctx.lineCap = "round";
-      const n = Math.floor(300 * Math.min(1, f * 2));
+      const n = Math.min(90, Math.floor(300 * Math.min(1, f * 2)));
       for (let i = 0; i < n; i++) {
         const p = P[i];
         pushAway(p, 1.3);
@@ -313,8 +317,8 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(p.x + l * slant, p.y - l);
         ctx.stroke();
-        p.y += v;
-        p.x -= v * slant;
+        p.y += (v) * motionStep;
+        p.x -= (v * slant) * motionStep;
         if (p.y > H - R(10)) {
           if ((p.z ?? 0) > 0.5) {
             for (let k = 0; k < 3; k++) {
@@ -330,9 +334,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         const splash = X[i] as Splash;
         ctx.globalAlpha = splash.l / 14;
         ctx.fillRect(splash.x, splash.y, 1.6, 1.6);
-        splash.x += splash.vx;
-        splash.y += splash.vy;
-        splash.vy += 0.28;
+        splash.x += (splash.vx) * motionStep;
+        splash.y += (splash.vy) * motionStep;
+        splash.vy += (0.28) * motionStep;
         if (--splash.l <= 0) X.splice(i, 1);
       }
       ctx.globalAlpha = 1;
@@ -367,15 +371,15 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         ctx.globalAlpha = q;
         ctx.drawImage(SW!, star.x - 9, star.y - 9, 18, 18);
         ctx.globalAlpha = 1;
-        star.x += star.vx;
-        star.y += star.vy;
+        star.x += (star.vx) * motionStep;
+        star.y += (star.vy) * motionStep;
         if (++star.l > star.m) meteors.splice(i, 1);
       }
     },
 
     blur() {
       const f = s.intensity / 100;
-      const px = Math.max(0, f * 24 + (s.amount / 100) * 8).toFixed(1) + "px";
+      const px = Math.min(10, Math.max(0, f * 12 + (s.amount / 100) * 4)).toFixed(1) + "px";
       if (T.px !== px) {
         T.px = px;
         bl.style.backdropFilter = `blur(${px})`;
@@ -508,21 +512,21 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     dust(t) {
       const f = s.intensity / 100;
       const sizeBoost = 0.5 + s.amount / 100;
-      const n = Math.floor(220 * Math.min(1, f * 2));
+      const n = Math.min(70, Math.floor(220 * Math.min(1, f * 2)));
       for (let i = 0; i < n; i++) {
         const p = P[i];
-        p.ph += 0.006 + (p.z ?? 0) * 0.004;
+        p.ph += (0.006 + (p.z ?? 0) * 0.004) * motionStep;
         const sp = 0.15 + (p.z ?? 0) * 0.5;
-        p.x += Math.cos(p.ph + t * 0.0002) * sp * 0.6 + 0.12;
-        p.y += Math.sin(p.ph * 1.3) * sp * 0.5 - 0.08 * sp;
+        p.x += (Math.cos(p.ph + t * 0.0002) * sp * 0.6 + 0.12) * motionStep;
+        p.y += (Math.sin(p.ph * 1.3) * sp * 0.5 - 0.08 * sp) * motionStep;
         if (has) {
           const dx = p.x - mx;
           const dy = p.y - my;
           const dist = Math.hypot(dx, dy);
           if (dist < 120 && dist > 1) {
             const q = (1 - dist / 120) * 3 * (0.4 + (p.z ?? 0));
-            p.x += (dx / dist) * q;
-            p.y += (dy / dist) * q;
+            p.x += ((dx / dist) * q) * motionStep;
+            p.y += ((dy / dist) * q) * motionStep;
           }
         }
         if (p.x > W + 20) p.x = -20;
@@ -550,16 +554,16 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const gust = Math.sin(t / 2600) * 0.8;
       for (let i = 0; i < n; i++) {
         const p = P[i];
-        p.ph += 0.018 * spin;
-        p.y += 0.7 + (p.s ?? 14) * 0.04;
-        p.x += Math.sin(p.ph) * 1.1 + gust + 0.2;
+        p.ph += (0.018 * spin) * motionStep;
+        p.y += (0.7 + (p.s ?? 14) * 0.04) * motionStep;
+        p.x += (Math.sin(p.ph) * 1.1 + gust + 0.2) * motionStep;
         p.r = (p.r ?? 0) + (p.vr ?? 0) * spin;
         if (has) {
           const dx = p.x - mx;
           const dy = p.y - my;
           const dist = Math.hypot(dx, dy);
           if (dist < 110 && dist > 1) {
-            p.x += (dx / dist) * (1 - dist / 110) * 4;
+            p.x += ((dx / dist) * (1 - dist / 110) * 4) * motionStep;
             p.r = (p.r ?? 0) + 0.05;
           }
         }
@@ -594,29 +598,36 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   }
 
   let lastDrawn = 0;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   function loop(now: number) {
     raf = 0;
-    if (!visible) return;
+    if (!visible || document.hidden) return;
     const dt = Math.min(64, now - last);
     last = now;
     // The clock always advances; only the paint is throttled.
     clock += dt * speedMul;
-    const budget = s.maxFps ? 1000 / s.maxFps : 0;
+    const noise = mode === "tv" || mode === "fuzzy" || mode === "dither";
+    const fps = Math.min(s.maxFps || 30, noise ? 15 : 30);
+    const budget = 1000 / fps;
     if (budget && lastDrawn && now - lastDrawn < budget - 1) {
       raf = requestAnimationFrame(loop);
       return;
     }
-    lastDrawn = now;
+    lastDrawn = lastDrawn
+      ? lastDrawn + budget * Math.max(1, Math.floor((now - lastDrawn + 1) / budget))
+      : now;
+    motionStep = Math.min(3, Math.max(0, (clock - paintedClock) / (1000 / 60)));
+    paintedClock = clock;
     draw(clock);
+    if (reducedMotion.matches || mode === "blur") return;
     raf = requestAnimationFrame(loop);
   }
 
   function start() {
-    // Background motion is the point of these effects, so it always runs —
-    // reduced-motion users get the same calm, non-flashing draws at a slower
-    // clock instead of a frozen frame.
-    if (!raf && visible) {
+    // Reduced motion paints a still frame; hidden and offscreen effects pause.
+    if (!raf && visible && !document.hidden) {
       last = performance.now();
+      paintedClock = clock;
       raf = requestAnimationFrame(loop);
     }
   }
@@ -626,7 +637,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   }
 
   const ro = new ResizeObserver(() => {
+    if (W === container.clientWidth && H === container.clientHeight) return;
     init();
+    draw(clock);
     start();
   });
   ro.observe(container);
@@ -639,13 +652,21 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   // Browsers pause rAF in hidden tabs; restart when the page comes back so a
   // background effect never comes back as a still image.
   const onVisible = () => {
-    if (document.visibilityState === "visible") start();
+    if (!document.hidden) start();
+    else stop();
   };
   document.addEventListener("visibilitychange", onVisible);
+  const onMotion = () => { stop(); start(); };
+  reducedMotion.addEventListener("change", onMotion);
   // Overlay canvases sit under `pointer-events: none`, so the host itself
   // never hears the mouse. Listen on the document and decide from the box:
   // that is what makes overlays follow the cursor at all.
+  let pointerAt = 0;
   const pt = (e: PointerEvent) => {
+    const now = performance.now();
+    if (now - pointerAt < 50) return;
+    pointerAt = now;
+    if (!visible || document.hidden) return;
     const r = container.getBoundingClientRect();
     mx = e.clientX - r.left;
     my = e.clientY - r.top;
@@ -678,6 +699,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         init();
         start();
       }
+      if (reducedMotion.matches || mode === "blur") draw(clock);
     },
     destroy() {
       stop();
@@ -687,6 +709,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       document.removeEventListener("pointerdown", pt);
       container.removeEventListener("pointerleave", lv);
       document.removeEventListener("visibilitychange", onVisible);
+      reducedMotion.removeEventListener("change", onMotion);
       cv.remove();
       bl.remove();
     },

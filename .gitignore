@@ -16,3 +16,6 @@ example.mp4
 
 # local design reference, not part of the app
 linker-bio/
+
+# Local browser QA screenshots
+.tmp/
