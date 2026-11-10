@@ -147,3 +147,19 @@ src/
   its keys are set on the backend.
 - Cloudflare Pages config lives in `wrangler.toml` + `functions/_middleware.js`;
   `public/_headers` carries the security headers for a Pages deploy.
+
+## Dashboard analytics and regression checks
+
+The dashboard records daily deduplicated profile visits, device categories and
+referrer domains. The backend creates `profile_view_events` automatically at
+startup. Existing lifetime totals are preserved; daily history starts with new
+visits after this update. Analytics are private to the signed-in account at
+`GET /api/analytics?period=7d` (also `24h`, `3d`, `30d`, `all`). Days use UTC.
+
+Run `npm run test:analytics` for database-backed analytics tests using an isolated
+in-memory PostgreSQL engine. Run `npm run test:frontend` with `npm run dev` on
+port 5180; set `BROWSER_PATH` to a Chromium executable if needed. Browser tests
+intercept API requests, so they do not change production accounts or counts.
+
+Dashboard links such as `#/dashboard/analytics` and
+`#/dashboard/customize-profile/integrations` support refresh and browser history.

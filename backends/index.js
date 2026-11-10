@@ -30,6 +30,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { frontendOrigins } from "./origins.js";
+import { visitorDevice, visitorSource, visitorHash, recordProfileVisit, profileAnalytics } from "./analytics.js";
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 import Stripe from "stripe";
@@ -150,6 +151,17 @@ create table if not exists profile_views (
   username text primary key,
   views bigint not null default 0
 );
+
+create table if not exists profile_view_events (
+  username text not null,
+  day date not null default ((now() at time zone 'UTC')::date),
+  visitor_hash text not null,
+  device text not null,
+  source text not null,
+  created_at timestamptz not null default now(),
+  primary key (username, day, visitor_hash)
+);
+create index if not exists profile_view_events_user_date on profile_view_events (username, day);
 
 create table if not exists verification_codes (
   id uuid primary key default gen_random_uuid(),
@@ -1731,41 +1743,45 @@ app.get("/api/leaderboard", async (_req, res) => {
   }
 });
 
-app.get("/api/views/:username", async (req, res) => {
-  const handle = cleanHandle(req.params.username);
-  const { rows } = await pool.query("select views from profile_views where username = $1", [handle]);
-  res.json({ views: rows[0] ? Number(rows[0].views) : 0 });
+async function canonicalViewHandle(input) {
+  const handle = cleanHandle(input);
+  if (!handle) return null;
+  const { rows } = await pool.query(
+    "select username from users where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1 limit 1", [handle],
+  );
+  return rows[0]?.username?.toLowerCase() || null;
+}
+
+app.get("/api/analytics", requireAuth, async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    res.json(await profileAnalytics(pool, req.user.username.toLowerCase(), String(req.query.period || "7d")));
+  } catch { res.status(503).json({ error: "Analytics could not be loaded. Please try again." }); }
 });
 
-const viewThrottle = new Map(); // ip+handle → day
+app.get("/api/views/:username", async (req, res) => {
+  try {
+    const handle = await canonicalViewHandle(req.params.username);
+    if (!handle) return res.status(404).json({ error: "Unknown handle." });
+    const { rows } = await pool.query("select views from profile_views where username = $1", [handle]);
+    res.set("Cache-Control", "no-store");
+    res.json({ views: Number(rows[0]?.views) || 0 });
+  } catch { res.status(503).json({ error: "Views could not be loaded." }); }
+});
+
 app.post("/api/views/:username", async (req, res) => {
   try {
-    const handle = cleanHandle(req.params.username);
-    if (!handle) return res.status(400).json({ error: "Unknown handle." });
-    const ip = req.ip ?? "unknown";
-    const today = new Date().toISOString().slice(0, 10);
-    const key = `${ip}:${handle}`;
-    const incremented = viewThrottle.get(key) !== today;
-    viewThrottle.set(key, today);
-    if (viewThrottle.size > 10_000) viewThrottle.clear();
-
-    if (incremented) {
-      const { rows } = await pool.query(
-        `insert into profile_views (username, views) values ($1, 1)
-         on conflict (username) do update set views = profile_views.views + 1
-         returning views`,
-        [handle],
-      );
-      return res.json({ views: Number(rows[0].views) });
-    }
-    const { rows } = await pool.query("select views from profile_views where username = $1", [handle]);
-    res.json({ views: rows[0] ? Number(rows[0].views) : 0 });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    const handle = await canonicalViewHandle(req.params.username);
+    if (!handle) return res.status(404).json({ error: "Unknown handle." });
+    const views = await recordProfileVisit(pool, {
+      handle,
+      visitor: visitorHash(req.ip || "unknown", handle, JWT_SECRET),
+      device: visitorDevice(req.get("user-agent")),
+      source: visitorSource(req.body?.referrer, FRONTEND_URL),
+    });
+    res.json({ views });
+  } catch { res.status(503).json({ error: "This visit could not be recorded. Please retry." }); }
 });
-
-/* ── admin directory ───────────────────────────────────────────────────── */
 
 const ADMIN_PROFILE_SELECT = `select u.id, u.username, u.alias, u.alias2, u.avatar_url,
        u.premium, u.is_admin, u.is_owner, coalesce(u.badges, '[]'::jsonb) as badges,

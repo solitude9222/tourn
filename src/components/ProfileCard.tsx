@@ -92,7 +92,7 @@ export function ProfileCard() {
     });
 
     void getViewCount(HOME_HANDLE).then((count) => {
-      if (active && count > 0) setViews(count);
+      if (active && count !== null && count > 0) setViews(count);
     });
 
     return () => {

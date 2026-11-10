@@ -24,7 +24,7 @@ import {
   Textarea,
   Toggle,
 } from "../ui";
-import { ViewsChart } from "./Home";
+import { AnalyticsPanel } from "../Analytics";
 
 const BIO_LIMIT = 800;
 /** Presets mount a page at a time: the full set is ~200 animated PNGs. */
@@ -426,7 +426,7 @@ export function AccountProfilePage() {
           subtitle="Background, banner and cursor."
         />
 
-        <div className="tw-subhead">Background</div>
+        <div className="tw-subhead" id="dash-section-background">Background</div>
         <div className="tw-form-grid">
           <Field label="Style">
             <Select
@@ -706,62 +706,5 @@ export function AffiliatesPage() {
 }
 
 export function AnalyticsPage() {
-  const { profileViews, user, about } = useDash();
-  const views = profileViews ?? 0;
-
-  return (
-    <>
-      <Card>
-        <CardHead
-          icon="chart"
-          title="Profile Views"
-          subtitle={`Every visit to tourn.lol/${user.username}.`}
-          actions={<Chip tone="accent">{views.toLocaleString("en-US")} VIEWS</Chip>}
-        />
-        <ViewsChart total={views} />
-        {views > 0 ? (
-          <p className="tw-chart-note">
-            The view counter is live; daily history begins recording with this release.
-          </p>
-        ) : null}
-      </Card>
-
-      <div className="tw-stat-panels">
-        <div className="tw-stat-panel">
-          <h3>Visitor Devices</h3>
-          <EmptyState
-            icon="grid"
-            title="No device data yet"
-            message="Share your profile to collect visitor devices."
-          />
-        </div>
-        <div className="tw-stat-panel">
-          <h3>Traffic Sources</h3>
-          <EmptyState
-            icon="globe"
-            title="No referrers yet"
-            message={`Views on tourn.lol/${user.username} will be grouped by where they came from.`}
-          />
-        </div>
-      </div>
-
-      <Card>
-        <CardHead icon="clock" title="Page Details" subtitle="What this account currently publishes." />
-        <div className="tw-meta-grid">
-          <div>
-            <small>Handle</small>
-            <b>@{user.username}</b>
-          </div>
-          <div>
-            <small>Display name</small>
-            <b>{about.displayName.trim() || user.username}</b>
-          </div>
-          <div>
-            <small>Member since</small>
-            <b>{formatJoined(new Date(user.joinedAt))}</b>
-          </div>
-        </div>
-      </Card>
-    </>
-  );
+  return <AnalyticsPanel />;
 }

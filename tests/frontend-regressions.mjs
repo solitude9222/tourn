@@ -10,10 +10,22 @@ const context = await browser.newContext({viewport:{width:1440,height:1000}});
 const page = await context.newPage();
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const account={id:'qa-user',username:'reviewer',email:null,avatarUrl:null,joinedAt:'2026-01-01',premium:true};
-let document=null; const writes=[]; let failWrites=false; let failReads=false; let readDelay=0;
+let document=null; const writes=[]; let failWrites=false; let failReads=false; let readDelay=0; let failAnalytics=false; const analyticsRequests=[]; let failViewWrite=false; let viewWrites=0;
 await context.route('**/*',async route=>{
  const url=new URL(route.request().url());
  if(url.pathname.startsWith('/api/')) {
+  if(url.pathname==='/api/analytics') {
+   analyticsRequests.push(url.searchParams.get('period'));
+   if(failAnalytics)return route.fulfill({status:503,json:{error:'Analytics temporarily unavailable'}});
+   const today=new Date();today.setUTCHours(0,0,0,0);
+   const day=(offset)=>new Date(today.getTime()-offset*86400000).toISOString().slice(0,10);
+   const daily=url.searchParams.get('period')==='24h'?[{date:day(0),views:5}]:[{date:day(2),views:4},{date:day(1),views:3},{date:day(0),views:5}];
+   return route.fulfill({json:{total:42,periodViews:daily.reduce((n,p)=>n+p.views,0),daily,devices:[{label:'Mobile',views:8},{label:'Desktop',views:4}],sources:[{label:'github.com',views:8},{label:'Direct',views:4}],historySince:day(10)}});
+  }
+  if(url.pathname.startsWith('/api/views/')) {
+   if(route.request().method()==='POST'){viewWrites++;if(failViewWrite)return route.fulfill({status:503,json:{error:'Visit test unavailable'}});}
+   return route.fulfill({json:{views:42}});
+  }
   if(url.pathname==='/api/auth/me') return route.fulfill({json:{account}});
   if(url.pathname==='/api/profile' && route.request().method()==='PUT') {
    const body=route.request().postDataJSON(); writes.push(body);
@@ -24,6 +36,9 @@ await context.route('**/*',async route=>{
   if(url.pathname==='/api/profiles/owner')return route.fulfill({json:{owner:null}});
   return route.fulfill({json:{users:0,views:0,count:0,accounts:[]}});
  }
+ if(url.hostname==='api.github.com')return route.fulfill({json:{login:'octocat',name:'The Octocat',avatar_url:'http://127.0.0.1:5180/favicon-rounded.png',bio:'GitHub mascot',followers:1234,public_repos:8}});
+ if(url.hostname==='geocoding-api.open-meteo.com')return route.fulfill({json:{results:[{name:'Auckland',country_code:'NZ',latitude:-36.85,longitude:174.76}]}});
+ if(url.hostname==='api.open-meteo.com')return route.fulfill({json:{current:{temperature_2m:19,weather_code:2}}});
  if(url.origin!=='http://127.0.0.1:5180')return route.abort();
  return route.continue();
 });
@@ -32,6 +47,61 @@ await page.getByRole('heading',{name:'tourn.lol',exact:true}).waitFor();
 await page.screenshot({path:'.tmp/home-desktop.png',fullPage:true});
 await page.evaluate(()=>location.hash='#/dashboard');
 await page.locator('.tw-dash').waitFor();
+await page.locator('.tw-widget-showcase').getByText('The Octocat',{exact:true}).waitFor();
+assert.equal(await page.locator('.tw-widget-showcase .widget-card').count(),3,'Missing live examples');
+await page.locator('.tw-widget-showcase').getByText('Auckland, NZ',{exact:true}).waitFor();
+// Each setup action must reach the actual editor, including its scroll position.
+await page.getByRole('button',{name:'Add a background',exact:true}).click();
+await page.locator('#dash-section-background').waitFor();
+await page.waitForTimeout(100);
+assert(await page.locator('#dash-section-background').evaluate(el=>{const r=el.getBoundingClientRect();return r.top>=0 && r.top<innerHeight;}),'Background editor did not scroll into view');
+await page.locator('#dash-section-background + .tw-form-grid .tw-select-btn').first().click();
+await page.getByRole('option',{name:'Gradient',exact:true}).click();
+await page.reload();await page.locator('.tw-dash').waitFor();
+assert(page.url().includes('account-profile'),'Dashboard deep link did not survive refresh');
+await page.getByRole('button',{name:'Home',exact:true}).click();
+assert.equal(await page.getByRole('button',{name:'Add a background',exact:true}).locator('.is-done').count(),1,'Saved background did not complete setup');
+await page.getByRole('button',{name:'Connect Discord account',exact:true}).click();
+await page.locator('#dash-section-discord').waitFor();
+assert(page.url().includes('integrations'),'Discord setup opened wrong tab');
+const presence=page.locator('#dash-section-discord');
+await presence.locator('input').first().fill('invalid');
+await presence.getByRole('button',{name:'Save presence',exact:true}).click();
+await page.getByText('Enter a valid Discord user ID (17 to 20 digits).',{exact:true}).waitFor();
+await presence.locator('input').first().fill('1546745348020772915');
+await presence.getByRole('button',{name:'Save presence',exact:true}).click();
+await page.waitForTimeout(1000);
+assert(document.widgets.widgets.some(w=>w.platform==='discord'),'Discord presence was not published');
+await page.getByRole('button',{name:'Home',exact:true}).click();
+assert.equal(await page.getByRole('button',{name:'Connect Discord account',exact:true}).locator('.is-done').count(),1,'Saved Discord presence did not complete setup');
+await page.evaluate(()=>location.hash='#/dashboard/widgets');
+await page.getByRole('button',{name:'Delete Discord',exact:true}).click();
+await page.waitForTimeout(1000);
+assert.equal(document.widgets.widgets.length,0);
+
+await page.getByRole('button',{name:'Home',exact:true}).click();
+await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.qaCopied=text;}}}));
+await page.getByRole('button',{name:'Copy your profile link',exact:true}).click();
+await page.waitForFunction(()=>localStorage.getItem('tourn.lol/setup-shared/v1/qa-user')==='yes');
+assert.equal(await page.evaluate(()=>window.qaCopied),'http://127.0.0.1:5180/reviewer');
+await page.getByRole('button',{name:'View analytics',exact:true}).click();
+await page.getByText('Traffic Sources',{exact:true}).waitFor();
+await page.getByText('github.com',{exact:true}).waitFor();
+const chart=page.locator('.tw-chart polyline');
+const points=await chart.getAttribute('points');assert(new Set(points.trim().split(/\s+/).map(p=>p.split(',')[1])).size>1,'Analytics chart is a flat placeholder');
+await page.getByRole('button',{name:'Today',exact:true}).click();
+await page.waitForFunction(()=>document.querySelector('.tw-chart')?.getAttribute('aria-label')?.split(',').length===1);
+assert(analyticsRequests.includes('24h'),'Date filter did not fetch analytics');
+failAnalytics=true;
+await page.getByRole('button',{name:'30 days',exact:true}).click();
+await page.getByRole('alert').filter({hasText:'Analytics temporarily unavailable'}).waitFor();
+failAnalytics=false;
+await page.getByRole('button',{name:'Retry analytics',exact:true}).click();
+await page.getByText('github.com',{exact:true}).waitFor();
+await page.reload();await page.getByText('Traffic Sources',{exact:true}).waitFor();
+assert(page.url().includes('/analytics'),'Analytics route did not survive refresh');
+await page.getByRole('button',{name:'Home',exact:true}).click();
+console.log('PASS live widget examples, setup destinations, share action, analytics data, filters, error recovery and deep links');
 await page.screenshot({path:'.tmp/dashboard-desktop.png',fullPage:true});
 const nav = async (name) => {
  const group = page.getByRole('button',{name:'Links',exact:true});
@@ -101,6 +171,14 @@ await page.getByRole('heading',{name:'tourn.lol',exact:true}).waitFor();
 await page.screenshot({path:'.tmp/home-mobile.png',fullPage:true});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Mobile overflow');
 console.log('visual smoke passed',writes.length);
+// Failed view recording must remain retryable instead of marking the day seen.
+failViewWrite=true;
+await page.evaluate(async()=>{const {recordView}=await import('/src/lib/views.ts');await recordView('visit-retry');});
+assert.equal(await page.evaluate(()=>localStorage.getItem('tourn.lol/views-seen/v1/visit-retry')),null);
+const failedViews=viewWrites;failViewWrite=false;
+await page.evaluate(async()=>{const {recordView}=await import('/src/lib/views.ts');await recordView('visit-retry');await recordView('visit-retry');});
+assert.equal(viewWrites,failedViews+1,'Failed view was not retried or was counted repeatedly');
+console.log('PASS failed visit retry and daily browser deduplication');
 // Tooltips disappear when their anchor is removed without pointerleave.
 await page.evaluate(async()=>{
  const ReactModule=await import('/node_modules/.vite/deps/react.js'); const React=ReactModule.default || ReactModule;
@@ -167,6 +245,16 @@ assert(rain.frames>10 && rain.moved,JSON.stringify(rain));
 console.log('PASS rain drop movement through React wrapper',rain);
 await page.emulateMedia({reducedMotion:'no-preference'});
 await page.evaluate(()=>location.hash='#/dashboard');await page.locator('.tw-dash').waitFor();
+// Main dashboard destinations and profile tabs render without a blank page.
+for(const destination of ['badges','affiliates','customize-profile/profile','customize-profile/experience','customize-profile/integrations','customize-profile/switches','layout','effects','premium','assets','templates','leaderboard','billing','settings']) {
+ await page.evaluate(destination=>location.hash=`#/dashboard/${destination}`,destination);
+ await page.locator('.tw-dash').waitFor();
+ await page.waitForTimeout(100);
+ assert((await page.locator('.tw-main').innerText()).trim().length>30,`Blank dashboard destination: ${destination}`);
+}
+assert.deepEqual(errors,[],'Errors while opening dashboard pages');
+console.log('PASS dashboard destinations and profile tabs');
+await page.evaluate(()=>location.hash='#/dashboard/home');await page.locator('.tw-dash').waitFor();
 await page.screenshot({path:'.tmp/dashboard-mobile.png',fullPage:true});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Dashboard mobile overflow');
 } finally { await browser.close(); }

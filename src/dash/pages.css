@@ -1950,3 +1950,23 @@
 .tw-card-preview .lkr-bg {
   display: none !important;
 }
+
+/* Full profile cards: no transparent stair layout or overlapping examples. */
+.tw-widget-showcase { margin-top: 16px; }
+.tw-widget-showcase-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.tw-widget-showcase-item { min-width: 0; }
+.tw-widget-showcase-item > span { display: block; color: var(--sub); font-size: 11px; margin: 0 0 10px 2px; }
+.tw-widget-showcase-item .widget-card { width: 100%; min-height: 120px; transform: none; }
+.tw-analytics-periods { width: fit-content; max-width: 100%; margin-bottom: 20px; flex-wrap: wrap; }
+.tw-analytics-totals { display: flex; flex-wrap: wrap; gap: 16px 36px; padding: 10px 0 20px; color: var(--sub); font-size: 12px; }
+.tw-analytics-totals b { color: var(--title); font-size: 24px; margin-right: 8px; }
+.tw-analytics-breakdown { display: flex; flex-direction: column; gap: 18px; padding-block: 12px; }
+.tw-analytics-breakdown > div > div { display: flex; justify-content: space-between; gap: 14px; font-size: 12px; color: var(--title); }
+.tw-analytics-breakdown small { color: var(--sub); font-weight: 400; }
+.tw-analytics-breakdown span { overflow-wrap: anywhere; }
+.tw-analytics-bar { display: block; height: 5px; margin-top: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.tw-analytics-bar i { display: block; height: 100%; background: var(--accent-text); border-radius: inherit; }
+.tw-analytics-error { padding: 16px 0; color: var(--sub); }
+@media(max-width: 1200px) { .tw-widget-showcase-grid { grid-template-columns: 1fr; } }
+
+[id^="dash-section-"] { scroll-margin-top: 24px; }

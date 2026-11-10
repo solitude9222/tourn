@@ -362,7 +362,7 @@ function ProfilePage({
         setRemote({ status: "ok", data: result.data });
         if (result.data.profile) {
           void recordView(result.data.account.username).then((count) => {
-            if (active && count > 0) setViews(count);
+            if (active && count !== null && count > 0) setViews(count);
           });
         }
       } else if (result.notFound) {
@@ -831,7 +831,7 @@ function Site() {
 
   return (
     <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}${route === "" ? " app--home" : ""}`}>
-      <Suspense fallback={<div className="route-loading" role="status">Loading your page…</div>}>
+      <Suspense fallback={<div className="route-loading" role="status">Loading your pageâ€¦</div>}>
       {route === "demo" || route === "profile" ? null : <SiteBackdrop />}
 
       {route !== "dashboard" && route !== "demo" && route !== "profile" ? (

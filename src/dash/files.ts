@@ -121,7 +121,21 @@ export async function copyText(value: string): Promise<boolean> {
     await navigator.clipboard.writeText(value);
     return true;
   } catch {
-    return false;
+    const selection = document.getSelection();
+    const previous = selection?.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
+    const focused = document.activeElement as HTMLElement | null;
+    const field = document.createElement("textarea");
+    field.value = value;
+    field.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
+    document.body.appendChild(field);
+    field.select();
+    try { return document.execCommand("copy"); }
+    catch { return false; }
+    finally {
+      field.remove();
+      if (focused?.isConnected) focused.focus({ preventScroll: true });
+      if (previous?.startContainer.isConnected && selection) { selection.removeAllRanges(); selection.addRange(previous); }
+    }
   }
 }
 

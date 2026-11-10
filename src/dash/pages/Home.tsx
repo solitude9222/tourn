@@ -2,99 +2,55 @@
    Home — setup checklist, profile statistics, feedback.
    --------------------------------------------------------------------------- */
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useDash, type Page } from "../context";
-import { Button, Card, CardHead, EmptyState, Icon, Segmented, type IconName } from "../ui";
-import { WidgetCardPreview } from "../../components/WidgetCard";
+import { Button, Card, CardHead, Icon, type IconName } from "../ui";
+import { WidgetCard } from "../../components/WidgetCard";
+import { DEFAULT_WIDGET_DESIGN, WIDGET_PLATFORM_BY_ID, defaultWidgetOptions, type WidgetInstance } from "../../lib/widgets";
+import { AnalyticsPanel } from "../Analytics";
+import { copyText } from "../files";
+import { DEFAULT_PROFILE_ASSETS } from "../../lib/profileAssets";
 
-const PERIODS = [
-  { value: "24h", label: "Last 24 hours" },
-  { value: "3d", label: "Last 3 days" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
-  { value: "all", label: "All time" },
+const EXAMPLE_WIDGETS: WidgetInstance[] = [
+  { id: "example-github", platform: "github", content: "octocat", visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("github")!) },
+  { id: "example-weather", platform: "weather", content: "Auckland", visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("weather")!) },
+  { id: "example-timezone", platform: "timezone", content: "Pacific/Auckland", visible: true, options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("timezone")!) },
 ];
 
-function lastDays(count: number): string[] {
-  const formatter = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" });
-  return Array.from({ length: count }, (_, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (count - 1 - index));
-    return formatter.format(date);
-  });
-}
-
-export function ViewsChart({ total, days = 7 }: { total: number | null; days?: number }) {
-  const labels = useMemo(() => lastDays(days), [days]);
-  const width = 640;
-  const height = 186;
-  const padX = 34;
-  const padY = 18;
-  const top = Math.max(10, total ?? 0);
-  const innerW = width - padX - 8;
-  const innerH = height - padY - 24;
-  const step = labels.length === 1 ? 0 : innerW / (labels.length - 1);
-  const labelEvery = Math.max(1, Math.ceil(labels.length / 7));
-
-  const points = labels.map((_, index) => {
-    const x = labels.length === 1 ? padX + innerW : padX + index * step;
-    const y = padY + innerH;
-    return `${x},${y}`;
-  });
-
-  return (
-    <svg className="tw-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Profile views for the last seven days">
-      {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-        const y = padY + innerH * ratio;
-        const value = Math.round(top * (1 - ratio));
-        return (
-          <g key={ratio}>
-            <line className="tw-chart-grid" x1={padX} x2={width - 8} y1={y} y2={y} />
-            <text x={padX - 10} y={y + 3} textAnchor="end">
-              {value}
-            </text>
-          </g>
-        );
-      })}
-      <polyline className="tw-chart-line" points={points.join(" ")} />
-      {labels.map((label, index) => {
-        if (index % labelEvery !== 0 && index !== labels.length - 1) return null;
-        const x = labels.length === 1 ? padX + innerW : padX + index * step;
-        return (
-          <text key={label + index} x={x} y={height - 4} textAnchor="middle">
-            {label}
-          </text>
-        );
-      })}
-    </svg>
-  );
-}
-
 export function HomePage() {
-  const { user, about, settings, links, widgets, badges, profileViews, go, notify } = useDash();
-  const [period, setPeriod] = useState("7d");
-  const [feedback, setFeedback] = useState("received");
+  const { user, about, links, widgets, badges, profileViews, isPremium, go, notify } = useDash();
+  const [shared, setShared] = useState(() => {
+    try { return localStorage.getItem(`tourn.lol/setup-shared/v1/${user.id}`) === "yes"; } catch { return false; }
+  });
+  const share = async () => {
+    const url = `${location.origin}/${encodeURIComponent(user.username)}`;
+    if (await copyText(url)) {
+      setShared(true);
+      try { localStorage.setItem(`tourn.lol/setup-shared/v1/${user.id}`, "yes"); } catch { /* optional */ }
+      notify("Profile link copied", url);
+    } else notify("Could not copy", `Copy this address: ${url}`);
+  };
 
   const checklist = [
     {
       label: "Add a background",
-      done: Boolean(about.assets.background.imageUrl) || about.assets.background.style === "gradient",
-      target: () => go("effects"),
+      done: Boolean(about.assets.background.imageUrl) || about.assets.background.style === "gradient" || about.assets.background.color !== DEFAULT_PROFILE_ASSETS.background.color,
+      target: () => go("account-profile", undefined, "background"),
     },
     {
       label: "Connect Discord account",
-      done: Boolean(settings.discordUserId),
-      target: () => go("widgets"),
+      done: Boolean(user.discordLinked || user.discordId || widgets.widgets.some((item) => item.platform === "discord" && item.content.trim())),
+      target: () => go("customize-profile", "integrations", "discord"),
     },
     {
       label: "Add socials",
-      done: links.links.length > 0,
+      done: links.links.some((link) => link.url.trim() && link.visible),
       target: () => go("links"),
     },
     {
-      label: "Reach 10 profile views",
-      done: (profileViews ?? 0) >= 10,
-      target: () => go("analytics"),
+      label: "Copy your profile link",
+      done: shared,
+      target: () => void share(),
     },
   ];
 
@@ -119,30 +75,8 @@ export function HomePage() {
     { icon: "shield", label: "Badges", value: badges.equipped.length, page: "badges" },
   ];
 
-  const views = profileViews ?? 0;
-  const days =
-    period === "24h" ? 1 : period === "3d" ? 3 : period === "7d" ? 7 : period === "30d" ? 30 : 90;
-
-  // The home preview stacks the first few widgets the way visitors see them,
-  // but with no surface of their own so the cards read as one cascade.
-  const previewWidgets = widgets.widgets.filter((widget) => widget.visible !== false).slice(0, 3);
-  const previewItems = previewWidgets.length
-    ? previewWidgets.map((widget) => ({ platform: widget.platform, content: widget.content }))
-    : [
-        { platform: "discord", content: "" },
-        { platform: "github", content: "" },
-        { platform: "spotify", content: "" },
-      ];
-  const previewDesign = {
-    ...widgets.design,
-    backgroundStyle: "solid" as const,
-    backgroundOpacity: 0,
-    borderWidth: 0,
-    borderOpacity: 0,
-    outlineEffect: "none" as const,
-    hoverLift: false,
-    scale: 1,
-  };
+  const connected = widgets.widgets.filter((widget) => widget.visible !== false && widget.content.trim()).slice(0, 3);
+  const showcase = [...connected, ...EXAMPLE_WIDGETS.filter((example) => !connected.some((widget) => widget.platform === example.platform))].slice(0, 3);
 
   return (
     <>
@@ -189,12 +123,12 @@ export function HomePage() {
             subtitle="The two things you reach for most."
           />
           <div className="tw-home-actions-buttons">
-            <Button variant="primary" icon="crown" onClick={() => go("premium")}>
-              Get Premium
+            <Button variant="primary" icon="crown" onClick={() => go(isPremium ? "billing" : "premium")}>
+              {isPremium ? "Manage Premium" : "Get Premium"}
             </Button>
             <Button
               icon="eye"
-              onClick={() => window.open(`/${encodeURIComponent(user.username)}`, "_blank")}
+              onClick={() => window.open(`/${encodeURIComponent(user.username)}`, "_blank", "noopener,noreferrer")}
             >
               View your profile
             </Button>
@@ -222,121 +156,18 @@ export function HomePage() {
         ))}
       </div>
 
-      <Card className="tw-home-widgets">
-        <div className="tw-home-widgets-copy">
-          <CardHead
-            icon="grid"
-            title="Your widgets"
-            subtitle="Live cards, stacked the way visitors see them."
-          />
-          <p className="tw-home-widgets-note">
-            Widgets sit beside your profile card in the order you arrange them. Connect an account
-            and the card fills itself in — no screenshots, no manual updates.
-          </p>
-          <Button trailingIcon="arrow-right" onClick={() => go("widgets")}>
-            Customise widgets
-          </Button>
-        </div>
-
-        <div className="tw-home-widgets-stage" aria-hidden="true">
-          {previewItems.map((item, index) => (
-            <div
-              key={`${item.platform}-${index}`}
-              className="tw-home-widget-stair"
-              style={{ top: index * 88, left: index * 26, zIndex: index + 1 }}
-            >
-              <WidgetCardPreview
-                design={previewDesign}
-                platformId={item.platform}
-                content={item.content || undefined}
-              />
-            </div>
-          ))}
+      <Card className="tw-widget-showcase">
+        <CardHead icon="grid" title="Widgets in action"
+          subtitle={connected.length ? "Your connected widgets alongside live examples." : "Real public data, using the same cards that appear on your profile."}
+          actions={<Button trailingIcon="arrow-right" onClick={() => go("widgets")}>Manage widgets</Button>} />
+        <div className="tw-widget-showcase-grid">
+          {showcase.map((widget) => <div className="tw-widget-showcase-item" key={widget.id}>
+            <span>{WIDGET_PLATFORM_BY_ID.get(widget.platform)?.name}{widget.id.startsWith("example-") ? " / Live example" : " / Your widget"}</span>
+            <WidgetCard widget={widget} design={widget.id.startsWith("example-") ? DEFAULT_WIDGET_DESIGN : widgets.design} />
+          </div>)}
         </div>
       </Card>
-
-      <Card>
-        <CardHead
-          icon="chart"
-          title="Profile Statistics"
-          subtitle="Compact overview for last 7 days."
-          actions={
-            <div className="tw-row" style={{ gap: 10 }}>
-              <div className="tw-periods">
-                {PERIODS.map((entry) => (
-                  <button
-                    key={entry.value}
-                    type="button"
-                    className={`tw-period${period === entry.value ? " is-active" : ""}`}
-                    onClick={() => setPeriod(entry.value)}
-                  >
-                    {entry.label}
-                  </button>
-                ))}
-              </div>
-              <Button trailingIcon="arrow-right" onClick={() => go("analytics")}>
-                View analytics
-              </Button>
-            </div>
-          }
-        />
-
-        <div className="tw-stat-panels">
-          <div className="tw-stat-panel">
-            <h3>Visitor Devices</h3>
-            <EmptyState
-              icon="grid"
-              title="No device data yet"
-              message="Share your profile to collect visitor devices."
-            />
-          </div>
-          <div className="tw-stat-panel">
-            <h3>Profile Views</h3>
-            <ViewsChart total={views} days={days} />
-            {views > 0 ? (
-              <p className="tw-chart-note">{views.toLocaleString("en-US")} views all time · daily history starts from today.</p>
-            ) : null}
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <CardHead
-          icon="comment"
-          title="Profile Feedback"
-          subtitle="Get insights to the people who liked, disliked or commented on your profile"
-          actions={
-            <div className="tw-feedback-icons" aria-hidden="true">
-              <span>
-                <Icon name="like" size={14} />
-              </span>
-              <span>
-                <Icon name="dislike" size={14} />
-              </span>
-              <span>
-                <Icon name="comment" size={14} />
-              </span>
-            </div>
-          }
-        />
-
-        <div className="tw-feedback">
-          <Segmented
-            wide
-            value={feedback}
-            onChange={setFeedback}
-            options={[
-              { value: "received", label: "Received feedback" },
-              { value: "given", label: "Given feedback" },
-            ]}
-          />
-          <EmptyState
-            icon="comment"
-            title="No comments yet"
-            message="Really quiet here at the moment..."
-          />
-        </div>
-      </Card>
+      <AnalyticsPanel compact />
     </>
   );
 }

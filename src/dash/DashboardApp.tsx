@@ -6,7 +6,7 @@
    comes from the same stores the public profile reads.
    --------------------------------------------------------------------------- */
 
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Account } from "../lib/auth";
 import type { About } from "../lib/about";
 import type { Settings } from "../config";
@@ -162,6 +162,14 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
   },
 };
 
+function readDashboardLocation(isAdmin: boolean): { page: Page; tab: ProfileTab } {
+  const parts = window.location.hash.replace(/^#\/?/, "").split("?")[0].split("/");
+  const candidate = parts[0] === "admin" ? "admin" : parts[1] || "home";
+  const page = Object.hasOwn(META, candidate) && (candidate !== "admin" || isAdmin) ? candidate as Page : "home";
+  const tab = ["profile", "experience", "integrations", "switches"].includes(parts[2]) ? parts[2] as ProfileTab : "profile";
+  return { page, tab };
+}
+
 function serialized(value: unknown): string {
   return JSON.stringify(value);
 }
@@ -190,12 +198,8 @@ export function Dashboard(props: DashboardProps) {
     onAddAccount,
   } = props;
 
-  const [page, setPage] = useState<Page>(() => {
-    if (isAdmin && window.location.hash.includes("/admin")) return "admin";
-    if (window.location.hash.includes("/settings")) return "settings";
-    return "home";
-  });
-  const [profileTab, setProfileTab] = useState<ProfileTab>("profile");
+  const [page, setPage] = useState<Page>(() => readDashboardLocation(isAdmin).page);
+  const [profileTab, setProfileTab] = useState<ProfileTab>(() => readDashboardLocation(isAdmin).tab);
   const [aboutDraft, setAboutDraft] = useState<About>(() => (user && loadPendingDocument(user.id)?.about) || about);
   const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(() => (user && loadPendingDocument(user.id)?.widgets) || widgets);
   const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(() => (user && loadPendingDocument(user.id)?.badges) || badges);
@@ -237,25 +241,39 @@ export function Dashboard(props: DashboardProps) {
   useEffect(() => {
     if (!user) return;
     let active = true;
-    void getViewCount(user.username).then((count) => {
-      if (active) setProfileViews(count);
-    });
+    const refresh = () => {
+      if (document.hidden) return;
+      void getViewCount(user.username).then((count) => { if (active) setProfileViews(count); });
+    };
+    refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
     return () => {
-      active = false;
+      active = false; window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
     };
   }, [user?.username]);
 
   useEffect(() => {
-    if (!isAdmin) return;
     const apply = () => {
-      if (window.location.hash.includes("/admin") || /^\/admin\/?$/i.test(window.location.pathname)) {
-        setPage("admin");
-      }
+      const next = readDashboardLocation(isAdmin);
+      setPage(next.page); setProfileTab(next.tab);
     };
-    apply();
     window.addEventListener("hashchange", apply);
     return () => window.removeEventListener("hashchange", apply);
   }, [isAdmin]);
+
+  useLayoutEffect(() => {
+    const main = document.querySelector<HTMLElement>(".tw-main");
+    if (main) main.scrollTop = 0;
+    const frame = window.requestAnimationFrame(() => {
+      const section = new URLSearchParams(window.location.hash.split("?")[1]).get("section");
+      if (section) document.getElementById(`dash-section-${section}`)?.scrollIntoView({ block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [page, profileTab]);
 
   const dirty =
     serialized(aboutDraft) !== serialized(about) ||
@@ -311,10 +329,16 @@ export function Dashboard(props: DashboardProps) {
     notify("Changes discarded", "Your profile is back to the saved version.");
   }, [about, widgets, badges, profileLinks, notify]);
 
-  const go = useCallback((next: Page, tab?: ProfileTab) => {
+  const go = useCallback((next: Page, tab?: ProfileTab, section?: string) => {
     setPage(next);
     if (tab) setProfileTab(tab);
-  }, []);
+    const nextTab = next === "customize-profile" ? tab || profileTab : undefined;
+    window.location.hash = `#/dashboard/${next}${nextTab ? `/${nextTab}` : ""}${section ? `?section=${encodeURIComponent(section)}` : ""}`;
+  }, [profileTab]);
+  const changeProfileTab = useCallback((next: ProfileTab) => {
+    setProfileTab(next);
+    if (page === "customize-profile") window.location.hash = `#/dashboard/customize-profile/${next}`;
+  }, [page]);
 
   const context = useMemo(
     () => ({
@@ -338,7 +362,7 @@ export function Dashboard(props: DashboardProps) {
       notify,
       go,
       profileTab,
-      setProfileTab,
+      setProfileTab: changeProfileTab,
     }),
     [
       user,
@@ -357,6 +381,7 @@ export function Dashboard(props: DashboardProps) {
       notify,
       go,
       profileTab,
+      changeProfileTab,
     ],
   );
 
@@ -479,7 +504,7 @@ export function Dashboard(props: DashboardProps) {
         crumb={meta.crumb}
         tabs={page === "customize-profile" ? PROFILE_TABS : undefined}
         activeTab={profileTab}
-        onTab={(id) => setProfileTab(id as ProfileTab)}
+        onTab={(id) => changeProfileTab(id as ProfileTab)}
         onAddAccount={onAddAccount}
         onSignOut={onSignOut}
       >

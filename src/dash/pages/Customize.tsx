@@ -317,8 +317,8 @@ function DiscordPresenceCard() {
   const savePresence = () => {
     if (!platform) return;
     const id = discordId.trim();
-    if (!id) {
-      notify("Discord", "Add your Discord user ID first.");
+    if (!/^\d{17,20}$/.test(id)) {
+      notify("Discord", "Enter a valid Discord user ID (17 to 20 digits).");
       return;
     }
     if (widget) {
@@ -335,7 +335,7 @@ function DiscordPresenceCard() {
       instance.visible = true;
       setWidgets((current) => ({ ...current, widgets: [...current.widgets, instance] }));
     }
-    notify("Discord presence", "Saved — your live status shows on the profile once you save.");
+    notify("Discord presence", "Your presence widget is saved automatically and will publish shortly.");
   };
 
   const connect = async () => {
@@ -346,7 +346,7 @@ function DiscordPresenceCard() {
   };
 
   return (
-    <Card>
+    <Card id="dash-section-discord">
       <CardHead
         icon="discord"
         title="Discord Presence"

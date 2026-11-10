@@ -57,7 +57,7 @@ export type DashContextValue = {
   save: () => void;
   discard: () => void;
   notify: (title: string, message: string) => void;
-  go: (page: Page, tab?: ProfileTab) => void;
+  go: (page: Page, tab?: ProfileTab, section?: string) => void;
   profileTab: ProfileTab;
   setProfileTab: (tab: ProfileTab) => void;
 };
