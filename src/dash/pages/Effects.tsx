@@ -5,7 +5,7 @@ import { FontPicker } from "../../components/FontPicker";
 import { playInteractionSound } from "../../components/ProfileInteractions";
 import { fileToDataUrl, imageToDataUrl } from "../files";
 import { useDash } from "../context";
-import { Button, Card, CardHead, ColorField, Field, Select, Slider, TextInput, Toggle } from "../ui";
+import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, TextInput, Toggle } from "../ui";
 
 const CURSORS = [
   { id: "default", name: "System pointer", hint: "Keep the normal pointer" }, { id: "dot", name: "Dot", hint: "A clean coloured point" },
@@ -19,7 +19,7 @@ function Parameter({ spec, value, onChange }: { spec: EffectParamSpec | null; va
 export function EffectsPage() {
   const { about, setAbout, notify } = useDash();
   const assets = about.assets, effects = assets.effects;
-  const [browser, setBrowser] = useState<EffectKind | null>(null);
+  const [browser, setBrowser] = useState<EffectKind>("background");
   const [target, setTarget] = useState<TextEffectTarget>("name");
   const text = effects.text[target];
   const setBackground = (patch: Partial<BackgroundEffectSettings>) => setAbout((current) => ({ ...current, assets: { ...current.assets, effects: { ...current.assets.effects, background: { ...current.assets.effects.background, ...patch } } } }));
@@ -30,40 +30,44 @@ export function EffectsPage() {
   const setInteraction = (patch: Partial<typeof assets.interactions>) => setAbout((current) => ({ ...current, assets: { ...current.assets, interactions: { ...current.assets.interactions, ...patch } } }));
   const catalogs = { trail: ["dots", "line", "glow", "comet"].map((id) => ({ id, name: id, hint: `${id} pointer trail` })), background: BACKGROUND_EFFECTS, overlay: OVERLAY_EFFECTS, text: TEXT_EFFECTS, card: CARD_EFFECTS, cursor: CURSORS };
   const values = { trail: assets.cursor.trailType, background: effects.background.id, overlay: effects.overlay.id, text: text.effect, card: assets.card.id, cursor: assets.cursor.style };
-  const chooser = (kind: EffectKind) => <div className="fx-current"><span><b>{catalogs[kind].find((option) => option.id === values[kind])?.name || values[kind]}</b><small>Open the gallery to compare previews.</small></span><Button onClick={() => setBrowser(kind)}>Browse {kind} effects</Button></div>;
-  const apply = (id: string) => {
-    if (browser === "background") { const effect = id as BackgroundEffectSettings["id"]; setBackground({ id: effect, params: defaultParamsFor(BACKGROUND_EFFECT_PARAM[effect]) }); }
-    if (browser === "overlay") { const effect = id as OverlayEffectSettings["id"]; setOverlay({ id: effect, opacity: .25, intensity: 50, params: defaultParamsFor(OVERLAY_EFFECT_PARAM[effect]) }); }
-    if (browser === "text") { const effect = id as TextEffectSettings["effect"]; setText({ effect, ...(effect === "sparkle" ? { colorA: "#ffffff", colorB: "#ffffff" } : {}), params: defaultParamsFor(TEXT_EFFECT_PARAM[effect]) }); }
-    if (browser === "card") setCard({ id: id as typeof assets.card.id });
-    if (browser === "trail") setCursor({ trailType: id as typeof assets.cursor.trailType, trail: true });
-    if (browser === "cursor") setCursor({ style: id as typeof assets.cursor.style });
+  const chooser = (kind: EffectKind) => <EffectBrowser key={`${kind}-${target}`} kind={kind} options={catalogs[kind]} value={values[kind]} onApply={(id) => apply(id, kind)} />;
+  const apply = (id: string, kind: EffectKind) => {
+    if (kind === "background") { const effect = id as BackgroundEffectSettings["id"]; setBackground({ id: effect, params: defaultParamsFor(BACKGROUND_EFFECT_PARAM[effect]) }); }
+    if (kind === "overlay") { const effect = id as OverlayEffectSettings["id"]; setOverlay({ id: effect, opacity: .25, intensity: 50, params: defaultParamsFor(OVERLAY_EFFECT_PARAM[effect]) }); }
+    if (kind === "text") { const effect = id as TextEffectSettings["effect"]; setText({ effect, ...(effect === "sparkle" ? { colorA: "#ffffff", colorB: "#ffffff" } : {}), params: defaultParamsFor(TEXT_EFFECT_PARAM[effect]) }); }
+    if (kind === "card") setCard({ id: id as typeof assets.card.id });
+    if (kind === "trail") setCursor({ trailType: id as typeof assets.cursor.trailType, trail: true });
+    if (kind === "cursor") setCursor({ style: id as typeof assets.cursor.style });
   };
-  return <>
-    <Card><CardHead icon="sparkles" title="Background effects" subtitle="Motion behind your profile. Browse the gallery instead of running a full-page preview." />{chooser("background")}
+  return <div className="fx-workspace">
+    <nav className="tw-workspace-tabs" aria-label="Effect categories">{(["background", "overlay", "text", "card", "cursor"] as EffectKind[]).map((kind) => <button type="button" aria-pressed={browser === kind} onClick={() => setBrowser(kind)} key={kind}>{({background:"Background",overlay:"Overlays",text:"Text",card:"Card",cursor:"Pointer & sound",trail:"Trails"})[kind]}</button>)}</nav>
+    {browser === "background" ? <Card><CardHead icon="sparkles" title="Background effects" subtitle="Choose an atmosphere. Hover a tile to see its motion." />{chooser("background")}
       {effects.background.id !== "none" ? <div className="tw-form-grid"><ColorField label="Particle colour" value={effects.background.color} onChange={(color) => setBackground({ color })} /><Slider label="Intensity" value={effects.background.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setBackground({ intensity })} /><Slider label="Motion duration" value={effects.background.speed} min={2} max={24} suffix="s" onChange={(speed) => setBackground({ speed })} /><Parameter spec={BACKGROUND_EFFECT_PARAM[effects.background.id]} value={effects.background.params} onChange={(params) => setBackground({ params })} /></div> : null}
-    </Card>
-    <Card><CardHead icon="layers" title="Overlays" subtitle="Film textures, haze and lighting above the background. Separate from particles." />{chooser("overlay")}
-      {effects.overlay.id === "custom" ? <div className="tw-form-grid"><Field label="Overlay image URL"><TextInput value={effects.overlay.imageUrl} placeholder="https://.../overlay.png" onChange={(event) => setOverlay({ imageUrl: event.target.value })} /></Field><Field label="Overlay image upload" hint="Transparent PNG, SVG or animated GIF under 700 KB."><input aria-label="Overlay image upload" type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 700_000) { notify("Overlay", "Choose an image or GIF under 700 KB."); return; } setOverlay({ imageUrl: await fileToDataUrl(file) }); }} /></Field></div> : null}
-      {effects.overlay.id !== "none" ? <div className="tw-form-grid"><ColorField label="Overlay tint" value={effects.overlay.color} onChange={(color) => setOverlay({ color })} /><Slider label="Opacity" value={Math.round(effects.overlay.opacity * 100)} min={0} max={90} suffix="%" onChange={(opacity) => setOverlay({ opacity: opacity / 100 })} /><Slider label="Intensity" value={effects.overlay.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setOverlay({ intensity })} /><Slider label="Motion duration" value={effects.overlay.speed} min={2} max={24} suffix="s" onChange={(speed) => setOverlay({ speed })} /><Parameter spec={OVERLAY_EFFECT_PARAM[effects.overlay.id]} value={effects.overlay.params} onChange={(params) => setOverlay({ params })} /></div> : null}
-    </Card>
-    <Card><CardHead icon="edit" title="Text effects" subtitle="Choose a target, then browse animated lettering. Sparkle adds glitter inside the letters." />
+    </Card> : null}
+    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlays" subtitle="Surface finishes and subtle lighting." />{chooser("overlay")}
+      {effects.overlay.id === "custom" ? <div className="tw-form-grid"><Field label="Overlay image URL"><TextInput value={effects.overlay.imageUrl} placeholder="https://.../overlay.png" onChange={(event) => setOverlay({ imageUrl: event.target.value })} /></Field><Field label="Overlay image upload" hint="Transparent PNG, SVG or animated GIF under 700 KB."><FileUpload aria-label="Overlay image upload" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 700_000) { notify("Overlay", "Choose an image or GIF under 700 KB."); return; } setOverlay({ imageUrl: await fileToDataUrl(file) }); }} /></Field></div> : null}
+      {effects.overlay.id !== "none" ? <div className="tw-form-grid">
+        <Slider label="Opacity" value={Math.round(effects.overlay.opacity * 100)} min={0} max={90} suffix="%" onChange={(opacity) => setOverlay({ opacity: opacity / 100 })} />
+        {effects.overlay.id === "bloom" ? <ColorField label="Light tint" value={effects.overlay.color} onChange={(color) => setOverlay({ color })} /> : null}
+        {effects.overlay.id === "fog" ? <Slider label="Drift duration" value={effects.overlay.speed} min={2} max={24} suffix="s" onChange={(speed) => setOverlay({ speed })} /> : null}
+      </div> : null}
+    </Card> : null}
+    {browser === "text" ? <Card><CardHead icon="edit" title="Text effects" subtitle="Choose a target, then browse animated lettering. Sparkle adds glitter inside the letters." />
       <div className="fx-categories">{[["name", "Display name"], ["alias", "Username"], ["bio", "Bio"]].map(([id, label]) => <button key={id} type="button" aria-pressed={target === id} onClick={() => setTarget(id as TextEffectTarget)}>{label}</button>)}</div>
       {chooser("text")}
       <div className="tw-form-grid"><FontPicker value={text.font} onChange={(font) => setText({ font })} /><ColorField label="Primary colour" value={text.colorA} onChange={(colorA) => setText({ colorA })} /><ColorField label="Secondary colour" value={text.colorB} onChange={(colorB) => setText({ colorB })} /><Slider label="Animation duration" value={text.speed} min={.5} max={12} step={.5} suffix="s" onChange={(speed) => setText({ speed })} /><Slider label="Strength" value={text.strength} min={0} max={100} suffix="%" onChange={(strength) => setText({ strength })} /><Parameter spec={TEXT_EFFECT_PARAM[text.effect]} value={text.params} onChange={(params) => setText({ params })} /></div>
-    </Card>
-    <Card><CardHead icon="layout" title="Card lighting" subtitle="Border beams, glow, shimmer and surface treatments." />{chooser("card")}
+    </Card> : null}
+    {browser === "card" ? <Card><CardHead icon="layout" title="Card lighting" subtitle="Border beams, glow, shimmer and surface treatments." />{chooser("card")}
       {assets.card.id !== "none" ? <div className="tw-form-grid"><ColorField label="Light colour" value={assets.card.color} onChange={(color) => setCard({ color })} /><Slider label="Light intensity" value={assets.card.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setCard({ intensity })} /><Slider label="Sweep duration" value={assets.card.speed} min={1.5} max={20} step={.5} suffix="s" onChange={(speed) => setCard({ speed })} /></div> : null}
-    </Card>
-    <Card><CardHead icon="move" title="Cursor and trails" subtitle="Keep a system pointer or add a custom pointer and a fading trail." />{chooser("cursor")}
-      <div className="tw-form-grid"><ColorField label="Cursor colour" value={assets.cursor.color} onChange={(color) => setCursor({ color })} /><Slider label="Cursor size" value={assets.cursor.size} min={4} max={32} suffix="px" onChange={(size) => setCursor({ size })} /><Field label="Trail style">{chooser("trail")}</Field><Slider label="Trail length" value={assets.cursor.trailLength} min={1} max={24} onChange={(trailLength) => setCursor({ trailLength })} /><div className="tw-inline-toggle"><b>Show trail</b><Toggle label="Show cursor trail" checked={assets.cursor.trail} onChange={(trail) => setCursor({ trail })} /></div>
-      <Field label="Custom pointer image"><input aria-label="Custom pointer image" type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { setCursor({ imageUrl: await imageToDataUrl(file, 64, 64), style: "custom" }); } catch { notify("Cursor", "That image could not be read."); } }} /></Field></div>
-    </Card>
-    <Card><CardHead icon="music" title="Click sounds and feedback" subtitle="Optional sounds play only after a visitor clicks. Dashboard previews stay silent." />
+    </Card> : null}
+    {browser === "cursor" ? <Card><CardHead icon="move" title="Cursor and trails" subtitle="Keep a system pointer or add a custom pointer and a fading trail." />{chooser("cursor")}<h3 className="fx-subheading">Pointer trail</h3>{chooser("trail")}
+      <div className="tw-form-grid"><ColorField label="Cursor colour" value={assets.cursor.color} onChange={(color) => setCursor({ color })} /><Slider label="Cursor size" value={assets.cursor.size} min={4} max={32} suffix="px" onChange={(size) => setCursor({ size })} /><Slider label="Trail length" value={assets.cursor.trailLength} min={1} max={24} onChange={(trailLength) => setCursor({ trailLength })} /><div className="tw-inline-toggle"><b>Show trail</b><Toggle label="Show cursor trail" checked={assets.cursor.trail} onChange={(trail) => setCursor({ trail })} /></div>
+      {assets.cursor.style === "custom" || assets.cursor.imageUrl ? <Field label="Custom pointer image"><label className="tw-media-upload"><span className="tw-pointer-sample">{assets.cursor.imageUrl ? <img src={assets.cursor.imageUrl} alt="Your pointer" /> : <span>↖</span>}</span><span><b>{assets.cursor.imageUrl ? "Replace pointer" : "Upload pointer"}</b><small>PNG, WebP or GIF · resized to 64 px</small></span><input aria-label="Custom pointer image" type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { setCursor({ imageUrl: await imageToDataUrl(file, 64, 64), style: "custom" }); } catch { notify("Cursor", "That image could not be read."); } }} /></label>{assets.cursor.imageUrl ? <Button onClick={() => setCursor({ imageUrl: "", style: "default" })}>Remove image</Button> : null}</Field> : null}</div>
+    </Card> : null}
+    {browser === "cursor" ? <Card><CardHead icon="music" title="Click sounds and feedback" subtitle="Optional sounds play only after a visitor clicks. Dashboard previews stay silent." />
       <div className="tw-form-grid"><Field label="Click sound"><Select value={assets.interactions.sound} options={["none", "soft", "tick", "pop", "custom"].map((value) => ({ value, label: value === "none" ? "Off" : value }))} onChange={(sound) => setInteraction({ sound: sound as typeof assets.interactions.sound })} /></Field><Slider label="Click volume" value={Math.round(assets.interactions.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => setInteraction({ volume: volume / 100 })} /><div className="tw-inline-toggle"><b>Click ripple</b><Toggle label="Click ripple" checked={assets.interactions.ripple} onChange={(ripple) => setInteraction({ ripple })} /></div><ColorField label="Ripple colour" value={assets.interactions.color} onChange={(color) => setInteraction({ color })} />
-      {assets.interactions.sound === "custom" ? <Field label="Custom click audio" hint="A short audio clip, up to 500 KB."><input aria-label="Custom click audio" type="file" accept="audio/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("audio/") || file.size > 500_000) { notify("Click sound", "Choose an audio clip under 500 KB."); return; } setInteraction({ fileUrl: await fileToDataUrl(file) }); }} /></Field> : null}
+      {assets.interactions.sound === "custom" ? <Field label="Custom click audio" hint="A short audio clip, up to 500 KB."><FileUpload aria-label="Custom click audio" accept="audio/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("audio/") || file.size > 500_000) { notify("Click sound", "Choose an audio clip under 500 KB."); return; } setInteraction({ fileUrl: await fileToDataUrl(file) }); }} /></Field> : null}
       <div className="tw-inline-toggle"><b>Sound on every page click</b><Toggle label="Sound on every page click" checked={assets.interactions.allClicks} onChange={(allClicks) => setInteraction({ allClicks })} /></div></div><Button onClick={() => playInteractionSound(assets.interactions)}>Test click sound</Button>
-    </Card>
-    {browser ? <EffectBrowser key={`${browser}-${target}`} kind={browser} options={catalogs[browser]} value={values[browser]} onApply={apply} onClose={() => setBrowser(null)} /> : null}
-  </>;
+    </Card> : null}
+  </div>;
 }

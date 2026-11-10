@@ -23,7 +23,7 @@ import { formatJoinDate } from "../../lib/format";
 import { useAuth } from "../../lib/auth";
 import { PlatformIcon } from "../../components/PlatformIcons";
 import { useDash, type ProfileTab } from "../context";
-import {
+import { FileUpload,
   Button,
   Card,
   CardHead,
@@ -697,7 +697,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 
         <details className="tw-entry-media"><summary>Entry image and layout</summary><div className="tw-form-grid">
           <Field label="Entry image URL" hint="Images and animated GIFs are supported."><TextInput value={entry.imageUrl} onChange={(event) => updateEntry({ imageUrl: event.target.value })} /></Field>
-          <Field label="Entry image upload"><input aria-label="Entry image upload" type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Entry image", "Choose an image or GIF under 500 KB."); return; } updateEntry({ imageUrl: await fileToDataUrl(file) }); }} /></Field>
+          <Field label="Entry image upload"><FileUpload aria-label="Entry image upload" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Entry image", "Choose an image or GIF under 500 KB."); return; } updateEntry({ imageUrl: await fileToDataUrl(file) }); }} /></Field>
           <Slider label="Entry image size" value={entry.imageSize} min={24} max={250} suffix="px" onChange={(imageSize) => updateEntry({ imageSize })} />
           <Slider label="Entry image radius" value={entry.imageRadius} min={0} max={100} suffix="px" onChange={(imageRadius) => updateEntry({ imageRadius })} />
           <Slider label="Entry content gap" value={entry.contentGap} min={0} max={60} suffix="px" onChange={(contentGap) => updateEntry({ contentGap })} />

@@ -399,7 +399,6 @@ export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string 
   { id: "bloom", name: "Soft bloom", hint: "A gentle coloured wash" },
   { id: "fog", name: "Drifting fog", hint: "Slow, translucent haze" },
   { id: "chromatic", name: "Chromatic edges", hint: "Coloured light at the edges" },
-  ...BACKGROUND_EFFECTS.filter((effect) => effect.id !== "none"),
 ];
 
 export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = [
@@ -628,7 +627,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       overlay: (() => {
         const id = choiceIn(
           overlay.id,
-          OVERLAY_EFFECTS.map((item) => item.id),
+          [...OVERLAY_EFFECTS.map((item) => item.id), ...BACKGROUND_EFFECTS.map((item) => item.id)],
           DEFAULT_PROFILE_ASSETS.effects.overlay.id,
         );
         return {

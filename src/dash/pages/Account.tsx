@@ -7,7 +7,7 @@ import { formatJoined } from "../../lib/format";
 import decorations from "../../lib/decorations.json";
 import { useDash } from "../context";
 import { copyText, imageToDataUrl, fileToDataUrl } from "../files";
-import {
+import { FileUpload,
   Button,
   Card,
   CardHead,
@@ -450,7 +450,7 @@ export function AccountProfilePage() {
 
           {assets.background.style === "video" ? <div className="tw-stack">
             <Field label="Background video URL" hint="Use a direct MP4 or WebM URL. Video plays behind the whole page."><TextInput value={assets.background.videoUrl} placeholder="https://.../background.mp4" onChange={(event) => updateAssets({ background: { ...assets.background, videoUrl: event.target.value } })} /></Field>
-            <Field label="Upload a short background video" hint="Up to 4 MB. Use a hosted URL for larger videos."><input type="file" aria-label="Background video file" accept="video/mp4,video/webm" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("video/") || file.size > 4_000_000) { notify("Video", "Choose a video under 4 MB, or use a hosted URL."); return; } updateAssets({ background: { ...assets.background, videoUrl: await fileToDataUrl(file), style: "video" } }); }} /></Field>
+            <Field label="Upload a short background video" hint="Up to 4 MB. Use a hosted URL for larger videos."><FileUpload aria-label="Background video file" accept="video/mp4,video/webm" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("video/") || file.size > 4_000_000) { notify("Video", "Choose a video under 4 MB, or use a hosted URL."); return; } updateAssets({ background: { ...assets.background, videoUrl: await fileToDataUrl(file), style: "video" } }); }} /></Field>
             <div className="tw-inline-toggle"><span><b>Video sound</b><small>Unmutes after the visitor clicks the page.</small></span><Toggle label="Video sound" checked={assets.background.videoAudio} onChange={(videoAudio) => updateAssets({ background: { ...assets.background, videoAudio } })} /></div>
             <Slider label="Video volume" value={Math.round(assets.background.videoVolume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAssets({ background: { ...assets.background, videoVolume: volume / 100 } })} />
           </div> : null}

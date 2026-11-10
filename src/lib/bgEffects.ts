@@ -389,7 +389,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
 
     night(t) {
       const f = s.intensity / 100;
-      ctx.fillStyle = `rgba(${Math.round(cr * 0.1)},${Math.round(cg * 0.15)},${Math.round(cb * 0.4)},${0.1 + f * 0.5})`;
+      ctx.fillStyle = `rgba(0,0,0,${0.1 + f * 0.5})`;
       ctx.fillRect(0, 0, W, H);
       twinkles(t, Math.floor(240 * (0.2 + f * 0.8)));
       pointerGlow(0.04 + f * 0.08, 140 + f * 80);
@@ -477,7 +477,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const f = s.intensity / 100;
       const img = T.img as ImageData;
       const d = img.data;
-      T.fr = ((T.fr as number) + 1) % 3;
+      T.fr = ((Number(T.fr) || 0) + 1) % 3;
       if ((T.fr as number) === 0) {
         for (let i = 0; i < d.length; i += 4) {
           const v = R(255);

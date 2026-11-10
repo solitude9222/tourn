@@ -230,14 +230,12 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
-      {showViews && viewPosition === "top-right" ? (
-        <span className="pv-views pv-views--corner" aria-label={`${viewCount} profile views`}>
-          <EyeIcon size={12} />
-          {viewCount.toLocaleString("en-US")}
-        </span>
-      ) : null}
-
       <div className="pv-body">
+        {(showViews && viewPosition === "top-right") || (location && locationPosition === "top") || (badgeRow && design.badgePosition === "top-right") ? <div className="pv-meta-rail">
+          {locationPosition === "top" ? locationPill : null}
+          {design.badgePosition === "top-right" ? badgeRow : null}
+          {showViews && viewPosition === "top-right" ? <span className="pv-views" aria-label={`${viewCount} profile views`}><EyeIcon size={12} />{viewCount.toLocaleString("en-US")}</span> : null}
+        </div> : null}
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
             <span className="pv-avatar" aria-hidden="true">
@@ -302,10 +300,7 @@ export function ProfilePreview({
             </div>
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
-          {locationPosition === "top" ? locationPill : null}
         </div>
-
-        {design.badgePosition === "top-right" && !inlineBadges ? badgeRow : null}
 
         {children}
 
@@ -323,7 +318,7 @@ export function ProfilePreview({
 
         {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
 
-        {locationPosition === "footer" || viewPosition === "footer" ? (
+        {(location && locationPosition === "footer") || (showViews && viewPosition === "footer") ? (
           <div className="pv-foot">
             {locationPosition === "footer" ? locationPill : <span />}
             {viewPosition === "footer" ? viewsNode : null}

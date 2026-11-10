@@ -20,7 +20,9 @@ content or templates. No reference video, photo, music or branding is shipped.
 | Matching typography | Profile font picker, custom font upload, and per-target text-effect fonts |
 
 All choices are part of the saved profile document. Effects previews use small
-menu tiles; background engines run only on hovered thumbnails. Public pages use
+black-backed gallery tiles grouped into tabs; static posters come from the real
+background engines, which animate only on hovered thumbnails. Overlays have a
+dedicated finish catalogue rather than duplicating particle backgrounds. Public pages use
 the same effect layers. Exact visual matching still requires the original media,
 font files, icon artwork and settings, supplied by the profile owner.
 

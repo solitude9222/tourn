@@ -297,19 +297,27 @@ console.log('PASS dashboard destinations and profile tabs');
 // Reference capabilities are configurable, rather than copied profiles.
 await page.setViewportSize({width:1440,height:1000});
 await page.evaluate(()=>location.hash='#/dashboard/effects');
-await page.getByRole('button',{name:'Browse background effects',exact:true}).waitFor();
+await page.getByRole('navigation',{name:'Effect categories'}).waitFor();
 assert.equal(await page.locator('.tw-effect-stage').count(),0,'Old full realtime stage remains');
 const chooseEffect=async(kind,name)=>{
- await page.getByRole('button',{name:`Browse ${kind} effects`,exact:true}).click();
- const menu=page.getByRole('dialog',{name:`Choose ${kind} effect`,exact:true});
- assert(await menu.locator('.fx-tile-preview').count()>0,'Effect menu has no previews');
- await menu.getByRole('button',{name,exact:true}).click();
- await menu.getByRole('button',{name:'Apply effect',exact:true}).click();
+ const labels={background:'Background',overlay:'Overlays',text:'Text',card:'Card',cursor:'Pointer & sound'};
+ await page.getByRole('navigation',{name:'Effect categories'}).getByRole('button',{name:labels[kind],exact:true}).click();
+ const gallery=page.getByLabel(`${kind} effects`,{exact:true});
+ assert(await gallery.locator('.fx-tile-preview').count()>1,'Effects are not shown together');
+ if(kind==='overlay') { assert.equal(await gallery.getByRole('button',{name:'Rain',exact:true}).count(),0,'Particle backgrounds duplicated in overlays'); }
+ const background=await gallery.locator('.fx-tile-preview').first().evaluate(el=>getComputedStyle(el).backgroundColor);
+ assert.equal(background,'rgb(0, 0, 0)','Effect tiles are not black');
+ await gallery.getByRole('button',{name,exact:true}).click();
+ if(kind==='background') await page.screenshot({path:'.tmp/effects-gallery.png',fullPage:true});
 };
 await chooseEffect('background','Rain');
 await chooseEffect('overlay','Film grain');
 await chooseEffect('text','Sparkle');
 await chooseEffect('card','Beam ring');
+await chooseEffect('cursor','Ring');
+assert.equal(await page.getByLabel('Custom pointer image',{exact:true}).count(),0,'Custom upload clutters non-custom pointers');
+await chooseEffect('cursor','Custom image');
+await page.locator('.tw-media-upload').waitFor();
 await chooseEffect('cursor','Ring');
 const clickField=page.locator('.tw-field').filter({has:page.getByText('Click sound',{exact:true})});
 await clickField.locator('.tw-select-btn').click();await page.getByRole('option',{name:'tick',exact:true}).click();
@@ -320,7 +328,7 @@ assert.equal(document.about.assets.card.id,'beam');assert.equal(document.about.a
 await page.evaluate(()=>location.hash='#/dashboard/layout');
 await page.getByText('Page layout',{exact:true}).waitFor();
 assert.equal(await page.getByText('Card width',{exact:true}).count(),0,'Card width was not removed');
-await page.locator('.tw-layout-card').filter({hasText:'Left side'}).click();
+await page.locator('.tw-layout-card').filter({hasText:'Split'}).click();
 await page.waitForTimeout(150);
 const sideGeometry=await page.locator('.tw-card-preview').evaluate(host=>{
  const profile=host.querySelector('.profile-preview').getBoundingClientRect();const side=host.querySelector('.lkr-side-widgets').getBoundingClientRect();return {right:profile.right,left:side.left};
@@ -329,6 +337,7 @@ await page.locator('.tw-layout-card').filter({hasText:'Centered'}).click();
 await page.waitForTimeout(150);
 const centerGeometry=await page.locator('.tw-card-preview .profile-preview').evaluate(host=>{const avatar=host.querySelector('.pv-avatar').getBoundingClientRect();const name=host.querySelector('.pv-id').getBoundingClientRect();return {bottom:avatar.bottom,top:name.top};});
 assert(centerGeometry.top>=centerGeometry.bottom-2,JSON.stringify(centerGeometry));
+await page.getByRole('navigation',{name:'Card settings'}).getByRole('button',{name:'Sections',exact:true}).click();
 await page.getByRole('button',{name:'Add profile section',exact:true}).click();
 await page.locator('.tw-field').filter({has:page.getByText('Section title',{exact:true})}).locator('input').fill('My own section');
 await page.locator('.tw-field').filter({has:page.getByText('Section text',{exact:true})}).locator('textarea').fill('My own content goes here.');
@@ -348,7 +357,7 @@ const runtime=await page.evaluate(async profile=>{
  const dom=await import('/node_modules/.vite/deps/react-dom_client.js');const createRoot=dom.createRoot || dom.default.createRoot;
  const {LinkerPreview}=await import('/src/components/LinkerPreview.tsx');
  const host=document.createElement('div');host.id='reference-capability-test';host.style.cssText='position:fixed;inset:0;z-index:100000;background:#111;overflow:auto';document.body.append(host);
- const root=createRoot(host);root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'my-profile',avatarUrl:null},about:profile.about,widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));window.referenceRoot=root;
+ const root=createRoot(host);root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'my-profile',avatarUrl:null},about:profile.about,widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));window.referenceRoot=root;window.renderReference=(design)=>root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'a-long-profile-handle-to-check-wrap',avatarUrl:null},about:{...profile.about,displayName:'A long display name to check wrapping',design:{...profile.about.design,...design}},widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));
  return true;
 },document);
 assert(runtime);
@@ -360,9 +369,43 @@ assert((await page.locator('#reference-capability-test .fx-text--sparkle').evalu
 await page.locator('#reference-capability-test .lkr-custom-section a').dispatchEvent('pointerdown',{button:0,clientX:120,clientY:120});
 await page.locator('#reference-capability-test .profile-click-ring').waitFor({state:'attached'});
 await page.screenshot({path:'.tmp/reference-capabilities.png',fullPage:false});
+// Every preset must contain its children at both phone and desktop widths.
+for (const width of [1440,390]) {
+ await page.setViewportSize({width,height:1000});
+ for (const layout of ['stacked','left','centered']) {
+  for (const pfpPosition of ['left','above','right']) {
+   await page.evaluate(({layout,pfpPosition})=>window.renderReference({layout,pfpPosition,viewPosition:'top-right',badgePosition:'top-right',locationPosition:'top',avatarSize:150,nameSize:48}),{layout,pfpPosition});
+   await page.waitForTimeout(80);
+   const geometry=await page.locator('#reference-capability-test .profile-preview').evaluate(card=>{
+    const bounds=card.getBoundingClientRect(), head=card.querySelector('.pv-head-text').getBoundingClientRect(), avatar=card.querySelector('.pv-avatar-wrap').getBoundingClientRect();
+    const overlap=Math.min(head.right,avatar.right)-Math.max(head.left,avatar.left)>1 && Math.min(head.bottom,avatar.bottom)-Math.max(head.top,avatar.top)>1;
+    return {overflow:card.scrollWidth>card.clientWidth+2,overlap,inside:head.right<=bounds.right+1 && head.left>=bounds.left-1};
+   });
+   assert(!geometry.overflow && !geometry.overlap && geometry.inside,JSON.stringify({width,layout,pfpPosition,...geometry}));
+  }
+  await page.screenshot({path:`.tmp/layout-${layout}-${width}.png`,fullPage:false});
+ }
+}
+await page.setViewportSize({width:1440,height:1000});
 await page.evaluate(()=>{window.referenceRoot.unmount();document.getElementById('reference-capability-test').remove();});
 assert.deepEqual(errors,[],'Reference capability runtime errors');
+const fuzzyVisible=await page.evaluate(async()=>{
+ const {mountBgEffect}=await import('/src/lib/bgEffects.ts');
+ const host=document.createElement('div');host.style.cssText='position:fixed;inset:0;width:240px;height:130px;z-index:200000;background:#000';document.body.append(host);
+ const effect=mountBgEffect(host,{effect:'fuzzy',intensity:60,speed:10,color:'#ffffff',amount:50,flag:false,maxFps:15});
+ await new Promise(resolve=>setTimeout(resolve,700));
+ const canvas=host.querySelector('canvas');const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+ const visible=pixels.some(value=>value>0);effect.destroy();host.remove();return visible;
+});assert(fuzzyVisible,'Fuzzy effect renders an empty canvas');
 console.log('PASS preview galleries, real layouts, removed width, click feedback, glyph glitter, video and custom sections persisted');
+await page.setViewportSize({width:390,height:900});
+await page.evaluate(()=>location.hash='#/dashboard/effects');
+await page.getByRole('navigation',{name:'Effect categories'}).waitFor();
+for(const category of ['Background','Overlays','Text','Card','Pointer & sound']) {
+ await page.getByRole('navigation',{name:'Effect categories'}).getByRole('button',{name:category,exact:true}).click();
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${category} mobile overflow`);
+}
+await page.screenshot({path:'.tmp/pointer-mobile.png',fullPage:true});
 await page.evaluate(()=>location.hash='#/dashboard/home');await page.locator('.tw-dash').waitFor();
 await page.screenshot({path:'.tmp/dashboard-mobile.png',fullPage:true});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Dashboard mobile overflow');

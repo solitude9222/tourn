@@ -1,3 +1,4 @@
+import { useState } from "react";
 /* ---------------------------------------------------------------------------
    Customize > Card — the card layout, the widget positions and the card's
    colours in one place. The layout only decides how much room the card and
@@ -9,7 +10,7 @@ import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
-import { Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
+import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
 
 const VIEW_OPTIONS = [
   { value: "top-right", label: "Top right of the card" },
@@ -44,22 +45,22 @@ const PAGE_LAYOUTS: {
     name: "Stacked",
     description:
       "A full profile card with widgets inside it and optional music below.",
-    viewPosition: "top-right",
+    viewPosition: "footer",
     joinPosition: "under-name",
   },
   {
     id: "left",
-    name: "Left side",
+    name: "Split",
     description:
-      "Your profile card beside a separate column of widgets.",
-    viewPosition: "top-right",
+      "Two balanced columns, with widgets beside your profile.",
+    viewPosition: "footer",
     joinPosition: "under-name",
   },
   {
     id: "centered",
     name: "Centered",
     description: "Picture and name centred, with the widget and link blocks below.",
-    viewPosition: "top-right",
+    viewPosition: "footer",
     joinPosition: "under-name",
   },
 ];
@@ -67,6 +68,8 @@ const PAGE_LAYOUTS: {
 export function LayoutPage() {
   const { about, setAbout, widgets, badges, links, profileViews, user, notify, go } = useDash();
   const design = about.design;
+  const [tab, setTab] = useState("layout");
+  const [showPreview, setShowPreview] = useState(true);
 
   const updateDesign = (patch: Partial<typeof design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
@@ -111,12 +114,14 @@ export function LayoutPage() {
 
   return (
     <div className="tw-card-page">
+      <div className="tw-layout-toolbar"><nav className="tw-workspace-tabs" aria-label="Card settings">{[["layout", "Layout"], ["style", "Appearance"], ["sections", "Sections"]].map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav><Button onClick={() => setShowPreview(!showPreview)}>{showPreview ? "Hide preview" : "Show preview"}</Button></div>
+      {showPreview ? preview : null}
       <div className="tw-card-main">
-      <Card>
+      {tab === "layout" ? <Card>
         <CardHead
           icon="layout"
           title="Page layout"
-          subtitle="Where the card, the widgets and your links sit. Colours, background and blur stay exactly as they are."
+          subtitle="Choose a balanced starting point, then adjust the composition."
         />
 
         <div className="tw-layout-cards">
@@ -130,7 +135,10 @@ export function LayoutPage() {
                   layout: preset.id,
                   viewPosition: preset.viewPosition,
                   joinPosition: preset.joinPosition,
-                  cardWidth: preset.id === "centered" ? 540 : preset.id === "left" ? 660 : 720,
+                  badgePosition: "default",
+                  locationPosition: "footer",
+                  cardPadding: 32,
+                  cardWidth: preset.id === "centered" ? 540 : preset.id === "left" ? 540 : 720,
                   pfpPosition: preset.id === "centered" ? "above" : "left",
                   namePosition: preset.id === "centered" ? "center" : "left",
                   bioPosition: preset.id === "centered" ? "center" : "left",
@@ -160,9 +168,9 @@ export function LayoutPage() {
             </button>
           ))}
         </div>
-      </Card>
+      </Card> : null}
 
-      <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout compact, transparent, centred or portrait-led." />
+      {tab === "layout" ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout compact, transparent, centred or portrait-led." />
         <div className="tw-form-grid">
           <Field label="Card style"><Select value={design.cardStyle} options={[{ value: "default", label: "Full card" }, { value: "compact", label: "Compact" }, { value: "minimal", label: "Minimal / transparent" }]} onChange={(cardStyle) => updateDesign({ cardStyle: cardStyle as typeof design.cardStyle, cardWidth: cardStyle === "compact" ? 480 : design.layout === "centered" ? 540 : 720 })} /></Field>
           <Field label="Avatar placement"><Select value={design.pfpPosition} options={["default", "left", "right", "above", "center", "top-right"].map((value) => ({ value, label: value }))} onChange={(pfpPosition) => updateDesign({ pfpPosition: pfpPosition as typeof design.pfpPosition })} /></Field>
@@ -171,18 +179,18 @@ export function LayoutPage() {
           <Field label="Bio alignment"><Select value={design.bioPosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(bioPosition) => updateDesign({ bioPosition: bioPosition as typeof design.bioPosition })} /></Field>
           <Field label="Avatar shape"><Select value={design.avatarShape} options={["circle", "rounded", "square", "hexagon"].map((value) => ({ value, label: value }))} onChange={(avatarShape) => updateDesign({ avatarShape: avatarShape as typeof design.avatarShape })} /></Field>
           <FontPicker label="Profile font" value={design.font} onChange={(font) => updateDesign({ font })} />
-          <Field label="Custom profile font" hint="Upload your own WOFF, WOFF2 or TTF file under 500 KB."><input aria-label="Custom profile font" type="file" accept=".woff,.woff2,.ttf,.otf" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 500_000 || !/\.(woff2?|ttf|otf)$/i.test(file.name)) { notify("Font", "Choose a font file under 500 KB."); return; } const customFontUrl = await fileToDataUrl(file); updateDesign({ customFontUrl }); }} />{design.customFontUrl ? <Button onClick={() => updateDesign({ customFontUrl: "" })}>Remove custom font</Button> : null}</Field>
+          <Field label="Custom profile font" hint="Upload your own WOFF, WOFF2 or TTF file under 500 KB."><FileUpload aria-label="Custom profile font" accept=".woff,.woff2,.ttf,.otf" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 500_000 || !/\.(woff2?|ttf|otf)$/i.test(file.name)) { notify("Font", "Choose a font file under 500 KB."); return; } const customFontUrl = await fileToDataUrl(file); updateDesign({ customFontUrl }); }} />{design.customFontUrl ? <Button onClick={() => updateDesign({ customFontUrl: "" })}>Remove custom font</Button> : null}</Field>
           <Slider label="Avatar size" value={design.avatarSize} min={40} max={180} suffix="px" onChange={(avatarSize) => updateDesign({ avatarSize })} />
           <Slider label="Name size" value={design.nameSize} min={16} max={64} suffix="px" onChange={(nameSize) => updateDesign({ nameSize })} />
           <Slider label="Bio size" value={design.bioSize} min={12} max={30} suffix="px" onChange={(bioSize) => updateDesign({ bioSize })} />
           <Slider label="Card padding" value={design.cardPadding} min={0} max={64} suffix="px" onChange={(cardPadding) => updateDesign({ cardPadding })} />
         </div>
-      </Card>
-      <Card>
+      </Card> : null}
+      {tab === "layout" ? <Card>
         <CardHead
           icon="grid"
-          title="Widget positions"
-          subtitle="Pick where each widget sits. Uncheck a widget on Links → Widgets to hide it completely."
+          title="Details & music"
+          subtitle="Place your profile details and audio player."
         />
 
         <div className="tw-form-grid">
@@ -225,7 +233,7 @@ export function LayoutPage() {
             icon="refresh"
             onClick={() => {
               updateDesign({
-                viewPosition: "top-right",
+                viewPosition: "footer",
                 locationPosition: "under-name",
                 joinPosition: "under-name",
               });
@@ -235,9 +243,9 @@ export function LayoutPage() {
             Reset positions
           </Button>
         </div>
-      </Card>
+      </Card> : null}
 
-      <Card>
+      {tab === "style" ? <Card>
         <CardHead
           icon="palette"
           title="Card style"
@@ -330,9 +338,9 @@ export function LayoutPage() {
             </div>
           </div>
         </div>
-      </Card>
+      </Card> : null}
 
-      <Card>
+      {tab === "style" ? <Card>
         <CardHead
           icon="user"
           title="Profile picture"
@@ -361,8 +369,8 @@ export function LayoutPage() {
             />
           </Field>
         </div>
-      </Card>
-      <Card><CardHead icon="layers" title="Profile sections" subtitle="Add About text, project artwork and links below your profile card." />
+      </Card> : null}
+      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Add About text, project artwork and links below your profile card." />
         {(design.sections || []).map((section, index) => <div className="tw-profile-section-editor" key={section.id}>
           <div className="tw-row"><b>Section {index + 1}</b><Button onClick={() => updateDesign({ sections: design.sections.filter((item) => item.id !== section.id) })}>Remove section</Button>{index > 0 ? <Button onClick={() => { const sections = [...design.sections]; [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]]; updateDesign({ sections }); }}>Move up</Button> : null}</div>
           <div className="tw-form-grid">
@@ -370,14 +378,13 @@ export function LayoutPage() {
             <Field label="Section style"><Select value={section.kind} options={[{ value: "text", label: "Text section" }, { value: "project", label: "Project card" }]} onChange={(kind) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, kind: kind as "text" | "project" } : item) })} /></Field>
             <Field label="Section text"><Textarea rows={4} value={section.text} onChange={(event) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, text: event.target.value } : item) })} /></Field>
             <Field label="Artwork URL"><TextInput value={section.image} onChange={(event) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, image: event.target.value } : item) })} /></Field>
-            <Field label="Section artwork upload" hint="Upload an image or animated GIF under 500 KB."><input aria-label={`Section ${index + 1} artwork upload`} type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Artwork", "Choose an image or GIF under 500 KB."); return; } const image = await fileToDataUrl(file); setAbout((current) => ({ ...current, design: { ...current.design, sections: current.design.sections.map((item) => item.id === section.id ? { ...item, image } : item) } })); }} /></Field>
+            <Field label="Section artwork upload" hint="Upload an image or animated GIF under 500 KB."><FileUpload aria-label={`Section ${index + 1} artwork upload`} accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Artwork", "Choose an image or GIF under 500 KB."); return; } const image = await fileToDataUrl(file); setAbout((current) => ({ ...current, design: { ...current.design, sections: current.design.sections.map((item) => item.id === section.id ? { ...item, image } : item) } })); }} /></Field>
             <Field label="Section link"><TextInput value={section.url} placeholder="https://..." onChange={(event) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, url: event.target.value } : item) })} /></Field>
           </div>
         </div>)}
         <Button disabled={design.sections.length >= 12} onClick={() => updateDesign({ sections: [...design.sections, { id: crypto.randomUUID(), title: "", text: "", image: "", url: "", kind: "text" }] })}>Add profile section</Button>
-      </Card>
+      </Card> : null}
       </div>
-      {preview}
     </div>
   );
 }

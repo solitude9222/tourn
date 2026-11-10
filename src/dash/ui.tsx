@@ -1235,3 +1235,9 @@ export function Help() {
     </span>
   );
 }
+
+/** Styled file control with the native input retained for keyboard access. */
+export function FileUpload({ onChange, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  const [fileName, setFileName] = useState("");
+  return <label className="tw-file-upload"><span>{fileName || "Choose file"}</span><small>{fileName ? "Choose a different file" : "Browse your files"}</small><input {...props} type="file" onChange={(event) => { setFileName(event.target.files?.[0]?.name || ""); onChange?.(event); }} /></label>;
+}
