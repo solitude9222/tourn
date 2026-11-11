@@ -139,6 +139,12 @@ function AudioSettingsCard() {
 
       {audio.fileUrl && audio.style !== "none" ? <div className="tw-audio-live-preview"><AudioPlayer settings={{ ...audio, autoplay: false }} /></div> : <p className="tw-foot-note">Add an audio file to preview your player.</p>}
       <div className="tw-form-grid">
+        <Slider label="Default volume" value={Math.round(audio.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAudio({ volume: volume / 100 })} />
+        <Slider label="Player opacity" value={Math.round(audio.cardOpacity * 100)} min={0} max={100} suffix="%" onChange={(cardOpacity) => updateAudio({ cardOpacity: cardOpacity / 100 })} />
+        <Slider label="Playback speed" value={audio.playbackRate} min={.5} max={2} step={.05} suffix="×" onChange={(playbackRate) => updateAudio({ playbackRate })} />
+        <div className="tw-inline-toggle"><b>Loop track</b><Toggle label="Loop track" checked={audio.loop} onChange={(loop) => updateAudio({ loop })} /></div>
+        <div className="tw-inline-toggle"><b>Start muted</b><Toggle label="Start muted" checked={audio.startMuted} onChange={(startMuted) => updateAudio({ startMuted })} /></div>
+
         <Field label="Player style" hint="How the player looks on your profile.">
           <Select
             value={audio.style}
@@ -252,6 +258,16 @@ function AudioSettingsCard() {
           label="Auto-fetch lyrics"
         />
       </div>
+
+      {audio.style === "popup" || about.design.audioPosition === "popup" ? <div className="tw-popup-settings"><h3>Popup appearance</h3><div className="tw-form-grid">
+        <Field label="Popup corner"><Select value={audio.popupSide} options={[{value:"left",label:"Top left"},{value:"right",label:"Top right"}]} onChange={(popupSide) => updateAudio({ popupSide: popupSide as "left" | "right" })} /></Field>
+        <Slider label="Music icon size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
+        <ColorField label="Music icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
+        <ColorField label="Popup background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
+        <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
+        <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
+        <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
+      </div></div> : null}
 
       <input
         ref={audioInput}

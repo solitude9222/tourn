@@ -171,6 +171,7 @@ export type AboutDesign = {
   bioSize: number;
   /** Pointer tilt strength in degrees (0 = off). */
   tilt: number;
+  stackTilt: boolean;
   /** Reverse the tilt direction. */
   tiltInvert?: boolean;
   /** A small cat that follows the pointer around the card. */
@@ -290,6 +291,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   nameSize: 36,
   bioSize: 20,
   tilt: 0,
+  stackTilt: false,
   tiltGlare: false,
   pfpPosition: "above",
   badgePosition: "default",
@@ -518,6 +520,7 @@ function loadDesign(input: unknown): AboutDesign {
     bioSize: legacy
       ? DEFAULT_ABOUT_DESIGN.bioSize
       : numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 32),
+    stackTilt: boolIn(raw.stackTilt, false),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),
     tiltInvert: boolIn(raw.tiltInvert, false),
     oneko: boolIn(raw.oneko, false),

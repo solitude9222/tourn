@@ -4,7 +4,7 @@ import { BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, BACKGR
 import { EffectBrowser, type EffectKind } from "../EffectBrowser";
 import { FontPicker } from "../../components/FontPicker";
 import { playInteractionSound } from "../../components/ProfileInteractions";
-import { fileToDataUrl, imageToDataUrl } from "../files";
+import { imageToDataUrl } from "../files";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, TextInput, Toggle } from "../ui";
 
@@ -47,8 +47,7 @@ export function EffectsPage() {
     {browser === "background" ? <Card><CardHead icon="sparkles" title="Background effects" subtitle="Choose an atmosphere. Hover a tile to see its motion." />{chooser("background")}
       {effects.background.id !== "none" ? <div className="tw-form-grid"><ColorField label="Particle colour" value={effects.background.color} onChange={(color) => setBackground({ color })} /><Slider label="Intensity" value={effects.background.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setBackground({ intensity })} /><Slider label="Motion duration" value={effects.background.speed} min={2} max={24} suffix="s" onChange={(speed) => setBackground({ speed })} /><Parameter spec={BACKGROUND_EFFECT_PARAM[effects.background.id]} value={effects.background.params} onChange={(params) => setBackground({ params })} /></div> : null}
     </Card> : null}
-    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlays" subtitle="Surface finishes and subtle lighting." />{chooser("overlay")}
-      {effects.overlay.id === "custom" ? <div className="tw-form-grid"><Field label="Overlay image URL"><TextInput value={effects.overlay.imageUrl} placeholder="https://.../overlay.png" onChange={(event) => setOverlay({ imageUrl: event.target.value })} /></Field><Field label="Overlay image upload" hint="Transparent PNG, SVG or animated GIF under 700 KB."><FileUpload aria-label="Overlay image upload" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 700_000) { notify("Overlay", "Choose an image or GIF under 700 KB."); return; } setOverlay({ imageUrl: await fileToDataUrl(file) }); }} /></Field></div> : null}
+    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlays" subtitle="A simple dotted texture over your page." />{chooser("overlay")}
       {effects.overlay.id !== "none" ? <div className="tw-form-grid">
         <Slider label="Opacity" value={Math.round(effects.overlay.opacity * 100)} min={0} max={90} suffix="%" onChange={(opacity) => setOverlay({ opacity: opacity / 100 })} />
         {effects.overlay.id === "bloom" ? <ColorField label="Light tint" value={effects.overlay.color} onChange={(color) => setOverlay({ color })} /> : null}

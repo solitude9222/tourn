@@ -449,3 +449,19 @@
    part of what the page owner chose to show, so — like the rest of the profile
    effects — it is not switched off by the OS reduced-motion flag. Stalling it
    left the marquee strip frozen mid-word, which read as a broken player. */
+
+/* Popup is one music button; its volume rail reveals beside it. */
+.ap-popup { --popup-safe-width:min(var(--popup-bar-width,110px),calc(100vw - var(--popup-offset,20px) - var(--popup-offset,20px) - var(--popup-size,42px) - 12px)); display:flex; align-items:center; width:max-content; max-width:100%; color:var(--popup-color,#fff); }
+.ap-popup-icon { display:grid; place-items:center; width:var(--popup-size,42px); height:var(--popup-size,42px); flex-shrink:0; border-radius:50%; border:1px solid #ffffff20; color:inherit; background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.9) * 100%),transparent); cursor:pointer; padding:0; }
+.ap-popup-icon svg { width:48%; height:48%; }
+.ap-popup-icon:hover { border-color:#ffffff55; }
+.ap-popup-icon:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+.ap-popup-reveal { width:0; opacity:0; overflow:hidden; transform:translateX(-5px); transition:width var(--popup-duration,250ms) cubic-bezier(.2,.8,.2,1),opacity var(--popup-duration,250ms) ease,transform var(--popup-duration,250ms) ease; }
+.ap-popup:hover .ap-popup-reveal, .ap-popup:focus-within .ap-popup-reveal { width:calc(var(--popup-safe-width) + 10px); opacity:1; transform:translateX(0); }
+.ap-popup-volume { display:flex; align-items:center; height:var(--popup-size,42px); width:var(--popup-safe-width); margin-left:10px; padding:0 12px; border:1px solid #ffffff20; border-radius:999px; background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.9) * 100%),transparent); }
+.ap-popup-volume input { width:100%; height:5px; margin:0; appearance:none; border-radius:10px; background:linear-gradient(to right,var(--popup-color,#fff) var(--popup-volume,70%),#ffffff30 var(--popup-volume,70%)); cursor:pointer; touch-action:none; }
+.ap-popup-volume input::-webkit-slider-thumb { appearance:none; width:11px; height:11px; border-radius:50%; background:var(--popup-color,#fff); border:0; }
+.ap-popup-volume input::-moz-range-thumb { width:11px; height:11px; border-radius:50%; background:var(--popup-color,#fff); border:0; }
+.lkr-popup-audio--right .ap-popup { flex-direction:row-reverse; }
+.lkr-popup-audio--right .ap-popup-volume { margin-left:0; margin-right:10px; }
+@media(prefers-reduced-motion:reduce) { .ap-popup-reveal { transition-duration:0ms; } }

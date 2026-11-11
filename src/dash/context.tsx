@@ -22,6 +22,7 @@ export type Page =
   | "customize-profile"
   | "layout"
   | "effects"
+  | "music"
   | "premium"
   | "links"
   | "widgets"

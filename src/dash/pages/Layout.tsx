@@ -8,7 +8,6 @@ import { useState } from "react";
 import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
-import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
 
@@ -66,10 +65,9 @@ const PAGE_LAYOUTS: {
 ];
 
 export function LayoutPage() {
-  const { about, setAbout, widgets, badges, links, profileViews, user, notify, go } = useDash();
+  const { about, setAbout, notify } = useDash();
   const design = about.design;
   const [tab, setTab] = useState("layout");
-  const [showPreview, setShowPreview] = useState(true);
 
   const updateDesign = (patch: Partial<typeof design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
@@ -86,36 +84,9 @@ export function LayoutPage() {
       },
     }));
 
-  // The card preview sits beside the settings so every slider, colour and
-  // effect shows its result immediately — but it never plays audio: the
-  // preview is silent, and the player is left to the real profile page.
-  const preview = (
-    <aside className="tw-card-preview" aria-label="Card preview">
-      <div className="tw-card-preview-inner">
-        <LinkerPreview
-          user={{
-            id: user.id,
-            username: user.username,
-            avatarUrl: about.assets.avatarUrl || user.avatarUrl,
-          }}
-          about={about}
-          widgets={widgets}
-          badges={badges}
-          links={links}
-          views={profileViews}
-          showEntry={false}
-          showMetadata={false}
-          interactive={false}
-          hideAudio
-        />
-      </div>
-    </aside>
-  );
-
   return (
     <div className="tw-card-page">
-      <div className="tw-layout-toolbar"><nav className="tw-workspace-tabs" aria-label="Card settings">{[["layout", "Layout"], ["style", "Appearance"], ["sections", "Sections"]].map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav><Button onClick={() => setShowPreview(!showPreview)}>{showPreview ? "Hide preview" : "Show preview"}</Button></div>
-      {showPreview ? preview : null}
+      <div className="tw-layout-toolbar"><nav className="tw-workspace-tabs" aria-label="Card settings">{[["layout", "Layout"], ["style", "Appearance"], ["sections", "Sections"]].map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav></div>
       <div className="tw-card-main">
       {tab === "layout" ? <Card>
         <CardHead
@@ -171,6 +142,7 @@ export function LayoutPage() {
         </div>
       </Card> : null}
 
+      {tab === "layout" ? <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card> : null}
       {tab === "layout" ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout compact, transparent, centred or portrait-led." />
         <div className="tw-form-grid">
           <Field label="Card style"><Select value={design.cardStyle} options={[{ value: "default", label: "Full card" }, { value: "compact", label: "Compact" }, { value: "minimal", label: "Minimal / transparent" }]} onChange={(cardStyle) => updateDesign({ cardStyle: cardStyle as typeof design.cardStyle, cardWidth: cardStyle === "compact" ? 480 : design.layout === "centered" ? 540 : 720 })} /></Field>
@@ -371,7 +343,7 @@ export function LayoutPage() {
           </Field>
         </div>
       </Card> : null}
-      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Add About text, project artwork and links below your profile card." />
+      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Sections scroll normally below your profile. Adding them does not enable a slideshow or automatic scrolling." />
         {(design.sections || []).map((section, index) => <div className="tw-profile-section-editor" key={section.id}>
           <div className="tw-row"><b>Section {index + 1}</b><Button onClick={() => updateDesign({ sections: design.sections.filter((item) => item.id !== section.id) })}>Remove section</Button>{index > 0 ? <Button onClick={() => { const sections = [...design.sections]; [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]]; updateDesign({ sections }); }}>Move up</Button> : null}</div>
           <div className="tw-form-grid">

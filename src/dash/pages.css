@@ -2075,3 +2075,7 @@
 
 .tw-card-preview .lkr-flow.lkr-flow--left, .tw-card-preview .lkr-flow.lkr-flow--centered, .tw-card-preview .lkr-flow.lkr-flow--stacked { display:flex !important; flex-direction:column; width:min(100%,720px); max-width:720px; margin-inline:auto !important; align-items:stretch !important; }
 .tw-card-preview .lkr-flow > .profile-preview { width:100%; margin-inline:auto !important; }
+
+.tw-popup-settings { margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
+.tw-popup-settings h3 { font-size:14px; color:var(--title); margin:0 0 18px; }
+.tw-audio-live-preview:has(.ap-popup) { min-height:72px; display:flex; align-items:center; padding:14px; }

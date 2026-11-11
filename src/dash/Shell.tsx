@@ -37,6 +37,7 @@ const GROUPS: NavGroup[] = [
       { page: "customize-profile", tab: "profile", label: "Profile", icon: "user" },
       { page: "layout", label: "Card", icon: "layout" },
       { page: "effects", label: "Effects", icon: "sparkles" },
+      { page: "music", label: "Music", icon: "music" },
     ],
   },
   {
@@ -77,6 +78,7 @@ const PAGE_GROUP: Partial<Record<Page, NavGroup["key"]>> = {
   "customize-profile": "customize",
   layout: "customize",
   effects: "customize",
+  music: "customize",
   links: "links",
   widgets: "links",
   assets: "community",

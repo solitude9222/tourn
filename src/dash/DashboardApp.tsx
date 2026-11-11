@@ -68,7 +68,6 @@ export type DashboardProps = {
 const PROFILE_TABS: TabDef[] = [
   { id: "profile", label: "Profile", icon: "user" },
   { id: "experience", label: "Entry screen", icon: "sparkles" },
-  { id: "integrations", label: "Music", icon: "link" },
   { id: "switches", label: "Extra", icon: "sliders" },
 ];
 
@@ -105,6 +104,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     icon: "layout",
     crumb: "Customize",
   },
+  music: { title: "Music", subtitle: "Your track, playback and player appearance.", icon: "music", crumb: "Customize" },
   effects: {
     title: "Effects",
     subtitle: "Background, overlay, text and cursor motion.",
@@ -452,6 +452,9 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "analytics":
       content = <AnalyticsPage />;
+      break;
+    case "music":
+      content = <CustomizeProfilePage tab="integrations" />;
       break;
     case "customize-profile":
       content = <CustomizeProfilePage tab={profileTab} />;

@@ -11,7 +11,7 @@ const groupFor = (kind: EffectKind, id: string) => {
   if (kind === "card") return "Light & borders";
   if (kind === "cursor" || kind === "trail") return "Pointer";
   if (["rain", "snow", "snowstorm", "leaf", "dust", "stars", "night"].includes(id)) return "Atmosphere";
-  if (["grain", "scanlines", "tv", "dither", "fuzzy", "chromatic"].includes(id)) return "Texture";
+  if (["dotted", "grain", "scanlines", "tv", "dither", "fuzzy", "chromatic"].includes(id)) return "Texture";
   return "Light & depth";
 };
 
@@ -21,7 +21,7 @@ function TilePreview({ option, kind }: { option: Option; kind: EffectKind }) {
   const base = { ...DEFAULT_PROFILE_ASSETS.effects.background, id: option.id as typeof DEFAULT_PROFILE_ASSETS.effects.background.id, color: "#ffffff", intensity: 45, params: defaultParamsFor(BACKGROUND_EFFECT_PARAM[option.id as keyof typeof BACKGROUND_EFFECT_PARAM] || null) };
   return <span className={`fx-tile-preview fx-preview-${option.id}`} {...events}>
     {kind === "background" && option.id !== "none" && !active ? <img className="fx-effect-poster" src={`/effect-previews/${option.id}.png`} alt="" loading="lazy" /> : null}
-    {kind === "overlay" && !["none", "custom"].includes(option.id) ? <span className="fx-overlay-subject" aria-hidden="true" /> : null}
+    {kind === "overlay" && !["none", "custom", "dotted"].includes(option.id) ? <span className="fx-overlay-subject" aria-hidden="true" /> : null}
     {kind === "overlay" && option.id === "custom" ? <span className="fx-upload-symbol" aria-hidden="true">+</span> : null}
     {(kind === "background" || kind === "overlay") && (active || kind === "overlay") ? kind === "overlay" ? <OverlayEffectLayer settings={{ ...DEFAULT_PROFILE_ASSETS.effects.overlay, ...base, id: option.id as OverlayEffectId, params: defaultParamsFor(OVERLAY_EFFECT_PARAM[option.id as OverlayEffectId]), opacity: .5 }} /> : <BackgroundEffectLayer settings={base} compact /> : null}
     {kind === "text" ? <EffectText text="Your name" settings={{ ...DEFAULT_TEXT_EFFECT, effect: option.id as typeof DEFAULT_TEXT_EFFECT.effect, colorA: "#fff", colorB: "#ffffff", params: defaultParamsFor(TEXT_EFFECT_PARAM[option.id as keyof typeof TEXT_EFFECT_PARAM]) }} /> : kind === "card" ? <span className="fx-mini-card"><span className={`pv-card-fx pv-card-fx--${option.id}`} /><b>Your name</b><small>@username</small></span> : (kind === "cursor" || kind === "trail") ? <span className={`fx-mini-cursor fx-mini-cursor--${option.id}`} /> : null}

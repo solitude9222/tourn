@@ -1,3 +1,4 @@
+import { useTilt } from "../lib/useTilt";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { hexToRgba, type About } from "../lib/about";
@@ -227,7 +228,8 @@ export function LinkerPreview({
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [popupOpen, setPopupOpen] = useState(true);
+  const sharedTilt = design.layout === "stacked" && design.stackTilt;
+  const stackMotion = useTilt(sharedTilt ? design.tilt : 0, Boolean(design.tiltInvert));
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -330,6 +332,7 @@ export function LinkerPreview({
       views={views}
       joined={joined}
       entryActive={entryOpen}
+      disableTilt={sharedTilt}
       hideAudio={hideAudio || audioPosition !== "inside"}
     >
       {includeWidgets && orderedWidgets.length ? widgetStack : null}
@@ -342,8 +345,7 @@ export function LinkerPreview({
   const hasTrack =
     !hideAudio && audioPosition !== "hidden" && about.assets.audio.style !== "none" && Boolean(about.assets.audio.fileUrl);
 
-  const page = (
-    <div className={`lkr-flow lkr-flow--${design.layout}`}>
+  const primaryCards = <>
       {profileCard(design.layout !== "stacked")}
       {design.layout === "stacked" && orderedWidgets.length ? <div className="lkr-stacked-widgets">{widgetStack}</div> : null}
       {audioPosition === "below" && hasTrack ? (
@@ -353,6 +355,10 @@ export function LinkerPreview({
           </div>
         </div>
       ) : null}
+  </>;
+  const page = (
+    <div className={`lkr-flow lkr-flow--${design.layout}`}>
+      {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
       {design.sections.map((section) => <section className={`lkr-custom-section lkr-section--${section.kind}`} key={section.id}>
         {section.title ? <h2>{section.title}</h2> : null}
         {section.image ? <img src={section.image} alt="" loading="lazy" /> : null}
@@ -382,10 +388,7 @@ export function LinkerPreview({
       </div>
       <BackgroundEffectLayer settings={assets.effects.background} />
       {page}
-      {hasTrack && audioPosition === "popup" ? <aside className={`lkr-popup-audio${popupOpen ? " is-open" : ""}`} aria-label="Popup audio player">
-        <button type="button" className="lkr-popup-toggle" aria-label={popupOpen ? "Minimise player" : "Open music player"} aria-expanded={popupOpen} aria-controls="popup-audio-content" onClick={() => setPopupOpen(!popupOpen)}>{popupOpen ? "−" : "♫"}<span>{popupOpen ? "Minimise player" : "Open music player"}</span></button>
-        <div id="popup-audio-content" hidden={!popupOpen}><AudioPlayer settings={{ ...assets.audio, style: "compact" }} enabled={!entryOpen} /></div>
-      </aside> : null}
+      {hasTrack && audioPosition === "popup" ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Popup audio player"><AudioPlayer settings={{ ...assets.audio, style: "popup" }} enabled={!entryOpen} /></aside> : null}
       {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       <ProfileCursor settings={assets.cursor} />

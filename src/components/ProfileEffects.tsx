@@ -115,7 +115,7 @@ export function BackgroundEffectLayer({
 export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettings }) {
   const opacity = Math.min(0.9, Math.max(0, settings.opacity));
   if (settings.id === "custom") return settings.imageUrl ? <span className="profile-overlay profile-overlay--custom" style={{ "--overlay-opacity": opacity, "--overlay-strength": settings.intensity / 100 } as CSSProperties}><img src={settings.imageUrl} alt="" /></span> : null;
-  if (["grain", "scanlines", "vignette", "bloom", "fog", "chromatic"].includes(settings.id)) {
+  if (["dotted", "grain", "scanlines", "vignette", "bloom", "fog", "chromatic"].includes(settings.id)) {
     return <span className={`profile-overlay profile-overlay--${settings.id}`} style={{ "--overlay-opacity": opacity, "--overlay-color": settings.color, "--overlay-speed": `${settings.speed}s`, "--overlay-strength": settings.intensity / 100 } as CSSProperties} aria-hidden="true" />;
   }
   return (

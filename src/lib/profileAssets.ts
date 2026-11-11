@@ -29,7 +29,7 @@ export type BackgroundEffectId =
   | "rain"
   | "dust"
   | "leaf";
-export type OverlayEffectId = BackgroundEffectId | "grain" | "scanlines" | "vignette" | "bloom" | "fog" | "chromatic" | "custom";
+export type OverlayEffectId = BackgroundEffectId | "dotted" | "grain" | "scanlines" | "vignette" | "bloom" | "fog" | "chromatic" | "custom";
 export type AudioStyle = "none" | "compact" | "lyrics" | "pill" | "popup";
 export type TextEffectId =
   | "none"
@@ -111,6 +111,7 @@ export const BACKGROUND_EFFECT_PARAM: Record<BackgroundEffectId, EffectParamSpec
 
 export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | null> = {
   ...BACKGROUND_EFFECT_PARAM, grain: null, scanlines: null, vignette: null, bloom: null, fog: null, chromatic: null, custom: null,
+  dotted: null,
 };
 
 export type DecorationSettings = {
@@ -157,6 +158,17 @@ export type BackgroundSettings = {
 };
 
 export type AudioSettings = {
+  volume: number;
+  startMuted: boolean;
+  loop: boolean;
+  playbackRate: number;
+  popupSide: "left" | "right";
+  popupSize: number;
+  popupColor: string;
+  popupBackground: string;
+  popupBarWidth: number;
+  popupOffset: number;
+  popupDuration: number;
   style: AudioStyle;
   /** Uploaded audio as a data URL — the only playback source. */
   fileUrl: string;
@@ -316,6 +328,8 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     opacity: 0.92,
   },
   audio: {
+    volume: .7, startMuted: false, loop: true, playbackRate: 1,
+    popupSide: "left", popupSize: 42, popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
     style: "none",
     fileUrl: "",
     coverUrl: "",
@@ -391,14 +405,8 @@ export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: s
 ];
 
 export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] = [
-  { id: "none", name: "None", hint: "A clear page" },
-  { id: "custom", name: "Custom image overlay", hint: "Your transparent image or animated GIF" },
-  { id: "grain", name: "Film grain", hint: "Fine animated film texture" },
-  { id: "scanlines", name: "Scanlines", hint: "Subtle CRT lines" },
-  { id: "vignette", name: "Vignette", hint: "Soft dark corners" },
-  { id: "bloom", name: "Soft bloom", hint: "A gentle coloured wash" },
-  { id: "fog", name: "Drifting fog", hint: "Slow, translucent haze" },
-  { id: "chromatic", name: "Chromatic edges", hint: "Coloured light at the edges" },
+  { id: "none", name: "None", hint: "No overlay" },
+  { id: "dotted", name: "Dotted", hint: "A subtle, even dot texture" },
 ];
 
 export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = [
@@ -500,6 +508,8 @@ function loadAudio(value: unknown): AudioSettings {
       AUDIO_STYLES.map((item) => item.id),
       DEFAULT_PROFILE_ASSETS.audio.style,
     ),
+    volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
+    popupSide: choiceIn(raw.popupSide, ["left", "right"], "left"), popupSize: numberIn(raw.popupSize, 42, 28, 64), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
     fileUrl: textIn(raw.fileUrl, DEFAULT_PROFILE_ASSETS.audio.fileUrl, 8_500_000),
     coverUrl: textIn(raw.coverUrl, "", 2_500_000),
     title: textIn(raw.title, DEFAULT_PROFILE_ASSETS.audio.title, 80),
@@ -628,7 +638,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       overlay: (() => {
         const id = choiceIn(
           overlay.id,
-          [...OVERLAY_EFFECTS.map((item) => item.id), ...BACKGROUND_EFFECTS.map((item) => item.id)],
+          OVERLAY_EFFECTS.map((item) => item.id),
           DEFAULT_PROFILE_ASSETS.effects.overlay.id,
         );
         return {

@@ -46,6 +46,7 @@ export function ProfilePreview({
   entryActive = false,
   /** Marketing previews (the home hero) show the card, not the player. */
   hideAudio = false,
+  disableTilt = false,
   children,
 }: {
   user: Pick<Account, "id" | "uid" | "username" | "avatarUrl">;
@@ -64,6 +65,7 @@ export function ProfilePreview({
   entryActive?: boolean;
   /** Hide the audio player entirely — used by the home page preview. */
   hideAudio?: boolean;
+  disableTilt?: boolean;
   children?: ReactNode;
 }) {
   const design = about.design;
@@ -83,8 +85,8 @@ export function ProfilePreview({
   // never show a tooltip; only these two do.
   const tooltips = design.tooltips ?? DEFAULT_ABOUT_DESIGN.tooltips;
   const uid = accountUid(user);
-  const tiltEnabled = (design.tilt ?? 0) > 0;
-  const tilt = useTilt(design.tilt ?? 0, Boolean(design.tiltInvert));
+  const tiltEnabled = !disableTilt && (design.tilt ?? 0) > 0;
+  const tilt = useTilt(disableTilt ? 0 : design.tilt ?? 0, Boolean(design.tiltInvert));
   const viewPosition = design.viewPosition ?? "top-right";
   // The join date is part of the identity now: display name, handle, then the
   // date. "footer" is still accepted from older saved profiles but reads the

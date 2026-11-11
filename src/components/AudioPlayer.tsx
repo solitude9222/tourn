@@ -93,6 +93,11 @@ export function AudioPlayer({
   // ── native <audio> playback ──────────────────────────────────────────
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(settings.volume);
+  const [muted, setMuted] = useState(settings.startMuted);
+  useEffect(() => { setVolume(settings.volume); }, [settings.volume]);
+  useEffect(() => { setMuted(settings.startMuted); }, [settings.startMuted]);
+  useEffect(() => { const el = audioRef.current; if (el) { el.volume = volume; el.muted = muted; el.playbackRate = settings.playbackRate; } }, [volume, muted, settings.playbackRate, settings.fileUrl, settings.style]);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const pillViewport = useRef<HTMLSpanElement>(null);
@@ -179,7 +184,7 @@ export function AudioPlayer({
   const togglePlay = () => {
     const el = audioRef.current;
     if (!el) return;
-    if (el.paused) void el.play();
+    if (el.paused) void el.play().catch(() => undefined);
     else el.pause();
   };
 
@@ -240,7 +245,8 @@ export function AudioPlayer({
     <audio
       ref={audioRef}
       src={settings.fileUrl}
-      preload="auto"
+      preload="metadata"
+      loop={settings.loop}
       onPlay={() => setPlaying(true)}
       onPause={() => setPlaying(false)}
       onEnded={() => setPlaying(false)}
@@ -257,6 +263,16 @@ export function AudioPlayer({
       <PlayIcon size={13} />
     </span>
   );
+
+  if (settings.style === "popup") {
+    return <div className="ap-popup" style={{ "--popup-size": `${settings.popupSize}px`, "--popup-color": settings.popupColor, "--popup-background": settings.popupBackground, "--popup-opacity": settings.cardOpacity, "--popup-bar-width": `${settings.popupBarWidth}px`, "--popup-duration": `${settings.popupDuration}ms`, "--popup-volume": `${volume * 100}%` } as CSSProperties}>
+      {audioEl}
+      <button className="ap-popup-icon" type="button" aria-label={!playing ? "Play music" : muted ? "Unmute music" : "Mute music"} onClick={() => { if (!playing) togglePlay(); else setMuted(!muted); }}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M9 18V5l11-2v13M9 9l11-2" /><ellipse cx="6" cy="18" rx="3" ry="2.5" /><ellipse cx="17" cy="16" rx="3" ry="2.5" />{muted || volume === 0 ? <path d="M3 3l18 18" /> : null}</svg>
+      </button>
+      <div className="ap-popup-reveal"><div className="ap-popup-volume"><input aria-label="Music volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => { setVolume(Number(event.target.value)); if (Number(event.target.value) > 0) setMuted(false); }} /></div></div>
+    </div>;
+  }
 
   if (settings.style === "pill") {
     const durationSeconds = Math.min(26, Math.max(8, pillOverflow / 16));
