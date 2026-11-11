@@ -63,10 +63,12 @@ export function EntryOverlay({
   // Nothing is invented here — no default greeting, no "click to enter" copy.
   // Whatever the owner typed is the whole entry screen.
   const title = entry.title.trim();
+  const backgroundImage =
+    entry.imageMode === "background" ? entry.imageUrl || entry.backgroundImageUrl : entry.backgroundImageUrl;
 
   const content = (
     <>
-      {entry.imageUrl ? (
+      {entry.imageUrl && entry.imageMode !== "background" ? (
         <div className="lkr-entry-visual">
           {entry.animation === "split" ? (
             <span className="lkr-image-split">
@@ -111,9 +113,9 @@ export function EntryOverlay({
 
   return (
     <div
-      className={`lkr-entry lkr-entry--${entry.animation} lkr-entry--${entry.align}${leaving ? " is-leaving" : ""}${
-        preview ? " lkr-entry--preview" : ""
-      }`}
+      className={`lkr-entry lkr-entry--${entry.animation} lkr-entry--${entry.align}${
+        entry.imageMode === "background" && entry.imageUrl ? " lkr-entry--image-bg" : ""
+      }${leaving ? " is-leaving" : ""}${preview ? " lkr-entry--preview" : ""}`}
       data-layers={(entry.layers ?? ["text", "image", "background"]).join(" ")}
       role={preview ? undefined : "button"}
       tabIndex={preview ? -1 : 0}
@@ -156,11 +158,11 @@ export function EntryOverlay({
       } as CSSProperties}
     >
       <div className="lkr-entry-bg" aria-hidden="true">
-        {entry.backgroundImageUrl ? (
+        {backgroundImage ? (
           <span
             className="lkr-entry-bg-image"
             style={{
-              backgroundImage: `url("${entry.backgroundImageUrl.replace(/"/g, '\\"')}")`,
+              backgroundImage: `url("${backgroundImage.replace(/"/g, '\\"')}")`,
             }}
           />
         ) : null}
@@ -402,11 +404,74 @@ export function LinkerPreview({
   for(const section of design.sections){const last=groupedSections[groupedSections.length-1];if(last && section.kind!=="text" && last[0].kind===section.kind)last.push(section);else groupedSections.push([section]);}
   const skills=(design.skills||[]).flatMap(id=>{const item=TECH_BY_ID.get(id);return item?[item]:[];});
   const skillPills=skills.length?<section className="lkr-skills-section"><h2>Skills</h2><div className="lkr-tech-row">{skills.map(item=><span key={item.id} className="lkr-tech"><img src={techIconUrl(item)} alt=""/>{item.name}</span>)}</div></section>:null;
-  const firstText=groupedSections.findIndex(group=>group[0].kind==="text");
-  const sectionContent=design.sectionsEnabled ? <>{firstText<0&&skillPills?<div className={design.slideshow?"lkr-slide":""}>{skillPills}</div>:null}{groupedSections.map((group,index)=><div key={group[0].id} className={design.slideshow?"lkr-slide":""}><ProfileSections sections={group}/>{index===firstText?skillPills:null}</div>)}</>:null;
+  const firstText = groupedSections.findIndex((group) => group[0].kind === "text");
+  const sectionsVisible = design.sectionsEnabled === true;
+  const hasSkills = skills.length > 0;
+  const slideshowActive = Boolean(design.slideshow && (hasSkills || (sectionsVisible && groupedSections.length > 0)));
+  const skillWrap = skillPills ? <div className={`lkr-skills-wrap${slideshowActive ? " lkr-slide" : ""}`}>{skillPills}</div> : null;
+  const sectionContent = sectionsVisible || skillPills ? (
+    <>
+      {sectionsVisible ? null : skillWrap}
+      {sectionsVisible && firstText < 0 ? skillWrap : null}
+      {sectionsVisible
+        ? groupedSections.map((group, index) => (
+            <div key={group[0].id} className={slideshowActive ? "lkr-slide" : ""}>
+              <ProfileSections sections={group} />
+              {index === firstText ? skillPills : null}
+            </div>
+          ))
+        : null}
+    </>
+  ) : null;
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [slideCount, setSlideCount] = useState(0);
+  useEffect(() => {
+    const flow = slidesRef.current;
+    if (!flow || !slideshowActive) {
+      setSlideCount(0);
+      setSlideIndex(0);
+      return;
+    }
+    let frame = 0;
+    const sync = () => {
+      const slides = Array.from(flow.querySelectorAll<HTMLElement>(":scope > .lkr-slide"));
+      setSlideCount(slides.length);
+      let active = 0;
+      let nearest = Number.POSITIVE_INFINITY;
+      slides.forEach((slide, index) => {
+        const distance = Math.abs(slide.offsetTop - flow.offsetTop - flow.scrollTop);
+        if (distance < nearest) {
+          nearest = distance;
+          active = index;
+        }
+      });
+      setSlideIndex(active);
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(sync);
+    };
+    sync();
+    const settle = window.setTimeout(sync, 140);
+    flow.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", sync);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
+      flow.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", sync);
+    };
+  }, [slideshowActive, design.sectionsEnabled, design.sections.length, design.skills?.length]);
+  const goToSlide = (index: number) => {
+    const flow = slidesRef.current;
+    if (!flow) return;
+    const slides = Array.from(flow.querySelectorAll<HTMLElement>(":scope > .lkr-slide"));
+    const target = slides[index];
+    if (target) flow.scrollTo({ top: target.offsetTop - flow.offsetTop, behavior: "smooth" });
+  };
   const page = (
-    <div ref={slidesRef} className={`lkr-flow lkr-flow--${design.layout}${design.sectionsEnabled&&design.slideshow?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!design.slideshow || !design.sectionsEnabled || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType="";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType="";}}>
-      <div className={`${design.sectionsEnabled&&design.slideshow?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}${design.layout==="left"&&!hasSide?" lkr-primary--left--empty":""}`}>
+    <div ref={slidesRef} className={`lkr-flow lkr-flow--${design.layout}${slideshowActive?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!slideshowActive || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType="";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType="";}}>
+      <div className={`${slideshowActive?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}${design.layout==="left"&&!hasSide?" lkr-primary--left--empty":""}`}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
       </div>
       {sectionContent}
@@ -433,6 +498,20 @@ export function LinkerPreview({
       </div>
       <BackgroundEffectLayer settings={assets.effects.background} />
       {page}
+      {slideshowActive && slideCount > 1 ? (
+        <nav className="lkr-slide-dots" aria-label="Slideshow pages">
+          {Array.from({ length: slideCount }, (_, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`lkr-slide-dot${index === slideIndex ? " is-active" : ""}`}
+              aria-label={`Go to slide ${index + 1} of ${slideCount}`}
+              aria-current={index === slideIndex ? "true" : undefined}
+              onClick={() => goToSlide(index)}
+            />
+          ))}
+        </nav>
+      ) : null}
       {hasTrack && audioPosition === "popup" ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Popup audio player"><AudioPlayer settings={{ ...assets.audio, style: "popup" }} enabled={!entryOpen} /></aside> : null}
       {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />

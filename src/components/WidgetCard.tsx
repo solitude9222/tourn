@@ -19,7 +19,7 @@ import { STATUS_COLORS } from "../lib/hooks";
 import { discordProfileBadges, discordBadges, isDiscordUserId, type DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
 import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
-import { DiscordBadgeIcon, SettingsIcon, TrashIcon } from "./Icons";
+import { ArrowUpRight, DiscordBadgeIcon, SettingsIcon, TrashIcon } from "./Icons";
 import { Tooltip } from "./Tooltip";
 import "../widgets.css";
 
@@ -239,6 +239,18 @@ function WidgetCardSurface({
       </span>
 
       {live?.presenceNotice ? <p className="widget-card-presence-notice">{live.presenceNotice}</p> : null}
+      {profileHref && !preview ? (
+        <a
+          className="widget-card-popout"
+          href={profileHref}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label={`Open ${platform.name} in a new tab`}
+          title={`Open ${platform.name}`}
+        >
+          <ArrowUpRight size={13} />
+        </a>
+      ) : null}
       {onConfigure || onRemove ? (
         <span className="widget-card-actions">
           {onConfigure ? (

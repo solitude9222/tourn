@@ -74,7 +74,8 @@ export type AboutMetadata = {
   interval: number;
 };
 
-export type EntryAnimation = "split" | "bottom-right" | "top-left" | "fade" | "zoom";
+export type EntryAnimation = "split" | "bottom-right" | "top-left" | "fade" | "zoom" | "blur" | "rise" | "wipe";
+export type EntryImageMode = "inline" | "background";
 export type EntryLayer = "text" | "image" | "background";
 
 export type EntrySettings = {
@@ -90,6 +91,8 @@ export type EntrySettings = {
   background: string;
   /** Optional photo behind the entry content, over the solid colour. */
   backgroundImageUrl: string;
+  /** Inline keeps the small image; background makes the entry image full-bleed. */
+  imageMode: EntryImageMode;
   /** 0–100 darkening over the backdrop so light text always reads. */
   dim: number;
   /** 0–100 corner darkening over the whole screen. */
@@ -299,6 +302,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
   blur: 8,
   background: "#07070a",
   backgroundImageUrl: "",
+  imageMode: "background",
   dim: 45,
   vignette: 0,
   titleSize: 22,
@@ -392,6 +396,9 @@ export const ENTRY_ANIMATIONS: { id: EntryAnimation; name: string }[] = [
   { id: "top-left", name: "From top left" },
   { id: "fade", name: "Fade in" },
   { id: "zoom", name: "Zoom in" },
+  { id: "blur", name: "Blur away" },
+  { id: "rise", name: "Rise up" },
+  { id: "wipe", name: "Wipe up" },
 ];
 
 function numberIn(value: unknown, fallback: number, min: number, max: number): number {
@@ -506,6 +513,7 @@ function loadEntry(input: unknown): EntrySettings {
     blur: numberIn(raw.blur, DEFAULT_ENTRY.blur, 0, 40),
     background: validColor(raw.background, DEFAULT_ENTRY.background),
     backgroundImageUrl: textIn(raw.backgroundImageUrl, DEFAULT_ENTRY.backgroundImageUrl, 2_500_000),
+    imageMode: raw.imageMode === "background" ? "background" : "inline",
     dim: numberIn(raw.dim, DEFAULT_ENTRY.dim, 0, 100),
     vignette: numberIn(raw.vignette, DEFAULT_ENTRY.vignette, 0, 100),
     titleSize: numberIn(raw.titleSize, DEFAULT_ENTRY.titleSize, 12, 96),

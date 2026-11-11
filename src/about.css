@@ -1303,12 +1303,6 @@
   display: block;
 }
 
-.pv-link-icons.is-glow .pv-link-icon {
-  filter: drop-shadow(
-    0 0 calc(3px + var(--lnk-glow-strength, 0.45) * 14px) var(--lnk-glow, #b4bffa)
-  );
-}
-
 .pv-link-icon.is-copied {
   color: var(--lnk-glow, #b4bffa);
   filter: drop-shadow(0 0 6px var(--lnk-glow, #b4bffa));
@@ -1713,6 +1707,36 @@
 .lkr-entry--zoom[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
 .lkr-entry--zoom[data-layers~="image"].is-leaving .lkr-entry-visual {
   animation-name: lkrEntryOutZoom;
+}
+
+.lkr-entry--blur[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--blur[data-layers~="image"].is-leaving .lkr-entry-visual {
+  animation-name: lkrEntryOutBlur;
+}
+
+.lkr-entry--rise[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--rise[data-layers~="image"].is-leaving .lkr-entry-visual {
+  animation-name: lkrEntryOutRise;
+}
+
+.lkr-entry--wipe[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--wipe[data-layers~="image"].is-leaving .lkr-entry-visual {
+  animation-name: lkrEntryOutWipe;
+}
+
+@keyframes lkrEntryOutBlur {
+  from { opacity: 1; filter: blur(0); transform: scale(1); }
+  to { opacity: 0; filter: blur(18px); transform: scale(1.08); }
+}
+
+@keyframes lkrEntryOutRise {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-38px); }
+}
+
+@keyframes lkrEntryOutWipe {
+  from { clip-path: inset(0 0 0 0); opacity: 1; }
+  to { clip-path: inset(0 0 100% 0); opacity: 0; }
 }
 
 .lkr-entry--split[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
@@ -4734,13 +4758,10 @@
   margin-top: calc(7px * var(--pv-scale, 1));
 }
 
-/* Social icons: the reference draws them large, coloured and glowing. */
-.profile-preview .pv-links-block .pv-link-icon {
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--lnk-brand, #ffffff) 45%, transparent));
-}
-
+/* The glow colour is owned by the row's halo, not by the brand colour. Keeping
+   a brand-tinted drop-shadow here made every custom glow still look branded. */
 .profile-preview .pv-links-block .pv-link-icon:hover {
-  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--lnk-brand, #ffffff) 70%, transparent)) brightness(1.15);
+  filter: brightness(1.15);
   transform: translateY(-2px);
 }
 
@@ -4930,12 +4951,19 @@
 @keyframes fxLinerShift {to{background-position:220% 0;}}
 .fx-sparkles i {border-radius:0;clip-path:polygon(50% 0,60% 39%,100% 50%,60% 61%,50% 100%,40% 61%,0 50%,40% 39%);background:var(--fx-color-b,var(--fx-color-a));filter:drop-shadow(0 0 2px var(--fx-color-b,var(--fx-color-a)));}
 .entry-divider {background:linear-gradient(90deg,transparent,var(--entry-divider-color,#fff),transparent);border:0;}
-.lkr-slideshow {height:100dvh;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scroll-behavior:smooth;touch-action:pan-y;scrollbar-width:thin;}
-.lkr-page .lkr-flow.lkr-flow--slideshow {padding-block:0;}
-.lkr-slide {scroll-snap-align:start;scroll-snap-stop:normal;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;width:100%;padding-block:48px;}
-.lkr-slide>.lkr-sections{width:100%;}
+.lkr-slideshow {height:100dvh;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scroll-behavior:smooth;touch-action:pan-y;scrollbar-width:none;-ms-overflow-style:none;}
+.lkr-slideshow::-webkit-scrollbar {display:none;}
+.lkr-page .lkr-flow.lkr-flow--slideshow {width:100%;max-width:100%;padding-block:0;padding-inline:clamp(20px,5vw,72px);}
+.lkr-slide {scroll-snap-align:start;scroll-snap-stop:always;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;width:100%;padding-block:48px;}
+.lkr-slide>.lkr-sections{width:min(100%,1120px);margin-inline:auto;}
+.lkr-skills-wrap {display:flex;justify-content:center;width:100%;}
+.lkr-skills-wrap>.lkr-skills-section {width:min(100%,1000px);margin-top:0;}
+.lkr-slide-dots {position:absolute;top:50%;right:clamp(12px,2.2vw,26px);z-index:8;display:flex;flex-direction:column;align-items:center;gap:9px;padding:12px 9px;border:1px solid color-mix(in srgb,var(--pv-text,#fff) 14%,transparent);border-radius:999px;background:color-mix(in srgb,var(--pv-card,#101116) 74%,transparent);backdrop-filter:blur(14px);transform:translateY(-50%);}
+.lkr-slide-dot {width:7px;height:7px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--pv-text,#fff) 32%,transparent);cursor:pointer;transition:background .18s ease,box-shadow .18s ease,transform .18s ease;}
+.lkr-slide-dot:hover {background:color-mix(in srgb,var(--pv-text,#fff) 66%,transparent);}
+.lkr-slide-dot.is-active {background:var(--pv-accent,#b4bffa);box-shadow:0 0 0 3px color-mix(in srgb,var(--pv-accent,#b4bffa) 24%,transparent);transform:scale(1.25);}
 .lkr-skills-section h2 {font-size:18px;margin-bottom:16px;}
-.lkr-skills-section {padding:24px;background:var(--pv-card);border:1px solid var(--pv-border-color);border-radius:var(--pv-radius);}
+.lkr-skills-section {padding:24px;background:var(--pv-card);border:1px solid var(--pv-border-color);border-radius:var(--pv-radius);margin-top:24px;}
 .lkr-page:not([data-interactive]) .lkr-slideshow {max-height:850px;}
 @media(prefers-reduced-motion:reduce){.lkr-slideshow{scroll-behavior:auto;}.fx-text--aurora,.fx-text--metallic{animation-duration:12s;}}
 
@@ -5007,27 +5035,45 @@
    so the glow colour never has to match the platform/brand colour. */
 .pv-link-icons.is-glow .pv-link-icon {
   position: relative;
+  isolation: isolate;
 }
 
 .pv-link-icons.is-glow .pv-link-icon::before {
   content: "";
   position: absolute;
-  inset: calc(-4px - var(--lnk-glow-strength, 0.45) * 8px);
+  inset: calc(-8px - var(--lnk-glow-strength, 0.45) * 14px);
   z-index: 0;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--lnk-glow, #b4bffa) 82%, transparent),
-    transparent 68%
+    var(--lnk-glow, #b4bffa) 0%,
+    color-mix(in srgb, var(--lnk-glow, #b4bffa) 62%, transparent) 40%,
+    transparent 72%
   );
-  opacity: calc(0.25 + var(--lnk-glow-strength, 0.45) * 0.75);
-  filter: blur(calc(2px + var(--lnk-glow-strength, 0.45) * 9px));
+  opacity: calc(0.35 + var(--lnk-glow-strength, 0.45) * 0.65);
+  filter: blur(calc(3px + var(--lnk-glow-strength, 0.45) * 10px));
   pointer-events: none;
 }
 
-.pv-link-icons.is-glow .pv-link-icon svg {
+.pv-link-icons.is-glow .pv-link-icon::after {
+  content: "";
+  position: absolute;
+  inset: 14%;
+  z-index: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 calc(7px + var(--lnk-glow-strength, 0.45) * 12px) var(--lnk-glow, #b4bffa);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.pv-link-icons.is-glow .pv-link-icon > * {
   position: relative;
   z-index: 1;
+}
+
+@media (max-width: 720px) {
+  .lkr-slide-dots {right:10px;gap:8px;padding:10px 8px;}
+  .lkr-slide-dot {width:6px;height:6px;}
 }
 .lkr-page .lkr-flow--slideshow {gap:0;}
 

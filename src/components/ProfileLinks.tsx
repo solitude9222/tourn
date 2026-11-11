@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from "react";
-import { linkHref, type LinkDesign, type LinkInstance, type TooltipStyle } from "../lib/links";
+import { linkHref, linkIconUrl, type LinkDesign, type LinkInstance, type TooltipStyle } from "../lib/links";
 import { getPlatform } from "../lib/linkPlatforms";
 import { LinkGlyph } from "./LinkGlyph";
 import { LinkIcon } from "./Icons";
@@ -56,12 +56,13 @@ export function ProfileLinks({
         const platform = getPlatform(link.platform);
         const href = linkHref(link.url);
         const label = link.label || platform?.name || "Link";
-        const brand = link.iconUrl ? undefined : platform?.color;
+        const iconUrl = linkIconUrl(link);
+        const brand = platform?.color;
 
         const icon = (
           <LinkGlyph
             platformId={link.platform}
-            iconUrl={link.iconUrl}
+            iconUrl={iconUrl}
             size={iconPx}
             brandIcon={platform?.Icon ?? LinkIcon}
           />

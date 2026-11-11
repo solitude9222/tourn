@@ -73,6 +73,32 @@ export function linkHref(input: string): string {
   return "";
 }
 
+/** Platform types whose URL is arbitrary and should show the site's favicon. */
+const FAVICON_PLATFORMS = new Set(["website", "custom", "product"]);
+
+/**
+ * Resolve a real website URL to a 64px favicon. This runs in the browser and
+ * only builds an image URL; the browser performs the fetch. Non-web URLs (an
+ * email address, a wallet handle) deliberately return no favicon.
+ */
+export function faviconUrlFor(input: string): string {
+  const href = linkHref(input);
+  if (!/^https?:\/\//i.test(href)) return "";
+  try {
+    const host = new URL(href).hostname.replace(/^www\./i, "");
+    if (!host || !host.includes(".")) return "";
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+  } catch {
+    return "";
+  }
+}
+
+/** The image to render for a link, or "" when its brand mark should be used. */
+export function linkIconUrl(link: Pick<LinkInstance, "platform" | "url" | "iconUrl">): string {
+  if (link.iconUrl.trim()) return link.iconUrl;
+  return FAVICON_PLATFORMS.has(link.platform.trim().toLowerCase()) ? faviconUrlFor(link.url) : "";
+}
+
 export function createLink(platformId: string): LinkInstance {
   const platform = getPlatform(platformId);
   const id =

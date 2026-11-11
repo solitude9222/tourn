@@ -8,8 +8,8 @@
    --------------------------------------------------------------------------- */
 
 import { useMemo, useState } from "react";
-import { BADGE_ANIMATIONS, BADGE_CATALOGUE, badgeDef, type BadgeDef, type BadgeGroup } from "../../lib/badges";
-import { BadgeChip } from "../../components/BadgeRow";
+import { BADGE_ANIMATIONS, BADGE_CATALOGUE, BADGE_ROW_PRESETS, badgeDef, type BadgeDef, type BadgeGroup } from "../../lib/badges";
+import { BadgeChip, BadgeRow } from "../../components/BadgeRow";
 import { useDash } from "../context";
 import { Button, Card, CardHead, Chip, ColorField, EmptyState, Field, Icon, IconButton, Modal, Select, Slider, Toggle } from "../ui";
 import "../badgeStudio.css";
@@ -64,6 +64,13 @@ export function BadgesPage() {
   const updateStyle = (patch: Partial<typeof style>) =>
     setBadges((current) => ({ ...current, style: { ...current.style, ...patch } }));
   const previewBadge = equipped[0]?.instance ?? { id: "premium", visible: true };
+  const previewBadges = equipped.length
+    ? equipped.map((entry) => ({ ...entry.instance, visible: true }))
+    : [
+        { id: "premium", visible: true },
+        { id: "verified", visible: true },
+        { id: "dc_indiscord", visible: true },
+      ];
 
   const earnedSet = useMemo(() => new Set(earned), [earned]);
   const shownSet = useMemo(() => new Set(badges.equipped.map((entry) => entry.id)), [badges.equipped]);
@@ -174,6 +181,23 @@ export function BadgesPage() {
           <div className="tw-badge-row-copy">
             <span className="tw-subhead">Badge row</span>
             <small>Style the little shelf that holds every badge.</small>
+          </div>
+          <div className="tw-badge-pill-preview">
+            <BadgeRow badges={previewBadges} style={style} size={style.size} tooltipEnabled={false} />
+            <small>Live shelf preview</small>
+          </div>
+          <div className="tw-badge-row-presets" role="group" aria-label="Badge row presets">
+            {BADGE_ROW_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className="tw-badge-row-preset"
+                title={preset.hint}
+                onClick={() => updateStyle(preset.style)}
+              >
+                {preset.name}
+              </button>
+            ))}
           </div>
           <div className="tw-form-grid">
             <ColorField label="Shelf colour" value={style.rowBackground} onChange={(rowBackground) => updateStyle({ rowBackground })} />

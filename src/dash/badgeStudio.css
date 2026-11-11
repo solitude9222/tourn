@@ -150,6 +150,48 @@
   margin-top: 12px;
 }
 
+.tw-badge-pill-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: #08080a;
+}
+
+.tw-badge-pill-preview small {
+  color: var(--sub);
+  font-size: 10px;
+}
+
+.tw-badge-row-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tw-badge-row-preset {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #101116;
+  color: #c8d0d8;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.tw-badge-row-preset:hover {
+  border-color: color-mix(in srgb, var(--accent, #a8e0ff) 42%, transparent);
+  background: color-mix(in srgb, var(--accent, #a8e0ff) 12%, #101116);
+  color: #eaf6ff;
+}
+
 @media (max-width: 700px) {
   .tw-badge-style-grid {
     grid-template-columns: minmax(0, 1fr);

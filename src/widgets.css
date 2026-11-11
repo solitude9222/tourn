@@ -1010,6 +1010,42 @@
   min-height: 0;
 }
 
+.widget-card-popout {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 4;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(8, 9, 11, 0.72);
+  color: #c8d2da;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(3px);
+  backdrop-filter: blur(10px);
+  transition: opacity 0.16s ease, transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.widget-card:hover .widget-card-popout,
+.widget-card:focus-within .widget-card-popout {
+  opacity: 1;
+  transform: none;
+}
+
+.widget-card-popout:hover {
+  border-color: rgba(143, 216, 255, 0.3);
+  background: rgba(143, 216, 255, 0.14);
+  color: #eaf9ff;
+}
+
+.widget-card:has(.widget-card-popout) .widget-card-bottom {
+  padding-right: 28px;
+}
+
 .widget-card-actions {
   position: absolute;
   top: 8px;
@@ -1075,6 +1111,11 @@
 }
 
 @media (max-width: 680px) {
+  .widget-card-popout {
+    opacity: 1;
+    transform: none;
+  }
+
   .wg-backgrounds-head {
     display: grid;
     gap: 4px;

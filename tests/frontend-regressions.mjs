@@ -315,6 +315,15 @@ await page.evaluate(()=>document.getElementById('qa-anchor').style.display='none
 await page.getByRole('tooltip').waitFor({state:'detached',timeout:2000});
 await page.evaluate(()=>{window.qaRoot.unmount();document.getElementById('tooltip-test').remove();});
 console.log('PASS tooltip detached anchor cleanup');
+// Website/custom links resolve a real site favicon, while known platforms keep
+// their brand mark. This is a URL-only check; no network request is required.
+const favicons=await page.evaluate(async()=>{const {faviconUrlFor,linkIconUrl}=await import('/src/lib/links.ts');return {website:faviconUrlFor('https://www.example.com/path?q=1'),bare:faviconUrlFor('github.com/owner'),email:faviconUrlFor('me@example.com'),custom:linkIconUrl({platform:'custom',url:'https://tourn.lol',iconUrl:''}),brand:linkIconUrl({platform:'github',url:'https://github.com',iconUrl:''})};});
+assert(favicons.website.includes('domain=example.com')&&favicons.website.includes('sz=64'),JSON.stringify(favicons));
+assert(favicons.bare.includes('domain=github.com'),JSON.stringify(favicons));
+assert.equal(favicons.email,'');
+assert(favicons.custom.includes('domain=tourn.lol'),JSON.stringify(favicons));
+assert.equal(favicons.brand,'');
+console.log('PASS custom website links resolve favicons and brand links stay branded');
 // Draw work remains bounded and paused canvases preserve their identity.
 const effects=await page.evaluate(async()=>{
  const {mountBgEffect}=await import('/src/lib/bgEffects.ts');
@@ -376,6 +385,13 @@ for(const destination of ['badges','affiliates','customize-profile/profile','cus
 }
 assert.deepEqual(errors,[],'Errors while opening dashboard pages');
 console.log('PASS dashboard destinations and profile tabs');
+// The badge studio previews the real shelf, and a preset updates that preview.
+await page.evaluate(()=>location.hash='#/dashboard/badges');
+await page.locator('.tw-badge-pill-preview .badge-row').waitFor();
+assert((await page.locator('.tw-badge-pill-preview .badge-row .badge-chip').count())>0,'Badge shelf preview is empty');
+await page.locator('.tw-badge-row-preset').filter({hasText:'Solid'}).click();
+assert.equal(await page.locator('.tw-badge-pill-preview .badge-row').evaluate(el=>getComputedStyle(el).getPropertyValue('--badge-row-radius').trim()),'14px','Badge row preset did not update the preview');
+console.log('PASS badge shelf preview and preset styles');
 await page.evaluate(()=>location.hash='#/dashboard/customize-profile/experience');
 await page.locator('.tw-dash').waitFor();
 await page.waitForTimeout(250);

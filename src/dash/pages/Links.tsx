@@ -7,7 +7,7 @@ import {SkillPicker} from "../SkillPicker";
    --------------------------------------------------------------------------- */
 
 import { useState } from "react";
-import { ICON_SIZES, createLink, type LinkInstance } from "../../lib/links";
+import { ICON_SIZES, createLink, linkIconUrl, type LinkInstance } from "../../lib/links";
 import { PLATFORMS, getPlatform, placeholderFor } from "../../lib/linkPlatforms";
 import { PlatformIcon } from "../../components/PlatformIcons";
 import { LinkGlyph } from "../../components/LinkGlyph";
@@ -68,7 +68,7 @@ export function LinksPage() {
 
   return (
     <>
-      {about.design.sectionsEnabled ? <Card><CardHead icon="layers" title="Skills" subtitle="Each skill appears as its own pill in your profile sections."/><SkillPicker value={about.design.skills || []} onChange={skills=>setAbout(current=>({...current,design:{...current.design,skills}}))}/></Card>:null}
+      <Card><CardHead icon="layers" title="Skills" subtitle="Each skill appears as its own pill below your profile, even when sections are off."/><SkillPicker value={about.design.skills || []} onChange={skills=>setAbout(current=>({...current,design:{...current.design,skills}}))}/></Card>
       <Card>
         <CardHead
           icon="link"
@@ -108,7 +108,7 @@ export function LinksPage() {
                   <span className="tw-link-platform">
                     <LinkGlyph
                       platformId={link.platform}
-                      iconUrl={link.iconUrl}
+                      iconUrl={linkIconUrl(link)}
                       size={18}
                       brandIcon={getPlatform(link.platform)?.Icon}
                     />

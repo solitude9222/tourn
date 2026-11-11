@@ -92,6 +92,87 @@ export const EMPTY_BADGE_STORE: BadgeStore = {
   style: { ...DEFAULT_BADGE_STYLE },
 };
 
+/** One-click finishes for the badge shelf, applied on top of the live style. */
+export type BadgeRowPreset = {
+  id: string;
+  name: string;
+  hint: string;
+  style: Pick<
+    BadgeStyle,
+    | "rowBackground"
+    | "rowOpacity"
+    | "rowBorderColor"
+    | "rowBorderOpacity"
+    | "rowRadius"
+    | "rowBlur"
+    | "rowPadding"
+    | "rowGap"
+  >;
+};
+
+export const BADGE_ROW_PRESETS: BadgeRowPreset[] = [
+  {
+    id: "glass",
+    name: "Glass",
+    hint: "Soft translucent shelf",
+    style: {
+      rowBackground: "#ffffff",
+      rowOpacity: 0.07,
+      rowBorderColor: "#ffffff",
+      rowBorderOpacity: 0.12,
+      rowRadius: 999,
+      rowBlur: 6,
+      rowPadding: 7,
+      rowGap: 6,
+    },
+  },
+  {
+    id: "solid",
+    name: "Solid",
+    hint: "Dark rounded panel",
+    style: {
+      rowBackground: "#0b0d10",
+      rowOpacity: 0.82,
+      rowBorderColor: "#ffffff",
+      rowBorderOpacity: 0.08,
+      rowRadius: 14,
+      rowBlur: 0,
+      rowPadding: 8,
+      rowGap: 6,
+    },
+  },
+  {
+    id: "outline",
+    name: "Outline",
+    hint: "Border only, no fill",
+    style: {
+      rowBackground: "#ffffff",
+      rowOpacity: 0,
+      rowBorderColor: "#ffffff",
+      rowBorderOpacity: 0.28,
+      rowRadius: 999,
+      rowBlur: 0,
+      rowPadding: 8,
+      rowGap: 6,
+    },
+  },
+  {
+    id: "bare",
+    name: "Bare",
+    hint: "No shelf at all",
+    style: {
+      rowBackground: "#000000",
+      rowOpacity: 0,
+      rowBorderColor: "#000000",
+      rowBorderOpacity: 0,
+      rowRadius: 0,
+      rowBlur: 0,
+      rowPadding: 0,
+      rowGap: 4,
+    },
+  },
+];
+
 export const BADGE_ANIMATIONS: { id: BadgeAnimationStyle; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "Static" },
   { id: "pulse", name: "Pulse", hint: "Gentle breathing scale" },

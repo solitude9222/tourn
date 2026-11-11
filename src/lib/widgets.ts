@@ -40,6 +40,17 @@ export function widgetProfileUrl(platformId: string, content: string): string | 
   const enc = (value: string) => encodeURIComponent(value);
 
   switch (platformId) {
+    case "discord": {
+      const invite = raw.match(/(?:discord\.gg|discord\.com\/invite)\/([a-z0-9-]+)/i);
+      if (invite) return `https://discord.gg/${enc(invite[1])}`;
+      return /^\d{17,20}$/.test(handle) ? `https://discord.com/users/${handle}` : null;
+    }
+    case "discordbot":
+      return /^\d{17,20}$/.test(handle) ? `https://discord.com/users/${handle}` : null;
+    case "spotify": {
+      if (/^https?:\/\/open\.spotify\.com\//i.test(raw)) return raw;
+      return /^[a-z0-9._-]+$/i.test(handle) ? `https://open.spotify.com/user/${enc(handle)}` : null;
+    }
     case "roblox":
       return /^\d+$/.test(handle) ? `https://www.roblox.com/users/${handle}/profile` : null;
     case "github":

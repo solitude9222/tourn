@@ -10,40 +10,9 @@ import { createProfileSection, type AboutLayout, type JoinPosition, type Profile
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
+import { PositionStudio } from "../PositionStudio";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
-
-const DETAIL_POSITIONS = [
-  { value: "under-name", label: "Under your name" },
-  { value: "next-to-name", label: "Next to your name" },
-  { value: "next-to-handle", label: "Next to your username" },
-  { value: "beside-avatar", label: "Beside your avatar" },
-  { value: "above-name", label: "Above your name" },
-  { value: "below-bio", label: "Below your bio" },
-  { value: "top", label: "Top of the card" },
-  { value: "top-right", label: "Top right of the card" },
-  { value: "inside-top-left", label: "Inside card · top left" },
-  { value: "inside-top-right", label: "Inside card · top right" },
-  { value: "inside-bottom-left", label: "Inside card · bottom left" },
-  { value: "inside-bottom-right", label: "Inside card · bottom right" },
-  { value: "outside-top-left", label: "Outside card · top left" },
-  { value: "outside-top-right", label: "Outside card · top right" },
-  { value: "outside-bottom-left", label: "Outside card · bottom left" },
-  { value: "outside-bottom-right", label: "Outside card · bottom right" },
-  { value: "outside-above", label: "Outside card · above centre" },
-  { value: "outside-below", label: "Outside card · below centre" },
-  { value: "outside-left", label: "Outside card · left centre" },
-  { value: "outside-right", label: "Outside card · right centre" },
-  { value: "footer", label: "Card footer" },
-  { value: "side", label: "Beside card (Left layout)" },
-  { value: "hidden", label: "Hidden" },
-];
-
-const VIEW_OPTIONS = DETAIL_POSITIONS;
-const LOCATION_OPTIONS = DETAIL_POSITIONS;
-const JOIN_OPTIONS = DETAIL_POSITIONS;
-
-const AUDIO_OPTIONS = [{ value: "bottom", label: "Screen bottom (fixed)" }];
 
 const SECTION_KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
   { id: "text", label: "Text", hint: "Title and paragraph" },
@@ -196,36 +165,14 @@ export function LayoutPage() {
           subtitle="Place your profile details and audio player."
         />
 
-        <div className="tw-form-grid">
-          <Field label="Profile views">
-            <Select
-              icon="eye"
-              value={design.viewPosition}
-              options={VIEW_OPTIONS}
-              onChange={(value) => updateDesign({ viewPosition: value as typeof design.viewPosition })}
-            />
-          </Field>
+        <PositionStudio
+          viewPosition={design.viewPosition}
+          locationPosition={design.locationPosition}
+          joinPosition={design.joinPosition}
+          onChange={updateDesign}
+        />
 
-          <Field label="Location">
-            <Select
-              icon="pin"
-              value={design.locationPosition}
-              options={LOCATION_OPTIONS}
-              onChange={(value) =>
-                updateDesign({ locationPosition: value as typeof design.locationPosition })
-              }
-            />
-          </Field>
-
-          <Field label="Join date">
-            <Select
-              icon="calendar"
-              value={design.joinPosition}
-              options={JOIN_OPTIONS}
-              onChange={(value) => updateDesign({ joinPosition: value as typeof design.joinPosition })}
-            />
-          </Field>
-
+        <div className="tw-form-grid" style={{ marginTop: 16 }}>
           <Field label="Audio player" hint="Manage the track and player under Music.">
             <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "popup", label: "Popup · top left" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }, { value: "hidden", label: "Hidden" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
           </Field>
