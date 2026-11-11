@@ -1747,6 +1747,55 @@ app.get("/api/leaderboard", async (_req, res) => {
   }
 });
 
+/* Homepage hero preview: real published profiles, bundled into the frontend at
+   build time so the card is already on screen on first paint. "random" picks
+   /koni or one of the three most viewed pages again on every page load. */
+const HOME_PREVIEW_MODES = new Set(["off", "koni", "random"]);
+async function homePreviewMode() {
+  const stored = await readSetting("home_preview_mode");
+  if (stored === "top3") return "random";
+  return HOME_PREVIEW_MODES.has(stored) ? stored : "random";
+}
+async function homePreviewTop() {
+  const { rows } = await pool.query(
+    `select u.*, p.data as profile_data, coalesce(v.views, 0) as views
+     from users u
+     join profiles p on p.user_id = u.id
+     left join profile_views v on v.username = u.username
+     where p.data <> '{}'::jsonb
+     order by views desc, u.created_at asc
+     limit 3`,
+  );
+  return rows;
+}
+app.get("/api/home-preview", async (_req, res) => {
+  try {
+    const mode = await homePreviewMode();
+    if (mode === "off") {
+      return res.set("Cache-Control", "no-cache").json({ mode, profiles: [], topHandles: [] });
+    }
+    const top = await homePreviewTop();
+    const koni = await userByHandle("koni");
+    const selected = [...top];
+    if (koni && !selected.some((row) => row.id === koni.id)) {
+      selected.push({ ...koni, profile_data: await profileRow(koni.id) });
+    }
+    const profiles = await Promise.all(
+      selected
+        .filter((row) => row.profile_data)
+        .map(async (row) => ({
+          account: publicAccountOf(row),
+          profile: row.profile_data,
+          earned: await earnedBadges(row, row.profile_data),
+        })),
+    );
+    const topHandles = [...new Set(["koni", ...top.map((row) => row.username)])];
+    res.set("Cache-Control", "no-cache").json({ mode, profiles, topHandles });
+  } catch {
+    res.status(503).json({ error: "Home previews are temporarily unavailable." });
+  }
+});
+
 const discordLookupCache = new Map();
 app.get("/api/discord/:id", async (req, res) => {
   const id = String(req.params.id);
@@ -1942,11 +1991,17 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
 /* ── admin: site settings ──────────────────────────────────────────────── */
 
 app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
-  res.json({ settings: { registration: await registrationMode() } });
+  res.json({ settings: { registration: await registrationMode(), homePreview: await homePreviewMode() } });
 });
 
 app.patch("/api/admin/settings", requireAdmin, async (req, res) => {
   try {
+    if (req.body?.homePreview !== undefined) {
+      if (!HOME_PREVIEW_MODES.has(req.body.homePreview)) {
+        return res.status(400).json({ error: "Unknown home preview mode." });
+      }
+      await writeSetting("home_preview_mode", req.body.homePreview);
+    }
     if (req.body?.registration !== undefined) {
       const mode = String(req.body.registration);
       if (!REGISTRATION_MODES.has(mode)) {
@@ -1954,7 +2009,7 @@ app.patch("/api/admin/settings", requireAdmin, async (req, res) => {
       }
       await writeSetting("registration_mode", mode);
     }
-    res.json({ settings: { registration: await registrationMode() } });
+    res.json({ settings: { registration: await registrationMode(), homePreview: await homePreviewMode() } });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -287,21 +287,20 @@ export function Dashboard(props: DashboardProps) {
 
   const save = useCallback(() => {
     if (!user) return;
-    if (serialized(aboutDraft) !== serialized(about)) onSaveAbout(aboutDraft);
-    if (serialized(widgetsDraft) !== serialized(widgets)) onSaveWidgets(widgetsDraft);
-    if (serialized(badgesDraft) !== serialized(badges)) onSaveBadges(badgesDraft);
-    if (serialized(linksDraft) !== serialized(profileLinks)) onSaveLinks(linksDraft);
-    notify("Saved on this device", "Publishing your changes. Failed uploads are kept and retried.");
+    // Push every store, not just the ones that differ from the last props: an
+    // explicit Save from Links or Widgets always ends up in the published
+    // document, even if the background auto-save already matched it.
+    onSaveAbout(aboutDraft);
+    onSaveWidgets(widgetsDraft);
+    onSaveBadges(badgesDraft);
+    onSaveLinks(linksDraft);
+    notify("Saving your page", "Links, widgets and every other change are being published.");
   }, [
     user,
     aboutDraft,
-    about,
     widgetsDraft,
-    widgets,
     badgesDraft,
-    badges,
     linksDraft,
-    profileLinks,
     onSaveAbout,
     onSaveWidgets,
     onSaveBadges,

@@ -1,3 +1,4 @@
+import { HOME_PREVIEW_MODE_KEY, type HomePreviewMode } from "../lib/homePreview";
 import {
   useCallback,
   useEffect,
@@ -122,6 +123,24 @@ const ADMIN_CARDS: { tab: Tab; title: string; body: string; icon: ReactNode }[] 
     title: "Discord bot",
     body: "Bot identity, pending verification codes and direct messages.",
     icon: <DiscordIcon size={16} />,
+  },
+];
+
+const HOME_PREVIEW_OPTIONS: { id: HomePreviewMode; title: string; description: string }[] = [
+  {
+    id: "off",
+    title: "Brand example",
+    description: "Show the generic tourn.lol card instead of a real profile.",
+  },
+  {
+    id: "koni",
+    title: "Always /koni",
+    description: "Every visitor sees the published /koni profile.",
+  },
+  {
+    id: "random",
+    title: "Random top 3",
+    description: "/koni or one of the three most viewed pages, chosen per page load.",
   },
 ];
 
@@ -502,6 +521,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [invites, setInvites] = useState<Invite[] | null>(null);
   const [registration, setRegistration] = useState<RegistrationMode | null>(null);
+  const [homePreview, setHomePreview] = useState<HomePreviewMode>("random");
+  const [homeDraft, setHomeDraft] = useState<HomePreviewMode>("random");
   const [modeDraft, setModeDraft] = useState<RegistrationMode>("open");
   const [bot, setBot] = useState<BotStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -537,7 +558,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   }, []);
 
   const loadSettings = useCallback(async () => {
-    const result = await api<{ settings: { registration: RegistrationMode } }>(
+    const result = await api<{ settings: { registration: RegistrationMode; homePreview?: HomePreviewMode } }>(
       "/api/admin/settings",
     );
     if (!result.ok) {
@@ -546,6 +567,9 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
     }
     setRegistration(result.data.settings.registration);
     setModeDraft(result.data.settings.registration);
+    const preview = result.data.settings.homePreview || "random";
+    setHomePreview(preview);
+    setHomeDraft(preview);
   }, []);
 
   const loadBot = useCallback(async () => {
@@ -1119,6 +1143,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
       ) : null}
 
       {tab === "settings" ? (
+        <>
         <section className="adm-panel">
           <div className="adm-panel-head">
             <h2>
@@ -1143,7 +1168,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
                   return;
                 }
                 setRegistration(result.data.settings.registration);
-                setMsg("Registration mode saved.");
+                setMsg("Registration setting saved.");
               }}
             >
               <SaveIcon size={12} />
@@ -1176,6 +1201,76 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
             ))}
           </div>
         </section>
+
+        <section className="adm-panel">
+          <div className="adm-panel-head">
+            <h2>
+              <EyeIcon size={14} />
+              Homepage preview
+            </h2>
+            <button
+              type="button"
+              className="adm-btn adm-btn--primary"
+              disabled={homeDraft === homePreview || busy === "home-preview"}
+              onClick={async () => {
+                setBusy("home-preview");
+                setError(null);
+                setMsg(null);
+                const result = await api<{ settings: { homePreview?: HomePreviewMode } }>(
+                  "/api/admin/settings",
+                  { method: "PATCH", body: JSON.stringify({ homePreview: homeDraft }) },
+                );
+                setBusy(null);
+                if (!result.ok) {
+                  setError(result.error);
+                  return;
+                }
+                const next = result.data.settings.homePreview || homeDraft;
+                setHomePreview(next);
+                setHomeDraft(next);
+                try {
+                  localStorage.setItem(HOME_PREVIEW_MODE_KEY, next);
+                } catch {
+                  /* private mode */
+                }
+                setMsg("Homepage preview saved.");
+              }}
+            >
+              <SaveIcon size={12} />
+              {busy === "home-preview" ? "Saving…" : "Save preview"}
+            </button>
+          </div>
+
+          <p className="adm-hint adm-hint--block">
+            The home hero paints from a bundled snapshot before the network answers, so a real
+            profile is there instantly. “Random top 3” picks /koni or one of the three most viewed
+            pages again on every page load.
+          </p>
+
+          <div className="adm-settings-grid">
+            {HOME_PREVIEW_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`adm-mode${homeDraft === option.id ? " is-active" : ""}`}
+                aria-pressed={homeDraft === option.id}
+                onClick={() => setHomeDraft(option.id)}
+              >
+                <span className="adm-mode-head">
+                  <b>{option.title}</b>
+                  {homePreview === option.id ? (
+                    <span className="adm-badge adm-badge--live">Live</span>
+                  ) : null}
+                </span>
+                <small>{option.description}</small>
+                {homeDraft === option.id ? (
+                  <span className="adm-mode-check" aria-hidden="true">✓</span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </section>
+        </>
       ) : null}
 
       {tab === "bot" ? (

@@ -28,7 +28,7 @@ import {
 } from "../ui";
 
 export function LinksPage() {
-  const { links, setLinks } = useDash();
+  const { links, setLinks, save } = useDash();
   const [adding, setAdding] = useState(false);
   const [platform, setPlatform] = useState("discord");
   const [editing, setEditing] = useState<LinkInstance | null>(null);
@@ -73,9 +73,14 @@ export function LinksPage() {
           title="Social Links"
           subtitle="One icon per link on your profile card."
           actions={
-            <Button variant="primary" icon="plus" onClick={() => setAdding(true)}>
-              Add link
-            </Button>
+            <div className="tw-row">
+              <Button icon="save" onClick={save}>
+                Save changes
+              </Button>
+              <Button variant="primary" icon="plus" onClick={() => setAdding(true)}>
+                Add link
+              </Button>
+            </div>
           }
         />
 

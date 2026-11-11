@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { chooseHomePreview, initialHomePreviews, refreshHomePreviews } from "../lib/homePreview";
 import { DEFAULT_ABOUT_DESIGN, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkInstance, type LinkStore } from "../lib/links";
 import { formatJoined } from "../lib/format";
 import { getViewCount } from "../lib/views";
-import { fetchPublicProfile, readCachedProfile, type ProfilePayload } from "../lib/serverProfile";
+import type { ProfilePayload } from "../lib/serverProfile";
 import { DEFAULT_WIDGET_DESIGN, type WidgetStore } from "../lib/widgets";
 import { ProfilePreview } from "./ProfilePreview";
 import { WidgetCard } from "./WidgetCard";
@@ -13,13 +14,11 @@ import { WidgetCard } from "./WidgetCard";
 /**
  * The home page's example card.
  *
- * It shows the *real* tourn.lol profile — the same document visitors get at
- * tourn.lol/tourn, including the links, badges and layout saved there — so the
- * demo can never drift from the product. The copy below is only the
- * first-paint fallback for a cold backend, and it carries no fake links.
+ * It shows a real published tourn.lol profile — the same document visitors get
+ * at tourn.lol/<handle>, including the links, badges and layout saved there —
+ * so the demo can never drift from the product. The card below is only the
+ * first-paint fallback when no preview is configured.
  */
-const HOME_HANDLE = "tourn";
-
 const FALLBACK_ABOUT: About = {
   displayName: "tourn",
   bio: "One link for everything you play.\nDiscord, music and games — always current.",
@@ -37,8 +36,6 @@ const FALLBACK_BADGES: BadgeInstance[] = [
 
 const FALLBACK_LINKS: LinkInstance[] = [];
 
-
-
 const FALLBACK_LINK_DESIGN = { ...DEFAULT_LINK_DESIGN };
 
 type LiveCard = {
@@ -49,6 +46,8 @@ type LiveCard = {
   linkDesign: typeof FALLBACK_LINK_DESIGN | LinkStore["design"];
   widgets: WidgetStore;
   username: string;
+  id: string;
+  uid?: number | null;
   avatar: string;
   joined: string;
 };
@@ -67,41 +66,66 @@ function toLiveCard(data: ProfilePayload): LiveCard | null {
     linkDesign: document.links.design ?? DEFAULT_LINK_DESIGN,
     widgets: document.widgets,
     username: data.account.username,
+    id: data.account.id,
+    uid: data.account.uid,
     avatar: data.account.avatarUrl || "/logo.png",
     joined: formatJoined(new Date(data.account.joinedAt)),
   };
 }
 
 export function ProfileCard() {
-  // The card paints from the copy cached on the last visit (or from a payload
-  // already fetched this session) on the very first frame, then quietly
-  // refreshes — so the hero never starts as a placeholder and swaps later.
-  const [live, setLive] = useState<LiveCard | null>(() => {
-    const cached = readCachedProfile(HOME_HANDLE);
-    return cached ? toLiveCard(cached) : null;
-  });
+  // The card paints from the bundled snapshot (or a newer local copy) on the
+  // very first frame, then refreshes quietly. The handle picked on this page
+  // load never changes mid-view, so fresh data cannot swap the hero profile.
+  const [bundled] = useState(initialHomePreviews);
+  const [pool, setPool] = useState(bundled);
+  const [pickedHandle, setPickedHandle] = useState(
+    () => chooseHomePreview(bundled)?.account.username ?? null,
+  );
   const [views, setViews] = useState<number | null>(null);
+
+  const selected = (() => {
+    if (pool.mode === "off" || !pickedHandle) return null;
+    const key = pickedHandle.toLowerCase();
+    return (
+      pool.profiles.find((row) => row.account.username.toLowerCase() === key) ??
+      bundled.profiles.find((row) => row.account.username.toLowerCase() === key) ??
+      null
+    );
+  })();
+  const live = selected ? toLiveCard(selected) : null;
 
   useEffect(() => {
     let active = true;
-
-    void fetchPublicProfile(HOME_HANDLE).then((result) => {
-      if (!active || !result.ok) return;
-      const next = toLiveCard(result.data);
-      if (next) setLive(next);
+    void refreshHomePreviews().then((next) => {
+      if (!active || !next) return;
+      setPool(next);
+      // An admin may have changed the mode since the snapshot was built;
+      // re-pick once so the setting (off / fixed / random) is honoured.
+      if (next.mode !== bundled.mode) {
+        setPickedHandle(chooseHomePreview(next)?.account.username ?? null);
+      }
     });
-
-    void getViewCount(HOME_HANDLE).then((count) => {
-      if (active && count !== null && count > 0) setViews(count);
-    });
-
     return () => {
       active = false;
     };
-  }, []);
+  }, [bundled.mode]);
+
+  useEffect(() => {
+    let active = true;
+    setViews(null);
+    if (live) {
+      void getViewCount(live.username).then((count) => {
+        if (active) setViews(count);
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [live?.username]);
 
   // The saved design is used as-is: width, radius, padding, avatar size, gap
-  // and tilt on the home card are the same numbers as on tourn.lol/tourn.
+  // and tilt on the home card are the same numbers as on the real profile.
   // The one deliberate exception is the beam ring — the hero always shows it,
   // so the effect that circles the card edge is what a first-time visitor sees.
   const about: About = live
@@ -145,9 +169,9 @@ export function ProfileCard() {
     <aside className="hero-profile" aria-label="The live tourn.lol profile card">
       <ProfilePreview
         user={{
-          id: live ? HOME_HANDLE : "demo",
-          uid: 1,
-          username: live?.username ?? HOME_HANDLE,
+          id: live?.id || "demo",
+          uid: live?.uid || 1,
+          username: live?.username ?? "tourn",
           avatarUrl: live?.avatar ?? "/logo.png",
         }}
         about={about}

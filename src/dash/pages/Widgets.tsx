@@ -115,7 +115,7 @@ function WidgetInspector({
 }
 
 export function WidgetsPage() {
-  const { widgets, setWidgets, notify } = useDash();
+  const { widgets, setWidgets, save, notify } = useDash();
   const [configuring, setConfiguring] = useState<WidgetPlatform | null>(null);
   const [editing, setEditing] = useState<WidgetInstance | null>(null);
   const [inspecting, setInspecting] = useState<WidgetInstance | null>(null);
@@ -221,6 +221,11 @@ export function WidgetsPage() {
           icon="layers"
           title="Connected widgets"
           subtitle="Click a widget to preview it and its live data."
+          actions={
+            <Button icon="save" onClick={save}>
+              Save changes
+            </Button>
+          }
         />
 
         {widgets.widgets.length ? (

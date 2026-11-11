@@ -375,11 +375,13 @@ export function AssetBrowserPage() {
 
 /* ── leaderboard ─────────────────────────────────────────────── */
 
+const boardHref = (handle: string) => `#/profile/${encodeURIComponent(handle)}`;
+
 export function LeaderboardPage() {
   const { user, profileViews } = useDash();
   const [rows, setRows] = useState<LeaderboardEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [shown, setShown] = useState(15);
+  const [shown, setShown] = useState(18);
 
   useEffect(() => {
     let alive = true;
@@ -400,13 +402,15 @@ export function LeaderboardPage() {
   }, []);
 
   const max = rows?.reduce((top, row) => Math.max(top, row.views), 0) ?? 0;
+  const podium = rows?.slice(0, 3) ?? [];
+  const listed = rows?.slice(3, shown) ?? [];
 
   return (
     <Card>
       <CardHead
         icon="chart"
         title="Leaderboard"
-        subtitle="Most viewed profiles on tourn.lol."
+        subtitle="Most viewed profiles on tourn.lol. Open a row to visit the page."
         actions={<Chip>{rows ? `${rows.length} profiles` : "Loading…"}</Chip>}
       />
 
@@ -424,35 +428,68 @@ export function LeaderboardPage() {
           ))}
         </div>
       ) : rows.length ? (
-        <div className="tw-lb">
-          {rows.slice(0, shown).map((row, index) => (
-            <a
-              key={row.username}
-              className={`tw-lb-row${row.username === user.username ? " is-you" : ""}`}
-              href={`#/${row.username}`}
-            >
-              <span className="tw-lb-rank">{index + 1}</span>
-              <span className="tw-lb-avatar">
-                {row.avatarUrl ? <img src={row.avatarUrl} alt="" /> : <Icon name="user" size={15} />}
-              </span>
-              <span className="tw-lb-copy">
-                <b>{row.displayName || row.username}</b>
-                <small>@{row.username}</small>
-              </span>
-              <span className="tw-lb-bar" aria-hidden="true">
-                <span style={{ width: `${max ? Math.max(4, (row.views / max) * 100) : 0}%` }} />
-              </span>
-              <span className="tw-lb-views">
-                {row.views.toLocaleString()} <small>views</small>
-              </span>
-            </a>
-          ))}
-          {rows.length > shown ? (
-            <button type="button" className="btn btn-ghost" onClick={() => setShown((count) => count + 15)}>
-              Load 15 more
-            </button>
-          ) : null}
-        </div>
+        <>
+          <div className="tw-lb-podium">
+            {podium.map((row, index) => (
+              <a
+                key={row.username}
+                className={`tw-lb-podium-card is-${index + 1}${row.username === user.username ? " is-you" : ""}`}
+                href={boardHref(row.username)}
+                aria-label={`Rank ${index + 1}, @${row.username}`}
+              >
+                <span className="tw-lb-podium-rank">
+                  {index === 0 ? "Champion" : index === 1 ? "Runner-up" : "Third"}
+                </span>
+                <span className="tw-lb-podium-avatar">
+                  {row.avatarUrl ? <img src={row.avatarUrl} alt="" /> : <Icon name="user" size={18} />}
+                </span>
+                <span className="tw-lb-podium-copy">
+                  <b>{row.displayName || row.username}</b>
+                  <small>@{row.username}</small>
+                </span>
+                <span className="tw-lb-podium-views">
+                  {row.views.toLocaleString()} <small>views</small>
+                </span>
+                <span className="tw-lb-podium-open">
+                  View profile
+                  <Icon name="arrow-right" size={12} />
+                </span>
+              </a>
+            ))}
+          </div>
+
+          <div className="tw-lb">
+            {listed.map((row, index) => (
+              <a
+                key={row.username}
+                className={`tw-lb-row${row.username === user.username ? " is-you" : ""}`}
+                href={boardHref(row.username)}
+                aria-label={`Rank ${index + 4}, @${row.username}`}
+              >
+                <span className="tw-lb-rank">{index + 4}</span>
+                <span className="tw-lb-avatar">
+                  {row.avatarUrl ? <img src={row.avatarUrl} alt="" /> : <Icon name="user" size={15} />}
+                </span>
+                <span className="tw-lb-copy">
+                  <b>{row.displayName || row.username}</b>
+                  <small>@{row.username}</small>
+                </span>
+                <span className="tw-lb-bar" aria-hidden="true">
+                  <span style={{ width: `${max ? Math.max(4, (row.views / max) * 100) : 0}%` }} />
+                </span>
+                <span className="tw-lb-views">
+                  {row.views.toLocaleString()} <small>views</small>
+                </span>
+                <Icon name="chevron-right" size={14} className="tw-lb-chev" />
+              </a>
+            ))}
+            {rows.length > shown ? (
+              <button type="button" className="btn btn-ghost" onClick={() => setShown((count) => count + 15)}>
+                Load 15 more
+              </button>
+            ) : null}
+          </div>
+        </>
       ) : (
         <EmptyState
           icon="chart"

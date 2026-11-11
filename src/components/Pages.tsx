@@ -1,24 +1,50 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { api, post } from "../lib/backend";
 import { useAuth, type Account } from "../lib/auth";
-import { formatJoined } from "../lib/format";
 import { ArrowRight, BoltIcon, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
+
+type BoardRow = {
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  views: number | null;
+};
+
+const profileHrefFor = (handle: string) => `#/profile/${encodeURIComponent(handle)}`;
+
 export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
   const { first } = useAuth();
-  const [rows, setRows] = useState<Account[]>([]);
+  const [rows, setRows] = useState<BoardRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(15);
+  const [visible, setVisible] = useState(18);
 
   useEffect(() => {
     let active = true;
 
     const load = async () => {
-      const result = await api<{ profiles: Account[] }>("/api/profiles?limit=25");
+      const board = await api<{ profiles: BoardRow[] }>("/api/leaderboard");
       if (!active) return;
-      if (result.ok && result.data.profiles.length) {
-        setRows(result.data.profiles);
+      if (board.ok && board.data.profiles.length) {
+        setRows(board.data.profiles.map((row) => ({ ...row, views: Number(row.views) || 0 })));
       } else {
-        setRows(first ? [first] : []);
+        // Older/offline backend: still show the claimed handles, just without
+        // a view count, rather than an empty page.
+        const fallback = await api<{ profiles: Account[] }>("/api/profiles?limit=25");
+        if (!active) return;
+        const profiles =
+          fallback.ok && fallback.data.profiles.length
+            ? fallback.data.profiles
+            : first
+              ? [first]
+              : [];
+        setRows(
+          profiles.map((row) => ({
+            username: row.username,
+            displayName: null,
+            avatarUrl: row.avatarUrl,
+            views: null,
+          })),
+        );
       }
       setLoading(false);
     };
@@ -29,21 +55,23 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
     };
   }, [first]);
 
+  const podium = rows.slice(0, 3);
+  const rest = rows.slice(3, visible);
+
   return (
     <section className="page">
       <div className="wrap page-head" data-reveal>
         <span className="eyebrow eyebrow--sm">leaderboard</span>
         <h1 className="page-title">The board.</h1>
         <p className="page-sub">
-          Everyone who claimed a link, in the order they showed up. Ranked play opens with the first
-          tournament — until then, being early is the whole flex.
+          Every published page, ranked by profile views. Open any name to visit that profile.
         </p>
       </div>
 
       <div className="wrap">
         {loading ? (
           <div className="board">
-            {[0, 1, 2].map((index) => (
+            {[0, 1, 2, 3].map((index) => (
               <div className="board-row" key={index}>
                 <span className="skeleton" style={{ width: 34, height: 14 }} />
                 <span className="skeleton" style={{ width: 38, height: 38, borderRadius: 12 }} />
@@ -56,43 +84,84 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
             <span className="empty-icon">
               <TrophyIcon size={22} />
             </span>
-            <h2>No links claimed yet.</h2>
-            <p>The first account takes the top of the board — permanently.</p>
+            <h2>No pages on the board yet.</h2>
+            <p>The first published profile takes the top spot.</p>
             <button type="button" className="btn btn-primary btn-sm" onClick={onSignUp}>
               Claim #1
               <ArrowRight size={14} />
             </button>
           </div>
         ) : (
-          <div className="board">
-            {rows.slice(0, visible).map((row, index) => (
-              <div
-                className="board-row"
-                key={row.id}
-                data-reveal
-                data-reveal-delay={index * 35}
-              >
-                <span className="board-rank">{String(index + 1).padStart(2, "0")}</span>
-                {row.avatarUrl ? (
-                  <img className="avatar avatar--sm" src={row.avatarUrl} alt="" />
-                ) : (
-                  <span className="avatar avatar--sm avatar--initial">
-                    {row.username.slice(0, 1).toUpperCase()}
+          <>
+            <div className="board-podium">
+              {podium.map((row, index) => (
+                <a
+                  key={row.username}
+                  className={`board-podium-card is-${index + 1}`}
+                  href={profileHrefFor(row.username)}
+                  aria-label={`Rank ${index + 1}, @${row.username}`}
+                >
+                  <span className="board-podium-rank">
+                    {index === 0 ? <TrophyIcon size={12} /> : null}
+                    {index === 0 ? "Champion" : index === 1 ? "Runner-up" : "Third"}
                   </span>
-                )}
-                <div className="board-id">
-                  <p>{row.username}</p>
-                  <span>tourn.lol/{row.username}</span>
-                </div>
-                <span className="board-joined">Joined {formatJoined(new Date(row.joinedAt))}</span>
+                  {row.avatarUrl ? (
+                    <img className="board-podium-avatar" src={row.avatarUrl} alt="" loading="lazy" />
+                  ) : (
+                    <span className="board-podium-avatar board-podium-avatar--initial">
+                      {row.username.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <span className="board-podium-id">
+                    <b>{row.displayName || row.username}</b>
+                    <small>@{row.username}</small>
+                  </span>
+                  <span className="board-podium-views">
+                    <b>{row.views === null ? "—" : row.views.toLocaleString()}</b>
+                    <small>views</small>
+                  </span>
+                </a>
+              ))}
+            </div>
+
+            {rest.length ? (
+              <div className="board">
+                {rest.map((row, index) => (
+                  <a className="board-row" key={row.username} href={profileHrefFor(row.username)}>
+                    <span className="board-rank">{String(index + 4).padStart(2, "0")}</span>
+                    {row.avatarUrl ? (
+                      <img className="avatar avatar--sm" src={row.avatarUrl} alt="" loading="lazy" />
+                    ) : (
+                      <span className="avatar avatar--sm avatar--initial">
+                        {row.username.slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
+                    <div className="board-id">
+                      <p>{row.displayName || row.username}</p>
+                      <span>tourn.lol/{row.username}</span>
+                    </div>
+                    <span className="board-views">
+                      {row.views === null ? null : (
+                        <>
+                          <b>{row.views.toLocaleString()}</b>
+                          <small>views</small>
+                        </>
+                      )}
+                    </span>
+                    <ChevronIcon size={14} />
+                  </a>
+                ))}
               </div>
-            ))}
-            {rows.length > visible ? (
-              <button type="button" className="btn btn-ghost" onClick={() => setVisible((count) => count + 15)}>
-                Load 15 more
-              </button>
             ) : null}
-          </div>
+
+            {rows.length > visible ? (
+              <div className="board-more">
+                <button type="button" className="btn btn-ghost" onClick={() => setVisible((count) => count + 15)}>
+                  Load 15 more
+                </button>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
     </section>
