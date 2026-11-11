@@ -696,10 +696,24 @@
   line-height: 1.55;
 }
 
-/* Widgets shrink with the layout so a compact card does not end up carrying
-   full-size widget slabs. */
+/* Compact is a real half-width layout: the card narrows, but every detail and
+   every widget stays. Widgets sit two across instead of stacking. */
+.lkr-card-compact .lkr-stack,
+.lkr-card-compact .lkr-stacked-widgets {
+  width: min(720px, 100%);
+}
+
+.lkr-card-compact .lkr-stacked-widgets .lkr-widgets,
 .pv-card-compact .lkr-widgets {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .lkr-card-compact .lkr-stacked-widgets .lkr-widgets,
+  .pv-card-compact .lkr-widgets {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .pv-card-compact .widget-card {
@@ -4806,6 +4820,32 @@
 .lkr-stacked-widgets { width:100%; min-width:0; }
 .lkr-stacked-widgets .lkr-widgets-block { margin:0; }
 .lkr-stacked-widgets .lkr-widgets { display:flex; flex-direction:column; gap:var(--lkr-gap,16px); }
+
+/* Compact overrides the stacked column: two widgets sit beside each other and
+   keep every piece of meta, including the usually full-width Discord card. */
+.lkr-card-compact .lkr-stacked-widgets .lkr-widgets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lkr-card-compact .lkr-flow > .profile-preview {
+  width: min(480px, 100%);
+  max-width: min(480px, 100%);
+  margin-inline: auto;
+}
+
+.lkr-card-compact .lkr-stacked-widgets .widget-card,
+.lkr-card-compact .lkr-stacked-widgets .widget-card--wide,
+.pv-card-compact .lkr-widgets .widget-card--wide,
+.pv-card-compact .lkr-widgets:has(.widget-card--wide) .widget-card:last-child:nth-child(even) {
+  grid-column: auto;
+}
+
+@media (max-width: 640px) {
+  .lkr-card-compact .lkr-stacked-widgets .lkr-widgets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .lkr-flow--left .profile-preview .pv-head-text, .lkr-flow--left .profile-preview .pv-bio { text-align:left; }
 .lkr-flow--left .profile-preview .pv-id, .lkr-flow--left .profile-preview .pv-ident, .lkr-flow--left .profile-preview .pv-links-block .pv-link-icons { justify-content:flex-start; }
 .lkr-flow .lkr-audio { width:100%; }

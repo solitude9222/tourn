@@ -13,6 +13,7 @@ import { BackgroundEffectLayer, OverlayEffectLayer, ProfileCursor } from "./Prof
 import { WidgetCard } from "./WidgetCard";
 import { ProfileInteractions } from "./ProfileInteractions";
 import { AudioPlayer } from "./AudioPlayer";
+import { ProfileSections } from "./ProfileSections";
 import { ChevronIcon } from "./Icons";
 import "../about.css";
 
@@ -359,12 +360,7 @@ export function LinkerPreview({
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
-      {design.sections.map((section) => <section className={`lkr-custom-section lkr-section--${section.kind}`} key={section.id}>
-        {section.title ? <h2>{section.title}</h2> : null}
-        {section.image ? <img src={section.image} alt="" loading="lazy" /> : null}
-        {section.text ? <p>{section.text}</p> : null}
-        {/^https?:\/\//i.test(section.url) ? <a href={section.url} target="_blank" rel="noreferrer">{section.kind === "project" ? "View project" : "Open link"}</a> : null}
-      </section>)}
+      <ProfileSections sections={design.sections} />
     </div>
   );
 

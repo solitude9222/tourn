@@ -143,7 +143,34 @@ export const DEFAULT_PILL_STYLE: PillStyle = {
   blur: 6,
 };
 
-export type ProfileSection = { id: string; title: string; text: string; image: string; url: string; kind: "text" | "project" };
+export type ProfileSectionKind = "text" | "project" | "anime" | "game";
+
+/** A named link inside a project/media section. */
+export type ProfileSectionLink = { label: string; url: string };
+
+export type ProfileSection = {
+  id: string;
+  title: string;
+  text: string;
+  image: string;
+  url: string;
+  kind: ProfileSectionKind;
+  /** One-line description under the title. */
+  subtitle: string;
+  /** Small status pill: Live, In progress, Archived, Finished… */
+  status: string;
+  /** Tech stack ids from lib/techStack. */
+  stack: string[];
+  /** Extra links shown beside the main one. */
+  links: ProfileSectionLink[];
+  /** Year, score, genre or other short metadata. */
+  meta: string;
+};
+
+export function createProfileSection(kind: ProfileSectionKind = "text"): ProfileSection {
+  const id = globalThis.crypto?.randomUUID?.() ?? `section-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return { id, title: "", text: "", image: "", url: "", kind, subtitle: "", status: "", stack: [], links: [], meta: "" };
+}
 
 export type AboutDesign = {
   sections: ProfileSection[];
@@ -318,7 +345,7 @@ export const EMPTY_ABOUT: About = {
 
 export const CARD_STYLES: { id: CardStyle; name: string; description: string }[] = [
   { id: "default", name: "Default", description: "Full-size card with roomy spacing." },
-  { id: "compact", name: "Compact", description: "Tighter spacing and smaller widgets." },
+  { id: "compact", name: "Compact", description: "Half-width card; widgets sit two across, with every detail kept." },
   { id: "minimal", name: "Minimal", description: "Smallest widgets, no extra chrome." },
 ];
 
@@ -474,14 +501,34 @@ function loadDesign(input: unknown): AboutDesign {
   return {
     theme,
     audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "popup", "fixed-bottom", "hidden"] as const, "auto"),
-    sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 12).filter((section) => section && typeof section === "object").map((section, index) => ({
-      id: typeof section.id === "string" ? section.id.slice(0, 80) : `section-${index}`,
-      title: typeof section.title === "string" ? section.title.slice(0, 100) : "",
-      text: typeof section.text === "string" ? section.text.slice(0, 4000) : "",
-      image: typeof section.image === "string" ? section.image.slice(0, 1_000_000) : "",
-      url: typeof section.url === "string" && /^https?:\/\//i.test(section.url) ? section.url.slice(0, 1000) : "",
-      kind: section.kind === "project" ? "project" as const : "text" as const,
-    })) : [],
+    sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
+      const item = section as Partial<ProfileSection>;
+      const kind: ProfileSectionKind = item.kind === "project" || item.kind === "anime" || item.kind === "game" ? item.kind : "text";
+      const links = Array.isArray(item.links)
+        ? item.links
+            .filter((link) => link && typeof link.url === "string" && /^https?:\/\//i.test(link.url))
+            .slice(0, 6)
+            .map((link) => ({
+              label: typeof link.label === "string" ? link.label.slice(0, 40) : "Link",
+              url: link.url.slice(0, 1000),
+            }))
+        : [];
+      return {
+        id: typeof item.id === "string" ? item.id.slice(0, 80) : `section-${index}`,
+        title: typeof item.title === "string" ? item.title.slice(0, 100) : "",
+        text: typeof item.text === "string" ? item.text.slice(0, 4000) : "",
+        image: typeof item.image === "string" ? item.image.slice(0, 1_000_000) : "",
+        url: typeof item.url === "string" && /^https?:\/\//i.test(item.url) ? item.url.slice(0, 1000) : "",
+        kind,
+        subtitle: typeof item.subtitle === "string" ? item.subtitle.slice(0, 180) : "",
+        status: typeof item.status === "string" ? item.status.slice(0, 28) : "",
+        stack: Array.isArray(item.stack)
+          ? item.stack.filter((entry): entry is string => typeof entry === "string").slice(0, 12)
+          : [],
+        links,
+        meta: typeof item.meta === "string" ? item.meta.slice(0, 80) : "",
+      };
+    }) : [],
     layout,
     cardStyle,
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",

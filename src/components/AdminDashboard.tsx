@@ -523,6 +523,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   const [registration, setRegistration] = useState<RegistrationMode | null>(null);
   const [homePreview, setHomePreview] = useState<HomePreviewMode>("random");
   const [homeDraft, setHomeDraft] = useState<HomePreviewMode>("random");
+  const [premiumRain, setPremiumRain] = useState(false);
+  const [premiumDraft, setPremiumDraft] = useState(false);
   const [modeDraft, setModeDraft] = useState<RegistrationMode>("open");
   const [bot, setBot] = useState<BotStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -558,7 +560,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   }, []);
 
   const loadSettings = useCallback(async () => {
-    const result = await api<{ settings: { registration: RegistrationMode; homePreview?: HomePreviewMode } }>(
+    const result = await api<{ settings: { registration: RegistrationMode; homePreview?: HomePreviewMode; premiumRain?: boolean } }>(
       "/api/admin/settings",
     );
     if (!result.ok) {
@@ -570,6 +572,9 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
     const preview = result.data.settings.homePreview || "random";
     setHomePreview(preview);
     setHomeDraft(preview);
+    const rain = result.data.settings.premiumRain === true;
+    setPremiumRain(rain);
+    setPremiumDraft(rain);
   }, []);
 
   const loadBot = useCallback(async () => {
@@ -1269,6 +1274,65 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="adm-panel">
+          <div className="adm-panel-head">
+            <h2>
+              <BoltIcon size={14} />
+              Premium rain signup
+            </h2>
+            <button
+              type="button"
+              className="adm-btn adm-btn--primary"
+              disabled={premiumDraft === premiumRain || busy === "premium-rain"}
+              onClick={async () => {
+                setBusy("premium-rain");
+                setError(null);
+                setMsg(null);
+                const result = await api<{ settings: { premiumRain?: boolean } }>(
+                  "/api/admin/settings",
+                  { method: "PATCH", body: JSON.stringify({ premiumRain: premiumDraft }) },
+                );
+                setBusy(null);
+                if (!result.ok) {
+                  setError(result.error);
+                  return;
+                }
+                const next = result.data.settings.premiumRain === true;
+                setPremiumRain(next);
+                setPremiumDraft(next);
+                setMsg(next ? "Premium rain is on for new signups." : "Premium rain signup is off.");
+              }}
+            >
+              <SaveIcon size={12} />
+              {busy === "premium-rain" ? "Saving…" : "Save"}
+            </button>
+          </div>
+
+          <p className="adm-hint adm-hint--block">
+            While this is on, every account created — Discord or email — keeps Premium permanently.
+            They keep the rain effect, every other Premium cosmetic and their second claim even after
+            you switch this off. Accounts created while it was off are not changed.
+          </p>
+
+          <button
+            type="button"
+            className={`adm-mode${premiumDraft ? " is-active" : ""}`}
+            aria-pressed={premiumDraft}
+            onClick={() => setPremiumDraft((current) => !current)}
+          >
+            <span className="adm-mode-head">
+              <b>{premiumDraft ? "Premium rain: on" : "Premium rain: off"}</b>
+              {premiumRain ? <span className="adm-badge adm-badge--live">Live</span> : null}
+            </span>
+            <small>
+              {premiumDraft
+                ? "New signups receive Premium forever, including the rain effect."
+                : "New signups start on the free plan."}
+            </small>
+            {premiumDraft ? <span className="adm-mode-check" aria-hidden="true">✓</span> : null}
+          </button>
         </section>
         </>
       ) : null}

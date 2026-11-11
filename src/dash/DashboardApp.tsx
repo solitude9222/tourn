@@ -15,7 +15,6 @@ import type { BadgeStore } from "../lib/badges";
 import type { LinkStore } from "../lib/links";
 import type { LanyardData } from "../lib/api";
 import type { Polled } from "../lib/hooks";
-import { savePendingDocument, loadPendingDocument } from "../lib/serverProfile";
 import { getViewCount } from "../lib/views";
 import { DashContext, type Page, type ProfileTab, type TabDef } from "./context";
 import { Shell } from "./Shell";
@@ -200,10 +199,10 @@ export function Dashboard(props: DashboardProps) {
 
   const [page, setPage] = useState<Page>(() => readDashboardLocation(isAdmin).page);
   const [profileTab, setProfileTab] = useState<ProfileTab>(() => readDashboardLocation(isAdmin).tab);
-  const [aboutDraft, setAboutDraft] = useState<About>(() => (user && loadPendingDocument(user.id)?.about) || about);
-  const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(() => (user && loadPendingDocument(user.id)?.widgets) || widgets);
-  const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(() => (user && loadPendingDocument(user.id)?.badges) || badges);
-  const [linksDraft, setLinksDraft] = useState<LinkStore>(() => (user && loadPendingDocument(user.id)?.links) || profileLinks);
+  const [aboutDraft, setAboutDraft] = useState<About>(about);
+  const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(widgets);
+  const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(badges);
+  const [linksDraft, setLinksDraft] = useState<LinkStore>(profileLinks);
   const [profileViews, setProfileViews] = useState<number | null>(null);
 
   const lastProps = useRef({ about, widgets, badges, profileLinks });
@@ -310,9 +309,6 @@ export function Dashboard(props: DashboardProps) {
 
   useEffect(() => {
     if (!user || authLoading || !dirty) return;
-    savePendingDocument(user.id, {
-      about: aboutDraft, widgets: widgetsDraft, badges: badgesDraft, links: linksDraft,
-    });
     onSaveAbout(aboutDraft);
     onSaveWidgets(widgetsDraft);
     onSaveBadges(badgesDraft);

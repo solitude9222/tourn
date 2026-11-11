@@ -128,7 +128,7 @@ export function discordProfileBadges(flags: number, input: unknown, selected: st
   for (const id of new Set(extras)) {
     const badge = ADDITIONAL_DISCORD_BADGES.find((entry) => entry.id === id);
     if (badge && !badges.some((entry) => entry.art === badge.art || entry.label.toLowerCase().includes(badge.label.toLowerCase()))) {
-      badges.push({ kind: "profile", flag: 0, label: selected.includes(id) ? `${badge.label} (profile display)` : badge.label, art: badge.art });
+      badges.push({ kind: "profile", flag: 0, label: badge.label, art: badge.art });
     }
   }
   return badges;

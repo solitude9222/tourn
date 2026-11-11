@@ -5,7 +5,8 @@ import { useState } from "react";
    its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { type AboutLayout, type JoinPosition, type ViewPosition } from "../../lib/about";
+import { createProfileSection, type AboutLayout, type JoinPosition, type ProfileSection, type ProfileSectionKind, type ViewPosition } from "../../lib/about";
+import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
 import { useDash } from "../context";
@@ -30,6 +31,13 @@ const JOIN_OPTIONS = [
 ];
 
 const AUDIO_OPTIONS = [{ value: "bottom", label: "Screen bottom (fixed)" }];
+
+const SECTION_KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
+  { id: "text", label: "Text", hint: "Title and paragraph" },
+  { id: "project", label: "Project", hint: "Stack, links, artwork" },
+  { id: "anime", label: "Anime", hint: "500+ real titles" },
+  { id: "game", label: "Game", hint: "400+ real games" },
+];
 
 /** The three page layouts and the positions each one starts with. */
 const PAGE_LAYOUTS: {
@@ -83,6 +91,14 @@ export function LayoutPage() {
         decoration: { ...current.assets.decoration, ...patch },
       },
     }));
+
+  const patchSection = (id: string, patch: Partial<ProfileSection>) =>
+    updateDesign({ sections: design.sections.map((section) => (section.id === id ? { ...section, ...patch } : section)) });
+
+  const addSection = (kind: ProfileSectionKind) => {
+    if (design.sections.length >= 24) return;
+    updateDesign({ sections: [...design.sections, createProfileSection(kind)] });
+  };
 
   return (
     <div className="tw-card-page">
@@ -144,8 +160,7 @@ export function LayoutPage() {
 
       {tab === "layout" ? <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card> : null}
       {tab === "layout" ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout compact, transparent, centred or portrait-led." />
-        <div className="tw-form-grid">
-          <Field label="Card style"><Select value={design.cardStyle} options={[{ value: "default", label: "Full card" }, { value: "compact", label: "Compact" }, { value: "minimal", label: "Minimal / transparent" }]} onChange={(cardStyle) => updateDesign({ cardStyle: cardStyle as typeof design.cardStyle, cardWidth: cardStyle === "compact" ? 480 : design.layout === "centered" ? 540 : 720 })} /></Field>
+        <div className="tw-form-grid">            <Field label="Card style" hint="Compact keeps every detail but halves the card and puts widgets two across."><Select value={design.cardStyle} options={[{ value: "default", label: "Full card" }, { value: "compact", label: "Compact · half width, widgets side by side" }, { value: "minimal", label: "Minimal / transparent" }]} onChange={(cardStyle) => updateDesign({ cardStyle: cardStyle as typeof design.cardStyle, cardWidth: cardStyle === "compact" ? 480 : design.layout === "centered" ? 540 : 720 })} /></Field>
           <Field label="Avatar placement"><Select value={design.pfpPosition} options={["default", "left", "right", "above", "center", "top-right"].map((value) => ({ value, label: value }))} onChange={(pfpPosition) => updateDesign({ pfpPosition: pfpPosition as typeof design.pfpPosition })} /></Field>
           <Field label="Badge placement"><Select value={design.badgePosition} options={["default", "above-name", "top-right", "bottom", "beside-avatar", "hidden"].map((value) => ({ value, label: value }))} onChange={(badgePosition) => updateDesign({ badgePosition: badgePosition as typeof design.badgePosition })} /></Field>
           <Field label="Name alignment"><Select value={design.namePosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(namePosition) => updateDesign({ namePosition: namePosition as typeof design.namePosition })} /></Field>
@@ -343,19 +358,43 @@ export function LayoutPage() {
           </Field>
         </div>
       </Card> : null}
-      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Sections scroll normally below your profile. Adding them does not enable a slideshow or automatic scrolling." />
-        {(design.sections || []).map((section, index) => <div className="tw-profile-section-editor" key={section.id}>
-          <div className="tw-row"><b>Section {index + 1}</b><Button onClick={() => updateDesign({ sections: design.sections.filter((item) => item.id !== section.id) })}>Remove section</Button>{index > 0 ? <Button onClick={() => { const sections = [...design.sections]; [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]]; updateDesign({ sections }); }}>Move up</Button> : null}</div>
-          <div className="tw-form-grid">
-            <Field label="Section title"><TextInput value={section.title} onChange={(event) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, title: event.target.value } : item) })} /></Field>
-            <Field label="Section style"><Select value={section.kind} options={[{ value: "text", label: "Text section" }, { value: "project", label: "Project card" }]} onChange={(kind) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, kind: kind as "text" | "project" } : item) })} /></Field>
-            <Field label="Section text"><Textarea rows={4} value={section.text} onChange={(event) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, text: event.target.value } : item) })} /></Field>
-            <Field label="Artwork URL"><TextInput value={section.image} onChange={(event) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, image: event.target.value } : item) })} /></Field>
-            <Field label="Section artwork upload" hint="Upload an image or animated GIF under 500 KB."><FileUpload aria-label={`Section ${index + 1} artwork upload`} accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Artwork", "Choose an image or GIF under 500 KB."); return; } const image = await fileToDataUrl(file); setAbout((current) => ({ ...current, design: { ...current.design, sections: current.design.sections.map((item) => item.id === section.id ? { ...item, image } : item) } })); }} /></Field>
-            <Field label="Section link"><TextInput value={section.url} placeholder="https://..." onChange={(event) => updateDesign({ sections: design.sections.map((item) => item.id === section.id ? { ...item, url: event.target.value } : item) })} /></Field>
+      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Sections scroll normally below your profile. Projects, anime and games become real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
+        <p className="tw-foot-note">Text sections span the page. Project cards show your real tech stack; anime and game cards pull real artwork and metadata from public catalogues.</p>
+        <div className="tw-section-list">
+          {design.sections.map((section, index) => (
+            <SectionEditor
+              key={section.id}
+              section={section}
+              index={index}
+              onChange={(patch) => patchSection(section.id, patch)}
+              onRemove={() => updateDesign({ sections: design.sections.filter((item) => item.id !== section.id) })}
+              onMoveUp={() => {
+                const sections = [...design.sections];
+                [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]];
+                updateDesign({ sections });
+              }}
+            />
+          ))}
+        </div>
+        {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a text block, a project, or a title from the anime and game libraries.</p> : null}
+        <div className="tw-section-add">
+          <span className="tw-section-add-label">Add a section</span>
+          <div className="tw-section-add-row">
+            {SECTION_KINDS.map((kind) => (
+              <button
+                key={kind.id}
+                type="button"
+                className={`tw-section-add-btn tw-section-add-btn--${kind.id}`}
+                disabled={design.sections.length >= 24}
+                onClick={() => addSection(kind.id)}
+              >
+                <span className="tw-section-kind-dot" aria-hidden="true" />
+                <b>{kind.label}</b>
+                <small>{kind.hint}</small>
+              </button>
+            ))}
           </div>
-        </div>)}
-        <Button disabled={design.sections.length >= 12} onClick={() => updateDesign({ sections: [...design.sections, { id: crypto.randomUUID(), title: "", text: "", image: "", url: "", kind: "text" }] })}>Add profile section</Button>
+        </div>
       </Card> : null}
       </div>
     </div>

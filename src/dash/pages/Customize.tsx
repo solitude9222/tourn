@@ -190,7 +190,18 @@ function AudioSettingsCard() {
           </div>
         </Field>
 
+        <div className="tw-subhead tw-span-2">Colours &amp; transparency</div>
         <ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
+        <ColorField label="Player background" value={audio.playerColor} onChange={(value) => updateAudio({ playerColor: value })} />
+        <ColorField label="Border colour" value={audio.borderColor} onChange={(value) => updateAudio({ borderColor: value })} />
+        <div className="tw-stack"><Slider label="Border alpha" value={Math.round(audio.borderOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ borderOpacity: value / 100 })} /></div>
+        <ColorField label="Title colour" value={audio.titleColor} onChange={(value) => updateAudio({ titleColor: value })} />
+        <ColorField label="Artist colour" value={audio.artistColor} onChange={(value) => updateAudio({ artistColor: value })} />
+        <ColorField label="Progress colour" value={audio.progressColor} onChange={(value) => updateAudio({ progressColor: value })} />
+        <ColorField label="Track colour" value={audio.trackColor} onChange={(value) => updateAudio({ trackColor: value })} />
+        <div className="tw-stack"><Slider label="Track alpha" value={Math.round(audio.trackOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ trackOpacity: value / 100 })} /></div>
+        <ColorField label="Play button" value={audio.buttonColor} onChange={(value) => updateAudio({ buttonColor: value })} />
+        <ColorField label="Play icon" value={audio.buttonIconColor} onChange={(value) => updateAudio({ buttonIconColor: value })} />
         <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div>
         <Field label="Hosted audio URL" hint="Or use a direct link to an audio file."><TextInput value={audio.fileUrl.startsWith("data:") ? "" : audio.fileUrl} placeholder="https://.../track.mp3" onChange={(event) => updateAudio({ fileUrl: event.target.value, style: audio.style === "none" ? "compact" : audio.style })} /></Field>
         <Field label="Track title">

@@ -185,6 +185,20 @@ export type AudioSettings = {
   cardOpacity: number;
   /** Accent colour for the progress fill / highlighted lyric line. */
   accentColor: string;
+  /** Player surface colour under the accent wash. */
+  playerColor: string;
+  /** Border colour and its alpha, 0–1. */
+  borderColor: string;
+  borderOpacity: number;
+  titleColor: string;
+  artistColor: string;
+  /** Filled and unfilled progress rail colours. */
+  progressColor: string;
+  trackColor: string;
+  trackOpacity: number;
+  /** Play / pause button surface and icon. */
+  buttonColor: string;
+  buttonIconColor: string;
   /** Player scale, 0.85–1.25 — retained for saved documents; always full width. */
   size: number;
   /** Start playing as soon as the page opens (with an interaction fallback). */
@@ -339,6 +353,16 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     autoLyrics: true,
     cardOpacity: 0.92,
     accentColor: "#f2c9dd",
+    playerColor: "#0a0b0d",
+    borderColor: "#ffffff",
+    borderOpacity: 0.09,
+    titleColor: "#f2f5f7",
+    artistColor: "#aab3bb",
+    progressColor: "#ffffff",
+    trackColor: "#ffffff",
+    trackOpacity: 0.14,
+    buttonColor: "#f2f5f7",
+    buttonIconColor: "#0b0d10",
     size: 1,
     autoplay: true,
   },
@@ -518,6 +542,16 @@ function loadAudio(value: unknown): AudioSettings {
     autoLyrics: boolIn(raw.autoLyrics, DEFAULT_PROFILE_ASSETS.audio.autoLyrics),
     cardOpacity: numberIn(raw.cardOpacity, DEFAULT_PROFILE_ASSETS.audio.cardOpacity, 0, 1),
     accentColor: colorIn(raw.accentColor, DEFAULT_PROFILE_ASSETS.audio.accentColor),
+    playerColor: colorIn(raw.playerColor, DEFAULT_PROFILE_ASSETS.audio.playerColor),
+    borderColor: colorIn(raw.borderColor, DEFAULT_PROFILE_ASSETS.audio.borderColor),
+    borderOpacity: numberIn(raw.borderOpacity, DEFAULT_PROFILE_ASSETS.audio.borderOpacity, 0, 1),
+    titleColor: colorIn(raw.titleColor, DEFAULT_PROFILE_ASSETS.audio.titleColor),
+    artistColor: colorIn(raw.artistColor, DEFAULT_PROFILE_ASSETS.audio.artistColor),
+    progressColor: colorIn(raw.progressColor, DEFAULT_PROFILE_ASSETS.audio.progressColor),
+    trackColor: colorIn(raw.trackColor, DEFAULT_PROFILE_ASSETS.audio.trackColor),
+    trackOpacity: numberIn(raw.trackOpacity, DEFAULT_PROFILE_ASSETS.audio.trackOpacity, 0, 1),
+    buttonColor: colorIn(raw.buttonColor, DEFAULT_PROFILE_ASSETS.audio.buttonColor),
+    buttonIconColor: colorIn(raw.buttonIconColor, DEFAULT_PROFILE_ASSETS.audio.buttonIconColor),
     size: 1,
     autoplay: boolIn(raw.autoplay, DEFAULT_PROFILE_ASSETS.audio.autoplay),
   };

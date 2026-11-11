@@ -1,0 +1,130 @@
+/* ── badge studio: collapsible categories + one shared finish ─────────── */
+
+.tw-badge-group {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #0a0a0c;
+}
+
+.tw-badge-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  list-style: none;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.tw-badge-group-head::-webkit-details-marker {
+  display: none;
+}
+
+.tw-badge-group-head:hover {
+  background: #101014;
+}
+
+.tw-badge-group-head::before {
+  content: "▸";
+  flex: none;
+  color: #6f7682;
+  font-size: 10px;
+  transition: transform 0.16s ease;
+}
+
+.tw-badge-group[open] > .tw-badge-group-head::before {
+  transform: rotate(90deg);
+}
+
+.tw-badge-group-head > span:first-of-type {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tw-badge-group-head h3 {
+  margin: 0;
+  color: var(--title);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tw-badge-group-head small {
+  overflow: hidden;
+  color: var(--sub);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-badge-group-count {
+  flex: none;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--sub);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tw-badge-group .tw-badge-list {
+  padding: 0 10px 10px;
+}
+
+/* The finish panel: two columns of controls, one for glow/colour, one for
+   motion/size, so none of the sliders get lost in a long form. */
+
+.tw-badge-style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.tw-badge-style-col {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0b0b0e;
+}
+
+.tw-badge-style-col > .tw-subhead {
+  margin: 0;
+}
+
+.tw-badge-style-preview {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: #08080a;
+}
+
+.tw-badge-style-preview img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.tw-badge-style-preview small {
+  color: var(--sub);
+  font-size: 10px;
+}
+
+@media (max-width: 700px) {
+  .tw-badge-style-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

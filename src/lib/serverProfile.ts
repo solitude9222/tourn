@@ -21,12 +21,18 @@ export type ProfileDocument = {
   links: LinkStore;
 };
 
+export const PROFILE_SECTIONS = ["about", "widgets", "badges", "links"] as const;
+export type ProfileSection = (typeof PROFILE_SECTIONS)[number];
+
 export type ProfilePayload = {
   account: Account;
   profile: ProfileDocument | null;
   /** Badge ids the backend has verified for this account. `null` when the
    *  payload doesn't say — treated as "unknown", never as "none earned". */
   earned: string[] | null;
+  /** Monotonic server revision, used to reject stale whole-profile saves. */
+  revision?: number | null;
+  updatedAt?: string | null;
 };
 
 export function normalizeDocument(input: unknown): ProfileDocument {
@@ -40,12 +46,15 @@ export function normalizeDocument(input: unknown): ProfileDocument {
 }
 
 function withDocument(payload: Omit<ProfilePayload, "profile"> & { profile: unknown }): ProfilePayload {
+  const revision = Number(payload.revision);
   return {
     account: payload.account,
     earned: Array.isArray(payload.earned)
       ? payload.earned.filter((id): id is string => typeof id === "string")
       : null,
     profile: payload.profile ? normalizeDocument(payload.profile) : null,
+    revision: Number.isFinite(revision) ? revision : null,
+    updatedAt: typeof payload.updatedAt === "string" ? payload.updatedAt : null,
   };
 }
 
@@ -147,15 +156,48 @@ export async function fetchOwnProfile(): Promise<
   return { ok: true, data: withDocument(result.data) };
 }
 
+export type ProfileSaveResult =
+  | { ok: true; revision: number | null; updatedAt: string | null }
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      revision?: number | null;
+      profile?: ProfileDocument | null;
+    };
+
 let publishQueue: Promise<unknown> = Promise.resolve();
 export function saveProfile(
-  document: ProfileDocument, accountId: string, isCurrent: () => boolean = () => true,
-): Promise<{ ok: boolean; error?: string }> {
-  const body = JSON.stringify({ data: document, accountId });
-  const publish = async () => {
-    if (!isCurrent()) return { ok: false, error: "Superseded by a newer edit." };
-    const result = await api("/api/profile", { method: "PUT", body });
-    return result.ok ? { ok: true } : { ok: false, error: result.error };
+  document: Partial<ProfileDocument>,
+  accountId: string,
+  isCurrent: () => boolean = () => true,
+  baseRevision: number | null = null,
+  sections: readonly ProfileSection[] = PROFILE_SECTIONS,
+): Promise<ProfileSaveResult> {
+  const body = JSON.stringify({ data: document, accountId, baseRevision, sections });
+  const publish = async (): Promise<ProfileSaveResult> => {
+    if (!isCurrent()) return { ok: false, error: "Superseded by a newer edit.", status: 0 };
+    const result = await api<{
+      ok?: boolean;
+      revision?: number;
+      updatedAt?: string;
+      profile?: unknown;
+    }>("/api/profile", { method: "PUT", body });
+    if (result.ok) {
+      return {
+        ok: true,
+        revision: Number.isFinite(Number(result.data.revision)) ? Number(result.data.revision) : null,
+        updatedAt: typeof result.data.updatedAt === "string" ? result.data.updatedAt : null,
+      };
+    }
+    const conflict = result.data;
+    return {
+      ok: false,
+      error: result.error,
+      status: result.status,
+      revision: Number.isFinite(Number(conflict?.revision)) ? Number(conflict?.revision) : null,
+      profile: conflict?.profile ? normalizeDocument(conflict.profile) : null,
+    };
   };
   const result = publishQueue.then(publish, publish);
   publishQueue = result;
@@ -174,19 +216,44 @@ export function saveProfile(
 
 const PENDING_PREFIX = "tourn.lol/pending-profile/v1/";
 
-export function savePendingDocument(userId: string, document: ProfileDocument): void {
+export type PendingDocument = {
+  document: ProfileDocument;
+  /** The server revision the unsaved draft was based on. A draft based on an
+   *  older revision must never be replayed over a newer published document. */
+  baseRevision: number | null;
+  savedAt: number;
+};
+
+export function savePendingDocument(
+  userId: string,
+  document: ProfileDocument,
+  baseRevision: number | null = null,
+): void {
   try {
-    localStorage.setItem(PENDING_PREFIX + userId, JSON.stringify(document));
+    localStorage.setItem(
+      PENDING_PREFIX + userId,
+      JSON.stringify({ document, baseRevision, savedAt: Date.now() } satisfies PendingDocument),
+    );
   } catch {
     /* private mode / quota — the local stores still have the edit */
   }
 }
 
-export function loadPendingDocument(userId: string): ProfileDocument | null {
+export function loadPendingDocument(userId: string): PendingDocument | null {
   try {
     const raw = localStorage.getItem(PENDING_PREFIX + userId);
     if (!raw) return null;
-    return normalizeDocument(JSON.parse(raw));
+    const parsed = JSON.parse(raw) as Partial<PendingDocument> & Record<string, unknown>;
+    if (parsed.document && typeof parsed.document === "object") {
+      return {
+        document: normalizeDocument(parsed.document),
+        baseRevision: Number.isFinite(Number(parsed.baseRevision)) ? Number(parsed.baseRevision) : null,
+        savedAt: Number(parsed.savedAt) || 0,
+      };
+    }
+    // Older builds stored the document directly. It has no revision, so the
+    // hydration path only replays it when the server still has no revision.
+    return { document: normalizeDocument(parsed), baseRevision: null, savedAt: 0 };
   } catch {
     return null;
   }

@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { api, post } from "../lib/backend";
 import { useAuth, type Account } from "../lib/auth";
 import { ArrowRight, BoltIcon, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
+import "../leaderboard.css";
 
 type BoardRow = {
   username: string;
@@ -57,6 +58,8 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
 
   const podium = rows.slice(0, 3);
   const rest = rows.slice(3, visible);
+  const maxViews = rows.reduce((top, row) => Math.max(top, row.views ?? 0), 0);
+  const share = (views: number | null) => `${maxViews ? Math.max(4, ((views ?? 0) / maxViews) * 100) : 0}%`;
 
   return (
     <section className="page">
@@ -120,6 +123,9 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                     <b>{row.views === null ? "—" : row.views.toLocaleString()}</b>
                     <small>views</small>
                   </span>
+                  <span className="board-podium-bar" aria-hidden="true">
+                    <i style={{ width: share(row.views) }} />
+                  </span>
                 </a>
               ))}
             </div>
@@ -140,6 +146,9 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                       <p>{row.displayName || row.username}</p>
                       <span>tourn.lol/{row.username}</span>
                     </div>
+                    <span className="board-row-bar" aria-hidden="true">
+                      <i style={{ width: share(row.views) }} />
+                    </span>
                     <span className="board-views">
                       {row.views === null ? null : (
                         <>

@@ -18,7 +18,7 @@ import {
 import { STATUS_COLORS } from "../lib/hooks";
 import { discordProfileBadges, discordBadges, type DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
-import { PlatformIcon } from "./PlatformIcons";
+import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
 import { DiscordBadgeIcon, SettingsIcon, TrashIcon } from "./Icons";
 import { Tooltip } from "./Tooltip";
 import "../widgets.css";
@@ -45,7 +45,7 @@ function WidgetAvatar({
       {src && !failed ? (
         <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />
       ) : (
-        <PlatformIcon id={platform.id} size={22} />
+        <WidgetPlatformIcon id={platform.id} size={22} />
       )}
       {decoration ? (
         <img

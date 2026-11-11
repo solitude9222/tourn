@@ -50,7 +50,8 @@ export function apiBase(): string {
 
 export type ApiResult<T> =
   | { ok: true; data: T }
-  | { ok: false; error: string; status: number };
+  // The body is kept on errors so callers can act on a 409 revision conflict.
+  | { ok: false; error: string; status: number; data?: T };
 
 export async function api<T = unknown>(
   path: string,
@@ -68,7 +69,7 @@ export async function api<T = unknown>(
     });
     const body = (await res.json().catch(() => ({}))) as T & { error?: string };
     if (!res.ok) {
-      return { ok: false, error: body?.error || `Request failed (${res.status})`, status: res.status };
+      return { ok: false, error: body?.error || `Request failed (${res.status})`, status: res.status, data: body };
     }
     return { ok: true, data: body };
   } catch (error) {

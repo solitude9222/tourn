@@ -183,6 +183,7 @@ create table if not exists site_settings (
 create table if not exists profiles (
   user_id uuid primary key references users on delete cascade,
   data jsonb not null default '{}'::jsonb,
+  revision bigint not null default 0,
   updated_at timestamptz not null default now()
 );
 
@@ -206,6 +207,9 @@ async function initDb() {
   await pool.query(
     "alter table users add column if not exists badges jsonb not null default '[]'::jsonb",
   );
+  // Every profile save is revision-checked so a stale tab cannot replace a
+  // newer published document with an older whole-profile snapshot.
+  await pool.query("alter table profiles add column if not exists revision bigint not null default 0");
   // Billing columns added when Premium checkout went live.
   await pool.query("alter table users add column if not exists stripe_customer_id text");
   await pool.query("alter table users add column if not exists stripe_subscription_id text");
@@ -397,9 +401,16 @@ async function userByHandle(handle) {
   return withUid(rows[0] ?? null);
 }
 
+async function profileRecord(userId) {
+  const { rows } = await pool.query(
+    "select data, revision, updated_at from profiles where user_id = $1",
+    [userId],
+  );
+  return rows[0] ?? null;
+}
+
 async function profileRow(userId) {
-  const { rows } = await pool.query("select data from profiles where user_id = $1", [userId]);
-  return rows[0]?.data ?? null;
+  return (await profileRecord(userId))?.data ?? null;
 }
 
 /* ── badges ────────────────────────────────────────────────────────────── */
@@ -508,6 +519,11 @@ async function writeSetting(key, value) {
 async function registrationMode() {
   const value = await readSetting("registration_mode", "open");
   return REGISTRATION_MODES.has(value) ? value : "open";
+}
+
+/** Every account that signs up while this is on keeps Premium rain for good. */
+async function premiumRainEnabled() {
+  return (await readSetting("premium_rain_signup", "off")) === "on";
 }
 
 const cleanInviteCode = (input) =>
@@ -676,10 +692,12 @@ app.use(["/api/auth", "/api/billing"], (_req, res, next) => {
    cache keeps repeat visits off the database without making saves look stale. */
 const profilePageCache = new Map();
 const PROFILE_PAGE_TTL = 20_000;
+const PROFILE_WRITE_SECTIONS = new Set(["about", "widgets", "badges", "links"]);
 
 registerAudioRoutes(app, pool, requireAuth);
 
 app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req, res) => {
+  let client;
   try {
     if (req.body?.accountId && String(req.body.accountId) !== String(req.auth.sub)) {
       return res.status(409).json({ error: "Your account changed. Switch back to publish this draft." });
@@ -688,19 +706,89 @@ app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req,
     if (!data || typeof data !== "object" || Array.isArray(data)) {
       return res.status(400).json({ error: "Send the profile document as { data }." });
     }
-    const serialized = JSON.stringify(data);
+    const rawBase = req.body?.baseRevision;
+    const baseRevision =
+      rawBase !== undefined && rawBase !== null && Number.isFinite(Number(rawBase))
+        ? Math.trunc(Number(rawBase))
+        : null;
+    const requestedSections = Array.isArray(req.body?.sections)
+      ? [...new Set(req.body.sections.filter((section) => PROFILE_WRITE_SECTIONS.has(section)))]
+      : null;
+
+    client = await pool.connect();
+    await client.query("begin");
+    // Serialize saves for this account even when the profile row does not
+    // exist yet, so two first saves cannot both pass the revision check.
+    await client.query("select pg_advisory_xact_lock(hashtextextended($1, 0))", [req.auth.sub]);
+    const { rows } = await client.query(
+      "select data, revision, updated_at from profiles where user_id = $1 for update",
+      [req.auth.sub],
+    );
+    const current = rows[0] ?? null;
+
+    if (baseRevision !== null && Number(current?.revision ?? 0) !== baseRevision) {
+      await client.query("rollback");
+      res.set("Cache-Control", "no-store");
+      return res.status(409).json({
+        error: "This profile changed on another device. Reload to merge the newer copy.",
+        revision: Number(current?.revision ?? 0),
+        updatedAt: current?.updated_at ?? null,
+        profile: current?.data ?? null,
+      });
+    }
+
+    // A normal edit sends only the sections that changed. Merge them into the
+    // current document so a widget save can never erase links or profile art.
+    let merged = data;
+    if (requestedSections) {
+      const currentData =
+        current?.data && typeof current.data === "object" && !Array.isArray(current.data)
+          ? current.data
+          : {};
+      merged = { ...currentData };
+      for (const section of requestedSections) {
+        if (Object.hasOwn(data, section)) merged[section] = data[section];
+      }
+    }
+
+    const serialized = JSON.stringify(merged);
     if (serialized.length > 7_500_000) {
+      await client.query("rollback");
       return res.status(413).json({ error: "That profile is too large — remove a big upload." });
     }
-    await pool.query(
-      `insert into profiles (user_id, data, updated_at) values ($1, $2::jsonb, now())
-       on conflict (user_id) do update set data = excluded.data, updated_at = now()`,
+
+    if (current && JSON.stringify(current.data) === serialized) {
+      await client.query("commit");
+      return res.json({
+        ok: true,
+        unchanged: true,
+        revision: Number(current.revision),
+        updatedAt: current.updated_at,
+      });
+    }
+
+    const saved = await client.query(
+      `insert into profiles (user_id, data, revision, updated_at)
+       values ($1, $2::jsonb, 1, now())
+       on conflict (user_id) do update
+         set data = excluded.data,
+             revision = profiles.revision + 1,
+             updated_at = now()
+       returning revision, updated_at`,
       [req.auth.sub, serialized],
     );
+    await client.query("commit");
     profilePageCache.clear();
-    res.json({ ok: true });
+    res.json({
+      ok: true,
+      revision: Number(saved.rows[0].revision),
+      updatedAt: saved.rows[0].updated_at,
+    });
   } catch (error) {
+    if (client) await client.query("rollback").catch(() => {});
     res.status(500).json({ error: error.message });
+  } finally {
+    client?.release();
   }
 });
 
@@ -1039,6 +1127,9 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
     const isOwner = Boolean(ownerEmail && email === ownerEmail);
     const isAdmin = Boolean((adminEmail && email === adminEmail) || isOwner);
 
+    // "Premium rain" signup gift: the account keeps Premium forever, so the
+    // rain effect (and the rest of the cosmetic plan) survives turning it off.
+    const rainGift = await premiumRainEnabled();
     const inserted = await pool.query(
       `insert into users (username, email, password_hash, is_owner, is_admin, premium)
        values ($1, $2, $3, $4, $5, $6) returning *`,
@@ -1048,7 +1139,7 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
         hash,
         isOwner || isFirst,
         isAdmin || isFirst,
-        Boolean(invite?.premium),
+        Boolean(invite?.premium) || rainGift,
       ],
     );
     if (invite) {
@@ -1386,6 +1477,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       }
 
       const username = await uniqueUsername(displayName);
+      const rainGift = await premiumRainEnabled();
       const inserted = await pool.query(
         `insert into users (username, email, discord_id, avatar_url, is_owner, is_admin, premium)
          values ($1, $2, $3, $4, $5, $6, $7) returning *`,
@@ -1396,7 +1488,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
           avatar,
           isOwner || isFirst,
           isAdmin || isFirst,
-          Boolean(invite?.premium),
+          Boolean(invite?.premium) || rainGift,
         ],
       );
       user = inserted.rows[0];
@@ -1679,12 +1771,15 @@ app.get("/api/profile", requireAuth, async (req, res) => {
   try {
     const user = await userById(req.auth.sub);
     if (!user) return res.status(401).json({ error: "Sign in again." });
-    const profile = await profileRow(user.id);
+    const record = await profileRecord(user.id);
+    const profile = record?.data ?? null;
     res.set("Cache-Control", "no-store");
     res.json({
       account: publicAccountOf(user),
       profile: profile ?? null,
       earned: await earnedBadges(user, profile),
+      revision: Number(record?.revision ?? 0),
+      updatedAt: record?.updated_at ?? null,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1991,7 +2086,7 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
 /* ── admin: site settings ──────────────────────────────────────────────── */
 
 app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
-  res.json({ settings: { registration: await registrationMode(), homePreview: await homePreviewMode() } });
+  res.json({ settings: { registration: await registrationMode(), homePreview: await homePreviewMode(), premiumRain: await premiumRainEnabled() } });
 });
 
 app.patch("/api/admin/settings", requireAdmin, async (req, res) => {
@@ -2009,7 +2104,13 @@ app.patch("/api/admin/settings", requireAdmin, async (req, res) => {
       }
       await writeSetting("registration_mode", mode);
     }
-    res.json({ settings: { registration: await registrationMode(), homePreview: await homePreviewMode() } });
+    if (req.body?.premiumRain !== undefined) {
+      if (typeof req.body.premiumRain !== "boolean") {
+        return res.status(400).json({ error: "Premium rain must be on or off." });
+      }
+      await writeSetting("premium_rain_signup", req.body.premiumRain ? "on" : "off");
+    }
+    res.json({ settings: { registration: await registrationMode(), homePreview: await homePreviewMode(), premiumRain: await premiumRainEnabled() } });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

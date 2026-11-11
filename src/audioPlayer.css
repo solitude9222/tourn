@@ -6,16 +6,26 @@
 .ap {
   --ap-opacity: 0.92;
   --ap-accent: #f2c9dd;
+  --ap-bg: #0a0b0d;
+  --ap-border: #ffffff;
+  --ap-border-opacity: 0.09;
+  --ap-title: #f2f5f7;
+  --ap-artist: #aab3bb;
+  --ap-progress: #ffffff;
+  --ap-track: #ffffff;
+  --ap-track-opacity: 0.14;
+  --ap-button: #f2f5f7;
+  --ap-button-ink: #0b0d10;
   --ap-scale: 1;
   position: relative;
   width: 100%;
   min-width: 0;
   margin-top: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid color-mix(in srgb, var(--ap-border) calc(var(--ap-border-opacity) * 100%), transparent);
   border-radius: 16px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--ap-accent) 20%, transparent), rgba(10, 11, 13, var(--ap-opacity)) 55%);
-  color: #f2f5f7;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ap-accent) 20%, transparent), color-mix(in srgb, var(--ap-bg) calc(var(--ap-opacity) * 100%), transparent) 55%);
+  color: var(--ap-title);
 }
 
 .ap-row {
@@ -63,6 +73,7 @@
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: var(--ap-title);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -70,7 +81,7 @@
 
 .ap-artist {
   font-size: 10px;
-  color: #aab3bb;
+  color: var(--ap-artist);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -81,7 +92,7 @@
   height: 3px;
   margin-top: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--ap-track) calc(var(--ap-track-opacity) * 100%), transparent);
   overflow: hidden;
 }
 
@@ -89,13 +100,14 @@
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--ap-accent), #ffffff);
+  background: linear-gradient(90deg, var(--ap-accent), var(--ap-progress));
 }
 
 .ap-times {
   display: flex;
   justify-content: space-between;
-  color: #7b838b;
+  color: var(--ap-artist);
+  opacity: 0.78;
   font-size: 8px;
   font-variant-numeric: tabular-nums;
 }
@@ -137,8 +149,8 @@
   place-items: center;
   border: none;
   border-radius: 999px;
-  background: #f2f5f7;
-  color: #0b0d10;
+  background: var(--ap-button);
+  color: var(--ap-button-ink);
   font-family: inherit;
   cursor: pointer;
   transition: transform 0.15s ease;
@@ -194,13 +206,13 @@
 }
 
 .ap-lyric-current {
-  color: #ffffff;
+  color: var(--ap-title);
   font-weight: 700;
   transform: scale(1.08);
 }
 
 .ap-lyric-dim {
-  color: #77808a;
+  color: var(--ap-artist);
   font-weight: 500;
   opacity: 0.75;
 }
@@ -362,8 +374,8 @@
 .ap--pill {
   border-radius: 999px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--ap-accent) 16%, transparent), rgba(8, 11, 15, 0.94) 52%),
-    rgba(8, 11, 15, 0.94);
+    linear-gradient(135deg, color-mix(in srgb, var(--ap-accent) 16%, transparent), color-mix(in srgb, var(--ap-bg) calc(var(--ap-opacity) * 100%), transparent) 52%),
+    color-mix(in srgb, var(--ap-bg) calc(var(--ap-opacity) * 100%), transparent);
 }
 
 .ap-pill {
@@ -409,12 +421,12 @@
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #f5fbff;
+  color: var(--ap-title);
 }
 
 .ap-pill-artist {
   font-size: 10.5px;
-  color: #9fb0bb;
+  color: var(--ap-artist);
 }
 
 .ap-pill-sep {
@@ -432,7 +444,7 @@
   height: 2px;
   margin: 0 18px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--ap-track) calc(var(--ap-track-opacity) * 100%), transparent);
   overflow: hidden;
 }
 

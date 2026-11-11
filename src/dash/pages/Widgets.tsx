@@ -1,4 +1,7 @@
 import { ADDITIONAL_DISCORD_BADGES } from "../../lib/discord";
+import { useAuth } from "../../lib/auth";
+import "../widgetBadges.css";
+import "../widgetIcons.css";
 /* ---------------------------------------------------------------------------
    Links > Widgets — the real widget stack: add, configure, reorder, hide and
    the shared widget-card design. Every preview on this page is a real
@@ -16,7 +19,7 @@ import {
   type WidgetPlatform,
 } from "../../lib/widgets";
 import { useWidgetLive } from "../../lib/widgetLive";
-import { PlatformIcon } from "../../components/PlatformIcons";
+import { WidgetPlatformIcon } from "../../components/WidgetPlatformIcon";
 import { WidgetCard, WidgetCardPreview } from "../../components/WidgetCard";
 import { useDash } from "../context";
 import {
@@ -35,10 +38,47 @@ import {
   Toggle,
 } from "../ui";
 
+const EXTRA_BADGE_GROUPS: { label: string; hint: string; ids: string[] }[] = [
+  { label: "Profile & account", hint: "Account age, Nitro and profile collection", ids: ["account-age", "nitro", "gifting", "orbs", "legacy-username"] },
+  { label: "Activity", hint: "Playtime, quests and live activity", ids: ["game-time", "game-variety", "quests", "streaming", "last-meadow"] },
+  { label: "Server", hint: "Boosting the tourn.lol server", ids: ["booster"] },
+];
+
+/* Extra display badges are a Discord-account feature only. The chooser stays
+   locked (with a direct link to connect) for email-only accounts, and the
+   widget still renders every native badge it can verify. */
 function DiscordBadgeChoices({ value, onChange }: { value: boolean | string | undefined; onChange: (value: string) => void }) {
+  const { user } = useAuth();
+  const { go } = useDash();
   let selected: string[] = [];
   try { const parsed = JSON.parse(String(value || "[]")); if (Array.isArray(parsed)) selected = parsed.filter((item) => typeof item === "string"); } catch { /* No additional badges selected. */ }
-  return <details className="tw-extra-discord-badges"><summary>Additional Discord badges</summary><p className="tw-foot-note">Choose extra display badges. These selections are not verified by Discord.</p><div className="tw-extra-badge-grid">{ADDITIONAL_DISCORD_BADGES.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(JSON.stringify(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span></button>)}</div></details>;
+
+  if (!user?.discordLinked) {
+    return (
+      <div className="tw-discord-badges-locked">
+        <span className="tw-discord-badges-lock" aria-hidden="true">✦</span>
+        <span className="tw-discord-badges-lock-copy">
+          <b>Discord badges are Discord-only</b>
+          <small>Connect Discord to your account to choose extra profile badges. Native Discord badges still show automatically.</small>
+        </span>
+        <Button variant="primary" icon="discord" onClick={() => go("settings")}>Connect Discord</Button>
+      </div>
+    );
+  }
+
+  return <details className="tw-extra-discord-badges">
+    <summary><span>Additional Discord badges</span><span className="tw-extra-count">{selected.length} selected</span></summary>
+    <p className="tw-foot-note">Only Discord-linked accounts can use these. They are display choices, not verified Discord flags.</p>
+    <div className="tw-extra-badge-groups">{EXTRA_BADGE_GROUPS.map((group) => {
+      const badges = ADDITIONAL_DISCORD_BADGES.filter((badge) => group.ids.includes(badge.id));
+      if (!badges.length) return null;
+      const active = badges.filter((badge) => selected.includes(badge.id)).length;
+      return <details className="tw-extra-badge-group" key={group.label} open>
+        <summary><span><b>{group.label}</b><small>{group.hint}</small></span><span className="tw-extra-count">{active}/{badges.length}</span></summary>
+        <div className="tw-extra-badge-grid">{badges.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(JSON.stringify(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span><i aria-hidden="true" /></button>)}</div>
+      </details>;
+    })}</div>
+  </details>;
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -201,7 +241,7 @@ export function WidgetsPage() {
               onClick={() => openAdd(platform)}
             >
               <span className="tw-widget-pick-icon" aria-hidden="true">
-                <PlatformIcon id={platform.id} size={19} />
+                <WidgetPlatformIcon id={platform.id} size={19} />
               </span>
               <span className="tw-widget-pick-copy">
                 <b>{platform.name}</b>
@@ -256,7 +296,7 @@ export function WidgetsPage() {
                     <Icon name="drag" size={14} />
                   </span>
                   <span className="tw-widget-icon">
-                    <PlatformIcon id={instance.platform} size={16} />
+                    <WidgetPlatformIcon id={instance.platform} size={16} />
                   </span>
                   <span className="tw-widget-row-copy">
                     <b>{platform?.name ?? instance.platform}</b>

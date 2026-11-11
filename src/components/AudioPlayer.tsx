@@ -85,6 +85,16 @@ export function AudioPlayer({
   const cardStyle = {
     "--ap-opacity": settings.cardOpacity,
     "--ap-accent": settings.accentColor,
+    "--ap-bg": settings.playerColor,
+    "--ap-border": settings.borderColor,
+    "--ap-border-opacity": settings.borderOpacity,
+    "--ap-title": settings.titleColor,
+    "--ap-artist": settings.artistColor,
+    "--ap-progress": settings.progressColor,
+    "--ap-track": settings.trackColor,
+    "--ap-track-opacity": settings.trackOpacity,
+    "--ap-button": settings.buttonColor,
+    "--ap-button-ink": settings.buttonIconColor,
     // The player always spans the card at full size; only the compact layout
     // changes its shape.
     "--ap-scale": "1",

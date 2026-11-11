@@ -1,0 +1,211 @@
+/* ── additional Discord badges ────────────────────────────────────────── */
+
+.tw-extra-discord-badges {
+  margin-block: 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #0a0a0c;
+}
+
+.tw-extra-discord-badges > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--title);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tw-extra-discord-badges > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tw-extra-discord-badges > summary::before {
+  content: "▸";
+  color: #6f7682;
+  font-size: 10px;
+  transition: transform 0.16s ease;
+}
+
+.tw-extra-discord-badges[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.tw-extra-discord-badges > summary > span:first-of-type {
+  flex: 1;
+}
+
+.tw-extra-count {
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--sub);
+  font-size: 9.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.tw-extra-badge-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.tw-extra-badge-group {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #08080a;
+}
+
+.tw-extra-badge-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  list-style: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tw-extra-badge-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tw-extra-badge-group > summary:hover {
+  background: #111116;
+}
+
+.tw-extra-badge-group > summary > span:first-of-type {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.tw-extra-badge-group > summary b {
+  color: var(--title);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tw-extra-badge-group > summary small {
+  overflow: hidden;
+  color: var(--sub);
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-extra-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+  padding: 0 9px 9px;
+}
+
+.tw-extra-badge-grid button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0d0d11;
+  color: var(--sub);
+  font: inherit;
+  font-size: 10.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.tw-extra-badge-grid button:hover {
+  border-color: #33333a;
+  color: var(--title);
+}
+
+.tw-extra-badge-grid button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, #0d0d11);
+  color: var(--title);
+}
+
+.tw-extra-badge-grid img {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  object-fit: contain;
+}
+
+.tw-extra-badge-grid i {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.tw-extra-badge-grid button[aria-pressed="true"] i {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* Locked state for email-only accounts. */
+
+.tw-discord-badges-locked {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block: 18px;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, #5865f2 35%, var(--border));
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.08), transparent 70%);
+}
+
+.tw-discord-badges-lock {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(88, 101, 242, 0.16);
+  color: #a5b4fc;
+  font-size: 15px;
+}
+
+.tw-discord-badges-lock-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tw-discord-badges-lock-copy b {
+  color: var(--title);
+  font-size: 11.5px;
+}
+
+.tw-discord-badges-lock-copy small {
+  color: var(--sub);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .tw-discord-badges-locked {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

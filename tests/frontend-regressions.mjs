@@ -10,9 +10,9 @@ const context = await browser.newContext({viewport:{width:1440,height:1000}});
 const page = await context.newPage();
 await page.addInitScript(() => { window.qaLoadingFallback = false; new MutationObserver(() => { if (document.querySelector(".route-loading")) window.qaLoadingFallback = true; }).observe(document, {childList:true,subtree:true}); });
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
-const account={id:'qa-user',username:'reviewer',email:null,avatarUrl:null,joinedAt:'2026-01-01',premium:true};
+const account={id:'qa-user',username:'reviewer',email:null,avatarUrl:null,joinedAt:'2026-01-01',premium:true,discordLinked:true,discordId:'1546745348020772915'};
 let audioUploadBytes=0, audioUploadExpected=0, failAudioUpload=false;
-let document=null; const writes=[]; let failWrites=false; let failReads=false; let readDelay=0; let failAnalytics=false; const analyticsRequests=[]; let failViewWrite=false; let viewWrites=0; let presenceMonitored=false;
+let document=null, revision=0; const writes=[]; let failWrites=false; let failReads=false; let readDelay=0; let failAnalytics=false; const analyticsRequests=[]; let failViewWrite=false; let viewWrites=0; let presenceMonitored=false;
 await context.route('**/*',async route=>{
  const url=new URL(route.request().url());
  if(url.pathname.startsWith('/api/')) {
@@ -38,9 +38,16 @@ await context.route('**/*',async route=>{
   if(url.pathname==='/api/profile' && route.request().method()==='PUT') {
    const body=route.request().postDataJSON(); writes.push(body);
    if(failWrites) return route.fulfill({status:503,json:{error:'Offline test'}});
-   document=body.data;return route.fulfill({json:{ok:true}});
+   // Mirror the backend: merge only the submitted sections, then bump revision.
+   if(Array.isArray(body.sections)) {
+    const merged={...(document||{})};
+    for(const section of body.sections) if(body.data&&Object.hasOwn(body.data,section)) merged[section]=body.data[section];
+    document=merged;
+   } else document=body.data;
+   revision+=1;
+   return route.fulfill({json:{ok:true,revision}});
   }
-  if(url.pathname==='/api/profile') {if(failReads) return route.fulfill({status:503,json:{error:'Read unavailable'}}); if(readDelay) await new Promise(r=>setTimeout(r,readDelay)); return route.fulfill({json:{account,profile:document,earned:[]}});}
+  if(url.pathname==='/api/profile') {if(failReads) return route.fulfill({status:503,json:{error:'Read unavailable'}}); if(readDelay) await new Promise(r=>setTimeout(r,readDelay)); return route.fulfill({json:{account,profile:document,earned:[],revision}});}
   if(url.pathname==='/api/profiles/owner')return route.fulfill({json:{owner:null}});
   return route.fulfill({json:{users:0,views:0,count:0,accounts:[]}});
  }
@@ -189,9 +196,9 @@ const editor=page.getByRole('dialog',{name:'Edit link'});
 await editor.locator('input').nth(0).fill('My community');
 await editor.locator('input').nth(1).fill('https://discord.gg/test');
 await editor.getByRole('button',{name:'Done',exact:true}).click();
-await page.waitForFunction(()=>JSON.parse(localStorage.getItem('tourn.lol/pending-profile/v1/qa-user')||'null')?.links.links[0]?.label==='My community');
+await page.waitForFunction(()=>JSON.parse(localStorage.getItem('tourn.lol/pending-profile/v1/qa-user')||'null')?.document.links.links[0]?.label==='My community');
 await page.waitForTimeout(1000);
-assert(writes.some(w=>w.data.links.links[0]?.label==='My community'),'Link was not sent');
+assert(writes.some(w=>w.data.links?.links[0]?.label==='My community'),'Link was not sent');
 await page.reload();await page.locator('.tw-dash').waitFor();
 await nav('Social Links');
 await page.getByText('My community',{exact:true}).first().waitFor();
@@ -210,6 +217,7 @@ assert.equal(document.widgets.widgets.length,1);
 await page.reload();await page.locator('.tw-dash').waitFor();
 await nav('Widgets');
 assert.equal(await page.locator('.tw-widget-row').count(),1);
+await page.screenshot({path:'.tmp/widget-gallery.png',fullPage:true});
 console.log('PASS widget add and refresh');
 // Explicitly deleting the last link must not resurrect an old local section.
 await nav('Social Links');
@@ -372,11 +380,13 @@ await page.getByRole('switch',{name:'Tilt stacked cards together',exact:true}).c
 await page.waitForTimeout(1000);assert(document.about.design.stackTilt,'Shared tilt was not saved');
 await page.locator('.tw-layout-card').filter({hasText:'Centered'}).click();
 await page.getByRole('navigation',{name:'Card settings'}).getByRole('button',{name:'Sections',exact:true}).click();
-await page.getByRole('button',{name:'Add profile section',exact:true}).click();
+await page.locator('.tw-section-add-btn--text').click();
 await page.locator('.tw-field').filter({has:page.getByText('Section title',{exact:true})}).locator('input').fill('My own section');
-await page.locator('.tw-field').filter({has:page.getByText('Section text',{exact:true})}).locator('textarea').fill('My own content goes here.');
-await page.locator('.tw-field').filter({has:page.getByText('Section link',{exact:true})}).locator('input').fill('https://example.com/project');
-await page.getByText('Sections scroll normally below your profile. Adding them does not enable a slideshow or automatic scrolling.',{exact:true}).waitFor();
+await page.locator('.tw-field').filter({has:page.getByText('Description',{exact:true})}).locator('textarea').fill('My own content goes here.');
+await page.locator('.tw-field').filter({has:page.getByText('Main link',{exact:true})}).locator('input').fill('https://example.com/project');
+await page.getByText('Sections scroll normally below your profile. Projects, anime and games become real showcase cards with artwork, icons and links.',{exact:true}).waitFor();
+assert.equal(await page.locator('.tw-section-add-btn').count(),4,'Section kinds are missing');
+assert.equal(await page.locator('.tw-section-kind-row').first().locator('.tw-section-kind').count(),4,'Section editor lost its kind switch');
 await page.evaluate(()=>location.hash='#/dashboard/account-profile?section=background');
 await page.locator('#dash-section-background + .tw-form-grid .tw-select-btn').first().click();
 await page.getByRole('option',{name:'Video',exact:true}).click();

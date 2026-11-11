@@ -809,6 +809,7 @@ const SUPPORTED_IDS = [
   "clashroyale",
   "brawlstars",
   "weather",
+  "youtube",
 ] as const;
 
 const SUPPORTED = new Set<string>(SUPPORTED_IDS);
@@ -858,6 +859,7 @@ export const WIDGET_SAMPLE_CONTENT: Record<string, string> = {
   clashroyale: "#2PP",
   brawlstars: "#2PP",
   weather: "London",
+  youtube: "@tourn",
 };
 
 export function sampleContentFor(platformId: string): string {

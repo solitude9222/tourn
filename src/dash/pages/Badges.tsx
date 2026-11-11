@@ -8,9 +8,11 @@
    --------------------------------------------------------------------------- */
 
 import { useMemo, useState } from "react";
-import { BADGE_CATALOGUE, badgeDef, type BadgeDef, type BadgeGroup } from "../../lib/badges";
+import { BADGE_ANIMATIONS, BADGE_CATALOGUE, badgeDef, type BadgeDef, type BadgeGroup } from "../../lib/badges";
+import { BadgeChip } from "../../components/BadgeRow";
 import { useDash } from "../context";
-import { Button, Card, CardHead, Chip, EmptyState, Icon, IconButton, Modal } from "../ui";
+import { Button, Card, CardHead, Chip, ColorField, EmptyState, Field, Icon, IconButton, Modal, Select, Slider, Toggle } from "../ui";
+import "../badgeStudio.css";
 
 const MAX_ACTIVE = 30;
 
@@ -58,6 +60,10 @@ export function BadgesPage() {
     const badge = badgeDef(instance.id);
     return badge ? [{ instance, badge }] : [];
   });
+  const style = badges.style;
+  const updateStyle = (patch: Partial<typeof style>) =>
+    setBadges((current) => ({ ...current, style: { ...current.style, ...patch } }));
+  const previewBadge = equipped[0]?.instance ?? { id: "premium", visible: true };
 
   const earnedSet = useMemo(() => new Set(earned), [earned]);
   const shownSet = useMemo(() => new Set(badges.equipped.map((entry) => entry.id)), [badges.equipped]);
@@ -136,6 +142,36 @@ export function BadgesPage() {
       </Card>
 
       <Card>
+        <CardHead
+          icon="palette"
+          title="Badge finish"
+          subtitle="One finish applies to every badge on your card. Dial in the glow, colour and motion once."
+          actions={<span className="tw-badge-style-preview"><BadgeChip badge={previewBadge} style={style} /><small>Live preview</small></span>}
+        />
+        <div className="tw-badge-style-grid">
+          <div className="tw-badge-style-col">
+            <span className="tw-subhead">Glow &amp; colour</span>
+            <div className="tw-inline-toggle"><span><b>Outer glow</b><small>A soft halo behind each badge.</small></span><Toggle label="Outer glow" checked={style.glow} onChange={(glow) => updateStyle({ glow })} /></div>
+            <ColorField label="Glow colour" value={style.glowColor} onChange={(glowColor) => updateStyle({ glowColor })} />
+            <Slider label="Glow strength" value={style.glowIntensity} min={0} max={100} suffix="%" onChange={(glowIntensity) => updateStyle({ glowIntensity })} />
+            <div className="tw-inline-toggle"><span><b>Glow pulse</b><small>The halo breathes gently.</small></span><Toggle label="Glow pulse" checked={style.glowPulse} onChange={(glowPulse) => updateStyle({ glowPulse })} /></div>
+            <div className="tw-inline-toggle"><span><b>Monochrome</b><small>Replace the art with one flat tint.</small></span><Toggle label="Monochrome badges" checked={style.monochrome} onChange={(monochrome) => updateStyle({ monochrome })} /></div>
+            <ColorField label="Monochrome tint" value={style.monoColor} onChange={(monoColor) => updateStyle({ monoColor })} />
+          </div>
+          <div className="tw-badge-style-col">
+            <span className="tw-subhead">Overlay &amp; motion</span>
+            <div className="tw-inline-toggle"><span><b>Colour overlay</b><small>Wash the badge art in your accent.</small></span><Toggle label="Colour overlay" checked={style.overlay} onChange={(overlay) => updateStyle({ overlay })} /></div>
+            <ColorField label="Overlay colour" value={style.overlayColor} onChange={(overlayColor) => updateStyle({ overlayColor })} />
+            <Slider label="Overlay strength" value={style.overlayStrength} min={0} max={100} suffix="%" onChange={(overlayStrength) => updateStyle({ overlayStrength })} />
+            <Field label="Animation">
+              <Select value={style.animation} options={BADGE_ANIMATIONS.map((animation) => ({ value: animation.id, label: animation.name }))} onChange={(animation) => updateStyle({ animation: animation as typeof style.animation })} />
+            </Field>
+            <Slider label="Badge size" value={style.size} min={14} max={32} suffix="px" onChange={(size) => updateStyle({ size })} />
+          </div>
+        </div>
+      </Card>
+
+      <Card>
         <div className="tw-badge-promo">
           <span className="tw-badge-promo-icon">
             <img src="/badges/icons/norm/premium.svg" alt="" width={34} height={34} loading="lazy" />
@@ -191,12 +227,16 @@ export function BadgesPage() {
         {GROUPS.map((group) => {
           const items = BADGE_CATALOGUE.filter((badge) => badge.group === group.id && visible(badge));
           if (!items.length) return null;
+          const unlocked = items.filter((badge) => earnedSet.has(badge.id)).length;
           return (
-            <section className="tw-badge-group" key={group.id}>
-              <div className="tw-badge-group-head">
-                <h3>{group.label}</h3>
-                <small>{group.hint}</small>
-              </div>
+            <details className="tw-badge-group" key={group.id} open>
+              <summary className="tw-badge-group-head">
+                <span>
+                  <h3>{group.label}</h3>
+                  <small>{group.hint}</small>
+                </span>
+                <span className="tw-badge-group-count">{unlocked}/{items.length}</span>
+              </summary>
               <div className="tw-badge-list">
                 {items.map((badge) => {
                   const isEarned = earnedSet.has(badge.id);
@@ -235,7 +275,7 @@ export function BadgesPage() {
                   );
                 })}
               </div>
-            </section>
+            </details>
           );
         })}
 

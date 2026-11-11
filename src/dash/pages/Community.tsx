@@ -40,6 +40,7 @@ import {
   type TemplateSnapshot,
 } from "../../lib/templates";
 import { fetchLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
+import "../../leaderboard.css";
 import {
   Button,
   Card,
@@ -449,6 +450,9 @@ export function LeaderboardPage() {
                 </span>
                 <span className="tw-lb-podium-views">
                   {row.views.toLocaleString()} <small>views</small>
+                </span>
+                <span className="tw-lb-podium-bar" aria-hidden="true">
+                  <span style={{ width: `${max ? Math.max(4, (row.views / max) * 100) : 0}%` }} />
                 </span>
                 <span className="tw-lb-podium-open">
                   View profile

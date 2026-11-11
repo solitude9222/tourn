@@ -63,6 +63,7 @@ import {
   fetchOwnProfile,
   fetchPublicProfile,
   loadPendingDocument,
+  PROFILE_SECTIONS,
   preloadProfile,
   readCachedProfile,
   savePendingDocument,
@@ -483,6 +484,7 @@ function Site() {
   const [hydrateAttempt, setHydrateAttempt] = useState(0);
   const [profileLoadFailed, setProfileLoadFailed] = useState(false);
   const lastSaved = useRef<string>("");
+  const revision = useRef<number | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const [siteStats, setSiteStats] = useState<SiteStats>({ users: null, views: null });
 
@@ -574,6 +576,7 @@ function Site() {
     setHydratedId(null);
     setProfileLoadFailed(false);
     lastSaved.current = "";
+    revision.current = null;
     setAbout(user ? loadAbout(user.id) : EMPTY_ABOUT);
     setWidgets(user ? loadWidgetStore(user.id) : EMPTY_WIDGET_STORE);
     setBadges(user ? loadBadgeStore(user.id) : EMPTY_BADGE_STORE);
@@ -590,6 +593,7 @@ function Site() {
     if (!user) {
       hydratedFor.current = null;
       lastSaved.current = "";
+      revision.current = null;
       setEarned(null);
       return;
     }
@@ -605,23 +609,30 @@ function Site() {
       }
       setProfileLoadFailed(false);
       setEarned(result.data.earned);
-      // A publish that failed last time leaves the newer document here. It has
-      // to win over the server copy, or the failed publish is silently undone.
+      revision.current = result.data.revision ?? null;
+      // Only replay an unsaved draft when it was based on the server revision
+      // we just read. A draft based on an older revision must not overwrite
+      // widgets, links or art that were published from another tab/device.
       const pending = loadPendingDocument(user.id);
-      if (pending) {
-        setAbout(pending.about);
-        setWidgets(pending.widgets);
-        setBadges(pending.badges);
-        setProfileLinks(pending.links);
-        saveAbout(user.id, pending.about);
-        saveWidgetStore(user.id, pending.widgets);
-        saveBadgeStore(user.id, pending.badges);
-        saveLinkStore(user.id, pending.links);
+      const pendingIsCurrent =
+        pending &&
+        (result.data.revision == null || pending.baseRevision === result.data.revision);
+      if (pending && pendingIsCurrent) {
+        const draft = pending.document;
+        setAbout(draft.about);
+        setWidgets(draft.widgets);
+        setBadges(draft.badges);
+        setProfileLinks(draft.links);
+        saveAbout(user.id, draft.about);
+        saveWidgetStore(user.id, draft.widgets);
+        saveBadgeStore(user.id, draft.badges);
+        saveLinkStore(user.id, draft.links);
         lastSaved.current = "";
         hydratedFor.current = user.id;
         setHydratedId(user.id);
         return;
       }
+      if (pending) clearPendingDocument(user.id);
       if (result.data.profile) {
         const document = result.data.profile;
         // Empty arrays are valid saved deletions. Only a pending draft may
@@ -657,26 +668,62 @@ function Site() {
     if (!user || hydratedFor.current !== user.id) return;
     let cancelled = false;
     let retryTimer = 0;
+    let conflictRetries = 0;
 
     const publish = async (document: ProfileDocument) => {
       const serialized = JSON.stringify(document);
       if (serialized === lastSaved.current) return;
-      const result = await saveProfile(document, user.id, () => !cancelled && hydratedFor.current === user.id);
+      const base = lastSaved.current
+        ? (JSON.parse(lastSaved.current) as ProfileDocument)
+        : null;
+      // Older backends don't return a revision. They also don't understand
+      // section merges, so send the full document until the new API answers.
+      const canPatch = revision.current !== null;
+      const changed = canPatch
+        ? PROFILE_SECTIONS.filter(
+            (section) => !base || JSON.stringify(document[section]) !== JSON.stringify(base[section]),
+          )
+        : [...PROFILE_SECTIONS];
+      if (changed.length === 0) return;
+      const patch: Partial<ProfileDocument> = canPatch ? {} : document;
+      if (canPatch) {
+        for (const section of changed) {
+          (patch as Record<string, unknown>)[section] = document[section];
+        }
+      }
+      const result = await saveProfile(
+        patch,
+        user.id,
+        () => !cancelled && hydratedFor.current === user.id,
+        revision.current,
+        changed,
+      );
       if (cancelled) return;
       if (result.ok) {
+        revision.current = result.revision ?? revision.current;
         lastSaved.current = serialized;
         clearCachedProfile(user.username);
         if (user.alias) clearCachedProfile(user.alias);
         if (user.alias2) clearCachedProfile(user.alias2);
         retryRef.current = 0;
         const pending = loadPendingDocument(user.id);
-        if (pending && JSON.stringify(pending) === serialized) clearPendingDocument(user.id);
+        if (pending && JSON.stringify(pending.document) === serialized) clearPendingDocument(user.id);
         window.dispatchEvent(new CustomEvent("tourn:toast", { detail: {
           title: "Profile published", message: "Your changes are live.",
         } }));
         return;
       }
-      if (!loadPendingDocument(user.id)) savePendingDocument(user.id, document);
+      // A save based on an older revision must not replace a newer document.
+      // Refresh the revision and retry once; the server merges only the
+      // sections that actually changed, leaving the rest of the profile intact.
+      if (result.status === 409 && conflictRetries < 1) {
+        conflictRetries += 1;
+        revision.current = result.revision ?? revision.current;
+        retryTimer = window.setTimeout(() => void publish(document), 250);
+        return;
+      }
+      revision.current = result.revision ?? revision.current;
+      if (!loadPendingDocument(user.id)) savePendingDocument(user.id, document, revision.current);
       // 2s, 4s, 8s, 16s, then every 30s while the tab stays open.
       const delay = Math.min(30_000, 2000 * 2 ** retryRef.current);
       if (retryRef.current === 0) {
@@ -696,7 +743,7 @@ function Site() {
     const document = { about, widgets, badges, links: profileLinks };
     const serialized = JSON.stringify(document);
     if (serialized === lastSaved.current) return;
-    savePendingDocument(user.id, document);
+    savePendingDocument(user.id, document, revision.current);
     const timer = window.setTimeout(() => void publish(document), 700);
     return () => {
       cancelled = true;
@@ -710,9 +757,10 @@ function Site() {
   useEffect(() => {
     if (!user || hydratedFor.current !== user.id) return;
     const flush = () => {
-      const document = loadPendingDocument(user.id) ?? { about, widgets, badges, links: profileLinks };
+      const pending = loadPendingDocument(user.id);
+      const document = pending?.document ?? { about, widgets, badges, links: profileLinks };
       if (JSON.stringify(document) === lastSaved.current) return;
-      savePendingDocument(user.id, document);
+      savePendingDocument(user.id, document, revision.current);
       // The durable pending copy is replayed on return. A second keepalive
       // PUT could race the active request and restore an older document.
     };
