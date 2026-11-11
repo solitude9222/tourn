@@ -604,7 +604,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
     cursor: {
       // The preset cursors were replaced by a single uploaded image. Migrate
       // old saved presets to either the custom image or the system cursor.
-      style: cursorImage ? "custom" : "default",
+      style: choiceIn(cursor.style, ["default", "dot", "ring", "crosshair", "glow", "custom"] as const, cursorImage ? "custom" : "default"),
       color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
       size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
       trail: boolIn(cursor.trail, DEFAULT_PROFILE_ASSETS.cursor.trail),

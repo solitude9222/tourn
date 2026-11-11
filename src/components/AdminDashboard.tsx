@@ -1,3 +1,4 @@
+import { DataTransferPanel } from "./DataTransferPanel";
 import { HOME_PREVIEW_MODE_KEY, type HomePreviewMode } from "../lib/homePreview";
 import {
   useCallback,
@@ -38,7 +39,7 @@ import {
 import { Select } from "./Select";
 import "../admin.css";
 
-type Tab = "overview" | "members" | "invites" | "settings" | "bot";
+type Tab = "overview" | "members" | "invites" | "settings" | "data" | "bot";
 
 type RegistrationMode = "open" | "invite" | "closed";
 
@@ -95,6 +96,7 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: "members", label: "Members", icon: <UsersIcon size={13} /> },
   { id: "invites", label: "Invites", icon: <KeyIcon size={13} /> },
   { id: "settings", label: "Site settings", icon: <SettingsIcon size={13} /> },
+  { id: "data", label: "Data transfer", icon: <SaveIcon size={13} /> },
   { id: "bot", label: "Discord bot", icon: <DiscordIcon size={13} /> },
 ];
 
@@ -1336,6 +1338,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
         </section>
         </>
       ) : null}
+
+      {tab === "data" ? isOwner ? <DataTransferPanel /> : <section className="adm-panel"><h2>Owner access required</h2><p>Only the site owner can export or import the full database.</p></section> : null}
 
       {tab === "bot" ? (
         <>

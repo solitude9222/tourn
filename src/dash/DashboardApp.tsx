@@ -1,3 +1,4 @@
+import type { ProfileDocument } from "../lib/serverProfile";
 /* ---------------------------------------------------------------------------
    tourn.lol dashboard root.
 
@@ -58,6 +59,7 @@ export type DashboardProps = {
   onSaveBadges: (store: BadgeStore) => void;
   onSaveLinks: (store: LinkStore) => void;
   onSaveAll: () => void;
+  onDraftChange: (document: ProfileDocument) => void;
   onSignIn: () => void;
   onSignUp: () => void;
   onSignOut: () => void;
@@ -191,6 +193,7 @@ export function Dashboard(props: DashboardProps) {
     onSaveWidgets,
     onSaveBadges,
     onSaveLinks,
+    onDraftChange,
     onSignIn,
     onSignUp,
     onSignOut,
@@ -205,6 +208,14 @@ export function Dashboard(props: DashboardProps) {
   const [linksDraft, setLinksDraft] = useState<LinkStore>(profileLinks);
   const [profileViews, setProfileViews] = useState<number | null>(null);
 
+  const draftRef=useRef({about:aboutDraft,widgets:widgetsDraft,badges:badgesDraft,links:linksDraft});
+  useLayoutEffect(()=>{draftRef.current={about:aboutDraft,widgets:widgetsDraft,badges:badgesDraft,links:linksDraft};},[aboutDraft,widgetsDraft,badgesDraft,linksDraft]);
+  const changeDraft=(section:keyof ProfileDocument,updater:(value:any)=>any)=>{
+    if(!user || authLoading)return;
+    const next={...draftRef.current,[section]:updater(draftRef.current[section])};draftRef.current=next;
+    onDraftChange(next);
+    if(section==='about')setAboutDraft(next.about);if(section==='widgets')setWidgetsDraft(next.widgets);if(section==='badges')setBadgesDraft(next.badges);if(section==='links')setLinksDraft(next.links);
+  };
   const lastProps = useRef({ about, widgets, badges, profileLinks });
 
   useEffect(() => {
@@ -307,14 +318,7 @@ export function Dashboard(props: DashboardProps) {
     notify,
   ]);
 
-  useEffect(() => {
-    if (!user || authLoading || !dirty) return;
-    onSaveAbout(aboutDraft);
-    onSaveWidgets(widgetsDraft);
-    onSaveBadges(badgesDraft);
-    onSaveLinks(linksDraft);
-  }, [user?.id, authLoading, dirty, aboutDraft, widgetsDraft, badgesDraft, linksDraft,
-      onSaveAbout, onSaveWidgets, onSaveBadges, onSaveLinks]);
+
 
   const discard = useCallback(() => {
     setAboutDraft(about);
@@ -348,10 +352,10 @@ export function Dashboard(props: DashboardProps) {
       earned,
       profileViews,
       dirty,
-      setAbout: (updater: (current: About) => About) => setAboutDraft(updater),
-      setWidgets: (updater: (current: WidgetStore) => WidgetStore) => setWidgetsDraft(updater),
-      setBadges: (updater: (current: BadgeStore) => BadgeStore) => setBadgesDraft(updater),
-      setLinks: (updater: (current: LinkStore) => LinkStore) => setLinksDraft(updater),
+      setAbout: (updater: (current: About) => About) => changeDraft("about",updater),
+      setWidgets: (updater: (current: WidgetStore) => WidgetStore) => changeDraft("widgets",updater),
+      setBadges: (updater: (current: BadgeStore) => BadgeStore) => changeDraft("badges",updater),
+      setLinks: (updater: (current: LinkStore) => LinkStore) => changeDraft("links",updater),
       save,
       discard,
       notify,
@@ -377,6 +381,8 @@ export function Dashboard(props: DashboardProps) {
       go,
       profileTab,
       changeProfileTab,
+      authLoading,
+      onDraftChange,
     ],
   );
 

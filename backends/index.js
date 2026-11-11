@@ -19,6 +19,7 @@
    --------------------------------------------------------------------------- */
 
 import "dotenv/config";
+import { registerDataTransfer } from "./dataTransfer.js";
 import { AUDIO_SCHEMA, registerAudioRoutes } from "./audio.js";
 import express from "express";
 import cors from "cors";
@@ -360,6 +361,8 @@ async function requireAdmin(req, res, next) {
   });
 }
 
+async function requireOwner(req,res,next){requireAdmin(req,res,()=>{if(!req.user.is_owner)return res.status(403).json({error:"Only the site owner can export or restore all account data."});next();});}
+
 async function currentUser(req) {
   if (!req.auth) return null;
   const user = await userById(req.auth.sub);
@@ -695,6 +698,7 @@ const PROFILE_PAGE_TTL = 20_000;
 const PROFILE_WRITE_SECTIONS = new Set(["about", "widgets", "badges", "links"]);
 
 registerAudioRoutes(app, pool, requireAuth);
+registerDataTransfer(app,pool,requireOwner,()=>profilePageCache.clear());
 
 app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req, res) => {
   let client;
@@ -726,7 +730,7 @@ app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req,
     );
     const current = rows[0] ?? null;
 
-    if (baseRevision !== null && Number(current?.revision ?? 0) !== baseRevision) {
+    if ((current && baseRevision === null) || (baseRevision !== null && Number(current?.revision ?? 0) !== baseRevision)) {
       await client.query("rollback");
       res.set("Cache-Control", "no-store");
       return res.status(409).json({
@@ -962,7 +966,10 @@ app.get("/env.js", (_req, res) => {
   );
 });
 
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/health", async (_req, res) => {
+  try {await pool.query("select 1");res.json({ok:true,storage:"postgresql",profileSaveProtocol:2,commit:process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null});}
+  catch {res.status(503).json({ok:false,storage:"postgresql",error:"Database is unavailable."});}
+});
 
 /* ── widget data proxies ────────────────────────────────────────────────
    Roblox and Steam send no CORS headers, so the browser can never call them

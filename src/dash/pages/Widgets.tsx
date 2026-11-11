@@ -192,7 +192,7 @@ export function WidgetsPage() {
     }
     setWidgets((current) => ({ ...current, widgets: [...current.widgets, instance] }));
     setConfiguring(null);
-    notify("Widget added", `${configuring.name} is on your profile once you save.`);
+    notify("Widget added", `${configuring.name} added. Changes save automatically.`);
   };
 
   const commitEdit = () => {
@@ -685,7 +685,7 @@ export function WidgetsPage() {
                 icon="at"
                 value={content}
                 placeholder={WIDGET_PLATFORM_BY_ID.get(editing.platform)?.contentPlaceholder}
-                onChange={(event) => setContent(event.target.value)}
+                onChange={(event) => {const value=event.target.value;setContent(value);setWidgets(current=>({...current,widgets:current.widgets.map(item=>item.id===editing.id?{...item,content:value}:item)}));}}
               />
             </Field>
 

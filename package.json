@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test:frontend": "node tests/frontend-regressions.mjs",
+    "test:data-transfer": "node --test tests/data-transfer.test.mjs",
     "test:audio": "node --test tests/audio.test.mjs",
     "test:analytics": "node --test tests/analytics.test.mjs"
   },

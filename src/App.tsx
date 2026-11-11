@@ -67,6 +67,10 @@ import {
   preloadProfile,
   readCachedProfile,
   savePendingDocument,
+  mergeProfileDraft,
+  profileFingerprint,
+  canonicalJson,
+  normalizeDocument,
   saveProfile,
   type ProfileDocument,
   type ProfilePayload,
@@ -627,10 +631,17 @@ function Site() {
         saveWidgetStore(user.id, draft.widgets);
         saveBadgeStore(user.id, draft.badges);
         saveLinkStore(user.id, draft.links);
-        lastSaved.current = "";
+        lastSaved.current = result.data.profile ? profileFingerprint(result.data.profile) : "";
         hydratedFor.current = user.id;
         setHydratedId(user.id);
         return;
+      }
+      if(pending?.baseDocument && result.data.profile){
+        const rebased=mergeProfileDraft(result.data.profile,pending.document,pending.baseDocument);
+        lastSaved.current=profileFingerprint(result.data.profile);revision.current=result.data.revision ?? null;
+        savePendingDocument(user.id,rebased,revision.current,result.data.profile);
+        setAbout(rebased.about);setWidgets(rebased.widgets);setBadges(rebased.badges);setProfileLinks(rebased.links);
+        hydratedFor.current=user.id;setHydratedId(user.id);return;
       }
       if (pending) clearPendingDocument(user.id);
       if (result.data.profile) {
@@ -646,7 +657,7 @@ function Site() {
         saveWidgetStore(user.id, merged.widgets);
         saveBadgeStore(user.id, merged.badges);
         saveLinkStore(user.id, merged.links);
-        lastSaved.current = JSON.stringify(document);
+        lastSaved.current = profileFingerprint(document);
       } else {
         // First publish is handled by the acknowledged retrying save below.
         lastSaved.current = "";
@@ -671,7 +682,7 @@ function Site() {
     let conflictRetries = 0;
 
     const publish = async (document: ProfileDocument) => {
-      const serialized = JSON.stringify(document);
+      const serialized = profileFingerprint(document);
       if (serialized === lastSaved.current) return;
       const base = lastSaved.current
         ? (JSON.parse(lastSaved.current) as ProfileDocument)
@@ -681,7 +692,7 @@ function Site() {
       const canPatch = revision.current !== null;
       const changed = canPatch
         ? PROFILE_SECTIONS.filter(
-            (section) => !base || JSON.stringify(document[section]) !== JSON.stringify(base[section]),
+            (section) => !base || canonicalJson(normalizeDocument(document)[section]) !== canonicalJson(base[section]),
           )
         : [...PROFILE_SECTIONS];
       if (changed.length === 0) return;
@@ -707,7 +718,7 @@ function Site() {
         if (user.alias2) clearCachedProfile(user.alias2);
         retryRef.current = 0;
         const pending = loadPendingDocument(user.id);
-        if (pending && JSON.stringify(pending.document) === serialized) clearPendingDocument(user.id);
+        if (pending && profileFingerprint(pending.document) === serialized) clearPendingDocument(user.id);
         window.dispatchEvent(new CustomEvent("tourn:toast", { detail: {
           title: "Profile published", message: "Your changes are live.",
         } }));
@@ -719,11 +730,12 @@ function Site() {
       if (result.status === 409 && conflictRetries < 1) {
         conflictRetries += 1;
         revision.current = result.revision ?? revision.current;
+        if(result.profile && base){const rebased=mergeProfileDraft(result.profile,document,base);lastSaved.current=profileFingerprint(result.profile);savePendingDocument(user.id,rebased,revision.current,result.profile);setAbout(rebased.about);setWidgets(rebased.widgets);setBadges(rebased.badges);setProfileLinks(rebased.links);return;}
         retryTimer = window.setTimeout(() => void publish(document), 250);
         return;
       }
       revision.current = result.revision ?? revision.current;
-      if (!loadPendingDocument(user.id)) savePendingDocument(user.id, document, revision.current);
+      if (!loadPendingDocument(user.id)) savePendingDocument(user.id, document, revision.current, lastSaved.current ? JSON.parse(lastSaved.current) : null);
       // 2s, 4s, 8s, 16s, then every 30s while the tab stays open.
       const delay = Math.min(30_000, 2000 * 2 ** retryRef.current);
       if (retryRef.current === 0) {
@@ -741,9 +753,12 @@ function Site() {
     };
 
     const document = { about, widgets, badges, links: profileLinks };
-    const serialized = JSON.stringify(document);
-    if (serialized === lastSaved.current) return;
-    savePendingDocument(user.id, document, revision.current);
+    const serialized = profileFingerprint(document);
+    if (serialized === lastSaved.current) {
+      const pending=loadPendingDocument(user.id);if(pending && profileFingerprint(pending.document)===serialized)clearPendingDocument(user.id);
+      return;
+    }
+    savePendingDocument(user.id, document, revision.current, lastSaved.current ? JSON.parse(lastSaved.current) : null);
     const timer = window.setTimeout(() => void publish(document), 700);
     return () => {
       cancelled = true;
@@ -759,8 +774,8 @@ function Site() {
     const flush = () => {
       const pending = loadPendingDocument(user.id);
       const document = pending?.document ?? { about, widgets, badges, links: profileLinks };
-      if (JSON.stringify(document) === lastSaved.current) return;
-      savePendingDocument(user.id, document, revision.current);
+      if (profileFingerprint(document) === lastSaved.current) return;
+      savePendingDocument(user.id, document, revision.current, lastSaved.current ? JSON.parse(lastSaved.current) : null);
       // The durable pending copy is replayed on return. A second keepalive
       // PUT could race the active request and restore an older document.
     };
@@ -842,6 +857,13 @@ function Site() {
     },
     [user],
   );
+
+  const handleDraftChange=useCallback((next:ProfileDocument)=>{
+    if(!user || hydratedFor.current!==user.id)return;
+    savePendingDocument(user.id,next,revision.current,lastSaved.current ? JSON.parse(lastSaved.current) : null);
+    setAbout(next.about);setWidgets(next.widgets);setBadges(next.badges);setProfileLinks(next.links);
+    saveAbout(user.id,next.about);saveWidgetStore(user.id,next.widgets);saveBadgeStore(user.id,next.badges);saveLinkStore(user.id,next.links);
+  },[user?.id]);
 
   // Top-bar "Save changes" — re-persists every dashboard store at once and
   // republishes the public page immediately.
@@ -927,6 +949,7 @@ function Site() {
           onSaveBadges={handleSaveBadges}
           onSaveLinks={handleSaveLinks}
           onSaveAll={handleSaveAll}
+          onDraftChange={handleDraftChange}
           profileLinks={profileLinks}
           onSignIn={() => setAuthMode("signin")}
           onSignUp={() => setAuthMode("signup")}

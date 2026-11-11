@@ -218,6 +218,7 @@ const PENDING_PREFIX = "tourn.lol/pending-profile/v1/";
 
 export type PendingDocument = {
   document: ProfileDocument;
+  baseDocument: ProfileDocument | null;
   /** The server revision the unsaved draft was based on. A draft based on an
    *  older revision must never be replayed over a newer published document. */
   baseRevision: number | null;
@@ -228,11 +229,12 @@ export function savePendingDocument(
   userId: string,
   document: ProfileDocument,
   baseRevision: number | null = null,
+  baseDocument: ProfileDocument | null = null,
 ): void {
   try {
     localStorage.setItem(
       PENDING_PREFIX + userId,
-      JSON.stringify({ document, baseRevision, savedAt: Date.now() } satisfies PendingDocument),
+      JSON.stringify({ document, baseRevision, baseDocument, savedAt: Date.now() } satisfies PendingDocument),
     );
   } catch {
     /* private mode / quota — the local stores still have the edit */
@@ -247,13 +249,14 @@ export function loadPendingDocument(userId: string): PendingDocument | null {
     if (parsed.document && typeof parsed.document === "object") {
       return {
         document: normalizeDocument(parsed.document),
-        baseRevision: Number.isFinite(Number(parsed.baseRevision)) ? Number(parsed.baseRevision) : null,
+        baseDocument: parsed.baseDocument ? normalizeDocument(parsed.baseDocument) : null,
+        baseRevision: parsed.baseRevision != null && Number.isFinite(Number(parsed.baseRevision)) ? Number(parsed.baseRevision) : null,
         savedAt: Number(parsed.savedAt) || 0,
       };
     }
     // Older builds stored the document directly. It has no revision, so the
     // hydration path only replays it when the server still has no revision.
-    return { document: normalizeDocument(parsed), baseRevision: null, savedAt: 0 };
+    return { document: normalizeDocument(parsed), baseDocument: null, baseRevision: null, savedAt: 0 };
   } catch {
     return null;
   }
@@ -266,3 +269,27 @@ export function clearPendingDocument(userId: string): void {
     /* ignore */
   }
 }
+
+/** Rebase only locally changed fields; ID-keyed lists retain additions from both devices. */
+export function mergeProfileDraft(server: ProfileDocument, local: ProfileDocument, base: ProfileDocument): ProfileDocument {
+ server=normalizeDocument(server);local=normalizeDocument(local);base=normalizeDocument(base);
+ const same=(a:unknown,b:unknown)=>canonicalJson(a)===canonicalJson(b);
+ const merge=(remote:any,draft:any,before:any):any=>{
+  if(same(draft,before))return remote;
+  if(Array.isArray(draft) && Array.isArray(before) && [...draft,...before].every(item=>item && typeof item.id==='string')) {
+   const current=Array.isArray(remote)?remote:[];const old=new Map(before.map(item=>[item.id,item]));const changed=new Map(draft.map(item=>[item.id,item]));const received=new Map(current.map(item=>[item.id,item]));
+   return [...draft.map(item=>merge(received.get(item.id),item,old.get(item.id))),...current.filter(item=>!changed.has(item.id)&&!old.has(item.id))].filter(Boolean);
+  }
+  if(remote===undefined)return draft;
+  if(draft && before && typeof draft==='object' && typeof before==='object' && !Array.isArray(draft) && !Array.isArray(before)) {
+   const out={...(remote||{})};for(const key of new Set([...Object.keys(before),...Object.keys(draft)])){if(!(key in draft))delete out[key];else out[key]=merge(remote?.[key],draft[key],before[key]);}return out;
+  }
+  return draft;
+ };
+ return normalizeDocument(merge(server,local,base));
+}
+
+export function canonicalJson(value: unknown): string {
+ return JSON.stringify(value,(_key,item)=>item && typeof item==='object' && !Array.isArray(item) ? Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])) : item);
+}
+export function profileFingerprint(document: ProfileDocument): string { return canonicalJson(normalizeDocument(document)); }

@@ -9,6 +9,7 @@ try {
 const context = await browser.newContext({viewport:{width:1440,height:1000}});
 const page = await context.newPage();
 await page.addInitScript(() => { window.qaLoadingFallback = false; new MutationObserver(() => { if (document.querySelector(".route-loading")) window.qaLoadingFallback = true; }).observe(document, {childList:true,subtree:true}); });
+const waitForSaves=()=>page.waitForFunction(()=>!localStorage.getItem('tourn.lol/pending-profile/v1/qa-user'),null,{timeout:15000});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const account={id:'qa-user',username:'reviewer',email:null,avatarUrl:null,joinedAt:'2026-01-01',premium:true,discordLinked:true,discordId:'1546745348020772915'};
 let audioUploadBytes=0, audioUploadExpected=0, failAudioUpload=false;
@@ -38,6 +39,7 @@ await context.route('**/*',async route=>{
   if(url.pathname==='/api/profile' && route.request().method()==='PUT') {
    const body=route.request().postDataJSON(); writes.push(body);
    if(failWrites) return route.fulfill({status:503,json:{error:'Offline test'}});
+   if(document && body.baseRevision!==revision)return route.fulfill({status:409,json:{error:'Newer profile revision',revision,profile:document}});
    // Mirror the backend: merge only the submitted sections, then bump revision.
    if(Array.isArray(body.sections)) {
     const merged={...(document||{})};
@@ -95,7 +97,7 @@ await discordDialog.locator('input').first().fill('1546745348020772915');
 await discordDialog.locator('summary').filter({hasText:'Additional Discord badges'}).click();
 await discordDialog.getByRole('button',{name:'Orbs',exact:true}).click();
 await discordDialog.getByRole('button',{name:'Add widget',exact:true}).click();
-await page.waitForTimeout(1000);
+await waitForSaves();
 assert(document.widgets.widgets.some(w=>w.platform==='discord'),'Discord widget was not published');
 assert(document.widgets.widgets.find(w=>w.platform==='discord').options.profile_badges.includes('orbs'),'Additional widget badge was not saved');
 presenceMonitored=true;
@@ -110,12 +112,12 @@ assert.equal(await page.getByText('Discord Presence',{exact:true}).count(),0,'Du
 await page.getByText('Player accent',{exact:true}).waitFor();
 const playerStyle=page.locator('.tw-field').filter({has:page.getByText('Player style',{exact:true})});
 await playerStyle.locator('.tw-select-btn').click();await page.getByRole('option',{name:'Popup',exact:true}).click();
-await page.waitForTimeout(900);assert.equal(document.about.assets.audio.style,'popup','Popup style was not saved');
+await waitForSaves();assert.equal(document.about.assets.audio.style,'popup','Popup style was not saved');
 await page.getByRole('slider',{name:'Default volume',exact:true}).press('Home');await page.getByRole('slider',{name:'Default volume',exact:true}).press('ArrowRight');
 await page.getByRole('slider',{name:'Player opacity',exact:true}).press('End');
 await page.getByRole('slider',{name:'Playback speed',exact:true}).press('Home');
 await page.getByRole('switch',{name:'Loop track',exact:true}).click();
-await page.waitForTimeout(1100);
+await waitForSaves();
 assert.equal(document.about.assets.audio.volume,.01);assert.equal(document.about.assets.audio.cardOpacity,1);assert.equal(document.about.assets.audio.playbackRate,.5);assert.equal(document.about.assets.audio.loop,false);
 await page.screenshot({path:'.tmp/music-settings.png',fullPage:true});
 await page.reload();await playerStyle.getByText('Popup',{exact:true}).waitFor();
@@ -127,7 +129,7 @@ await page.getByText('Auto-fetch lyrics',{exact:true}).first().waitFor();
 const largeAudio=Buffer.alloc(6*1024*1024+44);
 await page.locator('input[type=file][accept="audio/*"]').setInputFiles({name:'full-track.wav',mimeType:'audio/wav',buffer:largeAudio});
 await page.getByText('Track added. Changes save automatically.',{exact:true}).waitFor();
-await page.waitForTimeout(1100);
+await waitForSaves();
 assert.equal(audioUploadExpected,largeAudio.length);assert.equal(audioUploadBytes,largeAudio.length);
 assert(document.about.assets.audio.fileUrl.endsWith('/api/media/audio/00000000-0000-4000-8000-000000000099'));
 const savedAudioUrl=document.about.assets.audio.fileUrl;
@@ -155,7 +157,7 @@ await page.getByRole('button',{name:'Home',exact:true}).click();
 assert.equal(await page.getByRole('button',{name:'Add Discord widget',exact:true}).locator('.is-done').count(),1,'Saved Discord presence did not complete setup');
 await page.evaluate(()=>location.hash='#/dashboard/widgets');
 await page.getByRole('button',{name:'Delete Discord',exact:true}).click();
-await page.waitForTimeout(1000);
+await waitForSaves();
 assert.equal(document.widgets.widgets.length,0);
 
 await page.getByRole('button',{name:'Home',exact:true}).click();
@@ -212,17 +214,33 @@ await page.locator('.tw-widget-pick').filter({hasText:'GitHub'}).click();
 await page.getByRole('dialog',{name:'Add GitHub'}).locator('input').first().fill('octocat');
 await page.getByRole('dialog',{name:'Add GitHub'}).getByRole('button',{name:'Add widget',exact:true}).click();
 await page.waitForFunction(()=>!localStorage.getItem('tourn.lol/pending-profile/v1/qa-user'),null,{timeout:15000});
-await page.waitForTimeout(1000);
+await waitForSaves();
 assert.equal(document.widgets.widgets.length,1);
 await page.reload();await page.locator('.tw-dash').waitFor();
 await nav('Widgets');
 assert.equal(await page.locator('.tw-widget-row').count(),1);
 await page.screenshot({path:'.tmp/widget-gallery.png',fullPage:true});
 console.log('PASS widget add and refresh');
+// Close and refresh without pressing Save: preserve the latest widget keystroke.
+failWrites=true;
+await page.getByRole('button',{name:'Edit GitHub',exact:true}).click();
+await page.getByRole('dialog',{name:'Edit GitHub',exact:true}).locator('input').first().fill('torvalds');
+const durableWidget=await page.evaluate(()=>JSON.parse(localStorage.getItem('tourn.lol/pending-profile/v1/qa-user')));
+assert.equal(durableWidget.document.widgets.widgets[0].content,'torvalds','The edit was not durable at input time');
+assert(durableWidget.baseDocument,'Pending save has no merge baseline');
+// Another device updates the same widget options and adds a link before refresh.
+document.widgets.widgets[0].options.remote_flag='retained';
+document.links.links.push({id:'remote-link',platform:'github',label:'Remote addition',url:'https://github.com/example',visible:true,iconUrl:''});revision++;
+await page.reload();await page.locator('.tw-dash').waitFor();
+failWrites=false;await page.waitForFunction(()=>!localStorage.getItem('tourn.lol/pending-profile/v1/qa-user'),null,{timeout:15000});
+assert.equal(document.widgets.widgets[0].content,'torvalds');assert.equal(document.widgets.widgets[0].options.remote_flag,'retained');assert(document.links.links.some(link=>link.id==='remote-link'),'Rebasing erased another device’s link');
+await nav('Social Links');await page.getByRole('button',{name:'Delete Remote addition',exact:true}).click();await waitForSaves();
+console.log('PASS immediate widget durability and stale-draft three-way merge');
+
 // Explicitly deleting the last link must not resurrect an old local section.
 await nav('Social Links');
 await page.getByRole('button',{name:'Delete My community',exact:true}).click();
-await page.waitForTimeout(1200);
+await waitForSaves();
 assert.equal(document.links.links.length,0);
 await page.reload();await page.locator('.tw-dash').waitFor();
 await nav('Social Links');
@@ -363,11 +381,13 @@ const clickField=page.locator('.tw-field').filter({has:page.getByText('Click sou
 await clickField.locator('.tw-select-btn').click();await page.getByRole('option',{name:'custom',exact:true}).click();
 const clickCompleted=page.waitForResponse(response=>response.url().includes('/api/media/audio/') && response.url().endsWith('/complete'));
 await page.getByLabel('Custom click audio',{exact:true}).setInputFiles({name:'click.wav',mimeType:'audio/wav',buffer:Buffer.alloc(2*1024*1024)});
-await clickCompleted;await page.waitForTimeout(1100);
+await clickCompleted;
+await page.waitForFunction(()=>JSON.parse(localStorage.getItem('tourn.lol/pending-profile/v1/qa-user')||'null')?.document?.about?.assets?.interactions?.fileUrl?.includes('/api/media/audio/'));
+await page.waitForFunction(()=>!localStorage.getItem('tourn.lol/pending-profile/v1/qa-user'),null,{timeout:15000});
 assert(document.about.assets.interactions.fileUrl.endsWith('/api/media/audio/00000000-0000-4000-8000-000000000099'),'Large click sound did not persist');
 await clickField.locator('.tw-select-btn').click();await page.getByRole('option',{name:'tick',exact:true}).click();
 await page.getByRole('switch',{name:'Click ripple',exact:true}).click();
-await page.waitForTimeout(1200);
+await waitForSaves();
 assert.equal(document.about.assets.effects.overlay.id,'dotted');assert.equal(document.about.assets.effects.text.name.effect,'sparkle');
 assert.equal(document.about.assets.card.id,'beam');assert.equal(document.about.assets.interactions.sound,'tick');assert(document.about.assets.interactions.ripple);
 await page.evaluate(()=>location.hash='#/dashboard/layout');
@@ -377,7 +397,7 @@ await page.locator('.tw-layout-card').filter({hasText:'Left aligned'}).click();
 await page.waitForTimeout(150);
 assert.equal(await page.locator('.tw-card-preview').count(),0,'Live card preview remains');
 await page.getByRole('switch',{name:'Tilt stacked cards together',exact:true}).click();
-await page.waitForTimeout(1000);assert(document.about.design.stackTilt,'Shared tilt was not saved');
+await waitForSaves();assert(document.about.design.stackTilt,'Shared tilt was not saved');
 await page.locator('.tw-layout-card').filter({hasText:'Centered'}).click();
 await page.getByRole('navigation',{name:'Card settings'}).getByRole('button',{name:'Sections',exact:true}).click();
 await page.locator('.tw-section-add-btn--text').click();
@@ -391,7 +411,7 @@ await page.evaluate(()=>location.hash='#/dashboard/account-profile?section=backg
 await page.locator('#dash-section-background + .tw-form-grid .tw-select-btn').first().click();
 await page.getByRole('option',{name:'Video',exact:true}).click();
 await page.locator('.tw-field').filter({has:page.getByText('Background video URL',{exact:true})}).locator('input').fill('https://example.com/owner-video.webm');
-await page.waitForTimeout(1200);
+await waitForSaves();
 assert.equal(document.about.assets.background.style,'video');assert.equal(document.about.assets.background.videoUrl,'https://example.com/owner-video.webm');
 assert.equal(document.about.design.sections[0].title,'My own section');
 await page.reload();await page.locator('.tw-dash').waitFor();
