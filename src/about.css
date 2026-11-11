@@ -4891,7 +4891,7 @@
 .lkr-page .lkr-flow--slideshow {gap:0;}
 
 /* The supplied transparent speckle texture sits outside the letters. */
-.fx-sparkles::before,.fx-sparkles::after {content:"";position:absolute;left:-4px;right:-4px;height:14px;background:var(--fx-color-a,#fff);mask-image:url("/effects/text-sparkle.png");mask-size:90px 68px;mask-repeat:repeat;pointer-events:none;opacity:.6;animation:fxReferenceSparkle var(--fx-speed,3s) ease-in-out infinite alternate;}
+.fx-sparkles::before,.fx-sparkles::after {content:"";position:absolute;left:-4px;right:-4px;height:14px;background-color:var(--fx-color-a,#fff);-webkit-mask-image:url("/effects/sparkle_black.gif");mask-image:url("/effects/sparkle_black.gif");-webkit-mask-size:90px 68px;mask-size:90px 68px;-webkit-mask-repeat:repeat;mask-repeat:repeat;mask-mode:alpha;pointer-events:none;opacity:.6;animation:fxReferenceSparkle var(--fx-speed,3s) ease-in-out infinite alternate;}
 .fx-sparkles::before {top:-5px;mask-position:0 0;}
 .fx-sparkles::after {bottom:-5px;mask-position:30px 35px;animation-delay:-1.3s;background:var(--fx-color-b,#fff);}
 .fx-sparkles i {width:3px;height:3px;max-width:3px;max-height:3px;filter:drop-shadow(0 0 1px var(--fx-color-a));}
