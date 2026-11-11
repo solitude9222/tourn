@@ -144,6 +144,8 @@ export function stripPremium(snapshot: TemplateSnapshot): TemplateSnapshot {
 const LAYOUT_KEYS = [
   "theme",
   "layout",
+  "widgetsPosition",
+  "audioPosition",
   "cardStyle",
   "font",
   "cardWidth",

@@ -42,6 +42,9 @@ export function ProfilePreview({
   compact = false,
   views,
   joined,
+  hideViews = false,
+  hideJoined = false,
+  hideLocation = false,
   /** The entry screen is still covering the page — hold the audio. */
   entryActive = false,
   /** Marketing previews (the home hero) show the card, not the player. */
@@ -61,6 +64,10 @@ export function ProfilePreview({
   views?: number | null;
   /** Already-formatted join date, e.g. "Nov 2026". */
   joined?: string;
+  /** The Left layout's side rail owns these, so the card must not repeat them. */
+  hideViews?: boolean;
+  hideJoined?: boolean;
+  hideLocation?: boolean;
   /** True while the entry overlay is up, so the track starts after entering. */
   entryActive?: boolean;
   /** Hide the audio player entirely — used by the home page preview. */
@@ -87,20 +94,20 @@ export function ProfilePreview({
   const uid = accountUid(user);
   const tiltEnabled = !disableTilt && (design.tilt ?? 0) > 0;
   const tilt = useTilt(disableTilt ? 0 : design.tilt ?? 0, Boolean(design.tiltInvert));
-  const viewPosition = design.viewPosition ?? "top-right";
+  const viewPosition = design.viewPosition === "side" && design.layout !== "left" ? "footer" : design.viewPosition ?? "top-right";
   // The join date is part of the identity now: display name, handle, then the
   // date. "footer" is still accepted from older saved profiles but reads the
   // same as "under-name" so nobody's card silently loses the date.
   const joinPosition = design.joinPosition === "hidden" ? "hidden" : "under-name";
-  const locationPosition = design.locationPosition ?? "under-name";
+  const locationPosition = design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name";
   const viewCount = typeof views === "number" ? views : null;
-  const showViews = viewCount !== null && viewPosition !== "hidden";
+  const showViews = !hideViews && viewCount !== null && viewPosition !== "hidden";
   // The links row and the player are titled sections too, so the card reads as
   // labelled blocks (Connections, Links, Music) instead of one long stack.
   const visibleLinks = links.filter((link) => link.visible && link.url.trim());
   const hasLinks = visibleLinks.length > 0;
   const hasAudio = assets.audio.style !== "none" && Boolean(assets.audio.fileUrl);
-  const showJoined = Boolean(joined) && joinPosition !== "hidden";
+  const showJoined = !hideJoined && Boolean(joined) && joinPosition !== "hidden";
   // The badge rail carries no explanation popover any more: the little arrow
   // that opened it pushed the rail away from the name. Each badge still shows
   // its own tooltip on hover.
@@ -123,7 +130,7 @@ export function ProfilePreview({
   // renders that row itself instead of using the free-floating badge slots.
   const inlineBadges = design.badgePosition === "default";
 
-  const locationPill = location ? (
+  const locationPill = location && !hideLocation ? (
     <span className="pv-location">
       <PinIcon size={10} />
       {location}

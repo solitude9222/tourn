@@ -16,6 +16,7 @@ import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, 
 const VIEW_OPTIONS = [
   { value: "top-right", label: "Top right of the card" },
   { value: "footer", label: "Card footer" },
+  { value: "side", label: "Beside card (Left layout)" },
   { value: "hidden", label: "Hidden" },
 ];
 
@@ -23,11 +24,13 @@ const LOCATION_OPTIONS = [
   { value: "under-name", label: "Under your name" },
   { value: "top", label: "Top right" },
   { value: "footer", label: "Card footer" },
+  { value: "side", label: "Beside card (Left layout)" },
   { value: "hidden", label: "Hidden" },
 ];
 
 const JOIN_OPTIONS = [
   { value: "under-name", label: "Under your name" },
+  { value: "side", label: "Beside card (Left layout)" },
   { value: "hidden", label: "Hidden" },
 ];
 
@@ -128,6 +131,7 @@ export function LayoutPage() {
                   locationPosition: "footer",
                   cardPadding: 32,
                   cardWidth: 720,
+                  widgetsPosition: preset.id === "left" ? "side" : preset.id === "stacked" ? "below" : "inside",
                   audioPosition: "auto",
                   pfpPosition: preset.id === "centered" ? "above" : "left",
                   namePosition: preset.id === "centered" ? "center" : "left",
@@ -214,7 +218,11 @@ export function LayoutPage() {
           </Field>
 
           <Field label="Audio player" hint="Manage the track and player under Music.">
-            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "popup", label: "Popup · top left" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }, { value: "hidden", label: "Hidden" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
+            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "popup", label: "Popup · top left" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }, { value: "hidden", label: "Hidden" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
+          </Field>
+
+          <Field label="Widgets" hint="Keep widget cards inside the profile, beside it, or below it.">
+            <Select value={design.widgetsPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "side", label: "Beside card (Left layout)" }, { value: "below", label: "Below card" }]} onChange={(widgetsPosition) => updateDesign({ widgetsPosition: widgetsPosition as typeof design.widgetsPosition })} />
           </Field>
         </div>
 
@@ -226,6 +234,8 @@ export function LayoutPage() {
                 viewPosition: "footer",
                 locationPosition: "under-name",
                 joinPosition: "under-name",
+                widgetsPosition: "auto",
+                audioPosition: "auto",
               });
               notify("Widget positions", "Reset to the defaults — save to publish it.");
             }}

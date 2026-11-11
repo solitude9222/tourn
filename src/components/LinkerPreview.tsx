@@ -15,7 +15,7 @@ import { WidgetCard } from "./WidgetCard";
 import { ProfileInteractions } from "./ProfileInteractions";
 import { AudioPlayer } from "./AudioPlayer";
 import { ProfileSections } from "./ProfileSections";
-import { ChevronIcon } from "./Icons";
+import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
 
 export function EntryOverlay({
@@ -322,7 +322,12 @@ export function LinkerPreview({
   );
 
   const requestedAudioPosition = design.audioPosition === "hidden" ? "hidden" : assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
-  const audioPosition = design.layout === "stacked" && requestedAudioPosition === "inside" ? "below" : requestedAudioPosition;
+  const audioPosition = design.layout === "stacked" && requestedAudioPosition === "inside" ? "below" : design.layout !== "left" && requestedAudioPosition === "side" ? "below" : requestedAudioPosition;
+  const requestedWidgetsPosition = design.widgetsPosition ?? "auto";
+  const widgetsPosition = requestedWidgetsPosition === "auto" ? (design.layout === "stacked" ? "below" : design.layout === "left" ? "side" : "inside") : requestedWidgetsPosition;
+  // Stacked has always kept widgets under the card; preserve that even when a
+  // profile saved its placement before the setting existed.
+  const effectiveWidgetsPosition = design.layout === "stacked" ? "below" : design.layout !== "left" && widgetsPosition === "side" ? "below" : widgetsPosition;
   const profileCard = (includeWidgets = true) => (
     <ProfilePreview
       user={user}
@@ -334,6 +339,9 @@ export function LinkerPreview({
       className="profile-preview--with-widgets"
       views={views}
       joined={joined}
+      hideViews={design.layout === "left" && design.viewPosition === "side"}
+      hideJoined={design.layout === "left" && design.joinPosition === "side"}
+      hideLocation={design.layout === "left" && design.locationPosition === "side"}
       entryActive={entryOpen}
       disableTilt={sharedTilt}
       hideAudio={hideAudio || audioPosition !== "inside"}
@@ -348,17 +356,48 @@ export function LinkerPreview({
   const hasTrack =
     !hideAudio && audioPosition !== "hidden" && about.assets.audio.style !== "none" && Boolean(about.assets.audio.fileUrl);
 
-  const primaryCards = <>
-      {profileCard(design.layout !== "stacked")}
-      {design.layout === "stacked" && orderedWidgets.length ? <div className="lkr-stacked-widgets">{widgetStack}</div> : null}
-      {audioPosition === "below" && hasTrack ? (
+  const showWidgetsSide = design.layout === "left" && effectiveWidgetsPosition === "side" && orderedWidgets.length > 0;
+  const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
+  const showAudioSide = design.layout === "left" && audioPosition === "side" && hasTrack;
+  const showAudioBelow = audioPosition === "below" && hasTrack;
+  const sideViews = design.layout === "left" && design.viewPosition === "side";
+  const sideJoined = design.layout === "left" && design.joinPosition === "side";
+  const sideLocation = design.layout === "left" && design.locationPosition === "side";
+  const hasSideMeta = sideViews || sideJoined || sideLocation;
+  const sideMeta = hasSideMeta ? (
+    <div className="lkr-side-meta">
+      {sideViews ? <span className="lkr-side-pill"><EyeIcon size={12} />{typeof views === "number" ? views.toLocaleString("en-US") : "—"}</span> : null}
+      {sideJoined ? <span className="lkr-side-pill"><CalendarIcon size={12} />Joined {joined ?? "—"}</span> : null}
+      {sideLocation && about.location.trim() ? <span className="lkr-side-pill"><PinIcon size={12} />{about.location.trim()}</span> : null}
+    </div>
+  ) : null;
+  const hasSide = showWidgetsSide || hasSideMeta || showAudioSide;
+  const sideRail = hasSide ? (
+    <aside className="lkr-side" aria-label="Profile extras">
+      {showWidgetsSide ? <div className="lkr-side-widgets">{widgetStack}</div> : null}
+      {sideMeta}
+      {showAudioSide ? <div className="lkr-side-audio"><AudioPlayer settings={about.assets.audio} enabled={!entryOpen} /></div> : null}
+    </aside>
+  ) : null;
+  const belowStack = (
+    <>
+      {showWidgetsBelow ? <div className="lkr-stacked-widgets">{widgetStack}</div> : null}
+      {showAudioBelow ? (
         <div className="lkr-stack">
           <div className="lkr-audio">
             <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
           </div>
         </div>
       ) : null}
-  </>;
+    </>
+  );
+  const primaryCards = (
+    <>
+      {profileCard(effectiveWidgetsPosition === "inside")}
+      {sideRail}
+      {belowStack}
+    </>
+  );
   const slidesRef=useRef<HTMLDivElement>(null);
   const dragRef=useRef<{y:number;scroll:number}|null>(null);
   const groupedSections:typeof design.sections[]=[];
@@ -369,7 +408,7 @@ export function LinkerPreview({
   const sectionContent=design.sectionsEnabled ? <>{firstText<0&&skillPills?<div className={design.slideshow?"lkr-slide":""}>{skillPills}</div>:null}{groupedSections.map((group,index)=><div key={group[0].id} className={design.slideshow?"lkr-slide":""}><ProfileSections sections={group}/>{index===firstText?skillPills:null}</div>)}</>:null;
   const page = (
     <div ref={slidesRef} className={`lkr-flow lkr-flow--${design.layout}${design.sectionsEnabled&&design.slideshow?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!design.slideshow || !design.sectionsEnabled || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType="";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType="";}}>
-      <div className={design.sectionsEnabled&&design.slideshow?"lkr-slide":"lkr-primary"}>
+      <div className={`${design.sectionsEnabled&&design.slideshow?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}${design.layout==="left"&&!hasSide?" lkr-primary--left--empty":""}`}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
       </div>
       {sectionContent}

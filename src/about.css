@@ -5046,3 +5046,33 @@
     font-size: 11.5px;
   }
 }
+
+/* Left layout: the card and a real side rail. The rail owns out-of-card
+   widgets, metadata and audio, and keeps multiple widgets two-up instead of
+   turning the whole layout into one vertical column. */
+.lkr-page .lkr-flow--left { width: 100%; max-width: 1100px; }
+.lkr-page .lkr-primary--left {
+  display: grid;
+  grid-template-columns: minmax(0, 660px) minmax(260px, 360px);
+  align-items: start;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+}
+.lkr-page .lkr-primary--left--empty { grid-template-columns: minmax(0, 660px); max-width: 720px; }
+.lkr-page .lkr-primary--left > .profile-preview { width: 100%; max-width: 100%; margin: 0; }
+.lkr-page .lkr-primary--left > .lkr-stack { grid-column: 1 / -1; width: 100%; }
+.lkr-side { display: flex; flex-direction: column; gap: 14px; width: 100%; min-width: 0; }
+.lkr-side-widgets { width: 100%; min-width: 0; }
+.lkr-side-widgets .lkr-widgets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.lkr-side-widgets .lkr-widgets > .widget-card.is-compact { grid-column: span 1; min-width: 0; width: 100%; }
+.lkr-side-widgets .lkr-widgets > .widget-card:only-child { grid-column: 1 / -1; }
+.lkr-side-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lkr-side-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--pv-border-color); border-radius: 999px; background: var(--pv-card); color: var(--pv-muted); font-size: 12px; line-height: 1; backdrop-filter: blur(var(--pv-blur)); }
+.lkr-side-audio { width: 100%; }
+.lkr-side-audio .ap { margin-top: 0; }
+@media (max-width: 760px) {
+  .lkr-page .lkr-primary--left, .lkr-page .lkr-primary--left--empty { grid-template-columns: minmax(0, 1fr); max-width: 660px; }
+}

@@ -19,11 +19,13 @@ export type BadgePosition = "default" | "above-name" | "top-right" | "bottom" | 
 export type TextAlignPosition = "default" | "center" | "left" | "right";
 export type AvatarShape = "circle" | "rounded" | "square" | "hexagon";
 /** Where the profile view counter sits. */
-export type ViewPosition = "top-right" | "footer" | "hidden";
+export type ViewPosition = "top-right" | "footer" | "side" | "hidden";
 /** Where the “joined” date sits. */
-export type JoinPosition = "footer" | "under-name" | "hidden";
+export type JoinPosition = "footer" | "under-name" | "side" | "hidden";
 /** Where the location pill sits. */
-export type LocationPosition = "top" | "under-name" | "footer" | "hidden";
+export type LocationPosition = "top" | "under-name" | "footer" | "side" | "hidden";
+/** Where the widget cards sit relative to the profile card. */
+export type WidgetsPosition = "auto" | "inside" | "side" | "below";
 
 /** Browser-tab behaviour for the public page. */
 export type TabAnimation = "none" | "cycle" | "typewriter";
@@ -180,7 +182,8 @@ export type AboutDesign = {
   sectionsEnabled?: boolean;
   slideshow?: boolean;
   skills?: string[];
-  audioPosition: "auto" | "inside" | "below" | "popup" | "fixed-bottom" | "hidden";
+  audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "fixed-bottom" | "hidden";
+  widgetsPosition: WidgetsPosition;
   customFontUrl: string;
   theme: AboutTheme;
   layout: AboutLayout;
@@ -303,6 +306,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   sections: [],
   audioPosition: "auto",
+  widgetsPosition: "auto",
   customFontUrl: "",
   theme: "default",
   layout: "stacked",
@@ -397,9 +401,9 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
 }
 
 const PFP_POSITIONS: readonly PfpPosition[] = ["default", "center", "top-right", "left", "right", "above"];
-const VIEW_POSITIONS: readonly ViewPosition[] = ["top-right", "footer", "hidden"];
-const JOIN_POSITIONS: readonly JoinPosition[] = ["under-name", "hidden"];
-const LOCATION_POSITIONS: readonly LocationPosition[] = ["top", "under-name", "footer", "hidden"];
+const VIEW_POSITIONS: readonly ViewPosition[] = ["top-right", "footer", "side", "hidden"];
+const JOIN_POSITIONS: readonly JoinPosition[] = ["under-name", "side", "hidden"];
+const LOCATION_POSITIONS: readonly LocationPosition[] = ["top", "under-name", "footer", "side", "hidden"];
 const BADGE_POSITIONS: readonly BadgePosition[] = [
   "default",
   "above-name",
@@ -509,7 +513,8 @@ function loadDesign(input: unknown): AboutDesign {
     sectionsEnabled: typeof raw.sectionsEnabled === "boolean" ? raw.sectionsEnabled : Boolean(raw.sections?.length),
     slideshow: raw.slideshow === true,
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
-    audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "popup", "fixed-bottom", "hidden"] as const, "auto"),
+    audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "side", "popup", "fixed-bottom", "hidden"] as const, "auto"),
+    widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "side", "below"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
       const item = section as Partial<ProfileSection>;
       const kind: ProfileSectionKind = item.kind === "project" || item.kind === "anime" || item.kind === "game" ? item.kind : "text";
