@@ -41,6 +41,7 @@ export type BadgeStyle = {
 };
 
 export type BadgeInstance = {
+  automatic?: boolean;
   id: string;
   visible: boolean;
 };
@@ -151,7 +152,7 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
     const equipped = Array.isArray(parsed.equipped)
       ? parsed.equipped
           .filter((e): e is BadgeInstance => Boolean(e && typeof e === "object" && typeof e.id === "string"))
-          .map((e) => ({ id: e.id, visible: e.visible !== false }))
+          .map((e) => ({ id: e.id, visible: e.visible !== false, ...(e.automatic ? { automatic: true } : {}) }))
       : [];
     return {
       equipped,

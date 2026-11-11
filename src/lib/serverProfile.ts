@@ -30,17 +30,20 @@ export type ProfilePayload = {
   /** Badge ids the backend has verified for this account. `null` when the
    *  payload doesn't say — treated as "unknown", never as "none earned". */
   earned: string[] | null;
+  autoBadges?: string[];
   /** Monotonic server revision, used to reject stale whole-profile saves. */
   revision?: number | null;
   updatedAt?: string | null;
 };
 
-export function normalizeDocument(input: unknown): ProfileDocument {
+export function normalizeDocument(input: unknown, autoBadges?: string[]): ProfileDocument {
   const raw = (input ?? {}) as Partial<ProfileDocument>;
+  const badges=normalizeBadgeStore(raw.badges);
+  if(Array.isArray(autoBadges)){badges.equipped=badges.equipped.filter(badge=>!badge.automatic || autoBadges.includes(badge.id));for(const id of autoBadges)if(!badges.equipped.some(badge=>badge.id===id))badges.equipped.push({id,visible:true,automatic:true});}
   return {
     about: normalizeAbout(raw.about),
     widgets: normalizeWidgetStore(raw.widgets),
-    badges: normalizeBadgeStore(raw.badges),
+    badges,
     links: normalizeLinkStore(raw.links),
   };
 }
@@ -52,7 +55,8 @@ function withDocument(payload: Omit<ProfilePayload, "profile"> & { profile: unkn
     earned: Array.isArray(payload.earned)
       ? payload.earned.filter((id): id is string => typeof id === "string")
       : null,
-    profile: payload.profile ? normalizeDocument(payload.profile) : null,
+    profile: payload.profile ? normalizeDocument(payload.profile,payload.autoBadges) : null,
+    autoBadges: payload.autoBadges,
     revision: Number.isFinite(revision) ? revision : null,
     updatedAt: typeof payload.updatedAt === "string" ? payload.updatedAt : null,
   };

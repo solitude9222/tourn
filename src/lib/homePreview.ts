@@ -42,7 +42,7 @@ function normalizePool(raw: unknown, fallbackMode: HomePreviewMode = "random"): 
   const value = (raw ?? {}) as Partial<HomePreviewPool>;
   const profiles = (Array.isArray(value.profiles) ? value.profiles : [])
     .filter((row) => row?.account?.username && row.profile)
-    .map((row) => ({ ...row, profile: normalizeDocument(row.profile) }));
+    .map((row) => ({ ...row, profile: normalizeDocument(row.profile,row.autoBadges) }));
   const topHandles = Array.isArray(value.topHandles)
     ? value.topHandles.filter((handle): handle is string => typeof handle === "string" && Boolean(handle))
     : [];

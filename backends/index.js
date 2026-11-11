@@ -1,3 +1,4 @@
+import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
 /* ---------------------------------------------------------------------------
    tourn.lol backend — one Express app on Railway Postgres.
 
@@ -127,6 +128,8 @@ const pool = new pg.Pool({
     : undefined,
 });
 
+const discordAutomation=createDiscordAutomation({pool,readSetting,writeSetting,token:DISCORD_BOT_TOKEN,defaultGuildId:DISCORD_GUILD_ID,applicationId:DISCORD_CLIENT_ID,onChange:()=>profilePageCache.clear()});
+
 const SCHEMA = `
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
@@ -204,6 +207,7 @@ create table if not exists invite_codes (
 async function initDb() {
   await pool.query(SCHEMA);
   await pool.query(AUDIO_SCHEMA);
+  await pool.query(DISCORD_AUTOMATION_SCHEMA);
   // Databases created before admin-granted badges existed.
   await pool.query(
     "alter table users add column if not exists badges jsonb not null default '[]'::jsonb",
@@ -421,30 +425,7 @@ async function profileRow(userId) {
    can check. The catalogue (names, art, requirement copy) lives in the
    frontend; this only decides which ids an account has actually earned. */
 
-const guildMemberCache = new Map();
-
-/** Is this Discord account in the site's Discord server? null = can't tell. */
-async function discordGuildMember(discordId) {
-  if (!DISCORD_BOT_TOKEN || !DISCORD_GUILD_ID || !discordId) return null;
-  const cached = guildMemberCache.get(discordId);
-  if (cached && Date.now() - cached.at < 10 * 60_000) return cached.member;
-  try {
-    const res = await fetch(
-      `https://discord.com/api/v10/guilds/${DISCORD_GUILD_ID}/members/${encodeURIComponent(discordId)}`,
-      { headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` } },
-    );
-    if (res.status === 404) {
-      guildMemberCache.set(discordId, { member: false, at: Date.now() });
-      return false;
-    }
-    if (!res.ok) return null;
-    guildMemberCache.set(discordId, { member: true, at: Date.now() });
-    if (guildMemberCache.size > 5_000) guildMemberCache.clear();
-    return true;
-  } catch {
-    return null;
-  }
-}
+async function discordGuildMember(discordId) {return (await discordAutomation.member(discordId))?.present ?? null;}
 
 async function earnedBadges(user, profile) {
   const earned = [];
@@ -476,6 +457,9 @@ async function earnedBadges(user, profile) {
   if (year === 2026 && month === 11) earned.push("christmas_2026");
 
   if ((await discordGuildMember(user.discord_id)) === true) earned.push("dc_indiscord");
+
+  const automatic=await discordAutomation.syncUser(user);
+  for(const badge of automatic.eligible)if(!earned.includes(badge))earned.push(badge);
 
   // Badges an admin granted by hand sit alongside the earned ones.
   const granted = Array.isArray(user.badges) ? user.badges : [];
@@ -967,7 +951,7 @@ app.get("/env.js", (_req, res) => {
 });
 
 app.get("/api/health", async (_req, res) => {
-  try {await pool.query("select 1");res.json({ok:true,storage:"postgresql",profileSaveProtocol:2,commit:process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null});}
+  try {await pool.query("select 1");res.json({ok:true,storage:"postgresql",profileSaveProtocol:2,discord:discordAutomation.connection(),commit:process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null});}
   catch {res.status(503).json({ok:false,storage:"postgresql",error:"Database is unavailable."});}
 });
 
@@ -1785,6 +1769,7 @@ app.get("/api/profile", requireAuth, async (req, res) => {
       account: publicAccountOf(user),
       profile: profile ?? null,
       earned: await earnedBadges(user, profile),
+      autoBadges: (await discordAutomation.syncUser(user)).equip,
       revision: Number(record?.revision ?? 0),
       updatedAt: record?.updated_at ?? null,
     });
@@ -1809,6 +1794,7 @@ app.get("/api/profile/:handle", async (req, res) => {
       account: publicAccountOf(user),
       profile: profile ?? null,
       earned: await earnedBadges(user, profile),
+      autoBadges: (await discordAutomation.syncUser(user)).equip,
     };
     if (profilePageCache.size > 500) profilePageCache.clear();
     profilePageCache.set(key, { at: Date.now(), body });
@@ -1889,6 +1875,7 @@ app.get("/api/home-preview", async (_req, res) => {
           account: publicAccountOf(row),
           profile: row.profile_data,
           earned: await earnedBadges(row, row.profile_data),
+          autoBadges: (await discordAutomation.syncUser(row)).equip,
         })),
     );
     const topHandles = [...new Set(["koni", ...top.map((row) => row.username)])];
@@ -2183,65 +2170,10 @@ app.patch("/api/admin/invites/:code", requireAdmin, async (req, res) => {
 
 /* ── admin: Discord bot ────────────────────────────────────────────────── */
 
-async function discordBot() {
-  if (!DISCORD_BOT_TOKEN) return null;
-  try {
-    const meRes = await fetch("https://discord.com/api/v10/users/@me", {
-      headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
-    });
-    if (!meRes.ok) return null;
-    const me = await meRes.json();
-    return {
-      id: String(me.id),
-      username: me.username,
-      avatar: me.avatar
-        ? `https://cdn.discordapp.com/avatars/${me.id}/${me.avatar}.png?size=64`
-        : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-app.get("/api/admin/bot", requireAdmin, async (_req, res) => {
-  const [bot, pending, guild] = await Promise.all([
-    discordBot(),
-    pool.query(
-      `select count(*)::int as count from verification_codes
-       where used = false and expires_at > now()`,
-    ),
-    (async () => {
-      if (!DISCORD_BOT_TOKEN || !DISCORD_GUILD_ID) return null;
-      try {
-        const response = await fetch(`https://discord.com/api/v10/guilds/${DISCORD_GUILD_ID}`, {
-          headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
-        });
-        if (!response.ok) return null;
-        const data = await response.json();
-        return {
-          id: String(data.id),
-          name: data.name,
-          icon: data.icon
-            ? `https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=64`
-            : null,
-        };
-      } catch {
-        return null;
-      }
-    })(),
-  ]);
-
-  res.json({
-    configured: Boolean(DISCORD_BOT_TOKEN),
-    tokenValid: Boolean(bot),
-    bot,
-    guildId: DISCORD_GUILD_ID || null,
-    guild,
-    pendingCodes: pending.rows[0].count,
-    inviteUrl: VITE_DISCORD_CLIENT_ID
-      ? `https://discord.com/oauth2/authorize?client_id=${VITE_DISCORD_CLIENT_ID}&scope=bot%20applications.commands&permissions=2048`
-      : null,
-  });
+registerDiscordAutomation(app,discordAutomation,requireAdmin);
+app.get("/api/admin/bot",requireAdmin,async(_req,res)=>{
+  try {const [status,pending]=await Promise.all([discordAutomation.inspect(),pool.query("select count(*)::int as count from verification_codes where used=false and expires_at>now()")]);res.set("Cache-Control","no-store").json({...status,pendingCodes:pending.rows[0].count});}
+  catch(error){res.status(503).json({error:error.message});}
 });
 
 app.post("/api/admin/bot/test-dm", requireAdmin, async (req, res) => {
@@ -2300,6 +2232,7 @@ app.use((req, res) => {
 
 initDb()
   .then(() => {
+    discordAutomation.start();
     app.listen(PORT, () => {
       console.log(`[tourn] backend listening on :${PORT}`);
       console.log(

@@ -1,3 +1,4 @@
+import { getPlatform } from "../lib/linkPlatforms";
 import { PLATFORM_MARKS } from "./platformMarks";
 
 type Props = { size?: number; className?: string };
@@ -28,6 +29,8 @@ const MARK_ALIASES: Record<string, string> = {
 };
 
 export function PlatformIcon({ id, size = 16, className }: Props & { id: string }) {
+  const BrandIcon=getPlatform(id)?.Icon;
+  if(BrandIcon)return <BrandIcon size={size} className={className} data-platform-icon={id} aria-hidden="true" />;
   const mark = PLATFORM_MARKS[id] ?? PLATFORM_MARKS[MARK_ALIASES[id]];
 
   if (mark) {

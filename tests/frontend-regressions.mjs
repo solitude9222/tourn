@@ -71,6 +71,14 @@ await page.waitForFunction(()=>document.querySelectorAll('.home-real-widgets .wi
 assert.equal(await page.locator('.home-real-widgets .widget-card').count(),3);
 assert.equal(await page.evaluate(()=>window.qaLoadingFallback),false,'Home flashed a route loading fallback');
 console.log('PASS artwork-backed production widgets and cold home without loading flash');
+const cryptoMarks=await page.evaluate(async()=>{
+ const {PlatformIcon}=await import('/src/components/PlatformIcons.tsx');const {PLATFORMS}=await import('/src/lib/linkPlatforms.ts');const ReactModule=await import('/node_modules/.vite/deps/react.js');const React=ReactModule.default||ReactModule;const dom=await import('/node_modules/.vite/deps/react-dom_client.js');const host=document.createElement('div');host.id='crypto-icon-test';document.body.append(host);window.cryptoIconRoot=(dom.createRoot||dom.default.createRoot)(host);window.cryptoIconRoot.render(React.createElement('div',{},...PLATFORMS.filter(item=>item.isCrypto).map(item=>React.createElement(PlatformIcon,{key:item.id,id:item.id,size:24}))));return true;
+});assert(cryptoMarks);await page.locator('#crypto-icon-test svg').first().waitFor();
+const cryptoGlyphs=await page.locator('#crypto-icon-test svg').evaluateAll(nodes=>nodes.map(node=>node.innerHTML));assert.equal(cryptoGlyphs.length,6);assert.equal(new Set(cryptoGlyphs).size,6,'Crypto icons repeat the generic fallback');
+assert.equal(await page.locator('#crypto-icon-test svg[data-platform-icon]').count(),6,'Crypto directory is not rendering the real brand icons');
+await page.evaluate(()=>{window.cryptoIconRoot.unmount();document.getElementById('crypto-icon-test').remove();});
+console.log('PASS six distinct real crypto brand icons in shared link controls');
+
 await page.screenshot({path:'.tmp/home-desktop.png',fullPage:true});
 await page.evaluate(()=>location.hash='#/dashboard');
 await page.locator('.tw-dash').waitFor();

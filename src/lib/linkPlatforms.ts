@@ -78,7 +78,9 @@ export const PLATFORMS: Platform[] = [
 export const PLATFORM_MAP: Map<string, Platform> = new Map(PLATFORMS.map((p) => [p.id, p]));
 
 export function getPlatform(id: string): Platform | undefined {
-  return PLATFORM_MAP.get(id);
+  const aliases:Record<string,string>={btc:"bitcoin",eth:"ethereum",sol:"solana",ltc:"litecoin",usdt:"tether",xmr:"monero",twitter:"x"};
+  const key=id.trim().toLowerCase();
+  return PLATFORM_MAP.get(aliases[key] || key);
 }
 
 /** The ten platforms shown as one-click quick-add tiles before "Browse all". */
