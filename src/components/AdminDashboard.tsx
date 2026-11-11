@@ -535,6 +535,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [memberFilter,setMemberFilter]=useState("all");
+  const [memberSort,setMemberSort]=useState("newest");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const loadProfiles = useCallback(async () => {
@@ -673,6 +675,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
   }
 
   const filtered = (profiles ?? []).filter((row) => {
+    if(memberFilter==="premium"&&!row.premium || memberFilter==="staff"&&!row.is_admin&&!row.is_owner || memberFilter==="free"&&row.premium)return false;
     const q = query.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -681,6 +684,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
       (row.alias2 ?? "").toLowerCase().includes(q)
     );
   });
+
+  filtered.sort((a,b)=>memberSort==="views"?b.views-a.views:memberSort==="name"?a.username.localeCompare(b.username):new Date(b.created_at).getTime()-new Date(a.created_at).getTime());
 
   const recent = useMemo(() => (profiles ?? []).slice(0, 6), [profiles]);
   const editing = editingId ? (profiles ?? []).find((row) => row.id === editingId) ?? null : null;
@@ -885,7 +890,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
                 <ArrowUpRight size={11} />
               </button>
             </div>
-            {profiles === null ? (
+            <div className="adm-member-tools"><label>Accounts<select value={memberFilter} onChange={event=>setMemberFilter(event.target.value)}><option value="all">All accounts</option><option value="premium">Premium</option><option value="free">Free</option><option value="staff">Staff & owners</option></select></label><label>Sort by<select value={memberSort} onChange={event=>setMemberSort(event.target.value)}><option value="newest">Newest joined</option><option value="views">Most viewed</option><option value="name">Username A–Z</option></select></label><span>{filtered.length} accounts</span></div>
+          {profiles === null ? (
               <p className="adm-empty">Loading directory…</p>
             ) : recent.length === 0 ? (
               <p className="adm-empty">No accounts yet.</p>
@@ -932,6 +938,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
             </label>
           </div>
 
+          <div className="adm-member-tools"><label>Accounts<select value={memberFilter} onChange={event=>setMemberFilter(event.target.value)}><option value="all">All accounts</option><option value="premium">Premium</option><option value="free">Free</option><option value="staff">Staff & owners</option></select></label><label>Sort by<select value={memberSort} onChange={event=>setMemberSort(event.target.value)}><option value="newest">Newest joined</option><option value="views">Most viewed</option><option value="name">Username A–Z</option></select></label><span>{filtered.length} accounts</span></div>
           {profiles === null ? (
             <p className="adm-empty">Loading directory…</p>
           ) : filtered.length === 0 ? (

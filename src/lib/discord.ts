@@ -14,6 +14,8 @@ export type DiscordBadgeKind =
   | "profile";
 
 export type DiscordBadge = {
+  stage?: number;
+  count?: string;
   kind: DiscordBadgeKind;
   label: string;
   flag: number;
@@ -125,10 +127,12 @@ export function discordProfileBadges(flags: number, input: unknown, selected: st
   }
   const extras = [...selected];
   if (Number(raw.premium_type) > 0) extras.push("nitro");
-  for (const id of new Set(extras)) {
+  for (const encoded of new Set(extras)) {
+    const [id,stageValue,countValue]=encoded.split("~");
+    const stage=Math.max(1,Math.min(9,Number(stageValue)||1));const count=(countValue||"").replace(/[^0-9.,]/g,"").slice(0,12);
     const badge = ADDITIONAL_DISCORD_BADGES.find((entry) => entry.id === id);
     if (badge && !badges.some((entry) => entry.art === badge.art || entry.label.toLowerCase().includes(badge.label.toLowerCase()))) {
-      badges.push({ kind: "profile", flag: 0, label: badge.label, art: badge.art });
+      badges.push({ kind: "profile", flag: 0, label: `${badge.label} · Stage ${stage}${count?` · ${count}`:""}`, art: badge.art,stage,count });
     }
   }
   return badges;

@@ -11,6 +11,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test:frontend": "node tests/frontend-regressions.mjs",
+    "test:profile-history": "node --test tests/profile-history.test.mjs",
+    "test:layouts": "node tests/layout-upgrade.mjs",
     "test:discord": "node --test tests/discord-automation.test.mjs",
     "test:data-transfer": "node --test tests/data-transfer.test.mjs",
     "test:audio": "node --test tests/audio.test.mjs",

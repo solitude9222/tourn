@@ -104,7 +104,7 @@ function WidgetCardSurface({
   const compact = widget.options.compact === true;
   // A widget with no surface of its own still has a readable version — the
   // card stays transparent and relies on its own type and chips.
-  const bare = !hasArt && design.backgroundOpacity <= 0.05;
+  const bare = design.backgroundOpacity === 0;
   const profileHref = widgetProfileUrl(platform.id, content);
 
   const title = live?.title?.trim() || (configured ? content : platform.name);
@@ -133,14 +133,15 @@ function WidgetCardSurface({
     "--wg-bg": hexToRgba(design.backgroundColor, design.backgroundOpacity),
     "--wg-bg-strong": hexToRgba(
       design.backgroundColor,
-      Math.min(1, design.backgroundOpacity + 0.35),
+      design.backgroundOpacity,
     ),
     "--wg-grad-from": hexToRgba(
       design.gradientFrom,
-      Math.min(0.92, design.backgroundOpacity + 0.3),
+      design.backgroundOpacity,
     ),
-    "--wg-grad-to": hexToRgba(design.gradientTo, Math.min(0.92, design.backgroundOpacity + 0.2)),
-    "--wg-art-opacity": Math.min(0.9, 0.4 + design.backgroundOpacity * 0.55).toFixed(2),
+    "--wg-grad-to": hexToRgba(design.gradientTo, design.backgroundOpacity),
+    "--wg-art-opacity": (design.backgroundOpacity * design.artOpacity).toFixed(2),
+    "--wg-scrim-opacity": design.backgroundOpacity * design.scrimOpacity,
     "--wg-blur": `${design.backgroundBlur}px`,
     "--wg-radius": `${design.radius}px`,
     "--wg-brand": platform.color,
@@ -205,12 +206,12 @@ function WidgetCardSurface({
                 <span className="widget-card-badges">
                   {live.badges.map((badge) => (
                     <Tooltip key={`${badge.label}-${badge.art || badge.flag}`} text={badge.label}>
-                      <DiscordBadgeIcon
+                      <span className="widget-staged-badge" data-stage={badge.stage || 1}><DiscordBadgeIcon
                         kind={badge.kind}
                         label={badge.label}
                         art={badge.art}
                         size={12}
-                      />
+                      />{badge.count?<small>{badge.count}</small>:null}</span>
                     </Tooltip>
                   ))}
                 </span>

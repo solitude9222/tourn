@@ -184,6 +184,13 @@ create table if not exists site_settings (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists profile_history (
+ user_id uuid not null references users(id) on delete cascade,
+ revision bigint not null,
+ data jsonb not null,
+ saved_at timestamptz not null default now(),
+ primary key(user_id,revision)
+);
 create table if not exists profiles (
   user_id uuid primary key references users on delete cascade,
   data jsonb not null default '{}'::jsonb,
@@ -755,6 +762,10 @@ app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req,
       });
     }
 
+    if(current){
+      await client.query('insert into profile_history(user_id,revision,data,saved_at) values($1,$2,$3::jsonb,$4) on conflict do nothing',[req.auth.sub,current.revision,JSON.stringify(current.data),current.updated_at]);
+      await client.query('delete from profile_history where user_id=$1 and revision not in (select revision from profile_history where user_id=$1 order by revision desc limit 30)',[req.auth.sub]);
+    }
     const saved = await client.query(
       `insert into profiles (user_id, data, revision, updated_at)
        values ($1, $2::jsonb, 1, now())
@@ -1779,6 +1790,12 @@ app.get("/api/profile", requireAuth, async (req, res) => {
 });
 
 /* The public page behind tourn.lol/<handle>. */
+app.get('/api/profile/history',requireAuth,async(req,res)=>{
+ try{const {rows}=await pool.query(`select revision,saved_at,jsonb_array_length(coalesce(data->'widgets'->'widgets','[]'::jsonb)) as widgets,jsonb_array_length(coalesce(data->'links'->'links','[]'::jsonb)) as links from profile_history where user_id=$1 order by revision desc limit 30`,[req.auth.sub]);res.set('Cache-Control','no-store').json({history:rows});}catch{res.status(500).json({error:'Could not load profile history.'});}
+});
+app.get('/api/profile/history/:revision',requireAuth,async(req,res)=>{
+ try{if(!/^\d+$/.test(req.params.revision))return res.status(400).json({error:'Choose a saved revision.'});const {rows}=await pool.query('select data,revision,saved_at from profile_history where user_id=$1 and revision=$2',[req.auth.sub,req.params.revision]);if(!rows[0])return res.status(404).json({error:'Saved revision not found.'});res.set('Cache-Control','no-store').json(rows[0]);}catch{res.status(500).json({error:'Could not load that revision.'});}
+});
 app.get("/api/profile/:handle", async (req, res) => {
   try {
     const key = String(req.params.handle ?? "").trim().toLowerCase();

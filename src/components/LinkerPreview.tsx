@@ -1,3 +1,4 @@
+import {TECH_BY_ID,techIconUrl} from "../lib/techStack";
 import { useTilt } from "../lib/useTilt";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
@@ -100,7 +101,7 @@ export function EntryOverlay({
           style={{
             width: `${entry.dividerWidth ?? 42}%`,
             height: `${entry.dividerSize ?? 1}px`,
-            background: entry.dividerColor ?? "#ffffff",
+            background: `linear-gradient(90deg,transparent,${entry.dividerColor || "#ffffff"},transparent)`,
             opacity: entry.dividerOpacity ?? 0.4,
           }}
         />
@@ -357,10 +358,20 @@ export function LinkerPreview({
         </div>
       ) : null}
   </>;
+  const slidesRef=useRef<HTMLDivElement>(null);
+  const dragRef=useRef<{y:number;scroll:number}|null>(null);
+  const groupedSections:typeof design.sections[]=[];
+  for(const section of design.sections){const last=groupedSections[groupedSections.length-1];if(last && section.kind!=="text" && last[0].kind===section.kind)last.push(section);else groupedSections.push([section]);}
+  const skills=(design.skills||[]).flatMap(id=>{const item=TECH_BY_ID.get(id);return item?[item]:[];});
+  const skillPills=skills.length?<section className="lkr-skills-section"><h2>Skills</h2><div className="lkr-tech-row">{skills.map(item=><span key={item.id} className="lkr-tech"><img src={techIconUrl(item)} alt=""/>{item.name}</span>)}</div></section>:null;
+  const firstText=groupedSections.findIndex(group=>group[0].kind==="text");
+  const sectionContent=design.sectionsEnabled ? <>{firstText<0&&skillPills?<div className={design.slideshow?"lkr-slide":""}>{skillPills}</div>:null}{groupedSections.map((group,index)=><div key={group[0].id} className={design.slideshow?"lkr-slide":""}><ProfileSections sections={group}/>{index===firstText?skillPills:null}</div>)}</>:null;
   const page = (
-    <div className={`lkr-flow lkr-flow--${design.layout}`}>
+    <div ref={slidesRef} className={`lkr-flow lkr-flow--${design.layout}${design.sectionsEnabled&&design.slideshow?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!design.slideshow || !design.sectionsEnabled || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType="";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType="";}}>
+      <div className={design.sectionsEnabled&&design.slideshow?"lkr-slide":"lkr-primary"}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
-      <ProfileSections sections={design.sections} />
+      </div>
+      {sectionContent}
     </div>
   );
 

@@ -477,3 +477,17 @@
 .lkr-popup-audio--right .ap-popup { flex-direction:row-reverse; }
 .lkr-popup-audio--right .ap-popup-volume { margin-left:0; margin-right:10px; }
 @media(prefers-reduced-motion:reduce) { .ap-popup-reveal { transition-duration:0ms; } }
+
+.ap-popup-reveal {transition:width var(--popup-duration,300ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,300ms) ease,transform var(--popup-duration,300ms) cubic-bezier(.22,.8,.25,1);}
+.ap-popup-icon {transition:background .2s,border-color .2s,transform .2s;}
+.ap-popup-icon:active {transform:scale(.94);}
+.ap-popup-volume input {cursor:ew-resize;touch-action:pan-y;}
+
+@property --ap-edge-angle {syntax:"<angle>";inherits:false;initial-value:0deg;}
+.ap {position:relative;}
+.ap-edge-trace::after,.ap-edge-pulse::after {content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;padding:1px;z-index:3;background:conic-gradient(from var(--ap-edge-angle),transparent 65%,var(--ap-edge-color,#fff) 85%,transparent 100%);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;animation:apEdgeTrace var(--ap-edge-speed,5s) linear infinite;}
+.ap-edge-pulse::after {background:var(--ap-edge-color);animation:apEdgePulse var(--ap-edge-speed,5s) ease-in-out infinite;}
+.ap-popup.ap-edge-trace::after,.ap-popup.ap-edge-pulse::after {width:var(--popup-size,42px);height:var(--popup-size,42px);box-sizing:border-box;border-radius:50%;}
+.ap-popup {position:relative;}
+@keyframes apEdgeTrace {to{--ap-edge-angle:360deg;}}
+@keyframes apEdgePulse {0%,100%{opacity:.2}50%{opacity:.9}}

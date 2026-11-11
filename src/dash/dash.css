@@ -3708,3 +3708,31 @@
   color: #7b828d;
   font-size: 11px;
 }
+
+
+/* Fine checker texture continues through the workspace and navigation. */
+.tw-shell {background-color:#090909;background-image:conic-gradient(#ffffff03 25%,transparent 0 50%,#ffffff03 0 75%,transparent 0);background-size:24px 24px;}
+.tw-main {background:transparent;}
+.tw-sidebar {background:linear-gradient(#0d0d0df5,#0b0b0bf5);border-right:1px solid #ffffff12;}
+.tw-card {border:1px solid #ffffff14;background:linear-gradient(140deg,#151515f0,#101010f5);box-shadow:0 8px 28px #0002,inset 0 1px #ffffff04;border-radius:16px;}
+.tw-card-head {border-bottom:1px solid #ffffff0b;padding-bottom:18px;margin-bottom:20px;}
+.tw-section-drag {cursor:grab;font-size:12px;color:#aaa;padding:12px 4px;user-select:none;}
+.tw-section-list>[draggable=true]:active>.tw-section-drag {cursor:grabbing;}
+.tw-tech-picker>input {width:100%;margin:12px 0;}
+.tw-tech-picker h4 {font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin:18px 0 10px;}
+.tw-tech-grid button>span:last-child {margin-left:auto;}
+.tw-entry-media {border-top:1px solid #ffffff12;padding-top:20px;margin-top:20px;}
+.tw-audio-settings-grid {align-items:start;}
+.tw-audio-settings-grid>.tw-slider {grid-column:1;}
+.tw-audio-settings-grid>.tw-color-field {grid-column:2;}
+.tw-page-content {animation:twPageReveal .32s cubic-bezier(.2,.7,.2,1) both;}
+@keyframes twPageReveal {from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.tw-dashboard {background-color:#090909;background-image:conic-gradient(#ffffff03 25%,transparent 0 50%,#ffffff03 0 75%,transparent 0);background-size:24px 24px;}
+.tw-history-row {display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid #ffffff12;}
+.tw-history-row small {display:block;color:var(--sub);margin-top:5px;}
+.tw-audio-settings-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;}
+.tw-audio-colors {padding-left:24px;border-left:1px solid #ffffff12;}
+@media(max-width:700px){.tw-audio-settings-grid{grid-template-columns:1fr;}.tw-audio-colors{padding-left:0;border-left:0;border-top:1px solid #ffffff12;padding-top:20px;}}
+
+.tw-dash {background-color:#090909;background-image:conic-gradient(#ffffff03 25%,transparent 0 50%,#ffffff03 0 75%,transparent 0);background-size:24px 24px;}

@@ -1,3 +1,4 @@
+import {readDurableDraft,writeDurableDraft} from "./draftStorage";
 /* ---------------------------------------------------------------------------
    Public profile documents.
 
@@ -235,10 +236,12 @@ export function savePendingDocument(
   baseRevision: number | null = null,
   baseDocument: ProfileDocument | null = null,
 ): void {
+  const pending={document,baseRevision,baseDocument,savedAt:Date.now()} satisfies PendingDocument;
+  void writeDurableDraft(userId,pending);
   try {
     localStorage.setItem(
       PENDING_PREFIX + userId,
-      JSON.stringify({ document, baseRevision, baseDocument, savedAt: Date.now() } satisfies PendingDocument),
+      JSON.stringify(pending),
     );
   } catch {
     /* private mode / quota — the local stores still have the edit */
@@ -266,7 +269,14 @@ export function loadPendingDocument(userId: string): PendingDocument | null {
   }
 }
 
+export async function loadPendingDocumentDurable(userId:string):Promise<PendingDocument|null>{
+ const local=loadPendingDocument(userId);const durable=await readDurableDraft<PendingDocument>(userId);
+ if(!durable?.document)return local;
+ const newest=!local||durable.savedAt>local.savedAt?durable:local;
+ return {...newest,document:normalizeDocument(newest.document),baseDocument:newest.baseDocument?normalizeDocument(newest.baseDocument):null};
+}
 export function clearPendingDocument(userId: string): void {
+  void writeDurableDraft(userId,null);
   try {
     localStorage.removeItem(PENDING_PREFIX + userId);
   } catch {

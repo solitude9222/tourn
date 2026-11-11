@@ -370,7 +370,7 @@ const chooseEffect=async(kind,name)=>{
  await page.getByRole('navigation',{name:'Effect categories'}).getByRole('button',{name:labels[kind],exact:true}).click();
  const gallery=page.getByLabel(`${kind} effects`,{exact:true});
  assert(await gallery.locator('.fx-tile-preview').count()>1,'Effects are not shown together');
- if(kind==='overlay') { assert.equal(await gallery.locator('.fx-choice').count(),2,'Overlays should only offer Off and Dotted'); assert.equal(await gallery.getByRole('button',{name:'Rain',exact:true}).count(),0,'Particle backgrounds duplicated in overlays'); }
+ if(kind==='overlay') { assert.equal(await gallery.locator('.fx-choice').count(),8,'Distinct texture overlays should be available'); assert.equal(await gallery.getByRole('button',{name:'Rain',exact:true}).count(),0,'Particle backgrounds duplicated in overlays'); }
  const background=await gallery.locator('.fx-tile-preview').first().evaluate(el=>getComputedStyle(el).backgroundColor);
  assert.equal(background,'rgb(0, 0, 0)','Effect tiles are not black');
  await gallery.getByRole('button',{name,exact:true}).click();

@@ -1,3 +1,4 @@
+import {SkillPicker} from "../SkillPicker";
 /* ---------------------------------------------------------------------------
    Links > Social Links — the real link store: add, edit, reorder, hide.
 
@@ -28,7 +29,7 @@ import {
 } from "../ui";
 
 export function LinksPage() {
-  const { links, setLinks, save } = useDash();
+  const { links, setLinks, save, about, setAbout } = useDash();
   const [adding, setAdding] = useState(false);
   const [platform, setPlatform] = useState("discord");
   const [editing, setEditing] = useState<LinkInstance | null>(null);
@@ -67,6 +68,7 @@ export function LinksPage() {
 
   return (
     <>
+      {about.design.sectionsEnabled ? <Card><CardHead icon="layers" title="Skills" subtitle="Each skill appears as its own pill in your profile sections."/><SkillPicker value={about.design.skills || []} onChange={skills=>setAbout(current=>({...current,design:{...current.design,skills}}))}/></Card>:null}
       <Card>
         <CardHead
           icon="link"

@@ -124,6 +124,8 @@ export type WidgetDesign = {
   gradientFrom: string;
   gradientTo: string;
   backgroundOpacity: number;
+  artOpacity: number;
+  scrimOpacity: number;
   backgroundBlur: number;
   radius: number;
   /** Space between cards in the stack, in px. */
@@ -158,6 +160,8 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   gradientFrom: "#ff5f6d",
   gradientTo: "#7c5cff",
   backgroundOpacity: 0.94,
+  artOpacity: 0.9,
+  scrimOpacity: 1,
   backgroundBlur: 0,
   radius: 16,
   gap: 10,
@@ -949,6 +953,8 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
           0,
           1,
         ),
+        artOpacity: clamp(rawDesign.artOpacity, DEFAULT_WIDGET_DESIGN.artOpacity, 0, 1),
+        scrimOpacity: clamp(rawDesign.scrimOpacity, DEFAULT_WIDGET_DESIGN.scrimOpacity, 0, 1),
         backgroundBlur: clamp(rawDesign.backgroundBlur, DEFAULT_WIDGET_DESIGN.backgroundBlur, 0, 30),
         radius: clamp(rawDesign.radius, DEFAULT_WIDGET_DESIGN.radius, 0, 30),
         gap: clamp(rawDesign.gap, DEFAULT_WIDGET_DESIGN.gap, 0, 28),

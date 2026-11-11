@@ -386,7 +386,8 @@ export function Dashboard(props: DashboardProps) {
     ],
   );
 
-  if (!user || authLoading || authUnavailable) {
+  if(authLoading)return <div className="route-loading" role="status" aria-label="Loading your dashboard"/>;
+  if (!user || authUnavailable) {
     return (
       <div className="tw-gate">
         <a className="tw-brand tw-gate-brand" href="#/">

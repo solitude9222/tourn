@@ -63,6 +63,7 @@ import {
   fetchOwnProfile,
   fetchPublicProfile,
   loadPendingDocument,
+  loadPendingDocumentDurable,
   PROFILE_SECTIONS,
   preloadProfile,
   readCachedProfile,
@@ -603,7 +604,7 @@ function Site() {
     }
     let active = true;
     let retry = 0;
-    void fetchOwnProfile().then((result) => {
+    void fetchOwnProfile().then(async (result) => {
       if (!active) return;
       if (!result.ok) {
         // Do not publish an unverified local baseline over an unread server copy.
@@ -617,7 +618,8 @@ function Site() {
       // Only replay an unsaved draft when it was based on the server revision
       // we just read. A draft based on an older revision must not overwrite
       // widgets, links or art that were published from another tab/device.
-      const pending = loadPendingDocument(user.id);
+      const pending = await loadPendingDocumentDurable(user.id);
+      if(!active)return;
       const pendingIsCurrent =
         pending &&
         (result.data.revision == null || pending.baseRevision === result.data.revision);
@@ -709,7 +711,10 @@ function Site() {
         revision.current,
         changed,
       );
-      if (cancelled) return;
+      if (cancelled) {
+        if(result.ok && hydratedFor.current===user.id){revision.current=result.revision ?? revision.current;lastSaved.current=serialized;}
+        return;
+      }
       if (result.ok) {
         revision.current = result.revision ?? revision.current;
         lastSaved.current = serialized;
@@ -894,7 +899,7 @@ function Site() {
         />
       ) : null}
 
-      <Suspense fallback={<div className="route-loading" role="status">Loading your page…</div>}>
+      <Suspense fallback={<div className="route-loading" role="status" aria-label="Loading your page"/>}>
       {route === "demo" ? (
         <DemoPage
           user={user}

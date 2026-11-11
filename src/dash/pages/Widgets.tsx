@@ -50,8 +50,9 @@ const EXTRA_BADGE_GROUPS: { label: string; hint: string; ids: string[] }[] = [
 function DiscordBadgeChoices({ value, onChange }: { value: boolean | string | undefined; onChange: (value: string) => void }) {
   const { user } = useAuth();
   const { go } = useDash();
-  let selected: string[] = [];
-  try { const parsed = JSON.parse(String(value || "[]")); if (Array.isArray(parsed)) selected = parsed.filter((item) => typeof item === "string"); } catch { /* No additional badges selected. */ }
+  let selected: string[] = [];const details:Record<string,{stage:number;count:string}>={};
+  try {const parsed=JSON.parse(String(value||"[]"));if(Array.isArray(parsed))for(const item of parsed){if(typeof item!=="string")continue;const [id,stage,count]=item.split("~");selected.push(id);details[id]={stage:Math.max(1,Math.min(9,Number(stage)||1)),count:count||""};}}catch{}
+  const encode=(ids:string[],next=details)=>JSON.stringify(ids.map(id=>`${id}~${next[id]?.stage||1}~${next[id]?.count||""}`));
 
   if (!user?.discordLinked) {
     return (
@@ -75,9 +76,10 @@ function DiscordBadgeChoices({ value, onChange }: { value: boolean | string | un
       const active = badges.filter((badge) => selected.includes(badge.id)).length;
       return <details className="tw-extra-badge-group" key={group.label} open>
         <summary><span><b>{group.label}</b><small>{group.hint}</small></span><span className="tw-extra-count">{active}/{badges.length}</span></summary>
-        <div className="tw-extra-badge-grid">{badges.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(JSON.stringify(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span><i aria-hidden="true" /></button>)}</div>
+        <div className="tw-extra-badge-grid">{badges.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(encode(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span><i aria-hidden="true" /></button>)}</div>
       </details>;
     })}</div>
+    <div className="tw-badge-stages">{selected.map(id=>{const badge=ADDITIONAL_DISCORD_BADGES.find(item=>item.id===id);if(!badge)return null;return <div className="tw-badge-stage" key={id}><b>{badge.label}</b><Field label="Stage"><Select value={String(details[id]?.stage||1)} options={Array.from({length:9},(_,i)=>({value:String(i+1),label:`Stage ${i+1}`}))} onChange={stage=>onChange(encode(selected,{...details,[id]:{stage:Number(stage),count:details[id]?.count||""}}))}/></Field><Field label="Custom number"><TextInput inputMode="numeric" value={details[id]?.count||""} maxLength={12} placeholder="Optional" onChange={event=>onChange(encode(selected,{...details,[id]:{stage:details[id]?.stage||1,count:event.target.value.replace(/[^0-9.,]/g,"")}}))}/></Field></div>;})}</div>
   </details>;
 }
 
@@ -422,6 +424,8 @@ export function WidgetsPage() {
               />
             </div>
 
+            <Slider label="Artwork opacity" value={Math.round(design.artOpacity*100)} min={0} max={100} suffix="%" onChange={value=>setDesign({artOpacity:value/100})}/>
+            <Slider label="Shading opacity" value={Math.round(design.scrimOpacity*100)} min={0} max={100} suffix="%" onChange={value=>setDesign({scrimOpacity:value/100})}/>
             <div className="tw-subhead">Border</div>
             <div className="tw-form-grid">
               <ColorField

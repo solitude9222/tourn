@@ -209,3 +209,8 @@
     flex-direction: column;
   }
 }
+
+.tw-extra-badge-grid button,.tw-extra-badge-grid button[aria-pressed="true"] {background:transparent;}
+.tw-extra-badge-grid button[aria-pressed="true"] {border-color:#ffffff70;}
+.tw-badge-stage {display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 0;border-top:1px solid #ffffff12;}
+.tw-badge-stage>b {grid-column:1/-1;}

@@ -219,7 +219,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     if (mode === "stars") mkStars(200);
     if (mode === "night") mkStars(240);
     if (mode === "dust") for (let i = 0; i < 220; i++) P.push({ x: R(W), y: R(H), z: R(1), ph: R(TAU) });
-    if (mode === "leaf") for (let i = 0; i < 80; i++) P.push({ x: R(W), y: R(H), s: 14 + R(18), r: R(TAU), vr: (R(1) - 0.5) * 0.05, ph: R(TAU), c: i % 4 });
+    if (mode === "leaf") for (let i = 0; i < 80; i++) P.push({ x: R(W), y: R(H), s: 7 + R(8), r: R(TAU), vr: (R(1) - 0.5) * 0.05, ph: R(TAU), c: i % 4 });
     if (mode === "dither") lowres(Math.max(2, Math.round(2 + (amount / 100) * 3)));
     if (mode === "tv") lowres(3);
     if (mode === "fuzzy") lowres(Math.max(2, Math.round(2 + (amount / 100) * 6)));
@@ -270,9 +270,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       const gust = Math.sin(t / 3200) * 0.5 + Math.sin(t / 1100) * 0.15;
       const n = Math.floor(180 * Math.min(1, f * 2));
       const S = [
-        { s: 7, a: 0.6, v: 0.45, sw: 0.25 },
-        { s: 13, a: 0.75, v: 0.9, sw: 0.5 },
-        { s: 30, a: 0.3, v: 1.8, sw: 0.9 },
+        { s: 2, a: 0.6, v: 0.45, sw: 0.25 },
+        { s: 4, a: 0.75, v: 0.9, sw: 0.5 },
+        { s: 7, a: 0.3, v: 1.8, sw: 0.9 },
       ];
       for (let i = 0; i < n; i++) {
         const p = P[i];
@@ -369,7 +369,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         ctx.lineTo(tx, ty);
         ctx.stroke();
         ctx.globalAlpha = q;
-        ctx.drawImage(SW!, star.x - 9, star.y - 9, 18, 18);
+        ctx.drawImage(SW!, star.x - 3, star.y - 3, 6, 6);
         ctx.globalAlpha = 1;
         star.x += (star.vx) * motionStep;
         star.y += (star.vy) * motionStep;
@@ -533,7 +533,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         if (p.x < -20) p.x = W + 20;
         if (p.y > H + 20) p.y = -20;
         if (p.y < -20) p.y = H + 20;
-        const size = (5 + (p.z ?? 0) * (p.z ?? 0) * 30) * sizeBoost;
+        const size = Math.min(8,(1 + (p.z ?? 0) * (p.z ?? 0) * 3) * sizeBoost);
         ctx.globalAlpha = (0.2 + (p.z ?? 0) * 0.5) * (0.7 + 0.3 * Math.sin(t * 0.002 + p.ph * 3));
         if (SD && cr === 255 && cg === 226 && cb === 170) {
           ctx.drawImage(SD, p.x - size / 2, p.y - size / 2, size, size);

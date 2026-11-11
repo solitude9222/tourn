@@ -1,3 +1,4 @@
+import {ProfileHistory} from "../ProfileHistory";
 import { useState } from "react";
 /* ---------------------------------------------------------------------------
    Customize > Card — the card layout, the widget positions and the card's
@@ -73,6 +74,7 @@ const PAGE_LAYOUTS: {
 ];
 
 export function LayoutPage() {
+  const [dragSection,setDragSection]=useState<number|null>(null);
   const { about, setAbout, notify } = useDash();
   const design = about.design;
   const [tab, setTab] = useState("layout");
@@ -97,7 +99,7 @@ export function LayoutPage() {
 
   const addSection = (kind: ProfileSectionKind) => {
     if (design.sections.length >= 24) return;
-    updateDesign({ sections: [...design.sections, createProfileSection(kind)] });
+    updateDesign({ sectionsEnabled:true, sections: [...design.sections, createProfileSection(kind)] });
   };
 
   return (
@@ -360,9 +362,10 @@ export function LayoutPage() {
       </Card> : null}
       {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Sections scroll normally below your profile. Projects, anime and games become real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
         <p className="tw-foot-note">Text sections span the page. Project cards show your real tech stack; anime and game cards pull real artwork and metadata from public catalogues.</p>
+        <div className="tw-stack"><div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div><div className="tw-inline-toggle"><span><b>Vertical slideshow</b><small>Scroll, swipe or drag down from your card through your sections.</small></span><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div></div>
         <div className="tw-section-list">
           {design.sections.map((section, index) => (
-            <SectionEditor
+            <div key={section.id} draggable onDragStart={event=>{if((event.target as HTMLElement).closest('input,textarea,select,button')){event.preventDefault();return;}setDragSection(index);}} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();if(dragSection===null)return;const sections=[...design.sections];const [moved]=sections.splice(dragSection,1);sections.splice(index,0,moved);updateDesign({sections});setDragSection(null);}}><div className="tw-section-drag" title="Drag to reorder">⠿ Drag to reorder</div><SectionEditor
               key={section.id}
               section={section}
               index={index}
@@ -373,7 +376,7 @@ export function LayoutPage() {
                 [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]];
                 updateDesign({ sections });
               }}
-            />
+            /></div>
           ))}
         </div>
         {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a text block, a project, or a title from the anime and game libraries.</p> : null}
@@ -396,6 +399,7 @@ export function LayoutPage() {
           </div>
         </div>
       </Card> : null}
+      <ProfileHistory/>
       </div>
     </div>
   );

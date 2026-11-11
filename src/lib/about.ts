@@ -174,6 +174,9 @@ export function createProfileSection(kind: ProfileSectionKind = "text"): Profile
 
 export type AboutDesign = {
   sections: ProfileSection[];
+  sectionsEnabled?: boolean;
+  slideshow?: boolean;
+  skills?: string[];
   audioPosition: "auto" | "inside" | "below" | "popup" | "fixed-bottom" | "hidden";
   customFontUrl: string;
   theme: AboutTheme;
@@ -490,16 +493,13 @@ function loadDesign(input: unknown): AboutDesign {
   const cardStyle = CARD_STYLES.some((item) => item.id === raw.cardStyle)
     ? (raw.cardStyle as CardStyle)
     : DEFAULT_ABOUT_DESIGN.cardStyle;
-  // Documents saved before the layout change have no viewPosition. They are
-  // upgraded once so the new stacked layout applies without a manual reset.
-  const legacyLayout = !("viewPosition" in raw);
-  // Documents saved before the 720px reference card are re-measured once, so
-  // the type and spacing match the design instead of the old 726/40/28 card.
-  const restyle = raw.version !== 2;
-  const legacy = legacyLayout || restyle;
+  // Preserve explicit saved values across releases; defaults apply only to missing fields.
 
   return {
     theme,
+    sectionsEnabled: typeof raw.sectionsEnabled === "boolean" ? raw.sectionsEnabled : Boolean(raw.sections?.length),
+    slideshow: raw.slideshow === true,
+    skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "popup", "fixed-bottom", "hidden"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
       const item = section as Partial<ProfileSection>;
@@ -523,7 +523,7 @@ function loadDesign(input: unknown): AboutDesign {
         subtitle: typeof item.subtitle === "string" ? item.subtitle.slice(0, 180) : "",
         status: typeof item.status === "string" ? item.status.slice(0, 28) : "",
         stack: Array.isArray(item.stack)
-          ? item.stack.filter((entry): entry is string => typeof entry === "string").slice(0, 12)
+          ? item.stack.filter((entry): entry is string => typeof entry === "string").slice(0, 100)
           : [],
         links,
         meta: typeof item.meta === "string" ? item.meta.slice(0, 80) : "",
@@ -534,39 +534,17 @@ function loadDesign(input: unknown): AboutDesign {
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
     version: 2,
-    cardWidth: legacy
-      ? DEFAULT_ABOUT_DESIGN.cardWidth
-      : numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 1100),
-    cardRadius: legacy
-      ? DEFAULT_ABOUT_DESIGN.cardRadius
-      : numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 72),
-    borderWidth: legacy
-      ? DEFAULT_ABOUT_DESIGN.borderWidth
-      : numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 12),
-    borderOpacity: legacy
-      ? DEFAULT_ABOUT_DESIGN.borderOpacity
-      : numberIn(raw.borderOpacity, DEFAULT_ABOUT_DESIGN.borderOpacity, 0, 1),
-    backgroundOpacity: legacy
-      ? DEFAULT_ABOUT_DESIGN.backgroundOpacity
-      : numberIn(raw.backgroundOpacity, DEFAULT_ABOUT_DESIGN.backgroundOpacity, 0, 1),
-    backgroundBlur: legacy
-      ? DEFAULT_ABOUT_DESIGN.backgroundBlur
-      : numberIn(raw.backgroundBlur, DEFAULT_ABOUT_DESIGN.backgroundBlur, 0, 40),
-    avatarSize: legacy
-      ? DEFAULT_ABOUT_DESIGN.avatarSize
-      : numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 40, 240),
-    widgetGap: legacy
-      ? DEFAULT_ABOUT_DESIGN.widgetGap
-      : numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 0, 48),
-    cardPadding: legacy
-      ? DEFAULT_ABOUT_DESIGN.cardPadding
-      : numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 0, 64),
-    nameSize: legacy
-      ? DEFAULT_ABOUT_DESIGN.nameSize
-      : numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 64),
-    bioSize: legacy
-      ? DEFAULT_ABOUT_DESIGN.bioSize
-      : numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 32),
+    cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 1100),
+    cardRadius: numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 72),
+    borderWidth: numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 12),
+    borderOpacity: numberIn(raw.borderOpacity, DEFAULT_ABOUT_DESIGN.borderOpacity, 0, 1),
+    backgroundOpacity: numberIn(raw.backgroundOpacity, DEFAULT_ABOUT_DESIGN.backgroundOpacity, 0, 1),
+    backgroundBlur: numberIn(raw.backgroundBlur, DEFAULT_ABOUT_DESIGN.backgroundBlur, 0, 40),
+    avatarSize: numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 40, 240),
+    widgetGap: numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 0, 48),
+    cardPadding: numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 0, 64),
+    nameSize: numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 64),
+    bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 32),
     stackTilt: boolIn(raw.stackTilt, false),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),
     tiltInvert: boolIn(raw.tiltInvert, false),
@@ -584,21 +562,11 @@ function loadDesign(input: unknown): AboutDesign {
         : DEFAULT_ABOUT_DESIGN.tooltips.style,
     },
     tiltGlare: boolIn(raw.tiltGlare, DEFAULT_ABOUT_DESIGN.tiltGlare),
-    pfpPosition: legacyLayout
-      ? DEFAULT_ABOUT_DESIGN.pfpPosition
-      : oneOf(raw.pfpPosition, PFP_POSITIONS, DEFAULT_ABOUT_DESIGN.pfpPosition),
-    badgePosition: legacyLayout
-      ? DEFAULT_ABOUT_DESIGN.badgePosition
-      : oneOf(raw.badgePosition, BADGE_POSITIONS, DEFAULT_ABOUT_DESIGN.badgePosition),
-    namePosition: legacyLayout
-      ? DEFAULT_ABOUT_DESIGN.namePosition
-      : oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
-    bioPosition: legacyLayout
-      ? DEFAULT_ABOUT_DESIGN.bioPosition
-      : oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
-    avatarShape: legacyLayout
-      ? DEFAULT_ABOUT_DESIGN.avatarShape
-      : oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
+    pfpPosition: oneOf(raw.pfpPosition, PFP_POSITIONS, DEFAULT_ABOUT_DESIGN.pfpPosition),
+    badgePosition: oneOf(raw.badgePosition, BADGE_POSITIONS, DEFAULT_ABOUT_DESIGN.badgePosition),
+    namePosition: oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
+    bioPosition: oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
+    avatarShape: oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
     viewPosition: oneOf(raw.viewPosition, VIEW_POSITIONS, DEFAULT_ABOUT_DESIGN.viewPosition),
     // Older documents saved "footer"; the date lives under the handle now, so
     // it is read as "under-name" instead of disappearing.

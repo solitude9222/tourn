@@ -84,6 +84,8 @@ export function AudioPlayer({
 
   const cardStyle = {
     "--ap-opacity": settings.cardOpacity,
+    "--ap-edge-color":settings.edgeColor,
+    "--ap-edge-speed":`${settings.edgeSpeed}s`,
     "--ap-accent": settings.accentColor,
     "--ap-bg": settings.playerColor,
     "--ap-border": settings.borderColor,
@@ -275,10 +277,10 @@ export function AudioPlayer({
   );
 
   if (settings.style === "popup") {
-    return <div className="ap-popup" style={{ "--popup-size": `${settings.popupSize}px`, "--popup-color": settings.popupColor, "--popup-background": settings.popupBackground, "--popup-opacity": settings.cardOpacity, "--popup-bar-width": `${settings.popupBarWidth}px`, "--popup-duration": `${settings.popupDuration}ms`, "--popup-volume": `${volume * 100}%` } as CSSProperties}>
+    return <div className={`ap-popup ap-edge-${settings.edgeEffect}`} style={{ "--ap-edge-color":settings.edgeColor,"--ap-edge-speed":`${settings.edgeSpeed}s`, "--popup-size": `${settings.popupSize}px`, "--popup-color": settings.popupColor, "--popup-background": settings.popupBackground, "--popup-opacity": settings.cardOpacity, "--popup-bar-width": `${settings.popupBarWidth}px`, "--popup-duration": `${settings.popupDuration}ms`, "--popup-volume": `${volume * 100}%` } as CSSProperties}>
       {audioEl}
       <button className="ap-popup-icon" type="button" aria-label={!playing ? "Play music" : muted ? "Unmute music" : "Mute music"} onClick={() => { if (!playing) togglePlay(); else setMuted(!muted); }}>
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M9 18V5l11-2v13M9 9l11-2" /><ellipse cx="6" cy="18" rx="3" ry="2.5" /><ellipse cx="17" cy="16" rx="3" ry="2.5" />{muted || volume === 0 ? <path d="M3 3l18 18" /> : null}</svg>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" fill="currentColor" strokeLinejoin="round"/>{muted || volume === 0 || !playing ? <path d="m16 9 5 6m0-6-5 6"/> : <><path d="M15 8a6 6 0 0 1 0 8"/><path d="M18 5a10 10 0 0 1 0 14"/></>}</svg>
       </button>
       <div className="ap-popup-reveal"><div className="ap-popup-volume"><input aria-label="Music volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => { setVolume(Number(event.target.value)); if (Number(event.target.value) > 0) setMuted(false); }} /></div></div>
     </div>;
@@ -293,7 +295,7 @@ export function AudioPlayer({
 
     return (
       <div
-        className={`ap ap--pill${playing ? " is-playing" : ""}${pillOverflow ? " is-scrolling" : ""}`}
+        className={`ap ap-edge-${settings.edgeEffect} ap--pill${playing ? " is-playing" : ""}${pillOverflow ? " is-scrolling" : ""}`}
         style={cardStyle}
       >
         {audioEl}
@@ -338,7 +340,7 @@ export function AudioPlayer({
   }
 
   return (
-    <div className={`ap ap--${settings.style}`} style={cardStyle}>
+    <div className={`ap ap-edge-${settings.edgeEffect} ap--${settings.style}`} style={cardStyle}>
       {audioEl}
       <div className="ap-row">
         <span className="ap-cover">{coverNode}</span>

@@ -2272,3 +2272,5 @@
 .adm-role-label { display:flex; align-items:center; gap:7px; min-height:24px; font-size:11px; overflow-wrap:anywhere; }.adm-role-label img { width:22px; height:22px; object-fit:contain; }
 .adm-rule-options { grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:20px; }.adm-rule-options label,.adm-check { display:flex; align-items:center; gap:8px; font-size:12px; }
 @media(max-width:600px) { .adm-automation-settings,.adm-discord-rule { grid-template-columns:1fr; }.adm-rule-arrow { display:none; } }
+
+.adm-member-tools {display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:20px;}.adm-member-tools label{display:grid;gap:6px;font-size:12px;color:#aaa;}.adm-member-tools select{background:#151515;color:#eee;border:1px solid #ffffff20;border-radius:8px;padding:9px 12px;}.adm-member-tools>span{margin-left:auto;color:#999;font-size:12px;}

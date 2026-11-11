@@ -5010,3 +5010,10 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--home .hero-copy, .app--home .hero-title, .app--home .hero-card-slot { animation-delay: 0s; animation-fill-mode: none; }
 
 .app--dash { background: #09080b; min-height: 100vh; }
+
+.route-loading,.profile-page--loading {background:#000!important;min-height:100dvh;}
+.route-loading::before,.route-loading::after,.profile-page--loading::before,.profile-page--loading::after {content:none!important;}
+.page-enter,.profile-page>.lkr-page {animation:routeSoftEnter .4s cubic-bezier(.2,.7,.2,1) both;}
+@keyframes routeSoftEnter {from{opacity:0}to{opacity:1}}
+
+.page-enter,.adm-panel {background-image:conic-gradient(#ffffff02 25%,transparent 0 50%,#ffffff02 0 75%,transparent 0);background-size:24px 24px;}

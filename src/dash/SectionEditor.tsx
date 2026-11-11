@@ -1,6 +1,6 @@
+import {SkillPicker} from "./SkillPicker";
 import { useState } from "react";
 import { type ProfileSection, type ProfileSectionKind } from "../lib/about";
-import { TECH_BY_ID, TECH_STACK, techIconUrl } from "../lib/techStack";
 import { fileToDataUrl } from "./files";
 import { Button, Field, FileUpload, TextInput, Textarea } from "./ui";
 import { MediaLibrary } from "./MediaLibrary";
@@ -29,10 +29,7 @@ export function SectionEditor({
 }) {
   const { notify } = useDash();
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const stack = section.stack.flatMap((id) => {
-    const tech = TECH_BY_ID.get(id);
-    return tech ? [tech] : [];
-  });
+
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
@@ -43,13 +40,7 @@ export function SectionEditor({
     onChange({ image: await fileToDataUrl(file) });
   };
 
-  const toggleTech = (id: string) => {
-    onChange({
-      stack: section.stack.includes(id)
-        ? section.stack.filter((entry) => entry !== id)
-        : [...section.stack, id].slice(0, 12),
-    });
-  };
+
 
   return (
     <div className={`tw-section-editor tw-section-editor--${section.kind}`}>
@@ -149,41 +140,8 @@ export function SectionEditor({
         </Field>
 
         {section.kind === "project" ? (
-          <Field label="Tech stack" hint="Pick up to 12. Every logo is the real one." className="tw-span-2">
-            <details className="tw-tech-picker">
-              <summary>{stack.length ? `${stack.length} selected` : "Choose technologies"}</summary>
-              <div className="tw-tech-grid">
-                {TECH_STACK.map((tech) => (
-                  <button
-                    key={tech.id}
-                    type="button"
-                    aria-pressed={section.stack.includes(tech.id)}
-                    onClick={() => toggleTech(tech.id)}
-                  >
-                    <img
-                      src={techIconUrl(tech)}
-                      alt=""
-                      loading="lazy"
-                      onError={(event) => {
-                        event.currentTarget.style.visibility = "hidden";
-                      }}
-                    />
-                    <span>{tech.name}</span>
-                  </button>
-                ))}
-              </div>
-            </details>
-            {stack.length ? (
-              <div className="tw-tech-selected">
-                {stack.map((tech) => (
-                  <button key={tech.id} type="button" className="tw-tech-chip" onClick={() => toggleTech(tech.id)} title={`Remove ${tech.name}`}>
-                    <img src={techIconUrl(tech)} alt="" />
-                    {tech.name}
-                    <span aria-hidden="true">×</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
+          <Field label="Tech stack" hint="Choose languages, frameworks and tools." className="tw-span-2">
+            <SkillPicker value={section.stack} onChange={stack=>onChange({stack})}/>
           </Field>
         ) : null}
 

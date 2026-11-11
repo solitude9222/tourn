@@ -138,7 +138,10 @@ function AudioSettingsCard() {
       />
 
       {audio.fileUrl && audio.style !== "none" ? <div className="tw-audio-live-preview"><AudioPlayer settings={{ ...audio, autoplay: false }} /></div> : <p className="tw-foot-note">Add an audio file to preview your player.</p>}
-      <div className="tw-form-grid">
+      <div className="tw-audio-settings-grid"><div className="tw-stack">
+        <Field label="Border animation"><Select value={audio.edgeEffect} options={[{value:"none",label:"None"},{value:"trace",label:"Travelling light"},{value:"pulse",label:"Soft pulse"}]} onChange={edgeEffect=>updateAudio({edgeEffect:edgeEffect as typeof audio.edgeEffect})}/></Field><Slider label="Border animation duration" value={audio.edgeSpeed} min={1} max={15} step={.5} suffix="s" onChange={edgeSpeed=>updateAudio({edgeSpeed})}/>
+        <div className="tw-stack"><Slider label="Border alpha" value={Math.round(audio.borderOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ borderOpacity: value / 100 })} /></div>
+        <div className="tw-stack"><Slider label="Track alpha" value={Math.round(audio.trackOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ trackOpacity: value / 100 })} /></div>
         <Slider label="Default volume" value={Math.round(audio.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAudio({ volume: volume / 100 })} />
         <Slider label="Player opacity" value={Math.round(audio.cardOpacity * 100)} min={0} max={100} suffix="%" onChange={(cardOpacity) => updateAudio({ cardOpacity: cardOpacity / 100 })} />
         <Slider label="Playback speed" value={audio.playbackRate} min={.5} max={2} step={.05} suffix="×" onChange={(playbackRate) => updateAudio({ playbackRate })} />
@@ -190,18 +193,6 @@ function AudioSettingsCard() {
           </div>
         </Field>
 
-        <div className="tw-subhead tw-span-2">Colours &amp; transparency</div>
-        <ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
-        <ColorField label="Player background" value={audio.playerColor} onChange={(value) => updateAudio({ playerColor: value })} />
-        <ColorField label="Border colour" value={audio.borderColor} onChange={(value) => updateAudio({ borderColor: value })} />
-        <div className="tw-stack"><Slider label="Border alpha" value={Math.round(audio.borderOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ borderOpacity: value / 100 })} /></div>
-        <ColorField label="Title colour" value={audio.titleColor} onChange={(value) => updateAudio({ titleColor: value })} />
-        <ColorField label="Artist colour" value={audio.artistColor} onChange={(value) => updateAudio({ artistColor: value })} />
-        <ColorField label="Progress colour" value={audio.progressColor} onChange={(value) => updateAudio({ progressColor: value })} />
-        <ColorField label="Track colour" value={audio.trackColor} onChange={(value) => updateAudio({ trackColor: value })} />
-        <div className="tw-stack"><Slider label="Track alpha" value={Math.round(audio.trackOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ trackOpacity: value / 100 })} /></div>
-        <ColorField label="Play button" value={audio.buttonColor} onChange={(value) => updateAudio({ buttonColor: value })} />
-        <ColorField label="Play icon" value={audio.buttonIconColor} onChange={(value) => updateAudio({ buttonIconColor: value })} />
         <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div>
         <Field label="Hosted audio URL" hint="Or use a direct link to an audio file."><TextInput value={audio.fileUrl.startsWith("data:") ? "" : audio.fileUrl} placeholder="https://.../track.mp3" onChange={(event) => updateAudio({ fileUrl: event.target.value, style: audio.style === "none" ? "compact" : audio.style })} /></Field>
         <Field label="Track title">
@@ -256,7 +247,6 @@ function AudioSettingsCard() {
             onChange={(event) => updateAudio({ lyrics: event.target.value.slice(0, 40_000) })}
           />
         </Field>
-      </div>
 
       <div className="tw-inline-toggle" style={{ marginTop: 14 }}>
         <span>
@@ -268,17 +258,29 @@ function AudioSettingsCard() {
           onChange={(checked) => updateAudio({ autoLyrics: checked })}
           label="Auto-fetch lyrics"
         />
-      </div>
+      </div></div><div className="tw-stack tw-audio-colors">        <div className="tw-subhead tw-span-2">Colours &amp; transparency</div>
+        <ColorField label="Border animation colour" value={audio.edgeColor} onChange={edgeColor=>updateAudio({edgeColor})}/><ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
+        <ColorField label="Player background" value={audio.playerColor} onChange={(value) => updateAudio({ playerColor: value })} />
+        <ColorField label="Border colour" value={audio.borderColor} onChange={(value) => updateAudio({ borderColor: value })} />
 
-      {audio.style === "popup" || about.design.audioPosition === "popup" ? <div className="tw-popup-settings"><h3>Popup appearance</h3><div className="tw-form-grid">
+        <ColorField label="Title colour" value={audio.titleColor} onChange={(value) => updateAudio({ titleColor: value })} />
+        <ColorField label="Artist colour" value={audio.artistColor} onChange={(value) => updateAudio({ artistColor: value })} />
+        <ColorField label="Progress colour" value={audio.progressColor} onChange={(value) => updateAudio({ progressColor: value })} />
+        <ColorField label="Track colour" value={audio.trackColor} onChange={(value) => updateAudio({ trackColor: value })} />
+
+        <ColorField label="Play button" value={audio.buttonColor} onChange={(value) => updateAudio({ buttonColor: value })} />
+        <ColorField label="Play icon" value={audio.buttonIconColor} onChange={(value) => updateAudio({ buttonIconColor: value })} />
+</div></div>
+
+      {audio.style === "popup" || about.design.audioPosition === "popup" ? <div className="tw-popup-settings"><h3>Popup appearance</h3><div className="tw-audio-settings-grid"><div className="tw-stack">
         <Field label="Popup corner"><Select value={audio.popupSide} options={[{value:"left",label:"Top left"},{value:"right",label:"Top right"}]} onChange={(popupSide) => updateAudio({ popupSide: popupSide as "left" | "right" })} /></Field>
         <Slider label="Music icon size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
-        <ColorField label="Music icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
-        <ColorField label="Popup background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
+
+
         <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
         <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
         <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
-      </div></div> : null}
+      </div><div className="tw-stack tw-audio-colors">        <ColorField label="Music icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />        <ColorField label="Popup background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} /></div></div></div> : null}
 
       <input
         ref={audioInput}
@@ -526,7 +528,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           />
         </div>
 
-        <details className="tw-entry-media"><summary>Entry image and layout</summary><div className="tw-form-grid">
+        <section className="tw-entry-media"><h3>Entry image and transition</h3><div className="tw-form-grid">
           <Field label="Entry image URL" hint="Images and animated GIFs are supported."><TextInput value={entry.imageUrl} onChange={(event) => updateEntry({ imageUrl: event.target.value })} /></Field>
           <Field label="Entry image upload"><FileUpload aria-label="Entry image upload" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Entry image", "Choose an image or GIF under 500 KB."); return; } updateEntry({ imageUrl: await fileToDataUrl(file) }); }} /></Field>
           <Slider label="Entry image size" value={entry.imageSize} min={24} max={250} suffix="px" onChange={(imageSize) => updateEntry({ imageSize })} />
@@ -534,7 +536,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           <Slider label="Entry content gap" value={entry.contentGap} min={0} max={60} suffix="px" onChange={(contentGap) => updateEntry({ contentGap })} />
           <Slider label="Entry transition duration" value={entry.animationDuration} min={100} max={2000} step={50} suffix="ms" onChange={(animationDuration) => updateEntry({ animationDuration })} />
           <div className="tw-inline-toggle"><b>Show once per session</b><Toggle label="Entry once per session" checked={entry.oncePerSession} onChange={(oncePerSession) => updateEntry({ oncePerSession })} /></div>
-        </div></details>
+        </div></section>
         <div className="tw-subhead">Text</div>
         <div className="tw-form-grid">
           <Field label="Enter text" help>

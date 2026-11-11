@@ -44,7 +44,10 @@ export type TextEffectId =
   | "bounce"
   | "fade"
   | "flicker"
-  | "shake";
+  | "shake"
+  | "aurora"
+  | "outline"
+  | "metallic";
 export type TextEffectTarget = "alias" | "name" | "bio";
 
 /* ── per-effect custom settings ───────────────────────────────────────────
@@ -78,6 +81,7 @@ function clampParamsFor(spec: EffectParamSpec | null, raw: unknown): EffectParam
 }
 
 export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
+  aurora: null, outline: null, metallic: null,
   none: null,
   rgb: { kind: "slider", key: "bandSharpness", label: "Band sharpness", min: 10, max: 90, step: 5, unit: "%", default: 45 },
   wave: { kind: "slider", key: "amplitude", label: "Amplitude", min: 2, max: 16, step: 1, unit: "px", default: 6 },
@@ -158,6 +162,9 @@ export type BackgroundSettings = {
 };
 
 export type AudioSettings = {
+  edgeEffect: "none" | "trace" | "pulse";
+  edgeColor: string;
+  edgeSpeed: number;
   volume: number;
   startMuted: boolean;
   loop: boolean;
@@ -351,6 +358,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     artist: "",
     lyrics: "",
     autoLyrics: true,
+    edgeEffect:"none",edgeColor:"#ffffff",edgeSpeed:5,
     cardOpacity: 0.92,
     accentColor: "#f2c9dd",
     playerColor: "#0a0b0d",
@@ -431,6 +439,12 @@ export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: s
 export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "No overlay" },
   { id: "dotted", name: "Dotted", hint: "A subtle, even dot texture" },
+  { id:"grain",name:"Film grain",hint:"Fine film texture" },
+  { id:"scanlines",name:"Scanlines",hint:"Fine horizontal CRT lines" },
+  { id:"vignette",name:"Vignette",hint:"Soft darkened edges" },
+  { id:"bloom",name:"Bloom",hint:"A soft wash of light" },
+  { id:"fog",name:"Mist",hint:"A slow, translucent light veil" },
+  { id:"chromatic",name:"Chromatic edges",hint:"Subtle coloured edges" },
 ];
 
 export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = [
@@ -447,6 +461,9 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
   { id: "fade", name: "Fade", hint: "Smooth pulse in and out" },
   { id: "flicker", name: "Flicker", hint: "Broken neon flashing" },
   { id: "shake", name: "Shake", hint: "Rapid vibration" },
+  {id:"aurora",name:"Aurora",hint:"A flowing two-tone ribbon"},
+  {id:"outline",name:"Outline",hint:"Crisp illuminated letter edges"},
+  {id:"metallic",name:"Metallic",hint:"A narrow silver light sweep"},
 ];
 
 export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
@@ -540,6 +557,7 @@ function loadAudio(value: unknown): AudioSettings {
     artist: textIn(raw.artist, DEFAULT_PROFILE_ASSETS.audio.artist, 80),
     lyrics: textIn(raw.lyrics, "", 40_000),
     autoLyrics: boolIn(raw.autoLyrics, DEFAULT_PROFILE_ASSETS.audio.autoLyrics),
+    edgeEffect: choiceIn(raw.edgeEffect,["none","trace","pulse"] as const,"none"),edgeColor:colorIn(raw.edgeColor,"#ffffff"),edgeSpeed:numberIn(raw.edgeSpeed,5,1,15),
     cardOpacity: numberIn(raw.cardOpacity, DEFAULT_PROFILE_ASSETS.audio.cardOpacity, 0, 1),
     accentColor: colorIn(raw.accentColor, DEFAULT_PROFILE_ASSETS.audio.accentColor),
     playerColor: colorIn(raw.playerColor, DEFAULT_PROFILE_ASSETS.audio.playerColor),
