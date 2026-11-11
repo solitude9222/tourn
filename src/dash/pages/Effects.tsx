@@ -55,7 +55,7 @@ export function EffectsPage() {
     {browser === "background" ? <Card><CardHead icon="sparkles" title="Background effects" subtitle="Choose an atmosphere. Hover a tile to see its motion." />{chooser("background")}
       {effects.background.id !== "none" ? <div className="tw-form-grid"><ColorField label="Particle colour" value={effects.background.color} onChange={(color) => setBackground({ color })} /><Slider label="Intensity" value={effects.background.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setBackground({ intensity })} /><Slider label="Motion duration" value={effects.background.speed} min={2} max={24} suffix="s" onChange={(speed) => setBackground({ speed })} /><Parameter spec={BACKGROUND_EFFECT_PARAM[effects.background.id]} value={effects.background.params} onChange={(params) => setBackground({ params })} /></div> : null}
     </Card> : null}
-    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlays" subtitle="A simple dotted texture over your page." />{chooser("overlay")}
+    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlays" subtitle="Textures and edge treatments layered over your page." />{chooser("overlay")}
       {effects.overlay.id !== "none" ? <div className="tw-form-grid">
         <Slider label="Opacity" value={Math.round(effects.overlay.opacity * 100)} min={0} max={90} suffix="%" onChange={(opacity) => setOverlay({ opacity: opacity / 100 })} />
         {effects.overlay.id === "bloom" ? <ColorField label="Light tint" value={effects.overlay.color} onChange={(color) => setOverlay({ color })} /> : null}

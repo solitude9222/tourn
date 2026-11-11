@@ -4929,6 +4929,14 @@
 .lkr-page .lkr-widgets,.profile-preview .lkr-widgets {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;}
 .lkr-page .lkr-widgets>.widget-card,.profile-preview .lkr-widgets>.widget-card {grid-column:1/-1;width:100%;min-width:0;max-width:none;}
 .lkr-page .lkr-widgets>.widget-card.is-compact,.profile-preview .lkr-widgets>.widget-card.is-compact {grid-column:span 1;}
+/* Compact card style is a two-up card even when the individual widgets keep
+   their normal detail. Only an odd last card takes the full row. */
+.lkr-card-compact .lkr-stacked-widgets .lkr-widgets>.widget-card,
+.lkr-card-compact .lkr-side-widgets .lkr-widgets>.widget-card,
+.profile-preview.pv-card-compact .lkr-widgets>.widget-card {grid-column:span 1;}
+.lkr-card-compact .lkr-stacked-widgets .lkr-widgets>.widget-card:last-child:nth-child(odd),
+.lkr-card-compact .lkr-side-widgets .lkr-widgets>.widget-card:last-child:nth-child(odd),
+.profile-preview.pv-card-compact .lkr-widgets>.widget-card:last-child:nth-child(odd) {grid-column:1/-1;}
 .profile-preview .pv-links-block .pv-link-icons,.lkr-flow--left .profile-preview .pv-links-block .pv-link-icons {justify-content:center!important;width:100%;}
 .profile-preview .pv-beam-glow {background:radial-gradient(circle,var(--pv-card-fx-color),transparent 68%);}
 .fx-text--aurora {color:transparent;background:linear-gradient(110deg,var(--fx-color-a),var(--fx-color-b),var(--fx-color-a));background-size:240% 100%;background-clip:text;animation:fxAurora var(--fx-speed) linear infinite;}

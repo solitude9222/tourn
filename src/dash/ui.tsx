@@ -827,28 +827,24 @@ export function ColorField({
     onChange(hsvToHex(next));
   };
 
-  // A hue-only wheel must still work from white/black: otherwise saturation or
-  // brightness stays at zero and moving the hue produces no visible change.
-  const commitHue = (hue: number) => {
+  // Hue runs left-to-right; the vertical axis goes white → pure colour →
+  // black, so every colour is reachable directly in one rounded square.
+  const spectrumFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
     commit({
-      ...hsv,
-      h: (hue + 360) % 360,
-      s: hsv.s < 0.04 ? 0.68 : hsv.s,
-      v: hsv.v < 0.04 ? 0.92 : hsv.v,
+      h: x >= 1 ? 0 : x * 360,
+      s: y <= 0.5 ? y * 2 : 1,
+      v: y <= 0.5 ? 1 : 2 - y * 2,
     });
   };
 
-  const hueFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const dx = event.clientX - rect.left - rect.width / 2;
-    const dy = event.clientY - rect.top - rect.height / 2;
-    const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
-    commitHue(angle);
-  };
-
-  const radians = (hsv.h * Math.PI) / 180;
-  const wheelX = 50 + Math.sin(radians) * 41;
-  const wheelY = 50 - Math.cos(radians) * 41;
+  const shiftHue = (hue: number) => commit({ ...hsv, h: (hue + 360) % 360 });
+  const spectrumX = hsv.h / 360;
+  // Match the square's lightness ramp, so the thumb sits where this colour
+  // would be picked rather than floating at an unrelated position.
+  const spectrumY = Math.min(1, Math.max(0, 1 - hsv.v * (1 - hsv.s / 2)));
   const valid = /^#[0-9a-f]{6}$/i.test(value);
 
   return (
@@ -881,33 +877,33 @@ export function ColorField({
       {open ? (
         <div className="tw-color-pop">
           <div
-            className="tw-color-wheel"
+            className="tw-color-square"
             onPointerDown={(event) => {
               event.currentTarget.setPointerCapture(event.pointerId);
-              hueFromPointer(event);
+              spectrumFromPointer(event);
             }}
             onPointerMove={(event) => {
-              if (event.currentTarget.hasPointerCapture(event.pointerId)) hueFromPointer(event);
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) spectrumFromPointer(event);
             }}
             onKeyDown={(event) => {
               if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
               event.preventDefault();
-              const step = event.key === "ArrowRight" ? 4 : -4;
-              commitHue(hsv.h + step);
+              shiftHue(hsv.h + (event.key === "ArrowRight" ? 4 : -4));
             }}
             role="slider"
-            aria-label="Hue"
+            aria-label="Colour spectrum"
             aria-valuemin={0}
             aria-valuemax={360}
             aria-valuenow={Math.round(hsv.h)}
+            aria-valuetext={`${Math.round(hsv.s * 100)}% saturation, ${Math.round(hsv.v * 100)}% brightness`}
             tabIndex={0}
           >
             <span
-              className="tw-color-wheel-thumb"
+              className="tw-color-square-thumb"
               style={{
-                left: `${wheelX}%`,
-                top: `${wheelY}%`,
-                background: `hsl(${hsv.h} 100% 50%)`,
+                left: `${spectrumX * 100}%`,
+                top: `${spectrumY * 100}%`,
+                background: hsvToHex(hsv),
               }}
             />
           </div>

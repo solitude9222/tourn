@@ -387,7 +387,7 @@ const chooseEffect=async(kind,name)=>{
  await page.getByRole('navigation',{name:'Effect categories'}).getByRole('button',{name:labels[kind],exact:true}).click();
  const gallery=page.getByLabel(`${kind} effects`,{exact:true});
  assert(await gallery.locator('.fx-tile-preview').count()>1,'Effects are not shown together');
- if(kind==='overlay') { assert.equal(await gallery.locator('.fx-choice').count(),8,'Distinct texture overlays should be available'); assert.equal(await gallery.getByRole('button',{name:'Rain',exact:true}).count(),0,'Particle backgrounds duplicated in overlays'); }
+ if(kind==='overlay') { assert.equal(await gallery.locator('.fx-choice').count(),8,'Distinct texture overlays should be available'); assert.equal(await gallery.getByRole('button',{name:'Rain',exact:true}).count(),0,'Particle backgrounds duplicated in overlays'); assert.equal(await gallery.locator('.fx-overlay-subject').count(),0,'Overlay previews still draw decorative circles'); assert.equal(await gallery.locator('.fx-preview-scene').count(),8,'Overlay previews have no content scene'); const dotted=await gallery.getByRole('button',{name:'Dotted'}).locator('.profile-overlay').evaluate(el=>getComputedStyle(el).backgroundImage); assert(dotted.includes('radial-gradient'),'Dotted overlay preview is empty'); await page.screenshot({path:'.tmp/overlays-gallery.png',fullPage:true}); }
  const background=await gallery.locator('.fx-tile-preview').first().evaluate(el=>getComputedStyle(el).backgroundColor);
  assert.equal(background,'rgb(0, 0, 0)','Effect tiles are not black');
  await gallery.getByRole('button',{name,exact:true}).click();
@@ -401,11 +401,14 @@ const sparkleColour=page.locator('.tw-color-field').filter({hasText:'Sparkle col
 await sparkleColour.scrollIntoViewIfNeeded();
 await sparkleColour.locator('.tw-swatch').click();
 const colourBefore=await sparkleColour.locator('.tw-color-hex').inputValue();
-const hueWheel=sparkleColour.locator('.tw-color-wheel');
-const hueBox=await hueWheel.boundingBox();
-assert(hueBox,'Colour wheel did not render');
-await page.mouse.click(hueBox.x+hueBox.width*.8,hueBox.y+hueBox.height*.2);
-assert.notEqual(await sparkleColour.locator('.tw-color-hex').inputValue(),colourBefore,'Hue wheel did not change a neutral colour');
+assert.equal(await sparkleColour.locator('.tw-color-wheel').count(),0,'Old circular hue wheel remains');
+const spectrum=sparkleColour.locator('.tw-color-square');
+const spectrumBox=await spectrum.boundingBox();
+assert(spectrumBox,'Colour spectrum did not render');
+assert.equal(Math.round(spectrumBox.width),Math.round(spectrumBox.height),'Colour spectrum is not square');
+assert((await spectrum.evaluate(el=>parseFloat(getComputedStyle(el).borderRadius)))>0,'Colour spectrum is not rounded');
+await page.mouse.click(spectrumBox.x+spectrumBox.width*.8,spectrumBox.y+spectrumBox.height*.2);
+assert.notEqual(await sparkleColour.locator('.tw-color-hex').inputValue(),colourBefore,'Colour spectrum did not change a neutral colour');
 await page.screenshot({path:'.tmp/color-picker.png',fullPage:false});
 await sparkleColour.locator('.tw-swatch').click();
 await chooseEffect('card','Beam ring');

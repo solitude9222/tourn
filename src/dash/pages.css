@@ -2207,7 +2207,13 @@
 .fx-pointer-drop:focus-within { outline:2px solid #fff; }
 @media(max-width:760px) { .fx-cursor-grid { grid-template-columns:minmax(0,1fr); } }
 
-.fx-overlay-subject { position:absolute; inset:16px; border:1px solid #ffffff16; border-radius:50%; background:radial-gradient(ellipse at 40% 35%,#555,#151515 60%,#000 75%); }
+/* Overlay previews sit over a small, neutral card scene so texture and edge
+   treatments are readable without inventing a big decorative object. */
+.fx-preview-scene { position:absolute; inset:0; z-index:0; display:grid; place-items:center; background:radial-gradient(ellipse at 50% 20%,#2b2b2b,#0b0b0b 72%); }
+.fx-preview-scene-card { display:grid; grid-template-columns:22px minmax(0,1fr); grid-template-rows:auto auto; align-items:center; gap:6px 9px; width:68%; min-height:60%; padding:14px; border:1px solid #ffffff1c; border-radius:12px; background:linear-gradient(145deg,#3b3b3b,#181818); box-shadow:0 14px 28px #0009; }
+.fx-preview-scene-avatar { grid-row:1 / span 2; width:22px; height:22px; border-radius:6px; background:linear-gradient(145deg,#d2d2d2,#6f6f6f); }
+.fx-preview-scene-line { width:100%; height:5px; border-radius:999px; background:#ffffff3d; }
+.fx-preview-scene-line--name { width:64%; height:6px; background:#ffffff8a; }
 
 .tw-card-preview .lkr-flow.lkr-flow--left, .tw-card-preview .lkr-flow.lkr-flow--centered, .tw-card-preview .lkr-flow.lkr-flow--stacked { display:flex !important; flex-direction:column; width:min(100%,720px); max-width:720px; margin-inline:auto !important; align-items:stretch !important; }
 .tw-card-preview .lkr-flow > .profile-preview { width:100%; margin-inline:auto !important; }
