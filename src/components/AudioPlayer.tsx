@@ -7,6 +7,7 @@ import {
   type LyricLine,
 } from "../lib/lyrics";
 import type { AudioSettings } from "../lib/profileAssets";
+import { hexToRgba } from "../lib/about";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "./Icons";
 import "../audioPlayer.css";
 
@@ -86,7 +87,7 @@ export function AudioPlayer({
     "--ap-opacity": settings.cardOpacity,
     "--ap-edge-color":settings.edgeColor,
     "--ap-edge-speed":`${settings.edgeSpeed}s`,
-    "--ap-accent": settings.accentColor,
+    "--ap-accent": hexToRgba(settings.accentColor, settings.accentOpacity ?? 1),
     "--ap-bg": settings.playerColor,
     "--ap-border": settings.borderColor,
     "--ap-border-opacity": settings.borderOpacity,

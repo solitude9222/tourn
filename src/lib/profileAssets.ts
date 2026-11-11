@@ -192,6 +192,8 @@ export type AudioSettings = {
   cardOpacity: number;
   /** Accent colour for the progress fill / highlighted lyric line. */
   accentColor: string;
+  /** Accent alpha, 0 (invisible) – 1 (fully opaque). */
+  accentOpacity: number;
   /** Player surface colour under the accent wash. */
   playerColor: string;
   /** Border colour and its alpha, 0–1. */
@@ -361,6 +363,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     edgeEffect:"none",edgeColor:"#ffffff",edgeSpeed:5,
     cardOpacity: 0.92,
     accentColor: "#f2c9dd",
+    accentOpacity: 1,
     playerColor: "#0a0b0d",
     borderColor: "#ffffff",
     borderOpacity: 0.09,
@@ -560,6 +563,7 @@ function loadAudio(value: unknown): AudioSettings {
     edgeEffect: choiceIn(raw.edgeEffect,["none","trace","pulse"] as const,"none"),edgeColor:colorIn(raw.edgeColor,"#ffffff"),edgeSpeed:numberIn(raw.edgeSpeed,5,1,15),
     cardOpacity: numberIn(raw.cardOpacity, DEFAULT_PROFILE_ASSETS.audio.cardOpacity, 0, 1),
     accentColor: colorIn(raw.accentColor, DEFAULT_PROFILE_ASSETS.audio.accentColor),
+    accentOpacity: numberIn(raw.accentOpacity, DEFAULT_PROFILE_ASSETS.audio.accentOpacity, 0, 1),
     playerColor: colorIn(raw.playerColor, DEFAULT_PROFILE_ASSETS.audio.playerColor),
     borderColor: colorIn(raw.borderColor, DEFAULT_PROFILE_ASSETS.audio.borderColor),
     borderOpacity: numberIn(raw.borderOpacity, DEFAULT_PROFILE_ASSETS.audio.borderOpacity, 0, 1),

@@ -34,7 +34,7 @@ hosted media URLs; embedded video uploads share the profile document size limit.
 Popup audio is a circular music icon. Hover it or focus it with the keyboard to
 reveal the volume rail beside it. On touchscreens, tapping focuses the control.
 Music settings include corner, spacing, icon size/colour, background, opacity,
-rail width, reveal duration, default volume, mute, loop and playback speed.
+accent opacity, rail width, reveal duration, default volume, mute, loop and playback speed.
 
 Card settings no longer contain a live preview. Stacked cards can share one
 pointer tilt when “Tilt stacked cards together” is on. Profile sections use

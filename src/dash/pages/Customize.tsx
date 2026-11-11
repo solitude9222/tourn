@@ -267,6 +267,7 @@ function AudioSettingsCard() {
         />
       </div></div><div className="tw-stack tw-audio-colors">        <div className="tw-subhead tw-span-2">Colours &amp; transparency</div>
         <ColorField label="Border animation colour" value={audio.edgeColor} onChange={edgeColor=>updateAudio({edgeColor})}/><ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
+        <Slider label="Accent opacity" value={Math.round(audio.accentOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ accentOpacity: value / 100 })} />
         <ColorField label="Player background" value={audio.playerColor} onChange={(value) => updateAudio({ playerColor: value })} />
         <ColorField label="Border colour" value={audio.borderColor} onChange={(value) => updateAudio({ borderColor: value })} />
 
