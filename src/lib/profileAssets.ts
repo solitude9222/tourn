@@ -30,7 +30,7 @@ export type BackgroundEffectId =
   | "dust"
   | "leaf";
 export type OverlayEffectId = BackgroundEffectId | "grain" | "scanlines" | "vignette" | "bloom" | "fog" | "chromatic" | "custom";
-export type AudioStyle = "none" | "compact" | "lyrics" | "pill";
+export type AudioStyle = "none" | "compact" | "lyrics" | "pill" | "popup";
 export type TextEffectId =
   | "none"
   | "rgb"
@@ -407,7 +407,7 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
   { id: "wave", name: "Wave", hint: "Letters rise and fall" },
   { id: "typewriter", name: "Typewriter", hint: "Reveal letter by letter" },
   { id: "glow", name: "Glow", hint: "Soft coloured halo" },
-  { id: "sparkle", name: "Sparkle", hint: "Fine glitter inside the letters" },
+  { id: "sparkle", name: "Sparkle", hint: "Twinkling stars around your text" },
   { id: "shimmer", name: "Shimmer", hint: "Light sweeps across the letters" },
   { id: "glitch", name: "Glitch", hint: "Digital interference" },
   { id: "neon", name: "Neon", hint: "Bright tube glow" },
@@ -422,6 +422,7 @@ export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
   { id: "compact", name: "Compact", hint: "One row: cover, title, transport, progress" },
   { id: "lyrics", name: "Lyrics", hint: "Custom or auto-fetched lyrics that follow playback" },
   { id: "pill", name: "Pill", hint: "A long bar with cover art and a track name that glides back and forth" },
+  { id: "popup", name: "Popup", hint: "A collapsible music player in the top-left corner" },
 ];
 
 export const TEXT_TARGETS: { id: TextEffectTarget; name: string }[] = [

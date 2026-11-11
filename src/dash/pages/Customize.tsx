@@ -5,22 +5,18 @@
    disabled rather than pretending to save.
    --------------------------------------------------------------------------- */
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { audioFileToDataUrl } from "../../lib/audioUpload";
 import { AudioPlayer } from "../../components/AudioPlayer";
 import { imageToDataUrl } from "../files";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { fileToDataUrl } from "../files";
-import { WIDGET_PLATFORMS, createWidgetInstance } from "../../lib/widgets";
 import { ProfilePreview } from "../../components/ProfilePreview";
 import { EntryOverlay } from "../../components/LinkerPreview";
-import { WidgetCard } from "../../components/WidgetCard";
-import { ADDITIONAL_DISCORD_BADGES } from "../../lib/discord";
 import { ENTRY_ANIMATIONS as ENTRY_TRANSITIONS } from "../../lib/about";
 import { DEFAULT_BADGE_STYLE } from "../../lib/badges";
 import { DEFAULT_LINK_DESIGN } from "../../lib/links";
 import { formatJoinDate } from "../../lib/format";
-import { useAuth } from "../../lib/auth";
 import { PlatformIcon } from "../../components/PlatformIcons";
 import { useDash, type ProfileTab } from "../context";
 import { FileUpload,
@@ -290,195 +286,6 @@ function AudioSettingsCard() {
           event.target.value = "";
         }}
       />
-    </Card>
-  );
-}
-
-function DiscordPresenceCard() {
-  const { widgets, setWidgets, settings, notify } = useDash();
-  const { user: authUser, linkDiscord } = useAuth();
-  const linked = Boolean(authUser?.discordLinked);
-  const platform = WIDGET_PLATFORMS.find((entry) => entry.id === "discord");
-  const widget = widgets.widgets.find((entry) => entry.platform === "discord");
-  const [discordId, setDiscordId] = useState(
-    widget?.content || settings.discordUserId || authUser?.discordId || "",
-  );
-  const [busy, setBusy] = useState(false);
-  const [presenceRefresh, setPresenceRefresh] = useState(0);
-
-  // The session resolves after the first paint, so the signed-in account's
-  // Discord id fills the field as soon as it arrives instead of leaving the
-  // user to paste an id they already linked.
-  useEffect(() => {
-    if (!discordId && authUser?.discordId) setDiscordId(authUser.discordId);
-  }, [authUser?.discordId, discordId]);
-
-  const updateOption = (key: string, value: boolean | string) => {
-    if (!widget) return;
-    setWidgets((current) => ({
-      ...current,
-      widgets: current.widgets.map((entry) =>
-        entry.id === widget.id
-          ? { ...entry, options: { ...entry.options, [key]: value } }
-          : entry,
-      ),
-    }));
-  };
-
-  let displayedBadges: string[] = [];
-  try { const value = JSON.parse(String(widget?.options.profile_badges || "[]")); if (Array.isArray(value)) displayedBadges = value.filter((id): id is string => typeof id === "string"); } catch { /* empty */ }
-
-  const savePresence = () => {
-    if (!platform) return;
-    const id = discordId.trim();
-    if (!/^\d{17,20}$/.test(id)) {
-      notify("Discord", "Enter a valid Discord user ID (17 to 20 digits).");
-      return;
-    }
-    if (widget) {
-      setWidgets((current) => ({
-        ...current,
-        widgets: current.widgets.map((entry) =>
-          entry.id === widget.id ? { ...entry, content: id, visible: true } : entry,
-        ),
-      }));
-    } else {
-      const instance = createWidgetInstance(platform);
-      instance.id = "discord-presence";
-      instance.content = id;
-      instance.visible = true;
-      setWidgets((current) => ({ ...current, widgets: [...current.widgets, instance] }));
-    }
-    notify("Discord presence", "Your presence widget is saved automatically and will publish shortly.");
-  };
-
-  const connect = async () => {
-    setBusy(true);
-    const result = await linkDiscord();
-    if (result.error) notify("Discord", result.error);
-    setBusy(false);
-  };
-
-  return (
-    <Card id="dash-section-discord">
-      <CardHead
-        icon="discord"
-        title="Discord Presence"
-        subtitle="Your live status, activity and platform, shown on the profile card."
-      />
-
-      <div className="tw-discord-connect">
-        <span className="tw-widget-icon" style={{ width: 34, height: 34 }}>
-          <PlatformIcon id="discord" size={18} />
-        </span>
-        <span>
-          <b>{linked ? "Discord account connected" : "Connect your Discord account"}</b>
-          <small>
-            {linked
-              ? "Your account is linked. Presence reads the user ID below."
-              : "Link the account that owns this profile."}
-          </small>
-        </span>
-        <Button
-          variant={linked ? "ghost" : "primary"}
-          icon="discord"
-          disabled={busy}
-          onClick={() => void connect()}
-        >
-          {busy ? "Opening…" : linked ? "Reconnect" : "Connect Discord"}
-        </Button>
-      </div>
-
-      <div className="tw-form-grid" style={{ marginTop: 18 }}>
-        <Field
-          label="Discord user ID"
-          help
-          hint="Enable Developer Mode in Discord, then right-click your profile and copy your user ID."
-        >
-          <TextInput
-            icon="discord"
-            value={discordId}
-            placeholder="1546745348020772915"
-            onChange={(event) => setDiscordId(event.target.value)}
-          />
-        </Field>
-        <div className="tw-inline-toggle">
-          <span>
-            <b>Show on profile</b>
-            <small>Off hides the presence card without deleting it.</small>
-          </span>
-          <Toggle
-            checked={Boolean(widget) && widget?.visible !== false}
-            onChange={(checked) => {
-              if (!widget) {
-                if (checked) savePresence();
-                return;
-              }
-              setWidgets((current) => ({
-                ...current,
-                widgets: current.widgets.map((entry) =>
-                  entry.id === widget.id ? { ...entry, visible: checked } : entry,
-                ),
-              }));
-            }}
-            label="Show Discord presence"
-          />
-        </div>
-      </div>
-
-      <div className="tw-row" style={{ marginTop: 14 }}>
-        <Button variant="primary" onClick={savePresence}>
-          Save presence
-        </Button>
-        {widget ? <Button onClick={() => setPresenceRefresh((n) => n + 1)}>Refresh presence</Button> : null}
-      </div>
-
-      {widget ? <div className="tw-discord-live-preview"><WidgetCard widget={widget} refreshKey={presenceRefresh} design={{ ...widgets.design, backgroundStyle: "art", backgroundOpacity: 0.8 }} /></div> : null}
-      <p className="tw-presence-status">Connecting Discord confirms your identity. Live status and activity also require your account to join <a href="https://discord.gg/UrXF2cfJ7F" target="_blank" rel="noreferrer">Lanyard</a>. Your profile still displays when live status is unavailable.</p>
-      {platform && widget ? (
-        <>
-          <details className="tw-extra-discord-badges">
-            <summary>Additional Discord badges</summary>
-            <p className="tw-foot-note">Available badges are detected automatically. Choose additional badges to display here; Discord does not verify these selections.</p>
-            <div className="tw-extra-badge-grid">{ADDITIONAL_DISCORD_BADGES.map((badge) => <button key={badge.id} type="button" aria-pressed={displayedBadges.includes(badge.id)} onClick={() => updateOption("profile_badges", JSON.stringify(displayedBadges.includes(badge.id) ? displayedBadges.filter((id) => id !== badge.id) : [...displayedBadges, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span></button>)}</div>
-          </details>
-          <div className="tw-subhead">Presence options</div>
-          <div className="tw-option-grid">
-            {platform.options
-              .filter((option) => option.type === "select")
-              .map((option) => (
-                <Field key={option.key} label={option.label}>
-                  <Select
-                    value={String(widget.options[option.key] ?? option.default)}
-                    options={(option.choices ?? []).map((choice) => ({
-                      value: choice.value,
-                      label: choice.label,
-                    }))}
-                    onChange={(value) => updateOption(option.key, value)}
-                  />
-                </Field>
-              ))}
-          </div>
-          <div className="tw-grid tw-grid--4" style={{ marginTop: 14 }}>
-            {platform.options
-              .filter((option) => option.type === "toggle")
-              .map((option) => (
-                <ToggleTile
-                  key={option.key}
-                  title={option.label}
-                  description={option.hint}
-                  checked={widget.options[option.key] === true}
-                  onChange={(checked) => updateOption(option.key, checked)}
-                  accentBorder
-                />
-              ))}
-          </div>
-        </>
-      ) : (
-        <p className="tw-foot-note">
-          Save your Discord user ID to unlock presence options.
-        </p>
-      )}
     </Card>
   );
 }
@@ -899,7 +706,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
     return (
       <>
         <AudioSettingsCard />
-        <DiscordPresenceCard />
       </>
     );
   }

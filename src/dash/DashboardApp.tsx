@@ -68,7 +68,7 @@ export type DashboardProps = {
 const PROFILE_TABS: TabDef[] = [
   { id: "profile", label: "Profile", icon: "user" },
   { id: "experience", label: "Entry screen", icon: "sparkles" },
-  { id: "integrations", label: "Music & Discord", icon: "link" },
+  { id: "integrations", label: "Music", icon: "link" },
   { id: "switches", label: "Extra", icon: "sliders" },
 ];
 

@@ -1,3 +1,4 @@
+import { ADDITIONAL_DISCORD_BADGES } from "../../lib/discord";
 /* ---------------------------------------------------------------------------
    Links > Widgets — the real widget stack: add, configure, reorder, hide and
    the shared widget-card design. Every preview on this page is a real
@@ -33,6 +34,12 @@ import {
   TextInput,
   Toggle,
 } from "../ui";
+
+function DiscordBadgeChoices({ value, onChange }: { value: boolean | string | undefined; onChange: (value: string) => void }) {
+  let selected: string[] = [];
+  try { const parsed = JSON.parse(String(value || "[]")); if (Array.isArray(parsed)) selected = parsed.filter((item) => typeof item === "string"); } catch { /* No additional badges selected. */ }
+  return <details className="tw-extra-discord-badges"><summary>Additional Discord badges</summary><p className="tw-foot-note">Choose extra display badges. These selections are not verified by Discord.</p><div className="tw-extra-badge-grid">{ADDITIONAL_DISCORD_BADGES.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(JSON.stringify(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span></button>)}</div></details>;
+}
 
 const STATUS_LABEL: Record<string, string> = {
   online: "Online",
@@ -565,6 +572,7 @@ export function WidgetsPage() {
                 onChange={(event) => setContent(event.target.value)}
               />
             </Field>
+            {configuring.id === "discord" ? <DiscordBadgeChoices value={addOptions.profile_badges} onChange={(profile_badges) => setAddOptions((current) => ({ ...current, profile_badges }))} /> : null}
             <div className="tw-option-grid">
               {configuring.options.map((option) =>
                 option.type === "toggle" ? (
@@ -636,6 +644,7 @@ export function WidgetsPage() {
               />
             </Field>
 
+            {editing.platform === "discord" ? <DiscordBadgeChoices value={editing.options.profile_badges} onChange={(profile_badges) => { updateOption(editing.id, "profile_badges", profile_badges); setEditing({ ...editing, options: { ...editing.options, profile_badges } }); }} /> : null}
             {(WIDGET_PLATFORM_BY_ID.get(editing.platform)?.options ?? []).map((option) =>
               option.type === "toggle" ? (
                 <div className="tw-inline-toggle" key={option.key}>

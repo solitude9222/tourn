@@ -2516,7 +2516,7 @@
 
 @keyframes fxSparkle {
   0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
-  45% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+  45% { opacity: min(1,var(--fx-strength,1)); transform: scale(1.2) rotate(45deg); }
 }
 
 @keyframes fxGlitch1 {
@@ -4707,8 +4707,6 @@
 .profile-click-ring { position: fixed; z-index: 9999; pointer-events: none; width: 12px; height: 12px; border: 1px solid currentColor; border-radius: 50%; animation: profileClick .45s ease-out forwards; }
 @keyframes profileClick { from { opacity: .85; transform: translate(-50%, -50%) scale(.2); } to { opacity: 0; transform: translate(-50%, -50%) scale(4); } }
 /* Glitter stays inside the glyphs, like the supplied reference. */
-.fx-text--sparkle, .fx-text-wrap--sparkle { background-color: #ddd; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='50'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' seed='9'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), linear-gradient(110deg, #555 0%, #fff 40%, #999 60%, #fff 80%); background-size: 100px 50px, 220% 100%; background-blend-mode: normal; text-shadow: none; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent; filter: contrast(1.8) drop-shadow(0 0 3px #ffffff77); animation: glyphGlitter var(--fx-speed, 3s) steps(12) infinite; }
-@keyframes glyphGlitter { 0% { background-position: 0 0, 0 0; } 30% { background-position: 31px 9px, 60% 0; } 65% { background-position: -13px 23px, 100% 0; } 100% { background-position: 14px -19px, 220% 0; } }
 .profile-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 5; opacity: var(--overlay-opacity, .2); overflow: hidden; }
 .profile-overlay--grain { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E"); animation: overlayGrain .4s steps(3) infinite; }
 .profile-overlay--scanlines { background: repeating-linear-gradient(0deg, transparent 0 3px, #0008 3px 4px); }
@@ -4738,7 +4736,6 @@
 
 .lkr-page[data-interactive="true"] > .lkr-bg { position: fixed; inset: 0; }
 .lkr-bg-video, .lkr-bg-image { filter: blur(var(--lkr-bg-blur, 0px)) saturate(var(--lkr-bg-saturation, 1)) contrast(var(--lkr-bg-contrast, 1)) brightness(var(--lkr-bg-brightness, 1)); }
-.fx-text--sparkle, .fx-text-wrap--sparkle { background-color: var(--fx-color-a, #fff); background-size: var(--fx-grain, 16px) auto, 220% 100%; filter: contrast(var(--fx-glitter-contrast, 2)) drop-shadow(0 0 3px #ffffff77); }
 
 .profile-preview .pv-id:has(.pv-badges--above-name) { flex-direction: column-reverse; align-items: flex-start; }
 .profile-preview .pv-badges--top-right { position: absolute; top: 20px; right: 20px; }
@@ -4802,3 +4799,23 @@
 .profile-preview .pv-bio { font-size:clamp(13px,calc(var(--pv-bio-size,18px) * var(--pv-scale,1)),30px); }
 .profile-preview .pv-topline .pv-avatar { width:clamp(64px,var(--pv-avatar,100px),180px); height:clamp(64px,var(--pv-avatar,100px),180px); }
 @container (max-width:360px) { .profile-preview[data-pfp] .pv-topline { flex-direction:column !important; align-items:center !important; } .profile-preview[data-name] .pv-id, .profile-preview[data-name] .pv-ident { justify-content:center !important; } }
+
+/* Layout changes only the contents; every outer card shares the same centre. */
+.lkr-page .lkr-flow { display:flex; flex-direction:column; align-items:stretch; width:min(100%,720px); max-width:720px; gap:22px; margin-inline:auto; }
+.lkr-page .lkr-flow > .profile-preview { width:100%; max-width:100%; margin-inline:auto; }
+.lkr-stacked-widgets { width:100%; min-width:0; }
+.lkr-stacked-widgets .lkr-widgets-block { margin:0; }
+.lkr-stacked-widgets .lkr-widgets { display:flex; flex-direction:column; gap:var(--lkr-gap,16px); }
+.lkr-flow--left .profile-preview .pv-head-text, .lkr-flow--left .profile-preview .pv-bio { text-align:left; }
+.lkr-flow--left .profile-preview .pv-id, .lkr-flow--left .profile-preview .pv-ident, .lkr-flow--left .profile-preview .pv-links-block .pv-link-icons { justify-content:flex-start; }
+.lkr-flow .lkr-audio { width:100%; }
+.lkr-popup-audio { position:absolute; top:20px; left:20px; z-index:20; width:min(340px,calc(100% - 40px)); padding:10px; border:1px solid #ffffff24; border-radius:16px; background:#101010ee; backdrop-filter:blur(16px); box-shadow:0 12px 36px #0006; }
+.lkr-page[data-interactive="true"] > .lkr-popup-audio { position:fixed; }
+.lkr-popup-audio:not(.is-open) { width:auto; padding:6px; }
+.lkr-popup-toggle { display:flex; align-items:center; gap:10px; padding:8px 10px; border:0; background:transparent; color:#fff; font:inherit; font-size:18px; cursor:pointer; }
+.lkr-popup-toggle span { font-size:11px; color:#ccc; }
+.lkr-popup-audio .ap { margin:4px 0 0; width:100%; }
+.lkr-popup-audio [hidden] { display:none; }
+.fx-text--sparkle, .fx-text-wrap--sparkle { background:none; background-clip:border-box; -webkit-background-clip:border-box; -webkit-text-fill-color:currentColor; color:var(--fx-color-a,inherit); filter:none; animation:none; text-shadow:none; overflow:visible; }
+.fx-sparkles { inset:-6px -5px; overflow:visible; }
+.fx-sparkles i { opacity:min(1,var(--fx-strength,1)); animation-duration:var(--fx-speed,3s); }

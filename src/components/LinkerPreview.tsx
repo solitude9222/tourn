@@ -227,6 +227,7 @@ export function LinkerPreview({
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [popupOpen, setPopupOpen] = useState(true);
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -294,11 +295,7 @@ export function LinkerPreview({
   } as CSSProperties;
 
   const visibleWidgets = widgets.widgets.filter((widget) => widget.visible !== false);
-  // Discord presence is the lead card on every layout: it takes the full top
-  // row, with the rest of the stack in the order they were arranged below it.
-  const orderedWidgets = [...visibleWidgets].sort((a, b) =>
-    a.platform === "discord" ? -1 : b.platform === "discord" ? 1 : 0,
-  );
+  const orderedWidgets = visibleWidgets;
 
   const widgetStack = orderedWidgets.length ? (
     <div className="lkr-widgets-block">
@@ -319,7 +316,8 @@ export function LinkerPreview({
     <p className="lkr-empty">No widgets yet.</p>
   );
 
-  const audioPosition = design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
+  const requestedAudioPosition = design.audioPosition === "hidden" ? "hidden" : assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
+  const audioPosition = design.layout === "stacked" && requestedAudioPosition === "inside" ? "below" : requestedAudioPosition;
   const profileCard = (includeWidgets = true) => (
     <ProfilePreview
       user={user}
@@ -334,7 +332,7 @@ export function LinkerPreview({
       entryActive={entryOpen}
       hideAudio={hideAudio || audioPosition !== "inside"}
     >
-      {includeWidgets && widgets.widgets.length ? widgetStack : null}
+      {includeWidgets && orderedWidgets.length ? widgetStack : null}
     </ProfilePreview>
   );
 
@@ -346,8 +344,8 @@ export function LinkerPreview({
 
   const page = (
     <div className={`lkr-flow lkr-flow--${design.layout}`}>
-      {profileCard(design.layout !== "left")}
-      {design.layout === "left" && orderedWidgets.length ? <aside className="lkr-side-widgets">{widgetStack}</aside> : null}
+      {profileCard(design.layout !== "stacked")}
+      {design.layout === "stacked" && orderedWidgets.length ? <div className="lkr-stacked-widgets">{widgetStack}</div> : null}
       {audioPosition === "below" && hasTrack ? (
         <div className="lkr-stack">
           <div className="lkr-audio">
@@ -384,6 +382,10 @@ export function LinkerPreview({
       </div>
       <BackgroundEffectLayer settings={assets.effects.background} />
       {page}
+      {hasTrack && audioPosition === "popup" ? <aside className={`lkr-popup-audio${popupOpen ? " is-open" : ""}`} aria-label="Popup audio player">
+        <button type="button" className="lkr-popup-toggle" aria-label={popupOpen ? "Minimise player" : "Open music player"} aria-expanded={popupOpen} aria-controls="popup-audio-content" onClick={() => setPopupOpen(!popupOpen)}>{popupOpen ? "−" : "♫"}<span>{popupOpen ? "Minimise player" : "Open music player"}</span></button>
+        <div id="popup-audio-content" hidden={!popupOpen}><AudioPlayer settings={{ ...assets.audio, style: "compact" }} enabled={!entryOpen} /></div>
+      </aside> : null}
       {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       <ProfileCursor settings={assets.cursor} />

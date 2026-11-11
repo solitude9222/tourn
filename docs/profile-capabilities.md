@@ -6,14 +6,15 @@ content or templates. No reference video, photo, music or branding is shipped.
 | Visible feature | Where to configure it |
 | --- | --- |
 | Full-screen moving background (recording 0-10s, 18-44s) | Account / Profile / Background: Video, direct URL or short upload; saturation, contrast, brightness, dim and blur |
+| Centred outer card, with left/centred contents or separate stacked widgets | Customize / Card: Layout; Stacked places widget cards and audio below the profile |
 | Clear, dark glass or compact cards | Customize / Card: composition, opacity, padding, radius and card style |
 | Centred identity or left-avatar identity | Customize / Card: page layout, avatar placement and name/bio alignment |
-| White glowing social icons | Links: icon colour, size and glow |
+| Glowing social icons | Links: icon colour, size and glow |
 | Entry image/GIF and transition (14-18s) | Customize / Entry screen: image upload/URL, image size and entry animation |
 | Pointer point, ring or red comet trail | Customize / Effects: cursor and trail preview galleries |
 | Click sound and click ripple | Customize / Effects: built-in sounds or your own short audio clip; volume and all-clicks option |
-| Audio inside/below the card or pinned to the screen | Customize / Card: music placement; Music & Discord: track, cover, player and lyrics |
-| Glitter inside the name in the image | Customize / Effects: Display name / Sparkle; adjust density, strength, duration and font |
+| Audio inside/below the card, pinned to the bottom or Popup at top left | Customize / Card: music placement; Music: track, cover, player and lyrics |
+| Twinkling stars around the name | Customize / Effects: Display name / Sparkle; adjust density, strength, duration and font |
 | Moving border beams and other card lighting | Customize / Effects: Card lighting gallery |
 | Grain, scanlines, haze, vignette and custom textures | Customize / Effects: Overlay gallery, including transparent image/GIF uploads |
 | About content and project cards (30-44s) | Customize / Card: Profile sections; add, reorder and edit your own text, artwork and links |

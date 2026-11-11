@@ -147,7 +147,7 @@ export type ProfileSection = { id: string; title: string; text: string; image: s
 
 export type AboutDesign = {
   sections: ProfileSection[];
-  audioPosition: "auto" | "inside" | "below" | "fixed-bottom" | "hidden";
+  audioPosition: "auto" | "inside" | "below" | "popup" | "fixed-bottom" | "hidden";
   customFontUrl: string;
   theme: AboutTheme;
   layout: AboutLayout;
@@ -471,7 +471,7 @@ function loadDesign(input: unknown): AboutDesign {
 
   return {
     theme,
-    audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "fixed-bottom", "hidden"] as const, "auto"),
+    audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "popup", "fixed-bottom", "hidden"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 12).filter((section) => section && typeof section === "object").map((section, index) => ({
       id: typeof section.id === "string" ? section.id.slice(0, 80) : `section-${index}`,
       title: typeof section.title === "string" ? section.title.slice(0, 100) : "",

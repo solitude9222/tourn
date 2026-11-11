@@ -145,8 +145,6 @@ export function textEffectStyle(settings: TextEffectSettings): CSSProperties {
     "--fx-color-b": settings.colorB,
     "--fx-speed": `${settings.speed}s`,
     "--fx-strength": settings.strength,
-    "--fx-glitter-contrast": 1 + settings.strength / 50,
-    "--fx-grain": `${Math.max(7, 26 - amount)}px`,
     "--fx-amp": `${amount}px`,
     "--fx-band": `${100 + amount * 2}%`,
     "--fx-dim": `${1 - settings.params.amount / 100}`,
@@ -176,7 +174,7 @@ function Sparkles({ settings }: { settings: TextEffectSettings }) {
           style={
             {
               left: `${Math.round(randomish(index, 10) * 96)}%`,
-              top: `${Math.round(randomish(index, 11) * 94)}%`,
+              top: `${index % 2 === 0 ? -6 - Math.round(randomish(index, 11) * 10) : 90 + Math.round(randomish(index, 11) * 16)}%`,
               animationDelay: `${-(randomish(index, 12) * settings.speed).toFixed(2)}s`,
               "--fx-spark": `${2 + Math.round(randomish(index, 13) * 4)}px`,
             } as CSSProperties
@@ -236,7 +234,7 @@ export function EffectText({
   if (settings.effect === "sparkle") {
     return (
       <span className={`${classes} fx-text--sparkle`} style={style}>
-        {text}
+        {text}<Sparkles settings={settings} />
       </span>
     );
   }
@@ -268,7 +266,7 @@ export function EffectText({
 
 export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
   if (settings.effect !== "sparkle") return null;
-  return null;
+  return <Sparkles settings={settings} />;
 }
 
 /* -------------------------------------------------------------------- cursor */

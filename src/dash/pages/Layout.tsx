@@ -44,15 +44,15 @@ const PAGE_LAYOUTS: {
     id: "stacked",
     name: "Stacked",
     description:
-      "A full profile card with widgets inside it and optional music below.",
+      "Your profile first, then separate widget cards and music below.",
     viewPosition: "footer",
     joinPosition: "under-name",
   },
   {
     id: "left",
-    name: "Split",
+    name: "Left aligned",
     description:
-      "Two balanced columns, with widgets beside your profile.",
+      "Avatar, text and links aligned left inside the centred card.",
     viewPosition: "footer",
     joinPosition: "under-name",
   },
@@ -138,7 +138,8 @@ export function LayoutPage() {
                   badgePosition: "default",
                   locationPosition: "footer",
                   cardPadding: 32,
-                  cardWidth: preset.id === "centered" ? 540 : preset.id === "left" ? 540 : 720,
+                  cardWidth: 720,
+                  audioPosition: "auto",
                   pfpPosition: preset.id === "centered" ? "above" : "left",
                   namePosition: preset.id === "centered" ? "center" : "left",
                   bioPosition: preset.id === "centered" ? "center" : "left",
@@ -223,8 +224,8 @@ export function LayoutPage() {
             />
           </Field>
 
-          <Field label="Audio player" hint="Manage the track and player under Music & Discord.">
-            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }, { value: "hidden", label: "Hidden" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
+          <Field label="Audio player" hint="Manage the track and player under Music.">
+            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "popup", label: "Popup · top left" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }, { value: "hidden", label: "Hidden" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
           </Field>
         </div>
 

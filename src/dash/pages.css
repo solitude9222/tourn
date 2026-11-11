@@ -2073,3 +2073,6 @@
 .fx-subheading { font-size:13px; font-weight:500; color:var(--title); margin:24px 0 16px; }
 
 .fx-overlay-subject { position:absolute; inset:16px; border:1px solid #ffffff16; border-radius:50%; background:radial-gradient(ellipse at 40% 35%,#555,#151515 60%,#000 75%); }
+
+.tw-card-preview .lkr-flow.lkr-flow--left, .tw-card-preview .lkr-flow.lkr-flow--centered, .tw-card-preview .lkr-flow.lkr-flow--stacked { display:flex !important; flex-direction:column; width:min(100%,720px); max-width:720px; margin-inline:auto !important; align-items:stretch !important; }
+.tw-card-preview .lkr-flow > .profile-preview { width:100%; margin-inline:auto !important; }

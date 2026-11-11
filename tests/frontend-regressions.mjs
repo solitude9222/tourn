@@ -73,30 +73,30 @@ await page.reload();await page.locator('.tw-dash').waitFor();
 assert(page.url().includes('account-profile'),'Dashboard deep link did not survive refresh');
 await page.getByRole('button',{name:'Home',exact:true}).click();
 assert.equal(await page.getByRole('button',{name:'Add a background',exact:true}).locator('.is-done').count(),1,'Saved background did not complete setup');
-await page.getByRole('button',{name:'Connect Discord account',exact:true}).click();
-await page.locator('#dash-section-discord').waitFor();
-assert(page.url().includes('integrations'),'Discord setup opened wrong tab');
-const presence=page.locator('#dash-section-discord');
-await presence.locator('input').first().fill('invalid');
-await presence.getByRole('button',{name:'Save presence',exact:true}).click();
-await page.getByText('Enter a valid Discord user ID (17 to 20 digits).',{exact:true}).waitFor();
-await presence.locator('input').first().fill('1546745348020772915');
-await presence.getByRole('button',{name:'Save presence',exact:true}).click();
+await page.getByRole('button',{name:'Add Discord widget',exact:true}).click();
+await page.getByText('Available widgets',{exact:true}).waitFor();
+assert(page.url().includes('/widgets'),'Discord setup should open Widgets');
+await page.locator('.tw-widget-pick').filter({has:page.getByText('Discord',{exact:true})}).click();
+const discordDialog=page.getByRole('dialog',{name:'Add Discord',exact:true});
+await discordDialog.locator('input').first().fill('1546745348020772915');
+await discordDialog.locator('summary').filter({hasText:'Additional Discord badges'}).click();
+await discordDialog.getByRole('button',{name:'Orbs',exact:true}).click();
+await discordDialog.getByRole('button',{name:'Add widget',exact:true}).click();
 await page.waitForTimeout(1000);
-assert(document.widgets.widgets.some(w=>w.platform==='discord'),'Discord presence was not published');
-await presence.getByText('Live status needs Lanyard. Join discord.gg/lanyard, then refresh.',{exact:true}).waitFor();
-await presence.locator('summary').filter({hasText:'Additional Discord badges'}).click();
-await presence.getByRole('button',{name:'Orbs',exact:true}).click();
-await page.waitForTimeout(900);
-assert(document.widgets.widgets.find(w=>w.platform==='discord').options.profile_badges.includes('orbs'),'Additional badge was not saved');
-await presence.locator('img[src="/badges/discord/orbs.svg"]').first().waitFor();
-await page.screenshot({path:'.tmp/discord-settings.png',fullPage:true});
+assert(document.widgets.widgets.some(w=>w.platform==='discord'),'Discord widget was not published');
+assert(document.widgets.widgets.find(w=>w.platform==='discord').options.profile_badges.includes('orbs'),'Additional widget badge was not saved');
 presenceMonitored=true;
-await presence.getByRole('button',{name:'Refresh presence',exact:true}).click();
-await presence.locator('.widget-card-avatar.is-online').waitFor();
-assert.equal(await presence.getByText('Live status needs Lanyard. Join discord.gg/lanyard, then refresh.',{exact:true}).count(),0);
+await page.evaluate(()=>location.hash='#/dashboard/customize-profile/integrations');
+await page.getByRole('tab',{name:'Player',exact:true}).waitFor();
+assert.equal(await page.getByText('Discord Presence',{exact:true}).count(),0,'Duplicate Discord presence editor remains');
 await page.getByRole('tab',{name:'Player',exact:true}).click();
 await page.getByText('Player accent',{exact:true}).waitFor();
+const playerStyle=page.locator('.tw-field').filter({has:page.getByText('Player style',{exact:true})});
+await playerStyle.locator('.tw-select-btn').click();await page.getByRole('option',{name:'Popup',exact:true}).click();
+await page.waitForTimeout(900);assert.equal(document.about.assets.audio.style,'popup','Popup style was not saved');
+await page.reload();await page.getByRole('tab',{name:'Player',exact:true}).click();
+await playerStyle.getByText('Popup',{exact:true}).waitFor();
+
 assert.equal(await page.getByText('Track title',{exact:true}).isVisible(),false,'Music track fields bleed into Player tab');
 await page.getByRole('tab',{name:'Lyrics',exact:true}).click();
 await page.getByText('Auto-fetch lyrics',{exact:true}).first().waitFor();
@@ -110,10 +110,10 @@ await page.locator('.tw-field').filter({has:page.getByText('Entry animation',{ex
 await page.getByRole('option',{name:'Fade in',exact:true}).click();
 await page.locator('.tw-enter-stage .lkr-entry--fade').waitFor();
 await page.evaluate(()=>location.hash='#/dashboard/customize-profile/integrations');
-console.log('PASS Discord status recovery, new badge persistence, music organization and entry setting ownership');
+console.log('PASS Discord status recovery, widget badge persistence, music organization and entry setting ownership');
 
 await page.getByRole('button',{name:'Home',exact:true}).click();
-assert.equal(await page.getByRole('button',{name:'Connect Discord account',exact:true}).locator('.is-done').count(),1,'Saved Discord presence did not complete setup');
+assert.equal(await page.getByRole('button',{name:'Add Discord widget',exact:true}).locator('.is-done').count(),1,'Saved Discord presence did not complete setup');
 await page.evaluate(()=>location.hash='#/dashboard/widgets');
 await page.getByRole('button',{name:'Delete Discord',exact:true}).click();
 await page.waitForTimeout(1000);
@@ -328,11 +328,11 @@ assert.equal(document.about.assets.card.id,'beam');assert.equal(document.about.a
 await page.evaluate(()=>location.hash='#/dashboard/layout');
 await page.getByText('Page layout',{exact:true}).waitFor();
 assert.equal(await page.getByText('Card width',{exact:true}).count(),0,'Card width was not removed');
-await page.locator('.tw-layout-card').filter({hasText:'Split'}).click();
+await page.locator('.tw-layout-card').filter({hasText:'Left aligned'}).click();
 await page.waitForTimeout(150);
-const sideGeometry=await page.locator('.tw-card-preview').evaluate(host=>{
- const profile=host.querySelector('.profile-preview').getBoundingClientRect();const side=host.querySelector('.lkr-side-widgets').getBoundingClientRect();return {right:profile.right,left:side.left};
-});assert(sideGeometry.left>=sideGeometry.right-2,JSON.stringify(sideGeometry));
+const centeredGeometry=await page.locator('.tw-card-preview').evaluate(host=>{
+ const profile=host.querySelector('.profile-preview').getBoundingClientRect();const flow=host.querySelector('.lkr-flow').getBoundingClientRect();return {card:(profile.left+profile.right)/2,flow:(flow.left+flow.right)/2,side:host.querySelector('.lkr-side-widgets')!==null};
+});assert(!centeredGeometry.side && Math.abs(centeredGeometry.card-centeredGeometry.flow)<2,JSON.stringify(centeredGeometry));
 await page.locator('.tw-layout-card').filter({hasText:'Centered'}).click();
 await page.waitForTimeout(150);
 const centerGeometry=await page.locator('.tw-card-preview .profile-preview').evaluate(host=>{const avatar=host.querySelector('.pv-avatar').getBoundingClientRect();const name=host.querySelector('.pv-id').getBoundingClientRect();return {bottom:avatar.bottom,top:name.top};});
@@ -357,15 +357,15 @@ const runtime=await page.evaluate(async profile=>{
  const dom=await import('/node_modules/.vite/deps/react-dom_client.js');const createRoot=dom.createRoot || dom.default.createRoot;
  const {LinkerPreview}=await import('/src/components/LinkerPreview.tsx');
  const host=document.createElement('div');host.id='reference-capability-test';host.style.cssText='position:fixed;inset:0;z-index:100000;background:#111;overflow:auto';document.body.append(host);
- const root=createRoot(host);root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'my-profile',avatarUrl:null},about:profile.about,widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));window.referenceRoot=root;window.renderReference=(design)=>root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'a-long-profile-handle-to-check-wrap',avatarUrl:null},about:{...profile.about,displayName:'A long display name to check wrapping',design:{...profile.about.design,...design}},widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));
+ const root=createRoot(host);root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'my-profile',avatarUrl:null},about:profile.about,widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));window.referenceRoot=root;window.renderReference=(design,audio={})=>root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'a-long-profile-handle-to-check-wrap',avatarUrl:null},about:{...profile.about,displayName:'A long display name to check wrapping',assets:{...profile.about.assets,audio:{...profile.about.assets.audio,...audio}},design:{...profile.about.design,...design}},widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));
  return true;
 },document);
 assert(runtime);
 await page.locator('#reference-capability-test .profile-overlay--grain').waitFor();
 await page.locator('#reference-capability-test .pv-card-fx--beam').waitFor();
 await page.locator('#reference-capability-test video').waitFor({state:'attached'});
-assert.equal(await page.locator('#reference-capability-test .fx-sparkles').count(),0,'Sparkle still has floating stars');
-assert((await page.locator('#reference-capability-test .fx-text--sparkle').evaluate(el=>getComputedStyle(el).webkitBackgroundClip)).split(',').every(value=>value.trim()==='text'));
+assert((await page.locator('#reference-capability-test .fx-sparkles i').count())>0,'Sparkle is missing outside stars');
+assert.equal(await page.locator('#reference-capability-test .fx-text--sparkle').evaluate(el=>getComputedStyle(el).backgroundImage),'none','Sparkle is still clipped glitter');
 await page.locator('#reference-capability-test .lkr-custom-section a').dispatchEvent('pointerdown',{button:0,clientX:120,clientY:120});
 await page.locator('#reference-capability-test .profile-click-ring').waitFor({state:'attached'});
 await page.screenshot({path:'.tmp/reference-capabilities.png',fullPage:false});
@@ -387,6 +387,20 @@ for (const width of [1440,390]) {
  }
 }
 await page.setViewportSize({width:1440,height:1000});
+await page.evaluate(()=>window.renderReference({layout:'stacked',audioPosition:'auto'},{style:'compact',fileUrl:'https://example.com/track.mp3',autoplay:false}));
+await page.locator('#reference-capability-test .lkr-stacked-widgets .widget-card').first().waitFor();
+await page.locator('#reference-capability-test .lkr-stack .ap').waitFor();
+assert.equal(await page.locator('#reference-capability-test .profile-preview .widget-card').count(),0,'Stacked widgets stayed inside identity card');
+assert.equal(await page.locator('#reference-capability-test .profile-preview .ap').count(),0,'Stacked audio stayed inside identity card');
+await page.evaluate(()=>window.renderReference({layout:'left',audioPosition:'auto'},{style:'popup',fileUrl:'https://example.com/track.mp3',autoplay:false}));
+const popup=page.getByRole('complementary',{name:'Popup audio player'});
+await popup.waitFor();
+const popupBox=await popup.boundingBox();assert(popupBox.x<=24 && popupBox.y<=24,JSON.stringify(popupBox));
+await popup.getByRole('button',{name:'Minimise player',exact:true}).click();
+assert.equal(await popup.locator('.ap').isVisible(),false);
+await popup.getByRole('button',{name:'Open music player',exact:true}).click();
+assert(await popup.locator('.ap').isVisible());
+await page.screenshot({path:'.tmp/popup-audio.png',fullPage:false});
 await page.evaluate(()=>{window.referenceRoot.unmount();document.getElementById('reference-capability-test').remove();});
 assert.deepEqual(errors,[],'Reference capability runtime errors');
 const fuzzyVisible=await page.evaluate(async()=>{
@@ -397,7 +411,7 @@ const fuzzyVisible=await page.evaluate(async()=>{
  const canvas=host.querySelector('canvas');const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
  const visible=pixels.some(value=>value>0);effect.destroy();host.remove();return visible;
 });assert(fuzzyVisible,'Fuzzy effect renders an empty canvas');
-console.log('PASS preview galleries, real layouts, removed width, click feedback, glyph glitter, video and custom sections persisted');
+console.log('PASS preview galleries, real layouts, removed width, click feedback, outside sparkles, video and custom sections persisted');
 await page.setViewportSize({width:390,height:900});
 await page.evaluate(()=>location.hash='#/dashboard/effects');
 await page.getByRole('navigation',{name:'Effect categories'}).waitFor();

@@ -39,9 +39,9 @@ export function HomePage() {
       target: () => go("account-profile", undefined, "background"),
     },
     {
-      label: "Connect Discord account",
-      done: Boolean(user.discordLinked || user.discordId || widgets.widgets.some((item) => item.platform === "discord" && item.content.trim())),
-      target: () => go("customize-profile", "integrations", "discord"),
+      label: "Add Discord widget",
+      done: widgets.widgets.some((item) => item.platform === "discord" && item.content.trim()),
+      target: () => go("widgets"),
     },
     {
       label: "Add socials",
