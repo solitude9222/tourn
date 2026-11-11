@@ -1971,7 +1971,6 @@
 
 [id^="dash-section-"] { scroll-margin-top: 24px; }
 
-.tw-music-hidden { display: none !important; }
 .tw-music-tabs { margin-bottom: 20px; }
 .tw-audio-live-preview { max-width: 520px; margin: 0 0 24px; }
 .tw-presence-status { padding: 14px; margin: 16px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; line-height: 1.7; color: var(--sub); }

@@ -6,7 +6,7 @@
    --------------------------------------------------------------------------- */
 
 import { useRef, useState } from "react";
-import { audioFileToDataUrl } from "../../lib/audioUpload";
+import { uploadAudioFile } from "../../lib/audioUpload";
 import { AudioPlayer } from "../../components/AudioPlayer";
 import { imageToDataUrl } from "../files";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
@@ -76,7 +76,7 @@ function AudioSettingsCard() {
   const lyricsInput = useRef<HTMLInputElement>(null);
   const coverInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [musicTab, setMusicTab] = useState("track");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const updateAudio = (patch: Partial<typeof audio>) =>
     setAbout((current) => ({
@@ -91,7 +91,7 @@ function AudioSettingsCard() {
     if (!file) return;
     setUploading(true);
     try {
-      const url = await audioFileToDataUrl(file);
+      const url = await uploadAudioFile(file, setUploadProgress);
       updateAudio({
         fileUrl: url,
         style: audio.style === "none" ? "compact" : audio.style,
@@ -137,12 +137,9 @@ function AudioSettingsCard() {
         subtitle="Upload a track, choose a player and preview it here."
       />
 
-      <div className="tw-tabs tw-music-tabs" role="tablist" aria-label="Music settings">
-        {[["track", "Track"], ["appearance", "Player"], ["lyrics", "Lyrics"]].map(([id, label]) => <button key={id} type="button" className={`tw-tab${musicTab === id ? " is-active" : ""}`} role="tab" aria-selected={musicTab === id} onClick={() => setMusicTab(id)}>{label}</button>)}
-      </div>
       {audio.fileUrl && audio.style !== "none" ? <div className="tw-audio-live-preview"><AudioPlayer settings={{ ...audio, autoplay: false }} /></div> : <p className="tw-foot-note">Add an audio file to preview your player.</p>}
       <div className="tw-form-grid">
-        <Field label="Player style" className={musicTab !== "appearance" ? "tw-music-hidden" : ""} hint="How the player looks on your profile.">
+        <Field label="Player style" hint="How the player looks on your profile.">
           <Select
             value={audio.style}
             options={AUDIO_STYLES.map((entry) => ({ value: entry.id, label: entry.name }))}
@@ -150,14 +147,14 @@ function AudioSettingsCard() {
           />
         </Field>
 
-        <Field label="Audio file" className={musicTab !== "track" ? "tw-music-hidden" : ""} hint="MP3, WAV, OGG or M4A. Up to 4 MB.">
+        <Field label="Audio file" hint="MP3, WAV, OGG, M4A and other audio formats.">
           <div className="tw-row">
             <Button
               icon="upload"
               disabled={uploading}
               onClick={() => audioInput.current?.click()}
             >
-              {uploading ? "Uploading…" : audio.fileUrl ? "Replace audio" : "Upload audio"}
+              {uploading ? `Uploading ${uploadProgress}%` : audio.fileUrl ? "Replace audio" : "Upload audio"}
             </Button>
             {audio.fileUrl ? (
               <Button
@@ -171,7 +168,7 @@ function AudioSettingsCard() {
           </div>
         </Field>
 
-        <Field label="Cover art" className={musicTab !== "appearance" ? "tw-music-hidden" : ""} hint="Square image shown on the player.">
+        <Field label="Cover art" hint="Square image shown on the player.">
           <div className="tw-row">
             {audio.coverUrl ? (
               <img className="tw-audio-cover" src={audio.coverUrl} alt="" />
@@ -187,10 +184,10 @@ function AudioSettingsCard() {
           </div>
         </Field>
 
-        {musicTab === "appearance" ? <ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} /> : null}
-        {musicTab === "track" ? <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div> : null}
-        <Field label="Hosted audio URL" className={musicTab !== "track" ? "tw-music-hidden" : ""} hint="Use a direct audio URL instead of an upload for larger tracks."><TextInput value={audio.fileUrl.startsWith("data:") ? "" : audio.fileUrl} placeholder="https://.../track.mp3" onChange={(event) => updateAudio({ fileUrl: event.target.value, style: audio.style === "none" ? "compact" : audio.style })} /></Field>
-        <Field label="Track title" className={musicTab !== "track" ? "tw-music-hidden" : ""}>
+        <ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
+        <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div>
+        <Field label="Hosted audio URL" hint="Or use a direct link to an audio file."><TextInput value={audio.fileUrl.startsWith("data:") ? "" : audio.fileUrl} placeholder="https://.../track.mp3" onChange={(event) => updateAudio({ fileUrl: event.target.value, style: audio.style === "none" ? "compact" : audio.style })} /></Field>
+        <Field label="Track title">
           <TextInput
             value={audio.title}
             maxLength={80}
@@ -199,7 +196,7 @@ function AudioSettingsCard() {
           />
         </Field>
 
-        <Field label="Artist" className={musicTab !== "track" ? "tw-music-hidden" : ""}>
+        <Field label="Artist">
           <TextInput
             value={audio.artist}
             maxLength={80}
@@ -210,7 +207,7 @@ function AudioSettingsCard() {
 
         <Field
           label="Lyrics file"
-          className={`tw-span-2${musicTab !== "lyrics" ? " tw-music-hidden" : ""}`}
+          className="tw-span-2"
           hint="Upload a .lrc file with [mm:ss.xx] timestamps for synced lyrics, or a .txt file for plain lines."
         >
           <div className="tw-row">
@@ -231,7 +228,7 @@ function AudioSettingsCard() {
 
         <Field
           label="Lyrics"
-          className={`tw-span-2${musicTab !== "lyrics" ? " tw-music-hidden" : ""}`}
+          className="tw-span-2"
           hint={`${audio.lyrics.length} / 40000`}
         >
           <Textarea
@@ -244,7 +241,7 @@ function AudioSettingsCard() {
         </Field>
       </div>
 
-      <div className={`tw-inline-toggle${musicTab !== "lyrics" ? " tw-music-hidden" : ""}`} style={{ marginTop: 14 }}>
+      <div className="tw-inline-toggle" style={{ marginTop: 14 }}>
         <span>
           <b>Auto-fetch lyrics</b>
           <small>Used when no lyrics text or .lrc file is set.</small>

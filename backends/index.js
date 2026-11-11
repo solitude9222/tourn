@@ -19,6 +19,7 @@
    --------------------------------------------------------------------------- */
 
 import "dotenv/config";
+import { AUDIO_SCHEMA, registerAudioRoutes } from "./audio.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -200,6 +201,7 @@ create table if not exists invite_codes (
 
 async function initDb() {
   await pool.query(SCHEMA);
+  await pool.query(AUDIO_SCHEMA);
   // Databases created before admin-granted badges existed.
   await pool.query(
     "alter table users add column if not exists badges jsonb not null default '[]'::jsonb",
@@ -674,6 +676,8 @@ app.use(["/api/auth", "/api/billing"], (_req, res, next) => {
    cache keeps repeat visits off the database without making saves look stale. */
 const profilePageCache = new Map();
 const PROFILE_PAGE_TTL = 20_000;
+
+registerAudioRoutes(app, pool, requireAuth);
 
 app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req, res) => {
   try {

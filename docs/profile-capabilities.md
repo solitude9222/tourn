@@ -27,5 +27,6 @@ dedicated finish catalogue rather than duplicating particle backgrounds. Public 
 the same effect layers. Exact visual matching still requires the original media,
 font files, icon artwork and settings, supplied by the profile owner.
 
-For large video and audio files, use direct hosted media URLs. Short embedded
-uploads share the existing profile document size limit.
+Audio uploads use separate chunked storage and have no application-level size or
+duration limit. Hosted audio URLs are also supported. Large videos can use direct
+hosted media URLs; embedded video uploads share the profile document size limit.

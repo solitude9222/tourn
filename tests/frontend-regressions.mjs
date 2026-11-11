@@ -11,10 +11,16 @@ const page = await context.newPage();
 await page.addInitScript(() => { window.qaLoadingFallback = false; new MutationObserver(() => { if (document.querySelector(".route-loading")) window.qaLoadingFallback = true; }).observe(document, {childList:true,subtree:true}); });
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const account={id:'qa-user',username:'reviewer',email:null,avatarUrl:null,joinedAt:'2026-01-01',premium:true};
+let audioUploadBytes=0, audioUploadExpected=0, failAudioUpload=false;
 let document=null; const writes=[]; let failWrites=false; let failReads=false; let readDelay=0; let failAnalytics=false; const analyticsRequests=[]; let failViewWrite=false; let viewWrites=0; let presenceMonitored=false;
 await context.route('**/*',async route=>{
  const url=new URL(route.request().url());
  if(url.pathname.startsWith('/api/')) {
+  if(url.pathname==='/api/media/audio' && route.request().method()==='POST') {audioUploadBytes=0;audioUploadExpected=route.request().postDataJSON().bytes;return route.fulfill({status:201,json:{id:'00000000-0000-4000-8000-000000000099',chunkBytes:1048576}});}
+  if(url.pathname.includes('/api/media/audio/') && url.pathname.includes('/chunks/')) {if(failAudioUpload)return route.fulfill({status:503,json:{error:'Audio upload interrupted'}});audioUploadBytes+=route.request().postDataBuffer().length;return route.fulfill({json:{received:audioUploadBytes}});}
+  if(url.pathname.endsWith('/complete') && url.pathname.startsWith('/api/media/audio/'))return route.fulfill({json:{url:'/api/media/audio/00000000-0000-4000-8000-000000000099'}});
+  if(url.pathname.startsWith('/api/media/audio/'))return route.fulfill({contentType:'audio/wav',body:Buffer.alloc(44)});
+
   if(url.pathname.startsWith('/api/discord/'))return route.fulfill({json:{user:{id:url.pathname.split('/').pop(),username:'presence-user',global_name:'Presence Test',avatar:'avatar-hash',public_flags:64},avatar_url:'http://127.0.0.1:5180/favicon-rounded.png',banner_url:'http://127.0.0.1:5180/favicon-rounded.png'}});
   if(url.pathname==='/api/analytics') {
    analyticsRequests.push(url.searchParams.get('period'));
@@ -87,20 +93,33 @@ assert(document.widgets.widgets.some(w=>w.platform==='discord'),'Discord widget 
 assert(document.widgets.widgets.find(w=>w.platform==='discord').options.profile_badges.includes('orbs'),'Additional widget badge was not saved');
 presenceMonitored=true;
 await page.evaluate(()=>location.hash='#/dashboard/customize-profile/integrations');
-await page.getByRole('tab',{name:'Player',exact:true}).waitFor();
+await page.getByText('Player accent',{exact:true}).waitFor();
+assert.equal(await page.getByRole('tablist',{name:'Music settings'}).count(),0,'Audio subtabs remain');
 assert.equal(await page.getByText('Discord Presence',{exact:true}).count(),0,'Duplicate Discord presence editor remains');
-await page.getByRole('tab',{name:'Player',exact:true}).click();
 await page.getByText('Player accent',{exact:true}).waitFor();
 const playerStyle=page.locator('.tw-field').filter({has:page.getByText('Player style',{exact:true})});
 await playerStyle.locator('.tw-select-btn').click();await page.getByRole('option',{name:'Popup',exact:true}).click();
 await page.waitForTimeout(900);assert.equal(document.about.assets.audio.style,'popup','Popup style was not saved');
-await page.reload();await page.getByRole('tab',{name:'Player',exact:true}).click();
-await playerStyle.getByText('Popup',{exact:true}).waitFor();
+await page.reload();await playerStyle.getByText('Popup',{exact:true}).waitFor();
 
-assert.equal(await page.getByText('Track title',{exact:true}).isVisible(),false,'Music track fields bleed into Player tab');
-await page.getByRole('tab',{name:'Lyrics',exact:true}).click();
+assert(await page.getByText('Track title',{exact:true}).isVisible(),'Audio settings are not on one page');
 await page.getByText('Auto-fetch lyrics',{exact:true}).first().waitFor();
-await page.getByRole('tab',{name:'Track',exact:true}).click();
+const largeAudio=Buffer.alloc(6*1024*1024+44);
+await page.locator('input[type=file][accept="audio/*"]').setInputFiles({name:'full-track.wav',mimeType:'audio/wav',buffer:largeAudio});
+await page.getByText('Track added. Changes save automatically.',{exact:true}).waitFor();
+await page.waitForTimeout(1100);
+assert.equal(audioUploadExpected,largeAudio.length);assert.equal(audioUploadBytes,largeAudio.length);
+assert(document.about.assets.audio.fileUrl.endsWith('/api/media/audio/00000000-0000-4000-8000-000000000099'));
+const savedAudioUrl=document.about.assets.audio.fileUrl;
+assert(JSON.stringify(document).length<100000,'Audio bytes were embedded in the profile document');
+await page.reload();await page.getByText('Player accent',{exact:true}).waitFor();
+assert.equal(await page.locator('.tw-field').filter({has:page.getByText('Hosted audio URL',{exact:true})}).locator('input').inputValue(),savedAudioUrl);
+failAudioUpload=true;
+await page.locator('input[type=file][accept="audio/*"]').setInputFiles({name:'replacement.wav',mimeType:'audio/wav',buffer:Buffer.alloc(100)});
+await page.getByText('Audio upload interrupted',{exact:true}).waitFor();
+assert.equal(document.about.assets.audio.fileUrl,savedAudioUrl,'Failed upload replaced the published track');
+failAudioUpload=false;
+
 await page.evaluate(()=>location.hash='#/dashboard/customize-profile/profile');
 await page.getByText('Profile appearance',{exact:true}).waitFor();
 assert.equal(await page.getByText('Enter Text',{exact:true}).count(),0,'Entry settings are duplicated in Profile');
@@ -320,6 +339,11 @@ await chooseEffect('cursor','Custom image');
 await page.locator('.tw-media-upload').waitFor();
 await chooseEffect('cursor','Ring');
 const clickField=page.locator('.tw-field').filter({has:page.getByText('Click sound',{exact:true})});
+await clickField.locator('.tw-select-btn').click();await page.getByRole('option',{name:'custom',exact:true}).click();
+const clickCompleted=page.waitForResponse(response=>response.url().includes('/api/media/audio/') && response.url().endsWith('/complete'));
+await page.getByLabel('Custom click audio',{exact:true}).setInputFiles({name:'click.wav',mimeType:'audio/wav',buffer:Buffer.alloc(2*1024*1024)});
+await clickCompleted;await page.waitForTimeout(1100);
+assert(document.about.assets.interactions.fileUrl.endsWith('/api/media/audio/00000000-0000-4000-8000-000000000099'),'Large click sound did not persist');
 await clickField.locator('.tw-select-btn').click();await page.getByRole('option',{name:'tick',exact:true}).click();
 await page.getByRole('switch',{name:'Click ripple',exact:true}).click();
 await page.waitForTimeout(1200);

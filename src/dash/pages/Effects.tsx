@@ -1,3 +1,4 @@
+import { uploadAudioFile } from "../../lib/audioUpload";
 import { useState } from "react";
 import { BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type BackgroundEffectSettings, type OverlayEffectSettings, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
 import { EffectBrowser, type EffectKind } from "../EffectBrowser";
@@ -20,6 +21,8 @@ export function EffectsPage() {
   const { about, setAbout, notify } = useDash();
   const assets = about.assets, effects = assets.effects;
   const [browser, setBrowser] = useState<EffectKind>("background");
+  const [clickUploading, setClickUploading] = useState(false);
+  const [clickProgress, setClickProgress] = useState(0);
   const [target, setTarget] = useState<TextEffectTarget>("name");
   const text = effects.text[target];
   const setBackground = (patch: Partial<BackgroundEffectSettings>) => setAbout((current) => ({ ...current, assets: { ...current.assets, effects: { ...current.assets.effects, background: { ...current.assets.effects.background, ...patch } } } }));
@@ -66,7 +69,7 @@ export function EffectsPage() {
     </Card> : null}
     {browser === "cursor" ? <Card><CardHead icon="music" title="Click sounds and feedback" subtitle="Optional sounds play only after a visitor clicks. Dashboard previews stay silent." />
       <div className="tw-form-grid"><Field label="Click sound"><Select value={assets.interactions.sound} options={["none", "soft", "tick", "pop", "custom"].map((value) => ({ value, label: value === "none" ? "Off" : value }))} onChange={(sound) => setInteraction({ sound: sound as typeof assets.interactions.sound })} /></Field><Slider label="Click volume" value={Math.round(assets.interactions.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => setInteraction({ volume: volume / 100 })} /><div className="tw-inline-toggle"><b>Click ripple</b><Toggle label="Click ripple" checked={assets.interactions.ripple} onChange={(ripple) => setInteraction({ ripple })} /></div><ColorField label="Ripple colour" value={assets.interactions.color} onChange={(color) => setInteraction({ color })} />
-      {assets.interactions.sound === "custom" ? <Field label="Custom click audio" hint="A short audio clip, up to 500 KB."><FileUpload aria-label="Custom click audio" accept="audio/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("audio/") || file.size > 500_000) { notify("Click sound", "Choose an audio clip under 500 KB."); return; } setInteraction({ fileUrl: await fileToDataUrl(file) }); }} /></Field> : null}
+      {assets.interactions.sound === "custom" ? <Field label="Custom click audio" hint={clickUploading ? `Uploading ${clickProgress}%` : "Choose an audio file for your click sound."}><FileUpload disabled={clickUploading} aria-label="Custom click audio" accept="audio/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; setClickUploading(true); try { setInteraction({ fileUrl: await uploadAudioFile(file, setClickProgress) }); } catch (error) { notify("Click sound", error instanceof Error ? error.message : "That audio file could not be uploaded."); } finally { setClickUploading(false); } }} /></Field> : null}
       <div className="tw-inline-toggle"><b>Sound on every page click</b><Toggle label="Sound on every page click" checked={assets.interactions.allClicks} onChange={(allClicks) => setInteraction({ allClicks })} /></div></div><Button onClick={() => playInteractionSound(assets.interactions)}>Test click sound</Button>
     </Card> : null}
   </div>;
