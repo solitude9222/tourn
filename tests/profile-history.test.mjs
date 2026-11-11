@@ -32,5 +32,9 @@ test('profile updates archive raw documents transactionally; conflicts cannot er
  await db.exec('drop table profile_history');
  result=await request('PUT /api/profile',{data:{links:{links:[{id:'new',url:'https://example.org'}]}},baseRevision:4,sections:['links']});assert.equal(result.status,200);assert.equal(result.value.revision,5);
  large=await db.query('select data from profiles where user_id=$1',[id]);assert.equal(large.rows[0].data.links.links[0].url,'https://example.org');assert.equal(large.rows[0].data.about.bio.length,largeBio.length);
+ // A full-document write without a sections list must still preserve the
+ // sections the client omitted. This is the fallback older clients use.
+ result=await request('PUT /api/profile',{data:{about:{bio:'replacement'}},baseRevision:5});assert.equal(result.status,200);assert.equal(result.value.revision,6);
+ const full=await db.query('select data from profiles where user_id=$1',[id]);assert.equal(full.rows[0].data.about.bio,'replacement');assert.equal(full.rows[0].data.links.links[0].url,'https://example.org');
  await db.close();
 });

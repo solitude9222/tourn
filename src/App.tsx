@@ -490,6 +490,10 @@ function Site() {
   const [profileLoadFailed, setProfileLoadFailed] = useState(false);
   const lastSaved = useRef<string>("");
   const revision = useRef<number | null>(null);
+  // Hydration writes the published document into React state. Only a real
+  // dashboard edit may publish it back: an incomplete/stale local store must
+  // never overwrite the live profile just because the page loaded.
+  const userEdited = useRef(false);
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const [siteStats, setSiteStats] = useState<SiteStats>({ users: null, views: null });
 
@@ -582,6 +586,7 @@ function Site() {
     setProfileLoadFailed(false);
     lastSaved.current = "";
     revision.current = null;
+    userEdited.current = false;
     setAbout(user ? loadAbout(user.id) : EMPTY_ABOUT);
     setWidgets(user ? loadWidgetStore(user.id) : EMPTY_WIDGET_STORE);
     setBadges(user ? loadBadgeStore(user.id) : EMPTY_BADGE_STORE);
@@ -599,6 +604,7 @@ function Site() {
       hydratedFor.current = null;
       lastSaved.current = "";
       revision.current = null;
+      userEdited.current = false;
       setEarned(null);
       return;
     }
@@ -624,7 +630,17 @@ function Site() {
         pending &&
         (result.data.revision == null || pending.baseRevision === result.data.revision);
       if (pending && pendingIsCurrent) {
-        const draft = pending.document;
+        // A current draft still has to be merged against its base: a draft
+        // written before every store finished loading can contain an empty
+        // section that was never actually deleted by the user.
+        const draft = pending.baseDocument && result.data.profile
+          ? mergeProfileDraft(result.data.profile, pending.document, pending.baseDocument)
+          : pending.document;
+        // An unsaved draft is an edit that still has to reach the server.
+        userEdited.current = true;
+        if (pending.baseDocument && result.data.profile) {
+          savePendingDocument(user.id, draft, result.data.revision ?? null, result.data.profile);
+        }
         setAbout(draft.about);
         setWidgets(draft.widgets);
         setBadges(draft.badges);
@@ -642,12 +658,14 @@ function Site() {
         const rebased=mergeProfileDraft(result.data.profile,pending.document,pending.baseDocument);
         lastSaved.current=profileFingerprint(result.data.profile);revision.current=result.data.revision ?? null;
         savePendingDocument(user.id,rebased,revision.current,result.data.profile);
+        userEdited.current=true;
         setAbout(rebased.about);setWidgets(rebased.widgets);setBadges(rebased.badges);setProfileLinks(rebased.links);
         hydratedFor.current=user.id;setHydratedId(user.id);return;
       }
       if (pending) clearPendingDocument(user.id);
       if (result.data.profile) {
         const document = result.data.profile;
+        userEdited.current = false;
         // Empty arrays are valid saved deletions. Only a pending draft may
         // override the published document.
         const merged = document;
@@ -663,6 +681,7 @@ function Site() {
       } else {
         // First publish is handled by the acknowledged retrying save below.
         lastSaved.current = "";
+        userEdited.current = false;
       }
       hydratedFor.current = user.id;
       setHydratedId(user.id);
@@ -679,6 +698,10 @@ function Site() {
   const retryRef = useRef(0);
   useEffect(() => {
     if (!user || hydratedFor.current !== user.id) return;
+    // Loading a profile is not editing it. Until an edit actually happens,
+    // keep the server's published document authoritative. This also keeps a
+    // new device with empty local stores from erasing links and widgets.
+    if (!userEdited.current && lastSaved.current) return;
     let cancelled = false;
     let retryTimer = 0;
     let conflictRetries = 0;
@@ -832,6 +855,7 @@ function Site() {
   const handleSaveAbout = useCallback(
     (next: About) => {
       if (!user) return;
+      userEdited.current = true;
       setAbout(next);
       saveAbout(user.id, next);
     },
@@ -841,6 +865,7 @@ function Site() {
   const handleSaveWidgets = useCallback(
     (next: WidgetStore) => {
       if (!user) return;
+      userEdited.current = true;
       setWidgets(next);
       saveWidgetStore(user.id, next);
     },
@@ -850,6 +875,7 @@ function Site() {
   const handleSaveBadges = useCallback(
     (next: BadgeStore) => {
       if (!user) return;
+      userEdited.current = true;
       setBadges(next);
       saveBadgeStore(user.id, next);
     },
@@ -859,6 +885,7 @@ function Site() {
   const handleSaveLinks = useCallback(
     (next: LinkStore) => {
       if (!user) return;
+      userEdited.current = true;
       setProfileLinks(next);
       saveLinkStore(user.id, next);
     },
@@ -867,6 +894,7 @@ function Site() {
 
   const handleDraftChange=useCallback((next:ProfileDocument)=>{
     if(!user || hydratedFor.current!==user.id)return;
+    userEdited.current=true;
     savePendingDocument(user.id,next,revision.current,lastSaved.current ? JSON.parse(lastSaved.current) : null);
     setAbout(next.about);setWidgets(next.widgets);setBadges(next.badges);setProfileLinks(next.links);
     saveAbout(user.id,next.about);saveWidgetStore(user.id,next.widgets);saveBadgeStore(user.id,next.badges);saveLinkStore(user.id,next.links);
@@ -876,6 +904,7 @@ function Site() {
   // republishes the public page immediately.
   const handleSaveAll = useCallback(() => {
     if (!user) return;
+    userEdited.current = true;
     saveAbout(user.id, about);
     saveWidgetStore(user.id, widgets);
     saveBadgeStore(user.id, badges);

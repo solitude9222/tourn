@@ -740,16 +740,21 @@ app.put("/api/profile", express.json({ limit: PROFILE_JSON_LIMIT }), requireAuth
 
     // A normal edit sends only the sections that changed. Merge them into the
     // current document so a widget save can never erase links or profile art.
+    const currentData =
+      current?.data && typeof current.data === "object" && !Array.isArray(current.data)
+        ? current.data
+        : null;
     let merged = data;
     if (requestedSections) {
-      const currentData =
-        current?.data && typeof current.data === "object" && !Array.isArray(current.data)
-          ? current.data
-          : {};
-      merged = { ...currentData };
+      merged = { ...(currentData ?? {}) };
       for (const section of requestedSections) {
         if (Object.hasOwn(data, section)) merged[section] = data[section];
       }
+    } else if (currentData) {
+      // Legacy/full-document clients used to replace the whole row. Merge
+      // instead: every field they did not send stays exactly as published, so
+      // a partial payload can never erase links, widgets or profile art.
+      merged = { ...currentData, ...data };
     }
 
     const serialized = JSON.stringify(merged);
