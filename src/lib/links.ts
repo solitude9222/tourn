@@ -8,7 +8,7 @@
    --------------------------------------------------------------------------- */
 import { getPlatform } from "./linkPlatforms";
 
-/** Tooltip skins — used by the avatar/badge tooltips, never by links. */
+/** Tooltip skins — one profile-wide skin for names, badges and link icons. */
 export type TooltipStyle = "default" | "glass" | "accent" | "dark" | "minimal";
 
 export type LinkInstance = {

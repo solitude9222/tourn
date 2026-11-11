@@ -169,6 +169,23 @@ export function BadgesPage() {
             <Slider label="Badge size" value={style.size} min={14} max={32} suffix="px" onChange={(size) => updateStyle({ size })} />
           </div>
         </div>
+
+        <div className="tw-badge-row-studio">
+          <div className="tw-badge-row-copy">
+            <span className="tw-subhead">Badge row</span>
+            <small>Style the little shelf that holds every badge.</small>
+          </div>
+          <div className="tw-form-grid">
+            <ColorField label="Shelf colour" value={style.rowBackground} onChange={(rowBackground) => updateStyle({ rowBackground })} />
+            <Slider label="Shelf opacity" value={Math.round(style.rowOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowOpacity) => updateStyle({ rowOpacity: rowOpacity / 100 })} />
+            <ColorField label="Border colour" value={style.rowBorderColor} onChange={(rowBorderColor) => updateStyle({ rowBorderColor })} />
+            <Slider label="Border opacity" value={Math.round(style.rowBorderOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowBorderOpacity) => updateStyle({ rowBorderOpacity: rowBorderOpacity / 100 })} />
+            <Slider label="Corner radius" value={style.rowRadius} min={0} max={999} suffix="px" onChange={(rowRadius) => updateStyle({ rowRadius })} />
+            <Slider label="Backdrop blur" value={style.rowBlur} min={0} max={30} suffix="px" onChange={(rowBlur) => updateStyle({ rowBlur })} />
+            <Slider label="Shelf padding" value={style.rowPadding} min={0} max={18} suffix="px" onChange={(rowPadding) => updateStyle({ rowPadding })} />
+            <Slider label="Badge gap" value={style.rowGap} min={0} max={18} suffix="px" onChange={(rowGap) => updateStyle({ rowGap })} />
+          </div>
+        </div>
       </Card>
 
       <Card>

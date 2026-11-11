@@ -148,19 +148,26 @@ export function textEffectStyle(settings: TextEffectSettings): CSSProperties {
     "--fx-amp": `${amount}px`,
     "--fx-band": `${100 + amount * 2}%`,
     "--fx-dim": `${1 - settings.params.amount / 100}`,
+    "--fx-line-gap": `${amount}px`,
     fontFamily: settings.font ? `"${settings.font.replace(/["\\]/g, "")}", sans-serif` : undefined,
   } as CSSProperties;
 }
 
 export function textEffectClass(settings: TextEffectSettings): string {
-  if (settings.effect === "none") return "";
+  const active = [settings.effect, ...(settings.effects ?? [])].filter(
+    (id, index, list) => id !== "none" && list.indexOf(id) === index,
+  );
+  if (!active.length) return "";
   const flagOff = settings.params.flag === false;
-  const flagClass =
-    settings.effect === "typewriter" && flagOff ? " fx-no-cursor"
-    : settings.effect === "glow" && flagOff ? " fx-no-pulse"
-    : settings.effect === "neon" && flagOff ? " fx-no-flicker"
-    : "";
-  return `fx-text-wrap fx-text-wrap--${settings.effect}${flagClass}`;
+  const flagClasses = active
+    .map((id) =>
+      id === "typewriter" && flagOff ? "fx-no-cursor"
+      : id === "glow" && flagOff ? "fx-no-pulse"
+      : id === "neon" && flagOff ? "fx-no-flicker"
+      : "",
+    )
+    .filter(Boolean);
+  return ["fx-text-wrap", ...active.map((id) => `fx-text-wrap--${id}`), ...flagClasses].join(" ");
 }
 
 function Sparkles({ settings }: { settings: TextEffectSettings }) {
@@ -196,10 +203,13 @@ export function EffectText({
 }) {
   useEffect(() => { if (settings.font) loadGoogleFont(settings.font); }, [settings.font]);
   const style = textEffectStyle(settings);
-  const classes = `fx-text ${className}${textEffectClass(settings) ? ` ${textEffectClass(settings)}` : ""}`;
+  const effectClasses = textEffectClass(settings);
+  const classes = `fx-text ${className}${effectClasses ? ` ${effectClasses}` : ""}`;
+  const hasSparkle = (settings.effects ?? []).includes("sparkle") || settings.effect === "sparkle";
+  const sparkleNode = hasSparkle ? <Sparkles settings={settings} /> : null;
 
   if (settings.effect === "none") {
-    return <span className={classes}>{text}</span>;
+    return <span className={classes}>{text}{sparkleNode}</span>;
   }
 
   if (settings.effect === "wave" || settings.effect === "bounce") {
@@ -215,6 +225,7 @@ export function EffectText({
             {character === " " ? "\u00a0" : character}
           </span>
         ))}
+        {sparkleNode}
       </span>
     );
   }
@@ -260,12 +271,13 @@ export function EffectText({
   return (
     <span className={`${classes} fx-text--${settings.effect}`} style={style}>
       {text}
+      {sparkleNode}
     </span>
   );
 }
 
 export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
-  if (settings.effect !== "sparkle") return null;
+  if (settings.effect !== "sparkle" && !(settings.effects ?? []).includes("sparkle")) return null;
   return <Sparkles settings={settings} />;
 }
 

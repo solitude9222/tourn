@@ -621,7 +621,9 @@
 .profile-preview {
   position: relative;
   width: min(100%, var(--pv-width));
-  overflow: hidden;
+  /* Outside-card pins need to escape the rounded card. The decorative layers
+     are clipped individually below so banners and effects still respect it. */
+  overflow: visible;
   border: var(--pv-border-width) solid var(--pv-border-color);
   border-radius: var(--pv-radius);
   background: var(--pv-card);
@@ -1168,8 +1170,14 @@
 .badge-row {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: calc(var(--badge-row-gap, 6px) * var(--pv-scale, 1));
   align-items: center;
+  padding: calc(var(--badge-row-pad, 7px) * var(--pv-scale, 1));
+  border: 1px solid var(--badge-row-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--badge-row-radius, 999px);
+  background: var(--badge-row-bg, rgba(255, 255, 255, 0.07));
+  backdrop-filter: blur(var(--badge-row-blur, 6px));
+  -webkit-backdrop-filter: blur(var(--badge-row-blur, 6px));
 }
 
 .badge-chip {
@@ -3201,42 +3209,48 @@
 
 .tt--default {
   background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #eef1f4;
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.75);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.85);
 }
 
 .tt--glass {
-  background: rgba(20, 22, 28, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #e8edf1;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 28px -8px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(145deg, rgba(55, 61, 76, 0.82), rgba(20, 23, 31, 0.72));
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #f4f8fb;
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  box-shadow:
+    0 12px 34px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .tt--accent {
-  background: linear-gradient(135deg, rgba(143, 216, 255, 0.15), rgba(180, 191, 250, 0.12));
-  border: 1px solid rgba(143, 216, 255, 0.25);
-  color: #dff5ff;
-  box-shadow: 0 6px 20px -6px rgba(143, 216, 255, 0.2);
+  background: linear-gradient(135deg, #8fd8ff, #b4bffa);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #0b1018;
+  box-shadow:
+    0 10px 30px -10px rgba(143, 216, 255, 0.75),
+    0 0 0 1px rgba(180, 191, 250, 0.25);
 }
 
 .tt--dark {
-  background: #0a0b0d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #c8d0d6;
-  box-shadow: 0 10px 30px -10px #000;
+  background: #08090c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d7dee5;
+  box-shadow:
+    0 10px 30px -10px #000,
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .tt--minimal {
   background: transparent;
   border: none;
-  color: #b6bec6;
+  color: #d7dee5;
   font-size: 12px;
   font-weight: 600;
   padding: 2px 6px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
 @keyframes ttSlideUp {
@@ -3730,20 +3744,19 @@
   flex-wrap: wrap;
   justify-content: inherit;
   width: fit-content;
-  height: calc(34px * var(--pv-scale, 1));
+  height: auto;
   margin: calc(14px * var(--pv-scale, 1)) auto 0;
-  padding: 0 calc(10px * var(--pv-scale, 1));
-  gap: calc(10px * var(--pv-scale, 1));
-  border: 1px solid var(--pv-pill-border, rgba(255, 255, 255, 0.12));
-  border-radius: var(--pv-pill-radius, 999px);
-  background: var(--pv-pill-bg, rgba(255, 255, 255, 0.07));
-  backdrop-filter: blur(var(--pv-pill-blur, 6px));
+  padding: 0;
+  gap: 0;
+  border: 0;
+  background: none;
+  backdrop-filter: none;
 }
 
 .pv-badge-pill {
   display: inline-flex;
   align-items: center;
-  gap: calc(10px * var(--pv-scale, 1));
+  gap: 0;
 }
 
 .profile-preview[data-name="left"] .pv-badges,
@@ -4911,6 +4924,10 @@
 .fx-text--outline {color:transparent;-webkit-text-stroke:1px var(--fx-color-a);text-shadow:0 0 8px color-mix(in srgb,var(--fx-color-a) 35%,transparent);}
 .fx-text--metallic {color:transparent;background:linear-gradient(110deg,var(--fx-color-a) 30%,#fff 48%,var(--fx-color-b) 52%,var(--fx-color-a) 70%);background-size:240% 100%;background-clip:text;animation:fxAurora var(--fx-speed) linear infinite;}
 @keyframes fxAurora {to{background-position:240% 0;}}
+/* liner — animated hairlines sliced through the glyphs. It owns the fill so
+   it still reads when stacked with a glow/outline effect. */
+.fx-text-wrap--liner, .fx-text--liner {color:transparent;-webkit-text-fill-color:transparent;background-image:repeating-linear-gradient(115deg,transparent 0 calc(var(--fx-line-gap,7px) * .72),var(--fx-color-a) calc(var(--fx-line-gap,7px) * .72) calc(var(--fx-line-gap,7px) * .82),transparent calc(var(--fx-line-gap,7px) * .82) var(--fx-line-gap,7px));background-size:220% 100%;background-clip:text;-webkit-background-clip:text;animation:fxLinerShift calc(var(--fx-speed,3s) * .8) linear infinite;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--fx-color-a) 45%,transparent));}
+@keyframes fxLinerShift {to{background-position:220% 0;}}
 .fx-sparkles i {border-radius:0;clip-path:polygon(50% 0,60% 39%,100% 50%,60% 61%,50% 100%,40% 61%,0 50%,40% 39%);background:var(--fx-color-b,var(--fx-color-a));filter:drop-shadow(0 0 2px var(--fx-color-b,var(--fx-color-a)));}
 .entry-divider {background:linear-gradient(90deg,transparent,var(--entry-divider-color,#fff),transparent);border:0;}
 .lkr-slideshow {height:100dvh;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scroll-behavior:smooth;touch-action:pan-y;scrollbar-width:thin;}
@@ -4927,6 +4944,91 @@
 .lkr-page .lkr-flow--left {display:flex;flex-direction:column;max-width:720px;}
 .lkr-card-compact .lkr-primary>.profile-preview {width:min(480px,100%);}
 .lkr-page:has(.lkr-slideshow) {padding-block:0;}
+
+/* ── metadata pins: inside/outside card corners and inline identity slots ──
+   The card now has real corner placements. Outside pins escape the rounded
+   card because .profile-preview no longer clips; the decorative layers are
+   clipped individually instead. */
+.profile-preview > :not(.pv-body):not(.pv-pin) {
+  clip-path: inset(0 round var(--pv-radius));
+}
+
+.pv-pin {
+  position: absolute;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  max-width: calc(100% - 12px);
+}
+
+.pv-pin--inline {
+  position: static;
+  display: inline-flex;
+  max-width: 100%;
+  margin: 0;
+  flex: 0 1 auto;
+}
+
+.pv-pin .pv-location,
+.pv-pin .pv-foot-item,
+.pv-pin .pv-views {
+  margin: 0;
+  max-width: 100%;
+}
+
+.pv-pin--inside-top-left { top: calc(14px * var(--pv-scale, 1)); left: calc(16px * var(--pv-scale, 1)); }
+.pv-pin--inside-top-right { top: calc(14px * var(--pv-scale, 1)); right: calc(16px * var(--pv-scale, 1)); }
+.pv-pin--inside-bottom-left { bottom: calc(14px * var(--pv-scale, 1)); left: calc(16px * var(--pv-scale, 1)); }
+.pv-pin--inside-bottom-right { bottom: calc(14px * var(--pv-scale, 1)); right: calc(16px * var(--pv-scale, 1)); }
+
+.pv-pin--outside-top-left { top: calc(-15px * var(--pv-scale, 1)); left: calc(18px * var(--pv-scale, 1)); }
+.pv-pin--outside-top-right { top: calc(-15px * var(--pv-scale, 1)); right: calc(18px * var(--pv-scale, 1)); }
+.pv-pin--outside-bottom-left { bottom: calc(-15px * var(--pv-scale, 1)); left: calc(18px * var(--pv-scale, 1)); }
+.pv-pin--outside-bottom-right { bottom: calc(-15px * var(--pv-scale, 1)); right: calc(18px * var(--pv-scale, 1)); }
+.pv-pin--outside-above { top: calc(-16px * var(--pv-scale, 1)); left: 50%; transform: translateX(-50%); }
+.pv-pin--outside-below { bottom: calc(-16px * var(--pv-scale, 1)); left: 50%; transform: translateX(-50%); }
+.pv-pin--outside-left { top: 50%; left: calc(-16px * var(--pv-scale, 1)); transform: translateY(-50%); }
+.pv-pin--outside-right { top: 50%; right: calc(-16px * var(--pv-scale, 1)); transform: translateY(-50%); }
+
+.pv-id .pv-pin--inline,
+.pv-ident .pv-pin--inline,
+.pv-head-text > .pv-pin--inline,
+.pv-topline > .pv-pin--inline {
+  flex: none;
+}
+
+.pv-pin--inline .pv-location,
+.pv-pin--inline .pv-foot-item {
+  font-size: max(9px, calc(12px * var(--pv-scale, 1)));
+  padding: calc(5px * var(--pv-scale, 1)) calc(10px * var(--pv-scale, 1));
+}
+
+/* A genuine coloured halo behind link icons. It is separate from the glyph
+   so the glow colour never has to match the platform/brand colour. */
+.pv-link-icons.is-glow .pv-link-icon {
+  position: relative;
+}
+
+.pv-link-icons.is-glow .pv-link-icon::before {
+  content: "";
+  position: absolute;
+  inset: calc(-4px - var(--lnk-glow-strength, 0.45) * 8px);
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--lnk-glow, #b4bffa) 82%, transparent),
+    transparent 68%
+  );
+  opacity: calc(0.25 + var(--lnk-glow-strength, 0.45) * 0.75);
+  filter: blur(calc(2px + var(--lnk-glow-strength, 0.45) * 9px));
+  pointer-events: none;
+}
+
+.pv-link-icons.is-glow .pv-link-icon svg {
+  position: relative;
+  z-index: 1;
+}
 .lkr-page .lkr-flow--slideshow {gap:0;}
 
 /* The supplied transparent speckle texture sits outside the letters. */
@@ -4936,40 +5038,52 @@
 .fx-sparkles i {width:3px;height:3px;max-width:3px;max-height:3px;filter:drop-shadow(0 0 1px var(--fx-color-a));}
 @keyframes fxReferenceSparkle {0%{opacity:.15;transform:translateX(-1px)}50%{opacity:.8}100%{opacity:.3;transform:translateX(1px)}}
 
-/* Fixed widget-card sizing for the public two-up grid. */
+/* Fixed widget-card sizing for the public two-up grid. The inner padding is
+   zero because the card itself owns the spacing — stacking both made the
+   cards read much taller than the reference. */
+.lkr-page .lkr-widgets > .widget-card,
+.profile-preview .lkr-widgets > .widget-card {
+  min-height: 88px;
+  padding: 11px 12px;
+}
 .lkr-page .lkr-widgets > .widget-card .widget-card-inner,
 .profile-preview .lkr-widgets > .widget-card .widget-card-inner {
-  gap: 12px;
-  padding: 17px;
+  gap: 8px;
+  padding: 0;
 }
 .lkr-page .lkr-widgets > .widget-card .widget-card-avatar,
 .profile-preview .lkr-widgets > .widget-card .widget-card-avatar {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
 }
 .lkr-page .lkr-widgets > .widget-card .widget-card-name b,
 .profile-preview .lkr-widgets > .widget-card .widget-card-name b {
-  font-size: 16.5px;
+  font-size: 15px;
 }
 .lkr-page .lkr-widgets > .widget-card .widget-card-handle,
 .profile-preview .lkr-widgets > .widget-card .widget-card-handle {
-  font-size: 12.5px;
+  font-size: 11.5px;
 }
 .lkr-page .lkr-widgets > .widget-card .widget-card-chip,
 .profile-preview .lkr-widgets > .widget-card .widget-card-chip {
-  font-size: 10px;
-  padding: 3px 7px;
+  font-size: 9.5px;
+  padding: 2px 6px;
 }
 .lkr-page .lkr-widgets > .widget-card .widget-card-tag,
 .profile-preview .lkr-widgets > .widget-card .widget-card-tag {
-  height: 18px;
-  font-size: 8px;
+  height: 17px;
+  font-size: 7.5px;
 }
 @media (max-width: 480px) {
+  .lkr-page .lkr-widgets > .widget-card,
+  .profile-preview .lkr-widgets > .widget-card {
+    min-height: 82px;
+    padding: 10px;
+  }
   .lkr-page .lkr-widgets > .widget-card .widget-card-inner,
   .profile-preview .lkr-widgets > .widget-card .widget-card-inner {
-    gap: 10px;
-    padding: 13px;
+    gap: 8px;
+    padding: 0;
   }
   .lkr-page .lkr-widgets > .widget-card .widget-card-avatar,
   .profile-preview .lkr-widgets > .widget-card .widget-card-avatar {
@@ -4978,11 +5092,11 @@
   }
   .lkr-page .lkr-widgets > .widget-card .widget-card-name b,
   .profile-preview .lkr-widgets > .widget-card .widget-card-name b {
-    font-size: 15px;
+    font-size: 14px;
   }
   .lkr-page .lkr-widgets > .widget-card .widget-card-handle,
   .profile-preview .lkr-widgets > .widget-card .widget-card-handle {
-    font-size: 11.5px;
+    font-size: 11px;
   }
 }
 .pv-card-compact .widget-card {

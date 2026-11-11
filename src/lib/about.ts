@@ -18,12 +18,38 @@ export type BadgePosition = "default" | "above-name" | "top-right" | "bottom" | 
 /** Alignment shared by the display name and bio. */
 export type TextAlignPosition = "default" | "center" | "left" | "right";
 export type AvatarShape = "circle" | "rounded" | "square" | "hexagon";
+/** Every place a piece of card metadata can sit. The legacy values keep old
+ *  documents working; the inside/outside values give the card real corners. */
+export type MetadataPosition =
+  | "top"
+  | "top-right"
+  | "under-name"
+  | "footer"
+  | "side"
+  | "hidden"
+  | "outside-top-left"
+  | "outside-top-right"
+  | "outside-bottom-left"
+  | "outside-bottom-right"
+  | "outside-above"
+  | "outside-below"
+  | "outside-left"
+  | "outside-right"
+  | "inside-top-left"
+  | "inside-top-right"
+  | "inside-bottom-left"
+  | "inside-bottom-right"
+  | "next-to-name"
+  | "next-to-handle"
+  | "beside-avatar"
+  | "above-name"
+  | "below-bio";
 /** Where the profile view counter sits. */
-export type ViewPosition = "top-right" | "footer" | "side" | "hidden";
+export type ViewPosition = MetadataPosition;
 /** Where the “joined” date sits. */
-export type JoinPosition = "footer" | "under-name" | "side" | "hidden";
+export type JoinPosition = MetadataPosition;
 /** Where the location pill sits. */
-export type LocationPosition = "top" | "under-name" | "footer" | "side" | "hidden";
+export type LocationPosition = MetadataPosition;
 /** Where the widget cards sit relative to the profile card. */
 export type WidgetsPosition = "auto" | "inside" | "below";
 
@@ -401,9 +427,34 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
 }
 
 const PFP_POSITIONS: readonly PfpPosition[] = ["default", "center", "top-right", "left", "right", "above"];
-const VIEW_POSITIONS: readonly ViewPosition[] = ["top-right", "footer", "side", "hidden"];
-const JOIN_POSITIONS: readonly JoinPosition[] = ["under-name", "side", "hidden"];
-const LOCATION_POSITIONS: readonly LocationPosition[] = ["top", "under-name", "footer", "side", "hidden"];
+const METADATA_POSITIONS: readonly MetadataPosition[] = [
+  "top",
+  "top-right",
+  "under-name",
+  "footer",
+  "side",
+  "hidden",
+  "outside-top-left",
+  "outside-top-right",
+  "outside-bottom-left",
+  "outside-bottom-right",
+  "outside-above",
+  "outside-below",
+  "outside-left",
+  "outside-right",
+  "inside-top-left",
+  "inside-top-right",
+  "inside-bottom-left",
+  "inside-bottom-right",
+  "next-to-name",
+  "next-to-handle",
+  "beside-avatar",
+  "above-name",
+  "below-bio",
+];
+const VIEW_POSITIONS = METADATA_POSITIONS;
+const JOIN_POSITIONS = METADATA_POSITIONS;
+const LOCATION_POSITIONS = METADATA_POSITIONS;
 const BADGE_POSITIONS: readonly BadgePosition[] = [
   "default",
   "above-name",
@@ -582,11 +633,7 @@ function loadDesign(input: unknown): AboutDesign {
     bioPosition: oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
     avatarShape: oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
     viewPosition: oneOf(raw.viewPosition, VIEW_POSITIONS, DEFAULT_ABOUT_DESIGN.viewPosition),
-    // Older documents saved "footer"; the date lives under the handle now, so
-    // it is read as "under-name" instead of disappearing.
-    joinPosition: raw.joinPosition === "footer"
-      ? "under-name"
-      : oneOf(raw.joinPosition, JOIN_POSITIONS, DEFAULT_ABOUT_DESIGN.joinPosition),
+    joinPosition: oneOf(raw.joinPosition, JOIN_POSITIONS, DEFAULT_ABOUT_DESIGN.joinPosition),
     locationPosition: oneOf(
       raw.locationPosition,
       LOCATION_POSITIONS,

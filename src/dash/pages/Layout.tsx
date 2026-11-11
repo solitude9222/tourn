@@ -13,26 +13,35 @@ import { FontPicker } from "../../components/FontPicker";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
 
-const VIEW_OPTIONS = [
+const DETAIL_POSITIONS = [
+  { value: "under-name", label: "Under your name" },
+  { value: "next-to-name", label: "Next to your name" },
+  { value: "next-to-handle", label: "Next to your username" },
+  { value: "beside-avatar", label: "Beside your avatar" },
+  { value: "above-name", label: "Above your name" },
+  { value: "below-bio", label: "Below your bio" },
+  { value: "top", label: "Top of the card" },
   { value: "top-right", label: "Top right of the card" },
+  { value: "inside-top-left", label: "Inside card · top left" },
+  { value: "inside-top-right", label: "Inside card · top right" },
+  { value: "inside-bottom-left", label: "Inside card · bottom left" },
+  { value: "inside-bottom-right", label: "Inside card · bottom right" },
+  { value: "outside-top-left", label: "Outside card · top left" },
+  { value: "outside-top-right", label: "Outside card · top right" },
+  { value: "outside-bottom-left", label: "Outside card · bottom left" },
+  { value: "outside-bottom-right", label: "Outside card · bottom right" },
+  { value: "outside-above", label: "Outside card · above centre" },
+  { value: "outside-below", label: "Outside card · below centre" },
+  { value: "outside-left", label: "Outside card · left centre" },
+  { value: "outside-right", label: "Outside card · right centre" },
   { value: "footer", label: "Card footer" },
   { value: "side", label: "Beside card (Left layout)" },
   { value: "hidden", label: "Hidden" },
 ];
 
-const LOCATION_OPTIONS = [
-  { value: "under-name", label: "Under your name" },
-  { value: "top", label: "Top right" },
-  { value: "footer", label: "Card footer" },
-  { value: "side", label: "Beside card (Left layout)" },
-  { value: "hidden", label: "Hidden" },
-];
-
-const JOIN_OPTIONS = [
-  { value: "under-name", label: "Under your name" },
-  { value: "side", label: "Beside card (Left layout)" },
-  { value: "hidden", label: "Hidden" },
-];
+const VIEW_OPTIONS = DETAIL_POSITIONS;
+const LOCATION_OPTIONS = DETAIL_POSITIONS;
+const JOIN_OPTIONS = DETAIL_POSITIONS;
 
 const AUDIO_OPTIONS = [{ value: "bottom", label: "Screen bottom (fixed)" }];
 

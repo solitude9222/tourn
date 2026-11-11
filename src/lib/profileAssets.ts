@@ -47,7 +47,8 @@ export type TextEffectId =
   | "shake"
   | "aurora"
   | "outline"
-  | "metallic";
+  | "metallic"
+  | "liner";
 export type TextEffectTarget = "alias" | "name" | "bio";
 
 /* ── per-effect custom settings ───────────────────────────────────────────
@@ -83,6 +84,7 @@ function clampParamsFor(spec: EffectParamSpec | null, raw: unknown): EffectParam
 export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
   aurora: null, outline: null, metallic: null,
   none: null,
+  liner: { kind: "slider", key: "lineGap", label: "Line spacing", min: 3, max: 18, step: 1, unit: "px", default: 7 },
   rgb: { kind: "slider", key: "bandSharpness", label: "Band sharpness", min: 10, max: 90, step: 5, unit: "%", default: 45 },
   wave: { kind: "slider", key: "amplitude", label: "Amplitude", min: 2, max: 16, step: 1, unit: "px", default: 6 },
   typewriter: { kind: "toggle", key: "cursor", label: "Blinking cursor", default: true },
@@ -256,6 +258,8 @@ export type OverlayEffectSettings = {
 
 export type TextEffectSettings = {
   effect: TextEffectId;
+  /** Extra effects stacked on top of the main one. */
+  effects: TextEffectId[];
   colorA: string;
   colorB: string;
   speed: number;
@@ -293,6 +297,7 @@ export type ProfileAssets = {
 
 export const DEFAULT_TEXT_EFFECT: TextEffectSettings = {
   effect: "none",
+  effects: [],
   colorA: "#ffcfa8",
   colorB: "#a8e0ff",
   speed: 3,
@@ -467,6 +472,7 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
   {id:"aurora",name:"Aurora",hint:"A flowing two-tone ribbon"},
   {id:"outline",name:"Outline",hint:"Crisp illuminated letter edges"},
   {id:"metallic",name:"Metallic",hint:"A narrow silver light sweep"},
+  {id:"liner",name:"Liner",hint:"Fine animated lines cut through the letters"},
 ];
 
 export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
@@ -518,13 +524,21 @@ function choiceIn<T extends string>(value: unknown, choices: readonly T[], fallb
 
 function loadTextEffect(value: unknown): TextEffectSettings {
   const raw = (value ?? {}) as Partial<TextEffectSettings>;
-  const effect = choiceIn(
-    raw.effect,
-    TEXT_EFFECTS.map((e) => e.id),
-    DEFAULT_TEXT_EFFECT.effect,
-  );
+  const choices = TEXT_EFFECTS.map((e) => e.id);
+  const effect = choiceIn(raw.effect, choices, DEFAULT_TEXT_EFFECT.effect);
+  const effects = Array.isArray(raw.effects)
+    ? [
+        ...new Set(
+          raw.effects.filter(
+            (id): id is TextEffectId =>
+              typeof id === "string" && choices.includes(id as TextEffectId) && id !== "none" && id !== effect,
+          ),
+        ),
+      ].slice(0, 4)
+    : [];
   return {
     effect,
+    effects,
     colorA: colorIn(raw.colorA, DEFAULT_TEXT_EFFECT.colorA),
     colorB: colorIn(raw.colorB, DEFAULT_TEXT_EFFECT.colorB),
     speed: numberIn(raw.speed, DEFAULT_TEXT_EFFECT.speed, 0.5, 12),

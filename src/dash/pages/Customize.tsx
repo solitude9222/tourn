@@ -55,12 +55,6 @@ const ENTRY_LAYERS = [
   { value: "background", label: "Background" },
 ];
 
-const TITLE_ANIMATIONS = [
-  { value: "none", label: "None" },
-  { value: "cycle", label: "Cycle" },
-  { value: "typewriter", label: "Typewriter" },
-];
-
 const TOOLTIP_STYLES = [
   { value: "default", label: "Default" },
   { value: "glass", label: "Glass" },
@@ -481,7 +475,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
         </Card>
 
         <Card>
-          <CardHead icon="code" title="Browser tab title" />
+          <CardHead icon="code" title="Browser tab title" subtitle="The main title shown in the browser tab." />
           <div className="tw-form-grid">
             <Field label="Custom Title Text">
               <TextInput
@@ -492,24 +486,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
                 onChange={(event) => updateMetadata({ title: event.target.value.slice(0, 60) })}
               />
             </Field>
-            <Field label="Animation Type">
-              <Select
-                icon="code"
-                value={about.metadata.animation}
-                options={TITLE_ANIMATIONS}
-                onChange={(value) =>
-                  updateMetadata({ animation: value as typeof about.metadata.animation })
-                }
-              />
-            </Field>
           </div>
-          {about.metadata.animation !== "none" ? <div className="tw-form-grid" style={{ marginTop: 16 }}>
-            <Field label="Title messages" hint="One message per line. Up to 8 messages, 60 characters each.">
-              <Textarea value={about.metadata.messages.join("\n")} rows={4} onChange={(event) => updateMetadata({ messages: event.target.value.split("\n").slice(0, 8).map((line) => line.slice(0, 60)) })} />
-            </Field>
-            <Slider label="Message interval" value={about.metadata.interval} min={2} max={30} suffix="s" onChange={(value) => updateMetadata({ interval: value })} />
-          </div> : null}
-
         </Card>
       </>
     );

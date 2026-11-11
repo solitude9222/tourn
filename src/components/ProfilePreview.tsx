@@ -87,9 +87,9 @@ export function ProfilePreview({
   const hasBanner = banner.enabled && Boolean(banner.imageUrl.trim());
   const bioEffect = assets.effects.text.bio;
   const cardFx = assets.card;
-  // One tooltip design for the whole card — badges and the avatar used to be
-  // hardcoded to "dark", which made the tooltip settings look broken. Links
-  // never show a tooltip; only these two do.
+  // One tooltip design for the whole card: names, badges and link icons all
+  // use this same skin. They used to be hardcoded, which made the setting
+  // look broken.
   const tooltips = design.tooltips ?? DEFAULT_ABOUT_DESIGN.tooltips;
   const uid = accountUid(user);
   const tiltEnabled = !disableTilt && (design.tilt ?? 0) > 0;
@@ -98,7 +98,10 @@ export function ProfilePreview({
   // The join date is part of the identity now: display name, handle, then the
   // date. "footer" is still accepted from older saved profiles but reads the
   // same as "under-name" so nobody's card silently loses the date.
-  const joinPosition = design.joinPosition === "hidden" ? "hidden" : "under-name";
+  const joinPosition =
+    design.joinPosition === "side" && design.layout !== "left"
+      ? "under-name"
+      : design.joinPosition ?? "under-name";
   const locationPosition = design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name";
   const viewCount = typeof views === "number" ? views : null;
   const showViews = !hideViews && viewCount !== null && viewPosition !== "hidden";
@@ -150,6 +153,35 @@ export function ProfilePreview({
       {viewCount === null ? "—" : viewCount.toLocaleString("en-US")}
     </span>
   );
+
+  // Metadata can live in the new card-corner slots, in the inline identity
+  // slots, or in the original top/footer rails. The legacy rails keep their
+  // own markup below; these helpers only handle the new placements.
+  const metaPins = [
+    { kind: "location" as const, position: locationPosition, node: locationPill },
+    { kind: "views" as const, position: viewPosition, node: showViews ? viewsNode : null },
+    { kind: "joined" as const, position: joinPosition, node: showJoined ? joinedNode : null },
+  ].filter((pin) => Boolean(pin.node) && pin.position !== "hidden");
+  const absolutePins = metaPins.filter(
+    (pin) => pin.position.startsWith("inside-") || pin.position.startsWith("outside-"),
+  );
+  const inlinePins = (position: string) =>
+    metaPins
+      .filter((pin) => pin.position === position)
+      .map((pin) => (
+        <span key={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
+          {pin.node}
+        </span>
+      ));
+  const pinnedLayer = absolutePins.length ? (
+    <>
+      {absolutePins.map((pin) => (
+        <span key={pin.kind} className={`pv-pin pv-pin--${pin.position} pv-pin--${pin.kind}`}>
+          {pin.node}
+        </span>
+      ))}
+    </>
+  ) : null;
 
   // Every size in the card is expressed against a 726px reference card, so a
   // narrower card shrinks its type, avatar and spacing with it instead of
@@ -239,11 +271,16 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
+      {pinnedLayer}
       <div className="pv-body">
-        {(showViews && viewPosition === "top-right") || (location && locationPosition === "top") || (badgeRow && design.badgePosition === "top-right") ? <div className="pv-meta-rail">
-          {locationPosition === "top" ? locationPill : null}
+        {(showViews && (viewPosition === "top" || viewPosition === "top-right")) ||
+        (location && (locationPosition === "top" || locationPosition === "top-right")) ||
+        (showJoined && (joinPosition === "top" || joinPosition === "top-right")) ||
+        (badgeRow && design.badgePosition === "top-right") ? <div className="pv-meta-rail">
+          {locationPosition === "top" || locationPosition === "top-right" ? locationPill : null}
           {design.badgePosition === "top-right" ? badgeRow : null}
-          {showViews && viewPosition === "top-right" ? <span className="pv-views" aria-label={`${viewCount} profile views`}><EyeIcon size={12} />{viewCount.toLocaleString("en-US")}</span> : null}
+          {showJoined && (joinPosition === "top" || joinPosition === "top-right") ? joinedNode : null}
+          {showViews && (viewPosition === "top" || viewPosition === "top-right") ? <span className="pv-views" aria-label={`${viewCount} profile views`}><EyeIcon size={12} />{viewCount.toLocaleString("en-US")}</span> : null}
         </div> : null}
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
@@ -264,10 +301,12 @@ export function ProfilePreview({
               />
             ) : null}
           </span>
+          {inlinePins("beside-avatar")}
           {/* The reference header: picture on the left, and everything that
               identifies the person (name, handle, badges, bio) stacked in the
               column beside it. */}
           <div className="pv-head-text">
+            {inlinePins("above-name")}
             {/* name and badges share one line, so the rail sits right beside
                 the name instead of floating to the far edge of the card */}
             <div className="pv-id">
@@ -278,6 +317,7 @@ export function ProfilePreview({
                   <EffectText text={displayName} settings={assets.effects.text.name} />
                 </Tooltip>
               </h3>
+              {inlinePins("next-to-name")}
               {inlineBadges || design.badgePosition === "default" || design.badgePosition === "above-name"
                 ? badgeRow
                 : null}
@@ -287,16 +327,18 @@ export function ProfilePreview({
               <span className="pv-handle">
                 <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
               </span>
+              {inlinePins("next-to-handle")}
             </div>
 
-            {showJoined ? <span className="pv-joined-inline">{joinedNode}</span> : null}
+            {showJoined && joinPosition === "under-name" ? <span className="pv-joined-inline">{joinedNode}</span> : null}
             {locationPosition === "under-name" ? locationPill : null}
+            {viewPosition === "under-name" ? viewsNode : null}
 
             <div
               className={`pv-bio${bio ? "" : " is-empty"}${
-                bioEffect.effect !== "none" ? ` ${textEffectClass(bioEffect)}` : ""
+                textEffectClass(bioEffect) ? ` ${textEffectClass(bioEffect)}` : ""
               }`}
-              style={bioEffect.effect !== "none" ? textEffectStyle(bioEffect) : undefined}
+              style={textEffectClass(bioEffect) ? textEffectStyle(bioEffect) : undefined}
             >
               {bio ? (
                 <>
@@ -307,6 +349,7 @@ export function ProfilePreview({
                 <span>A bio is on the way.</span>
               )}
             </div>
+            {inlinePins("below-bio")}
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
         </div>
@@ -315,7 +358,12 @@ export function ProfilePreview({
 
         {hasLinks ? (
           <div className="pv-links-block">
-            <ProfileLinks links={visibleLinks} design={linkDesign ?? DEFAULT_LINK_DESIGN} />
+            <ProfileLinks
+              links={visibleLinks}
+              design={linkDesign ?? DEFAULT_LINK_DESIGN}
+              tooltipStyle={tooltips.style}
+              tooltipEnabled={tooltips.enabled}
+            />
           </div>
         ) : null}
 
@@ -327,9 +375,12 @@ export function ProfilePreview({
 
         {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
 
-        {(location && locationPosition === "footer") || (showViews && viewPosition === "footer") ? (
+        {(location && locationPosition === "footer") ||
+        (showViews && viewPosition === "footer") ||
+        (showJoined && joinPosition === "footer") ? (
           <div className="pv-foot">
             {locationPosition === "footer" ? locationPill : <span />}
+            {joinPosition === "footer" ? joinedNode : null}
             {viewPosition === "footer" ? viewsNode : null}
           </div>
         ) : null}

@@ -1,23 +1,28 @@
 import { useState, type CSSProperties } from "react";
-import { linkHref, type LinkDesign, type LinkInstance } from "../lib/links";
+import { linkHref, type LinkDesign, type LinkInstance, type TooltipStyle } from "../lib/links";
 import { getPlatform } from "../lib/linkPlatforms";
 import { LinkGlyph } from "./LinkGlyph";
 import { LinkIcon } from "./Icons";
 import { Tooltip } from "./Tooltip";
 
 /**
- * A profile's links: one row of icon buttons, nothing else. No cards, no
- * labels, no hover popups — the icon is the whole link. Colour, size and an
- * optional halo come from the owner's link style.
+ * A profile's links: one row of icon buttons, nothing else. The icon is the
+ * whole link; colour, size and an optional halo come from the owner's link
+ * style. Hovering an icon uses the profile's one tooltip skin.
  */
 export function ProfileLinks({
   links,
   design,
   className = "",
+  tooltipStyle = "glass",
+  tooltipEnabled = true,
 }: {
   links: LinkInstance[];
   design: LinkDesign;
   className?: string;
+  /** Follow the profile's one tooltip skin instead of hardcoding glass. */
+  tooltipStyle?: TooltipStyle;
+  tooltipEnabled?: boolean;
 }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const visible = links.filter((l) => l.visible && l.url.trim());
@@ -72,7 +77,7 @@ export function ProfileLinks({
         const tip = copiedId === link.id ? "Copied" : href ? label : `${label} · tap to copy`;
 
         return (
-          <Tooltip key={link.id} text={tip} style="glass">
+          <Tooltip key={link.id} text={tooltipEnabled ? tip : ""} style={tooltipStyle}>
             {href ? (
               <a {...shared} href={href} target="_blank" rel="noreferrer noopener">
                 {icon}

@@ -156,7 +156,12 @@ export function LinksPage() {
         <CardHead icon="palette" title="Icon style" subtitle="Applies to every link on your profile." />
 
         <div className="tw-icon-preview">
-          <ProfileLinks links={links.links} design={links.design} />
+          <ProfileLinks
+            links={links.links}
+            design={links.design}
+            tooltipStyle={about.design.tooltips.style}
+            tooltipEnabled={about.design.tooltips.enabled}
+          />
           {links.links.length ? null : <small>Add a link to see it here.</small>}
         </div>
 

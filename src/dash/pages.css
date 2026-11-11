@@ -2194,6 +2194,7 @@
 .fx-subheading { font-size:13px; font-weight:500; color:var(--title); margin:24px 0 16px; }
 
 .fx-cursor-grid { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:20px; align-items:start; }
+.fx-cursor-grid--single { grid-template-columns:minmax(0,1fr); }
 .fx-pointer-column,.fx-trail-column { display:flex; flex-direction:column; gap:12px; min-width:0; }
 .fx-trail-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .fx-trail-head .fx-subheading { margin:0; }

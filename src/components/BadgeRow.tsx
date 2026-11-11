@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from "react";
+import { hexToRgba } from "../lib/about";
 import { badgeDef, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import type { TooltipStyle } from "../lib/links";
 import { Tooltip } from "./Tooltip";
@@ -108,8 +109,17 @@ export function BadgeRow({
   const visible = badges.filter((b) => b.visible && badgeDef(b.id));
   if (!visible.length) return null;
 
+  const rowStyle = {
+    "--badge-row-bg": hexToRgba(style.rowBackground, style.rowOpacity),
+    "--badge-row-border": hexToRgba(style.rowBorderColor, style.rowBorderOpacity),
+    "--badge-row-radius": `${style.rowRadius}px`,
+    "--badge-row-blur": `${style.rowBlur}px`,
+    "--badge-row-pad": `${style.rowPadding}px`,
+    "--badge-row-gap": `${style.rowGap}px`,
+  } as CSSProperties;
+
   return (
-    <span className={`badge-row${className ? ` ${className}` : ""}`}>
+    <span className={`badge-row${className ? ` ${className}` : ""}`} style={rowStyle}>
       {visible.map((badge) => (
         <Tooltip
           key={badge.id}

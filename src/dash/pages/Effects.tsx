@@ -1,12 +1,11 @@
 import { uploadAudioFile } from "../../lib/audioUpload";
 import { useState } from "react";
-import { BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type BackgroundEffectSettings, type OverlayEffectSettings, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
+import { BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type BackgroundEffectSettings, type OverlayEffectSettings, type TextEffectId, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
 import { EffectBrowser, type EffectKind } from "../EffectBrowser";
 import { FontPicker } from "../../components/FontPicker";
 import { playInteractionSound } from "../../components/ProfileInteractions";
-import { imageToDataUrl } from "../files";
 import { useDash } from "../context";
-import { FileUpload, Button, Card, CardHead, ColorField, Field, Icon, Select, Slider, Toggle } from "../ui";
+import { FileUpload, Button, Card, CardHead, ColorField, Field, MultiSelect, Select, Slider, Toggle } from "../ui";
 
 const TRAILS = [
   { id: "dots", name: "Dots", hint: "Soft fading beads" },
@@ -46,7 +45,7 @@ export function EffectsPage() {
   const apply = (id: string, kind: ChooserKind) => {
     if (kind === "background") { const effect = id as BackgroundEffectSettings["id"]; setBackground({ id: effect, params: defaultParamsFor(BACKGROUND_EFFECT_PARAM[effect]) }); }
     if (kind === "overlay") { const effect = id as OverlayEffectSettings["id"]; setOverlay({ id: effect, opacity: .25, intensity: 50, params: defaultParamsFor(OVERLAY_EFFECT_PARAM[effect]) }); }
-    if (kind === "text") { const effect = id as TextEffectSettings["effect"]; setText({ effect, ...(effect === "sparkle" ? { colorA: "#ffffff", colorB: "#ffffff" } : {}), params: defaultParamsFor(TEXT_EFFECT_PARAM[effect]) }); }
+    if (kind === "text") { const effect = id as TextEffectSettings["effect"]; setText({ effect, effects: (text.effects ?? []).filter((entry) => entry !== effect), ...(effect === "sparkle" ? { colorA: "#ffffff", colorB: "#ffffff" } : {}), params: defaultParamsFor(TEXT_EFFECT_PARAM[effect]) }); }
     if (kind === "card") setCard({ id: id as typeof assets.card.id });
     if (kind === "trail") setCursor({ trailType: id as typeof assets.cursor.trailType, trail: true });
   };
@@ -65,23 +64,13 @@ export function EffectsPage() {
     {browser === "text" ? <Card><CardHead icon="edit" title="Text effects" subtitle="Choose a target, then browse animated lettering. Sparkle adds twinkling stars around the letters." />
       <div className="fx-categories">{["name", "alias", "bio"].map((id) => <button key={id} type="button" aria-pressed={target === id} onClick={() => setTarget(id as TextEffectTarget)}>{({ name: "Display name", alias: "Username", bio: "Bio" })[id as TextEffectTarget]}</button>)}</div>
       {chooser("text")}
-      <div className="tw-form-grid"><FontPicker value={text.font} onChange={(font) => setText({ font })} /><ColorField label={text.effect === "sparkle" ? "Text colour" : "Primary colour"} value={text.colorA} onChange={(colorA) => setText({ colorA })} /><ColorField label={text.effect === "sparkle" ? "Sparkle colour" : "Secondary colour"} value={text.colorB} onChange={(colorB) => setText({ colorB })} /><Slider label="Animation duration" value={text.speed} min={.5} max={12} step={.5} suffix="s" onChange={(speed) => setText({ speed })} /><Slider label="Strength" value={Math.round(text.strength * 100)} min={20} max={300} suffix="%" onChange={(strength) => setText({ strength: strength / 100 })} /><Parameter spec={TEXT_EFFECT_PARAM[text.effect]} value={text.params} onChange={(params) => setText({ params })} /></div>
+      <div className="tw-form-grid"><FontPicker value={text.font} onChange={(font) => setText({ font })} /><ColorField label={text.effect === "sparkle" ? "Text colour" : "Primary colour"} value={text.colorA} onChange={(colorA) => setText({ colorA })} /><ColorField label={text.effect === "sparkle" ? "Sparkle colour" : "Secondary colour"} value={text.colorB} onChange={(colorB) => setText({ colorB })} /><Slider label="Animation duration" value={text.speed} min={.5} max={12} step={.5} suffix="s" onChange={(speed) => setText({ speed })} /><Slider label="Strength" value={Math.round(text.strength * 100)} min={20} max={300} suffix="%" onChange={(strength) => setText({ strength: strength / 100 })} /><Parameter spec={TEXT_EFFECT_PARAM[text.effect]} value={text.params} onChange={(params) => setText({ params })} /><Field label="Stack more effects" hint="Layer a second or third effect on top of the main one."><MultiSelect ariaLabel="Stack text effects" value={text.effects ?? []} options={TEXT_EFFECTS.filter((option) => option.id !== "none" && option.id !== text.effect).map((option) => ({ value: option.id, label: option.name }))} placeholder="No extra layers" onChange={(effects) => setText({ effects: effects as TextEffectId[] })} /></Field></div>
     </Card> : null}
     {browser === "card" ? <Card><CardHead icon="layout" title="Card lighting" subtitle="Border beams, glow, shimmer and surface treatments." />{chooser("card")}
       {assets.card.id !== "none" ? <div className="tw-form-grid"><ColorField label="Light colour" value={assets.card.color} onChange={(color) => setCard({ color })} /><Slider label="Light intensity" value={assets.card.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setCard({ intensity })} /><Slider label="Sweep duration" value={assets.card.speed} min={1.5} max={20} step={.5} suffix="s" onChange={(speed) => setCard({ speed })} /></div> : null}
     </Card> : null}
-    {browser === "cursor" ? <Card><CardHead icon="move" title="Cursor and trails" subtitle="Upload a pointer on the left, then choose its trail on the right." />
-      <div className="fx-cursor-grid">
-        <div className="fx-pointer-column">
-          <span className="fx-subheading">Pointer</span>
-          <label className={`fx-pointer-drop${assets.cursor.imageUrl ? " has-image" : ""}`}>
-            <span className="fx-pointer-preview">{assets.cursor.imageUrl ? <img src={assets.cursor.imageUrl} alt="Your pointer" /> : <Icon name="upload" size={24} />}</span>
-            <span className="fx-pointer-copy"><b>{assets.cursor.imageUrl ? "Replace pointer" : "Upload pointer"}</b><small>PNG, WebP or GIF · resized to 64 px</small></span>
-            <input aria-label="Custom pointer image" type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { setCursor({ imageUrl: await imageToDataUrl(file, 64, 64), style: "custom" }); } catch { notify("Cursor", "That image could not be read."); } }} />
-          </label>
-          {assets.cursor.imageUrl ? <Button onClick={() => setCursor({ imageUrl: "", style: "default" })}>Remove pointer</Button> : null}
-          <small className="fx-pointer-note">No image uses your normal cursor. Trails still follow it.</small>
-        </div>
+    {browser === "cursor" ? <Card><CardHead icon="move" title="Cursor and trails" subtitle="Choose the trail that follows your pointer. Your cursor image lives under Account." />
+      <div className="fx-cursor-grid fx-cursor-grid--single">
         <div className="fx-trail-column">
           <div className="fx-trail-head"><span className="fx-subheading">Pointer trail</span><Toggle label="Show cursor trail" checked={assets.cursor.trail} onChange={(trail) => setCursor({ trail })} /></div>
           {chooser("trail")}

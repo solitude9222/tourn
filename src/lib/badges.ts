@@ -38,6 +38,15 @@ export type BadgeStyle = {
   overlayStrength: number; // 0–100
   animation: BadgeAnimationStyle;
   size: number; // 14–32px
+  /** The little shelf the badges sit on. */
+  rowBackground: string;
+  rowOpacity: number; // 0–1
+  rowBorderColor: string;
+  rowBorderOpacity: number; // 0–1
+  rowRadius: number; // px
+  rowBlur: number; // px
+  rowPadding: number; // px
+  rowGap: number; // px
 };
 
 export type BadgeInstance = {
@@ -68,6 +77,14 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   // Badges carry a light sweep by default so they never look like flat stickers.
   animation: "shimmer",
   size: 22,
+  rowBackground: "#ffffff",
+  rowOpacity: 0.07,
+  rowBorderColor: "#ffffff",
+  rowBorderOpacity: 0.12,
+  rowRadius: 999,
+  rowBlur: 6,
+  rowPadding: 7,
+  rowGap: 6,
 };
 
 export const EMPTY_BADGE_STORE: BadgeStore = {
@@ -168,6 +185,14 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
         overlayStrength: clamp(style.overlayStrength, DEFAULT_BADGE_STYLE.overlayStrength, 0, 100),
         animation: animIn(style.animation, DEFAULT_BADGE_STYLE.animation),
         size: clamp(style.size, DEFAULT_BADGE_STYLE.size, 14, 32),
+        rowBackground: hex(style.rowBackground, DEFAULT_BADGE_STYLE.rowBackground),
+        rowOpacity: clamp(style.rowOpacity, DEFAULT_BADGE_STYLE.rowOpacity, 0, 1),
+        rowBorderColor: hex(style.rowBorderColor, DEFAULT_BADGE_STYLE.rowBorderColor),
+        rowBorderOpacity: clamp(style.rowBorderOpacity, DEFAULT_BADGE_STYLE.rowBorderOpacity, 0, 1),
+        rowRadius: clamp(style.rowRadius, DEFAULT_BADGE_STYLE.rowRadius, 0, 999),
+        rowBlur: clamp(style.rowBlur, DEFAULT_BADGE_STYLE.rowBlur, 0, 30),
+        rowPadding: clamp(style.rowPadding, DEFAULT_BADGE_STYLE.rowPadding, 0, 18),
+        rowGap: clamp(style.rowGap, DEFAULT_BADGE_STYLE.rowGap, 0, 18),
       },
     };
   } catch {

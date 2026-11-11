@@ -420,8 +420,8 @@ await chooseEffect('card','Beam ring');
 await page.getByRole('navigation',{name:'Effect categories'}).getByRole('button',{name:'Pointer & sound',exact:true}).click();
 const trailGallery=page.getByLabel('trail effects',{exact:true});
 assert(await trailGallery.locator('.fx-tile-preview').count()>5,'More trail styles should be available');
-assert.equal(await page.getByLabel('Custom pointer image',{exact:true}).count(),1,'Pointer upload should always be available');
-await page.locator('.fx-pointer-drop').waitFor();
+assert.equal(await page.getByLabel('Custom pointer image',{exact:true}).count(),0,'Effects should not duplicate the Account cursor upload');
+assert.equal(await page.locator('.fx-pointer-drop').count(),0,'Effects still renders a pointer upload');
 await trailGallery.getByRole('button',{name:'Sparkle',exact:true}).click();
 await page.screenshot({path:'.tmp/effects-cursor.png',fullPage:false});
 const clickField=page.locator('.tw-field').filter({has:page.getByText('Click sound',{exact:true})});
@@ -468,7 +468,7 @@ const runtime=await page.evaluate(async profile=>{
  const dom=await import('/node_modules/.vite/deps/react-dom_client.js');const createRoot=dom.createRoot || dom.default.createRoot;
  const {LinkerPreview}=await import('/src/components/LinkerPreview.tsx');
  const host=document.createElement('div');host.id='reference-capability-test';host.style.cssText='position:fixed;inset:0;z-index:100000;background:#111;overflow:auto';document.body.append(host);
- const root=createRoot(host);root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'my-profile',avatarUrl:null},about:profile.about,widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));window.referenceRoot=root;window.renderReference=(design,audio={})=>root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'a-long-profile-handle-to-check-wrap',avatarUrl:null},about:{...profile.about,displayName:'A long display name to check wrapping',assets:{...profile.about.assets,audio:{...profile.about.assets.audio,...audio}},design:{...profile.about.design,...design}},widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));
+ const root=createRoot(host);root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'my-profile',avatarUrl:null},about:profile.about,widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));window.referenceRoot=root;window.renderReference=(design,audio={},patch={})=>root.render(React.createElement(LinkerPreview,{user:{id:'test',username:'a-long-profile-handle-to-check-wrap',avatarUrl:null},about:{...profile.about,...patch,displayName:patch.displayName||'A long display name to check wrapping',assets:{...profile.about.assets,...patch.assets,audio:{...profile.about.assets.audio,...audio},effects:{...profile.about.assets.effects,...patch.assets?.effects,text:{...profile.about.assets.effects.text,...patch.assets?.effects?.text}}},design:{...profile.about.design,...design}},widgets:profile.widgets,links:profile.links,badges:profile.badges,interactive:true,showEntry:false,showMetadata:false}));
  return true;
 },document);
 assert(runtime);
@@ -481,6 +481,22 @@ const sparkleTexture=await page.locator('#reference-capability-test .fx-sparkles
 assert(sparkleTexture.image.includes('/effects/sparkle_black.gif'),'Sparkle texture does not use the transparent asset: '+sparkleTexture.image);
 assert.equal(sparkleTexture.mode,'alpha','Sparkle texture is not using its alpha channel');
 assert.equal(sparkleTexture.size,'90px 68px','Sparkle texture is not using the reference tile size');
+// New metadata slots and stacked text effects are real rendered placements.
+await page.evaluate(async()=>{
+ const {DEFAULT_TEXT_EFFECT}=await import('/src/lib/profileAssets.ts');
+ window.renderReference({layout:'stacked',locationPosition:'outside-top-left'},{},{location:'Auckland',displayName:'Paradox',assets:{effects:{text:{name:{...DEFAULT_TEXT_EFFECT,effect:'glow',effects:['liner']}}}}});
+});
+await page.locator('#reference-capability-test .pv-pin--outside-top-left .pv-location').waitFor();
+assert((await page.locator('#reference-capability-test .pv-id .fx-text-wrap--liner').count())>0,'Stacked liner effect is not rendered');
+assert((await page.locator('#reference-capability-test .pv-id .fx-text-wrap--glow').count())>0,'Stacked glow effect is not rendered');
+const outsideGeometry=await page.locator('#reference-capability-test .profile-preview').evaluate(card=>{const bounds=card.getBoundingClientRect(),pin=card.querySelector('.pv-pin--outside-top-left').getBoundingClientRect();return {cardTop:bounds.top,pinTop:pin.top};});
+assert(outsideGeometry.pinTop<outsideGeometry.cardTop,'Outside-corner metadata did not escape the card');
+await page.evaluate(()=>window.renderReference({layout:'stacked',locationPosition:'inside-top-right'},{},{location:'Auckland',displayName:'Paradox'}));
+await page.locator('#reference-capability-test .pv-pin--inside-top-right .pv-location').waitFor();
+const insideGeometry=await page.locator('#reference-capability-test .profile-preview').evaluate(card=>{const bounds=card.getBoundingClientRect(),pin=card.querySelector('.pv-pin--inside-top-right').getBoundingClientRect();return {inside:pin.left>=bounds.left-1&&pin.right<=bounds.right+1&&pin.top>=bounds.top-1&&pin.bottom<=bounds.bottom+1};});
+assert(insideGeometry.inside,'Inside-corner metadata sits outside the card');
+await page.evaluate(()=>window.renderReference({layout:'stacked',locationPosition:'next-to-name'},{},{location:'Auckland',displayName:'Paradox'}));
+await page.locator('#reference-capability-test .pv-id .pv-pin--location').waitFor();
 await page.locator('#reference-capability-test .lkr-custom-section a').dispatchEvent('pointerdown',{button:0,clientX:120,clientY:120});
 await page.locator('#reference-capability-test .profile-click-ring').waitFor({state:'attached'});
 await page.screenshot({path:'.tmp/reference-capabilities.png',fullPage:false});
