@@ -4731,15 +4731,6 @@
   transform: translateY(-2px);
 }
 
-/* The Discord card leads the widget block on its own full-width row, so the
-   presence card is centred above the two-by-two stack instead of sitting in
-   one cell of it. An odd last card takes the full row too, rather than
-   leaving a hole beside it. */
-.profile-preview .lkr-widgets .widget-card--wide,
-.profile-preview .lkr-widgets:has(.widget-card--wide) .widget-card:last-child:nth-child(even) {
-  grid-column: 1 / -1;
-}
-
 /* The handle is part of the name, not a separate block: the gap between the
    display name and the @handle was reading as a paragraph break. */
 .profile-preview .pv-head-text .pv-id h3 {
@@ -4909,14 +4900,11 @@
 .profile-overlay--dotted { background-image:radial-gradient(circle,var(--overlay-color,#fff) .65px,transparent .9px); background-size:6px 6px; }
 
 
-/* Widgets always use the same two-up grid. A lone or odd last card fills the
-   row instead of leaving a hole. */
+/* Every widget gets the same width; only a single widget fills the row. */
 .lkr-page .lkr-widgets,.profile-preview .lkr-widgets {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;}
-.lkr-page .lkr-widgets>.widget-card,.profile-preview .lkr-widgets>.widget-card {grid-column:span 1;width:100%;min-width:0;max-width:none;}
+.lkr-page .lkr-widgets>.widget-card,.profile-preview .lkr-widgets>.widget-card {grid-column:span 1;width:100%;min-width:0;max-width:none;height:100%;}
 .lkr-page .lkr-widgets>.widget-card:only-child,
-.profile-preview .lkr-widgets>.widget-card:only-child,
-.lkr-page .lkr-widgets>.widget-card:last-child:nth-child(odd),
-.profile-preview .lkr-widgets>.widget-card:last-child:nth-child(odd) {grid-column:1/-1;}
+.profile-preview .lkr-widgets>.widget-card:only-child {grid-column:1/-1;}
 .profile-preview .pv-links-block .pv-link-icons,.lkr-flow--left .profile-preview .pv-links-block .pv-link-icons {justify-content:center!important;width:100%;}
 .profile-preview .pv-beam-glow {background:radial-gradient(circle,var(--pv-card-fx-color),transparent 68%);}
 .fx-text--aurora {color:transparent;background:linear-gradient(110deg,var(--fx-color-a),var(--fx-color-b),var(--fx-color-a));background-size:240% 100%;background-clip:text;animation:fxAurora var(--fx-speed) linear infinite;}

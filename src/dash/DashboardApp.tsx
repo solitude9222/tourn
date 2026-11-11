@@ -218,6 +218,21 @@ export function Dashboard(props: DashboardProps) {
   };
   const lastProps = useRef({ about, widgets, badges, profileLinks });
 
+  // Hydration can replace every prop in the same render that clears
+  // authLoading. Apply that server copy once; otherwise the dashboard can keep
+  // showing the pre-hydration local draft indefinitely.
+  useLayoutEffect(() => {
+    if (authLoading) return;
+    setAboutDraft(about);
+    setWidgetsDraft(widgets);
+    setBadgesDraft(badges);
+    setLinksDraft(profileLinks);
+    lastProps.current = { about, widgets, badges, profileLinks };
+    // This intentionally runs only when hydration finishes. Later prop changes
+    // are merged by the per-store effects below without discarding edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading]);
+
   useEffect(() => {
     setAboutDraft((current) =>
       serialized(current) === serialized(lastProps.current.about) ? about : current,

@@ -557,4 +557,22 @@ await page.screenshot({path:'.tmp/pointer-mobile.png',fullPage:true});
 await page.evaluate(()=>location.hash='#/dashboard/home');await page.locator('.tw-dash').waitFor();
 await page.screenshot({path:'.tmp/dashboard-mobile.png',fullPage:true});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Dashboard mobile overflow');
+// The dashboard must apply the hydrated server document over an old local copy.
+document = {
+ ...(document || {}),
+ about: {
+  ...(document?.about || {}),
+  displayName: 'Server newest',
+  design: { ...(document?.about?.design || {}), avatarSize: 144 },
+ },
+};
+await page.setViewportSize({width:1440,height:1000});
+await page.evaluate(()=>localStorage.setItem('tourn.lol/about/v1/qa-user',JSON.stringify({displayName:'Old local',design:{avatarSize:40}})));
+await page.evaluate(()=>location.hash='#/dashboard/layout');
+await page.reload();
+await page.locator('.tw-dash').waitFor();
+const avatarSize=page.getByRole('slider',{name:'Avatar size',exact:true});
+await avatarSize.waitFor();
+assert.equal(await avatarSize.inputValue(),'144','Dashboard kept the old local card size instead of the hydrated server size');
+console.log('PASS dashboard applies hydrated server profile over old local draft');
 } finally { await browser.close(); }
