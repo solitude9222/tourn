@@ -1,5 +1,5 @@
 import "./lib/preloadLinks";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { DEFAULT_SETTINGS, EMPTY_SETTINGS, loadSettings, type Settings } from "./config";
 import { EMPTY_ABOUT, loadAbout, saveAbout, type About } from "./lib/about";
@@ -58,7 +58,6 @@ const LegalPage = lazy(() => import("./components/Pages").then((m) => ({ default
 import type { Account } from "./lib/auth";
 import { LinkerPreview } from "./components/LinkerPreview";
 import {
-  clearCachedProfile,
   clearPendingDocument,
   fetchOwnProfile,
   fetchPublicProfile,
@@ -66,7 +65,6 @@ import {
   loadPendingDocumentDurable,
   PROFILE_SECTIONS,
   preloadProfile,
-  readCachedProfile,
   savePendingDocument,
   mergeProfileDraft,
   profileFingerprint,
@@ -299,6 +297,8 @@ function ProfilePage({
   links,
   earned,
   authLoading,
+  profileLoadFailed,
+  onRetryProfile,
   savedHandles,
   onSignIn,
 }: {
@@ -312,6 +312,9 @@ function ProfilePage({
   earned: string[] | null;
   /** The session check is still in flight. */
   authLoading: boolean;
+  /** The owner's server copy failed to load; don't fall back to a local copy. */
+  profileLoadFailed: boolean;
+  onRetryProfile: () => void;
   /** Handles this browser has an account for — a page for one is not "public". */
   savedHandles: string[];
   onSignIn: () => void;
@@ -322,15 +325,11 @@ function ProfilePage({
   // flash on a cold load. Hold the page while we find out who is signed in.
   const mayBeOwn = Boolean(handle && savedHandles.includes(handle));
   const holdForAuth = !user && authLoading && mayBeOwn;
-  // A cached copy paints the real page — entry screen included — on the very
-  // first frame. The fetch below only refreshes it in the background.
-  const cached = useMemo(
-    () => (handle ? readCachedProfile(handle) : null),
-    [handle, isOwn],
-  );
+  // Always start from the network document. Never paint an older localStorage
+  // copy while the newest one is loading.
   const [remote, setRemote] = useState<
     { status: "loading" } | { status: "ok"; data: ProfilePayload } | { status: "missing" } | { status: "error"; error: string }
-  >(() => (cached ? { status: "ok", data: cached } : { status: "loading" }));
+  >({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
   const [views, setViews] = useState<number | null>(null);
 
@@ -377,6 +376,27 @@ function ProfilePage({
   }
 
   if (isOwn && user) {
+    if (authLoading) {
+      return (
+        <section
+          className="profile-page profile-page--loading"
+          aria-busy="true"
+          aria-label={`Loading tourn.lol/${handle}`}
+        />
+      );
+    }
+    if (profileLoadFailed) {
+      return (
+        <ProfileNotice
+          handle={handle}
+          kind="error"
+          message="Your latest profile couldn't be loaded. Retry rather than showing an older local copy."
+          viewer={user}
+          isOwn={isOwn}
+          onRetry={onRetryProfile}
+        />
+      );
+    }
     return (
       <section className="profile-page">
         <Oneko enabled={Boolean(about.design.oneko)} />
@@ -741,9 +761,6 @@ function Site() {
       if (result.ok) {
         revision.current = result.revision ?? revision.current;
         lastSaved.current = serialized;
-        clearCachedProfile(user.username);
-        if (user.alias) clearCachedProfile(user.alias);
-        if (user.alias2) clearCachedProfile(user.alias2);
         retryRef.current = 0;
         // The server has this exact document now. Clear both the localStorage
         // and IndexedDB draft copies; a large profile often cannot fit in
@@ -957,6 +974,11 @@ function Site() {
             links={profileLinks}
             earned={earned}
             authLoading={loading || Boolean(user && hydratedId !== user.id && !profileLoadFailed)}
+            profileLoadFailed={profileLoadFailed}
+            onRetryProfile={() => {
+              setProfileLoadFailed(false);
+              setHydrateAttempt((n) => n + 1);
+            }}
             savedHandles={accounts.map((entry) => entry.username.toLowerCase())}
             onSignIn={() => setAuthMode("signup")}
           />

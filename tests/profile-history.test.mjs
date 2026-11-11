@@ -9,7 +9,7 @@ test('profile updates archive raw documents transactionally; conflicts cannot er
  const history=source.slice(source.indexOf('create table if not exists profile_history ('),source.indexOf('create table if not exists profiles ('));
  await db.exec(history);const id='00000000-0000-4000-8000-000000000001',other='00000000-0000-4000-8000-000000000002';await db.query('insert into users values($1),($2)',[id,other]);
  const routes=new Map();const pool={query:(...args)=>db.query(...args),connect:async()=>({query:(...args)=>db.query(...args),release(){}})};
- const sandbox={pool,app:{put:(path,...handlers)=>routes.set('PUT '+path,handlers.at(-1)),get:(path,...handlers)=>routes.set('GET '+path,handlers.at(-1))},express:{json:()=>()=>{}},requireAuth:()=>{},profilePageCache:new Map(),PROFILE_WRITE_SECTIONS:new Set(['about','widgets','badges','links']),PROFILE_JSON_LIMIT:'36mb',PROFILE_DOCUMENT_LIMIT:32_000_000};vm.createContext(sandbox);
+ const sandbox={pool,app:{put:(path,...handlers)=>routes.set('PUT '+path,handlers.at(-1)),get:(path,...handlers)=>routes.set('GET '+path,handlers.at(-1))},express:{json:()=>()=>{}},requireAuth:()=>{},profilePageCache:new Map(),PROFILE_WRITE_SECTIONS:new Set(['about','widgets','badges','links']),PROFILE_JSON_LIMIT:'36mb',PROFILE_DOCUMENT_LIMIT:32_000_000,PROFILE_HISTORY_LIMIT:5};vm.createContext(sandbox);
  const start=source.indexOf('app.put("/api/profile",');const end=source.indexOf('\n});',start)+5;vm.runInContext(source.slice(start,end),sandbox);
  const hs=source.indexOf("app.get('/api/profile/history'");const he=source.indexOf('app.get("/api/profile/:handle"',hs);vm.runInContext(source.slice(hs,he),sandbox);
  async function request(route,body={},user=id,params={}){let status=200,value;const res={status(code){status=code;return this},set(){return this},json(data){value=data;return this}};await routes.get(route)({auth:{sub:user},body,params},res);return {status,value};}
@@ -36,5 +36,10 @@ test('profile updates archive raw documents transactionally; conflicts cannot er
  // sections the client omitted. This is the fallback older clients use.
  result=await request('PUT /api/profile',{data:{about:{bio:'replacement'}},baseRevision:5});assert.equal(result.status,200);assert.equal(result.value.revision,6);
  const full=await db.query('select data from profiles where user_id=$1',[id]);assert.equal(full.rows[0].data.about.bio,'replacement');assert.equal(full.rows[0].data.links.links[0].url,'https://example.org');
+ // History keeps only the newest five undo points for each account.
+ await db.exec(history);
+ const cappedId='00000000-0000-4000-8000-000000000003';await db.query('insert into users values($1)',[cappedId]);
+ for(let revision=1;revision<=7;revision++){result=await request('PUT /api/profile',{data:{about:{bio:`version ${revision}`}},baseRevision:revision-1,sections:['about']},cappedId);assert.equal(result.status,200);assert.equal(result.value.revision,revision);}
+ const capped=await request('GET /api/profile/history',{},cappedId);assert.equal(capped.value.history.length,5);assert.deepEqual(capped.value.history.map((row)=>Number(row.revision)),[6,5,4,3,2]);
  await db.close();
 });

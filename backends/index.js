@@ -128,6 +128,10 @@ const pool = new pg.Pool({
     : undefined,
 });
 
+/* Keep a few undo points, not an archive of every autosave. Profile documents
+   can contain embedded artwork, so old snapshots get expensive quickly. */
+const PROFILE_HISTORY_LIMIT = 5;
+
 const discordAutomation=createDiscordAutomation({pool,readSetting,writeSetting,token:DISCORD_BOT_TOKEN,defaultGuildId:DISCORD_GUILD_ID,applicationId:DISCORD_CLIENT_ID,onChange:()=>profilePageCache.clear()});
 
 const SCHEMA = `
@@ -215,6 +219,18 @@ async function initDb() {
   await pool.query(SCHEMA);
   await pool.query(AUDIO_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
+  // Trim history created before the limit existed, and keep the table small on
+  // every boot as well as after each save.
+  await pool.query(
+    `delete from profile_history ph using (
+       select user_id, revision,
+              row_number() over (partition by user_id order by revision desc) as place
+       from profile_history
+     ) ranked
+     where ph.user_id = ranked.user_id
+       and ph.revision = ranked.revision
+       and ranked.place > ${PROFILE_HISTORY_LIMIT}`,
+  ).catch((error) => console.error("[profile] history prune skipped:", error.message));
   // Databases created before admin-granted badges existed.
   await pool.query(
     "alter table users add column if not exists badges jsonb not null default '[]'::jsonb",
@@ -685,7 +701,6 @@ app.use(["/api/auth", "/api/billing"], (_req, res, next) => {
    costs a handle lookup, a document read and a badge query. A short in-memory
    cache keeps repeat visits off the database without making saves look stale. */
 const profilePageCache = new Map();
-const PROFILE_PAGE_TTL = 20_000;
 const PROFILE_WRITE_SECTIONS = new Set(["about", "widgets", "badges", "links"]);
 /* A profile embeds uploaded card art as data URLs, and the client allows a
    4 MB background video plus several 2.5 MB images. Base64 adds roughly a
@@ -780,7 +795,7 @@ app.put("/api/profile", express.json({ limit: PROFILE_JSON_LIMIT }), requireAuth
       await client.query('savepoint profile_history_archive');
       try{
         await client.query('insert into profile_history(user_id,revision,data,saved_at) values($1,$2,$3::jsonb,$4) on conflict do nothing',[req.auth.sub,current.revision,JSON.stringify(current.data),current.updated_at]);
-        await client.query('delete from profile_history where user_id=$1 and revision not in (select revision from profile_history where user_id=$1 order by revision desc limit 30)',[req.auth.sub]);
+        await client.query(`delete from profile_history where user_id=$1 and revision not in (select revision from profile_history where user_id=$1 order by revision desc limit ${PROFILE_HISTORY_LIMIT})`,[req.auth.sub]);
       }catch(error){
         await client.query('rollback to savepoint profile_history_archive');
         console.error('[profile] history archive skipped:', error.message);
@@ -1811,19 +1826,13 @@ app.get("/api/profile", requireAuth, async (req, res) => {
 
 /* The public page behind tourn.lol/<handle>. */
 app.get('/api/profile/history',requireAuth,async(req,res)=>{
- try{const {rows}=await pool.query(`select revision,saved_at,jsonb_array_length(coalesce(data->'widgets'->'widgets','[]'::jsonb)) as widgets,jsonb_array_length(coalesce(data->'links'->'links','[]'::jsonb)) as links from profile_history where user_id=$1 order by revision desc limit 30`,[req.auth.sub]);res.set('Cache-Control','no-store').json({history:rows});}catch{res.status(500).json({error:'Could not load profile history.'});}
+ try{const {rows}=await pool.query(`select revision,saved_at,jsonb_array_length(coalesce(data->'widgets'->'widgets','[]'::jsonb)) as widgets,jsonb_array_length(coalesce(data->'links'->'links','[]'::jsonb)) as links from profile_history where user_id=$1 order by revision desc limit ${PROFILE_HISTORY_LIMIT}`,[req.auth.sub]);res.set('Cache-Control','no-store').json({history:rows});}catch{res.status(500).json({error:'Could not load profile history.'});}
 });
 app.get('/api/profile/history/:revision',requireAuth,async(req,res)=>{
  try{if(!/^\d+$/.test(req.params.revision))return res.status(400).json({error:'Choose a saved revision.'});const {rows}=await pool.query('select data,revision,saved_at from profile_history where user_id=$1 and revision=$2',[req.auth.sub,req.params.revision]);if(!rows[0])return res.status(404).json({error:'Saved revision not found.'});res.set('Cache-Control','no-store').json(rows[0]);}catch{res.status(500).json({error:'Could not load that revision.'});}
 });
 app.get("/api/profile/:handle", async (req, res) => {
   try {
-    const key = String(req.params.handle ?? "").trim().toLowerCase();
-    const cached = profilePageCache.get(key);
-    if (cached && Date.now() - cached.at < PROFILE_PAGE_TTL) {
-      res.set("Cache-Control", "public, max-age=30");
-      return res.json(cached.body);
-    }
     const user = await userByHandle(req.params.handle);
     if (!user) return res.status(404).json({ error: "No profile with that handle." });
     const profile = await profileRow(user.id);
@@ -1833,9 +1842,7 @@ app.get("/api/profile/:handle", async (req, res) => {
       earned: await earnedBadges(user, profile),
       autoBadges: (await discordAutomation.syncUser(user)).equip,
     };
-    if (profilePageCache.size > 500) profilePageCache.clear();
-    profilePageCache.set(key, { at: Date.now(), body });
-    res.set("Cache-Control", "public, max-age=30");
+    res.set("Cache-Control", "no-store, max-age=0");
     res.json(body);
   } catch (error) {
     res.status(500).json({ error: error.message });

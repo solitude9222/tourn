@@ -60,6 +60,8 @@ export async function api<T = unknown>(
   try {
     await ensurePublicEnv();
     const res = await fetch(`${apiBase()}${path}`, {
+      // Profile reads must never be satisfied by an old browser/HTTP cache.
+      cache: "no-store",
       credentials: "include",
       headers: {
         Accept: "application/json",
