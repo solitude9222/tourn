@@ -722,8 +722,10 @@ function Site() {
         if (user.alias) clearCachedProfile(user.alias);
         if (user.alias2) clearCachedProfile(user.alias2);
         retryRef.current = 0;
-        const pending = loadPendingDocument(user.id);
-        if (pending && profileFingerprint(pending.document) === serialized) clearPendingDocument(user.id);
+        // The server has this exact document now. Clear both the localStorage
+        // and IndexedDB draft copies; a large profile often cannot fit in
+        // localStorage, and that used to leave the durable draft behind forever.
+        clearPendingDocument(user.id);
         window.dispatchEvent(new CustomEvent("tourn:toast", { detail: {
           title: "Profile published", message: "Your changes are live.",
         } }));

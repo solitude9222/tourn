@@ -1486,7 +1486,8 @@
   /* margin: auto centres the stack in the viewport when it fits and falls
      back to normal flow (fully scrollable) when it doesn't. */
   margin: auto;
-  padding: 28px 16px 24px;
+  /* Extra breathing room so a tilted card never clips on the scroll box. */
+  padding: clamp(38px, 5vw, 58px) clamp(20px, 3.5vw, 38px) clamp(30px, 4vw, 46px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
@@ -1674,47 +1675,75 @@
 
 /* The entry screen stays still until the visitor clicks it, then the picked
    animation reveals the profile. */
+/* The click animation honours the duration slider (default 760ms) and the
+   Animation layers multi-select: only the chosen layers animate out. */
 .lkr-entry.is-leaving {
   pointer-events: none;
-  animation: lkrEntryScreenOut 0.5s 0.16s ease both;
+  animation: lkrEntryScreenOut var(--lkr-entry-duration, 760ms) calc(var(--lkr-entry-duration, 760ms) * 0.2) ease both;
 }
 
-.lkr-entry.is-leaving .lkr-entry-content {
-  animation: lkrEntryContentOut 0.58s cubic-bezier(0.16, 1, 0.3, 1) both;
+.lkr-entry[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider) {
+  animation: lkrEntryContentOut var(--lkr-entry-duration, 760ms) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.lkr-entry.is-leaving .lkr-entry-bg {
-  animation: lkrEntryBgOut 0.64s ease both;
+.lkr-entry[data-layers~="image"].is-leaving .lkr-entry-visual {
+  animation: lkrEntryContentOut var(--lkr-entry-duration, 760ms) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.lkr-entry--bottom-right.is-leaving .lkr-entry-content {
+.lkr-entry[data-layers~="background"].is-leaving .lkr-entry-bg {
+  animation: lkrEntryBgOut calc(var(--lkr-entry-duration, 760ms) * 0.9) ease both;
+}
+
+.lkr-entry--bottom-right[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--bottom-right[data-layers~="image"].is-leaving .lkr-entry-visual {
   animation-name: lkrEntryOutBottomRight;
 }
 
-.lkr-entry--top-left.is-leaving .lkr-entry-content {
+.lkr-entry--top-left[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--top-left[data-layers~="image"].is-leaving .lkr-entry-visual {
   animation-name: lkrEntryOutTopLeft;
 }
 
-.lkr-entry--fade.is-leaving .lkr-entry-content {
+.lkr-entry--fade[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--fade[data-layers~="image"].is-leaving .lkr-entry-visual {
   animation-name: lkrEntryOutFade;
 }
 
-.lkr-entry--zoom.is-leaving .lkr-entry-content {
+.lkr-entry--zoom[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--zoom[data-layers~="image"].is-leaving .lkr-entry-visual {
   animation-name: lkrEntryOutZoom;
 }
 
-.lkr-entry--split.is-leaving .lkr-entry-content {
-  animation: lkrEntryContentOut 0.7s 0.04s cubic-bezier(0.16, 1, 0.3, 1) both;
+.lkr-entry--split[data-layers~="text"].is-leaving :is(.lkr-entry-title, .lkr-entry-sub, .lkr-entry-hint, .lkr-entry-divider),
+.lkr-entry--split[data-layers~="image"].is-leaving .lkr-entry-visual {
+  animation: lkrEntryContentOut calc(var(--lkr-entry-duration, 760ms) * 0.9) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.lkr-entry--split.is-leaving .lkr-split-half--top,
-.lkr-entry--split.is-leaving .lkr-image-half--top {
-  animation: lkrSplitOutTop 0.62s cubic-bezier(0.55, 0, 1, 0.45) both;
+.lkr-entry--split[data-layers~="text"].is-leaving .lkr-split-half--top,
+.lkr-entry--split[data-layers~="image"].is-leaving .lkr-image-half--top {
+  animation: lkrSplitOutTop calc(var(--lkr-entry-duration, 760ms) * 0.82) cubic-bezier(0.55, 0, 1, 0.45) both;
 }
 
-.lkr-entry--split.is-leaving .lkr-split-half--bottom,
-.lkr-entry--split.is-leaving .lkr-image-half--bottom {
-  animation: lkrSplitOutBottom 0.62s cubic-bezier(0.55, 0, 1, 0.45) both;
+.lkr-entry--split[data-layers~="text"].is-leaving .lkr-split-half--bottom,
+.lkr-entry--split[data-layers~="image"].is-leaving .lkr-image-half--bottom {
+  animation: lkrSplitOutBottom calc(var(--lkr-entry-duration, 760ms) * 0.82) cubic-bezier(0.55, 0, 1, 0.45) both;
+}
+
+/* The profile card opens underneath as the entry screen leaves. */
+@keyframes lkrCardOpen {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95) rotateX(4deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lkr-page:has(.lkr-entry.is-leaving) .lkr-primary {
+  animation: lkrCardOpen var(--lkr-entry-duration, 760ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center top;
 }
 
 .lkr-entry-sub {
@@ -2076,6 +2105,7 @@
    transform here means pointer movement never re-renders the profile tree. */
 .profile-preview--tilt {
   transform: perspective(1100px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transform-origin: center center;
   transform-style: preserve-3d;
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
   will-change: transform;
@@ -2362,9 +2392,9 @@
   position: absolute;
   width: var(--fx-spark);
   height: var(--fx-spark);
-  background: var(--fx-color-a);
+  background: var(--fx-color-b, var(--fx-color-a));
   clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%);
-  filter: drop-shadow(0 0 4px var(--fx-color-a));
+  filter: drop-shadow(0 0 4px var(--fx-color-b, var(--fx-color-a)));
   animation: fxSparkle 1.8s ease-in-out infinite;
 }
 
@@ -3043,6 +3073,45 @@
   background: linear-gradient(90deg, transparent, var(--fx-cursor-color));
 }
 
+.profile-cursor-trail--sparkle {
+  width: calc(var(--fx-cursor-size) * 0.42 * var(--fx-dot, 1));
+  height: calc(var(--fx-cursor-size) * 0.42 * var(--fx-dot, 1));
+  background: var(--fx-cursor-color);
+  clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%);
+  filter: drop-shadow(0 0 4px var(--fx-cursor-color));
+}
+
+.profile-cursor-trail--ribbon {
+  width: calc(var(--fx-cursor-size) * 1.2);
+  height: max(1px, calc(var(--fx-cursor-size) * 0.16));
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--fx-cursor-color) 65%, transparent),
+    var(--fx-cursor-color)
+  );
+}
+
+.profile-cursor-trail--stars {
+  width: calc(var(--fx-cursor-size) * 0.5 * var(--fx-dot, 1));
+  height: calc(var(--fx-cursor-size) * 0.5 * var(--fx-dot, 1));
+  background: var(--fx-cursor-color);
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 0 5px var(--fx-cursor-color));
+}
+
+.profile-cursor-trail--smoke {
+  width: calc(var(--fx-cursor-size) * 1.25 * var(--fx-dot, 1));
+  height: calc(var(--fx-cursor-size) * 1.25 * var(--fx-dot, 1));
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--fx-cursor-color) 70%, transparent),
+    transparent 70%
+  );
+  filter: blur(4px);
+}
+
 .profile-cursor--ring .profile-cursor-point {
   background: transparent;
   border: 2px solid var(--fx-cursor-color);
@@ -3063,6 +3132,11 @@
     linear-gradient(var(--fx-cursor-color), var(--fx-cursor-color)) center / 1px 100% no-repeat,
     linear-gradient(var(--fx-cursor-color), var(--fx-cursor-color)) center / 100% 1px no-repeat;
   border-radius: 0;
+  box-shadow: none;
+  /* drop-shadow follows the cross alpha, so the glow stops reading as a box. */
+  filter:
+    drop-shadow(0 0 3px color-mix(in srgb, var(--fx-cursor-color) 80%, transparent))
+    drop-shadow(0 0 9px color-mix(in srgb, var(--fx-cursor-color) 45%, transparent));
 }
 
 @media (hover: none) {
@@ -4153,18 +4227,7 @@
   opacity: 0.8;
 }
 
-/* The click animation honours the duration slider (default 760ms). */
-.lkr-entry.is-leaving {
-  animation-duration: var(--lkr-entry-duration, 760ms);
-}
-
-.lkr-entry.is-leaving .lkr-entry-content {
-  animation-duration: calc(var(--lkr-entry-duration, 760ms) * 0.85);
-}
-
-.lkr-entry.is-leaving .lkr-entry-bg {
-  animation-duration: calc(var(--lkr-entry-duration, 760ms) * 0.9);
-}
+/* Entry-layer timing is set in the .lkr-entry[data-layers] rules above. */
 
 /* ── load flicker: entrances move, they don't fade ──────────────────
    pvSettle used to start at opacity 0, so the card (and every widget and
@@ -4872,7 +4935,7 @@
 .fx-text--outline {color:transparent;-webkit-text-stroke:1px var(--fx-color-a);text-shadow:0 0 8px color-mix(in srgb,var(--fx-color-a) 35%,transparent);}
 .fx-text--metallic {color:transparent;background:linear-gradient(110deg,var(--fx-color-a) 30%,#fff 48%,var(--fx-color-b) 52%,var(--fx-color-a) 70%);background-size:240% 100%;background-clip:text;animation:fxAurora var(--fx-speed) linear infinite;}
 @keyframes fxAurora {to{background-position:240% 0;}}
-.fx-sparkles i {border-radius:0;clip-path:polygon(50% 0,60% 39%,100% 50%,60% 61%,50% 100%,40% 61%,0 50%,40% 39%);filter:drop-shadow(0 0 2px var(--fx-color-a));}
+.fx-sparkles i {border-radius:0;clip-path:polygon(50% 0,60% 39%,100% 50%,60% 61%,50% 100%,40% 61%,0 50%,40% 39%);background:var(--fx-color-b,var(--fx-color-a));filter:drop-shadow(0 0 2px var(--fx-color-b,var(--fx-color-a)));}
 .entry-divider {background:linear-gradient(90deg,transparent,var(--entry-divider-color,#fff),transparent);border:0;}
 .lkr-slideshow {height:100dvh;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scroll-behavior:smooth;touch-action:pan-y;scrollbar-width:thin;}
 .lkr-page .lkr-flow.lkr-flow--slideshow {padding-block:0;}
@@ -4896,3 +4959,82 @@
 .fx-sparkles::after {bottom:-5px;mask-position:30px 35px;animation-delay:-1.3s;background:var(--fx-color-b,#fff);}
 .fx-sparkles i {width:3px;height:3px;max-width:3px;max-height:3px;filter:drop-shadow(0 0 1px var(--fx-color-a));}
 @keyframes fxReferenceSparkle {0%{opacity:.15;transform:translateX(-1px)}50%{opacity:.8}100%{opacity:.3;transform:translateX(1px)}}
+
+/* Compact widget mode: two per row in every card layout, including left and
+   centered, and contents that stay readable instead of shrinking. */
+.lkr-page .lkr-widgets,
+.profile-preview .lkr-widgets {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.lkr-page .lkr-widgets > .widget-card.is-compact,
+.profile-preview .lkr-widgets > .widget-card.is-compact,
+.lkr-page .lkr-widgets > .widget-card.is-compact.widget-card--wide,
+.profile-preview .lkr-widgets > .widget-card.is-compact.widget-card--wide {
+  grid-column: span 1;
+}
+.lkr-page .widget-card.is-compact .widget-card-inner,
+.profile-preview .widget-card.is-compact .widget-card-inner {
+  gap: 12px;
+  padding: 17px;
+}
+.lkr-page .widget-card.is-compact .widget-card-avatar,
+.profile-preview .widget-card.is-compact .widget-card-avatar {
+  width: 48px;
+  height: 48px;
+}
+.lkr-page .widget-card.is-compact .widget-card-name b,
+.profile-preview .widget-card.is-compact .widget-card-name b {
+  font-size: 16.5px;
+}
+.lkr-page .widget-card.is-compact .widget-card-handle,
+.profile-preview .widget-card.is-compact .widget-card-handle {
+  font-size: 12.5px;
+}
+.lkr-page .widget-card.is-compact .widget-card-chip,
+.profile-preview .widget-card.is-compact .widget-card-chip {
+  font-size: 10px;
+  padding: 3px 7px;
+}
+.lkr-page .widget-card.is-compact .widget-card-tag,
+.profile-preview .widget-card.is-compact .widget-card-tag {
+  height: 18px;
+  font-size: 8px;
+}
+.pv-card-compact .widget-card {
+  min-height: 92px;
+  padding: 12px 13px;
+}
+.pv-card-compact .widget-card-avatar {
+  width: 46px;
+  height: 46px;
+}
+.pv-card-compact .widget-card-name b {
+  font-size: 15px;
+}
+.pv-card-compact .widget-card-handle {
+  font-size: 11.5px;
+}
+.pv-card-compact .widget-card-chip {
+  font-size: 10px;
+  padding: 3px 6px;
+}
+@media (max-width: 480px) {
+  .lkr-page .widget-card.is-compact .widget-card-inner,
+  .profile-preview .widget-card.is-compact .widget-card-inner {
+    gap: 10px;
+    padding: 13px;
+  }
+  .lkr-page .widget-card.is-compact .widget-card-avatar,
+  .profile-preview .widget-card.is-compact .widget-card-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .lkr-page .widget-card.is-compact .widget-card-name b,
+  .profile-preview .widget-card.is-compact .widget-card-name b {
+    font-size: 14.5px;
+  }
+  .lkr-page .widget-card.is-compact .widget-card-handle,
+  .profile-preview .widget-card.is-compact .widget-card-handle {
+    font-size: 11.5px;
+  }
+}

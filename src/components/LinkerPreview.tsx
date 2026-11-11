@@ -114,6 +114,7 @@ export function EntryOverlay({
       className={`lkr-entry lkr-entry--${entry.animation} lkr-entry--${entry.align}${leaving ? " is-leaving" : ""}${
         preview ? " lkr-entry--preview" : ""
       }`}
+      data-layers={(entry.layers ?? ["text", "image", "background"]).join(" ")}
       role={preview ? undefined : "button"}
       tabIndex={preview ? -1 : 0}
       aria-label={preview ? undefined : "Enter profile"}

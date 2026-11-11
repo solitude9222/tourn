@@ -687,11 +687,17 @@ app.use(["/api/auth", "/api/billing"], (_req, res, next) => {
 const profilePageCache = new Map();
 const PROFILE_PAGE_TTL = 20_000;
 const PROFILE_WRITE_SECTIONS = new Set(["about", "widgets", "badges", "links"]);
+/* A profile embeds uploaded card art as data URLs, and the client allows a
+   4 MB background video plus several 2.5 MB images. Base64 adds roughly a
+   third on top, so a legitimately customised page can pass 8 MB. Keep the
+   JSON parser and the stored-document guard aligned with that real ceiling. */
+const PROFILE_JSON_LIMIT = "36mb";
+const PROFILE_DOCUMENT_LIMIT = 32_000_000;
 
 registerAudioRoutes(app, pool, requireAuth);
 registerDataTransfer(app,pool,requireOwner,()=>profilePageCache.clear());
 
-app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req, res) => {
+app.put("/api/profile", express.json({ limit: PROFILE_JSON_LIMIT }), requireAuth, async (req, res) => {
   let client;
   try {
     if (req.body?.accountId && String(req.body.accountId) !== String(req.auth.sub)) {
@@ -747,7 +753,7 @@ app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req,
     }
 
     const serialized = JSON.stringify(merged);
-    if (serialized.length > 7_500_000) {
+    if (serialized.length > PROFILE_DOCUMENT_LIMIT) {
       await client.query("rollback");
       return res.status(413).json({ error: "That profile is too large — remove a big upload." });
     }
@@ -763,8 +769,17 @@ app.put("/api/profile", express.json({ limit: "8mb" }), requireAuth, async (req,
     }
 
     if(current){
-      await client.query('insert into profile_history(user_id,revision,data,saved_at) values($1,$2,$3::jsonb,$4) on conflict do nothing',[req.auth.sub,current.revision,JSON.stringify(current.data),current.updated_at]);
-      await client.query('delete from profile_history where user_id=$1 and revision not in (select revision from profile_history where user_id=$1 order by revision desc limit 30)',[req.auth.sub]);
+      // History is a convenience, not part of the published document. A
+      // missing/limited history table must never stop the profile itself from
+      // saving, so keep its work in a savepoint and roll only that back.
+      await client.query('savepoint profile_history_archive');
+      try{
+        await client.query('insert into profile_history(user_id,revision,data,saved_at) values($1,$2,$3::jsonb,$4) on conflict do nothing',[req.auth.sub,current.revision,JSON.stringify(current.data),current.updated_at]);
+        await client.query('delete from profile_history where user_id=$1 and revision not in (select revision from profile_history where user_id=$1 order by revision desc limit 30)',[req.auth.sub]);
+      }catch(error){
+        await client.query('rollback to savepoint profile_history_archive');
+        console.error('[profile] history archive skipped:', error.message);
+      }
     }
     const saved = await client.query(
       `insert into profiles (user_id, data, revision, updated_at)

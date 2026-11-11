@@ -47,6 +47,7 @@ export type AboutMetadata = {
 };
 
 export type EntryAnimation = "split" | "bottom-right" | "top-left" | "fade" | "zoom";
+export type EntryLayer = "text" | "image" | "background";
 
 export type EntrySettings = {
   enabled: boolean;
@@ -54,6 +55,8 @@ export type EntrySettings = {
   subtitle: string;
   imageUrl: string;
   animation: EntryAnimation;
+  /** Which entry-screen layers take part in the exit animation. */
+  layers: EntryLayer[];
   blur: number;
   /** Solid backdrop painted behind the entry content. */
   background: string;
@@ -263,6 +266,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
   subtitle: "",
   imageUrl: "",
   animation: "split",
+  layers: ["text", "image", "background"],
   blur: 8,
   background: "#07070a",
   backgroundImageUrl: "",
@@ -433,12 +437,17 @@ function loadEntry(input: unknown): EntrySettings {
   const animation = ENTRY_ANIMATIONS.some((item) => item.id === raw.animation)
     ? (raw.animation as EntryAnimation)
     : DEFAULT_ENTRY.animation;
+  const layerChoices: EntryLayer[] = ["text", "image", "background"];
+  const layers = Array.isArray(raw.layers)
+    ? layerChoices.filter((layer) => raw.layers!.includes(layer))
+    : DEFAULT_ENTRY.layers;
   return {
     enabled: boolIn(raw.enabled, DEFAULT_ENTRY.enabled),
     title: textIn(raw.title, DEFAULT_ENTRY.title, 48),
     subtitle: textIn(raw.subtitle, DEFAULT_ENTRY.subtitle, 96),
     imageUrl: textIn(raw.imageUrl, DEFAULT_ENTRY.imageUrl, 2_500_000),
     animation,
+    layers,
     blur: numberIn(raw.blur, DEFAULT_ENTRY.blur, 0, 40),
     background: validColor(raw.background, DEFAULT_ENTRY.background),
     backgroundImageUrl: textIn(raw.backgroundImageUrl, DEFAULT_ENTRY.backgroundImageUrl, 2_500_000),

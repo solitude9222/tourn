@@ -11,7 +11,7 @@ export type CardEffectId =
   | "frost";
 export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
 /** How the pointer trail is drawn. */
-export type CursorTrailType = "dots" | "line" | "glow" | "comet";
+export type CursorTrailType = "dots" | "line" | "glow" | "comet" | "sparkle" | "ribbon" | "stars" | "smoke";
 export type ProfileBackgroundStyle = "solid" | "gradient" | "image" | "video";
 /** Canvas background effects — the same twelve engines power both the
  *  behind-the-card layer and the above-everything overlay layer. */
@@ -620,15 +620,16 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       rotate: numberIn(decoration.rotate, 0, -180, 180),
     },
     cursor: {
-      // The preset cursors were replaced by a single uploaded image. Migrate
-      // old saved presets to either the custom image or the system cursor.
-      style: choiceIn(cursor.style, ["default", "dot", "ring", "crosshair", "glow", "custom"] as const, cursorImage ? "custom" : "default"),
+      // The preset cursors were replaced by a single uploaded image. Old saved
+      // presets migrate to the custom image when one exists, otherwise the
+      // system pointer.
+      style: cursorImage ? "custom" : "default",
       color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
       size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
       trail: boolIn(cursor.trail, DEFAULT_PROFILE_ASSETS.cursor.trail),
       trailType: choiceIn(
         cursor.trailType,
-        ["dots", "line", "glow", "comet"] as const,
+        ["dots", "line", "glow", "comet", "sparkle", "ribbon", "stars", "smoke"] as const,
         DEFAULT_PROFILE_ASSETS.cursor.trailType,
       ),
       trailLength: numberIn(cursor.trailLength, DEFAULT_PROFILE_ASSETS.cursor.trailLength, 1, 24),

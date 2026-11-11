@@ -16,7 +16,7 @@ import {
   type WidgetLive,
 } from "../lib/widgetLive";
 import { STATUS_COLORS } from "../lib/hooks";
-import { discordProfileBadges, discordBadges, type DiscordBadge } from "../lib/discord";
+import { discordProfileBadges, discordBadges, isDiscordUserId, type DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
 import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
 import { DiscordBadgeIcon, SettingsIcon, TrashIcon } from "./Icons";
@@ -293,7 +293,7 @@ export function WidgetCard({
 
   let displayed: string[] = [];
   try { const parsed = JSON.parse(String(widget.options.profile_badges || "[]")); if (Array.isArray(parsed)) displayed = parsed.filter((id): id is string => typeof id === "string"); } catch { /* no extra badges */ }
-  const extra = widget.platform === "discord" ? discordProfileBadges(0, null, displayed) : [];
+  const extra = widget.platform === "discord" && isDiscordUserId(widget.content) ? discordProfileBadges(0, null, displayed) : [];
   const live = result.data ? { ...result.data, badges: [...result.data.badges, ...extra.filter((badge) => !result.data!.badges.some((entry) => entry.art === badge.art))] } : null;
   if (!platform) return null;
 

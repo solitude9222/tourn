@@ -29,6 +29,7 @@ import { FileUpload,
   Field,
   Icon,
   LockedBlock,
+  MultiSelect,
   Select,
   Slider,
   TextInput,
@@ -46,6 +47,12 @@ const JOIN_FORMATS = [
 const DATE_FORMATS = [
   { value: "us", label: "US (12/23/2026)" },
   { value: "eu", label: "EU (23/12/2026)" },
+];
+
+const ENTRY_LAYERS = [
+  { value: "text", label: "Text" },
+  { value: "image", label: "Image" },
+  { value: "background", label: "Background" },
 ];
 
 const TITLE_ANIMATIONS = [
@@ -534,7 +541,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           <Slider label="Entry image size" value={entry.imageSize} min={24} max={250} suffix="px" onChange={(imageSize) => updateEntry({ imageSize })} />
           <Slider label="Entry image radius" value={entry.imageRadius} min={0} max={100} suffix="px" onChange={(imageRadius) => updateEntry({ imageRadius })} />
           <Slider label="Entry content gap" value={entry.contentGap} min={0} max={60} suffix="px" onChange={(contentGap) => updateEntry({ contentGap })} />
-          <Slider label="Entry transition duration" value={entry.animationDuration} min={100} max={2000} step={50} suffix="ms" onChange={(animationDuration) => updateEntry({ animationDuration })} />
           <div className="tw-inline-toggle"><b>Show once per session</b><Toggle label="Entry once per session" checked={entry.oncePerSession} onChange={(oncePerSession) => updateEntry({ oncePerSession })} /></div>
         </div></section>
         <div className="tw-subhead">Text</div>
@@ -551,6 +557,10 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           <Field label="Entry animation">
             <Select value={entry.animation} options={ENTRY_TRANSITIONS.map((animation) => ({ value: animation.id, label: animation.name }))} onChange={(value) => updateEntry({ animation: value as typeof entry.animation })} />
           </Field>
+          <Field label="Animation layers" hint="Choose which layers animate when the screen opens.">
+            <MultiSelect ariaLabel="Animation layers" value={entry.layers ?? []} options={ENTRY_LAYERS} placeholder="Choose layers" onChange={(layers) => updateEntry({ layers: layers as typeof entry.layers })} />
+          </Field>
+          <Slider label="Animation duration" value={entry.animationDuration} min={100} max={2000} step={50} suffix="ms" onChange={(animationDuration) => updateEntry({ animationDuration })} />
           <Field label="Text alignment">
             <Select
               value={entry.align}

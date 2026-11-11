@@ -1,4 +1,4 @@
-import { ADDITIONAL_DISCORD_BADGES } from "../../lib/discord";
+import { ADDITIONAL_DISCORD_BADGES, isDiscordUserId } from "../../lib/discord";
 import { useAuth } from "../../lib/auth";
 import "../widgetBadges.css";
 import "../widgetIcons.css";
@@ -47,12 +47,23 @@ const EXTRA_BADGE_GROUPS: { label: string; hint: string; ids: string[] }[] = [
 /* Extra display badges are a Discord-account feature only. The chooser stays
    locked (with a direct link to connect) for email-only accounts, and the
    widget still renders every native badge it can verify. */
-function DiscordBadgeChoices({ value, onChange }: { value: boolean | string | undefined; onChange: (value: string) => void }) {
+function DiscordBadgeChoices({ value, content, onChange }: { value: boolean | string | undefined; content: string; onChange: (value: string) => void }) {
   const { user } = useAuth();
   const { go } = useDash();
-  let selected: string[] = [];const details:Record<string,{stage:number;count:string}>={};
-  try {const parsed=JSON.parse(String(value||"[]"));if(Array.isArray(parsed))for(const item of parsed){if(typeof item!=="string")continue;const [id,stage,count]=item.split("~");selected.push(id);details[id]={stage:Math.max(1,Math.min(9,Number(stage)||1)),count:count||""};}}catch{}
-  const encode=(ids:string[],next=details)=>JSON.stringify(ids.map(id=>`${id}~${next[id]?.stage||1}~${next[id]?.count||""}`));
+  const selected: string[] = [];
+  const details: Record<string, { stage: number; count: string }> = {};
+  try {
+    const parsed = JSON.parse(String(value || "[]"));
+    if (Array.isArray(parsed)) for (const item of parsed) {
+      if (typeof item !== "string") continue;
+      const [id, stage, count] = item.split("~");
+      selected.push(id);
+      details[id] = { stage: Math.max(1, Number(stage) || 1), count: count || "" };
+    }
+  } catch { /* malformed saved option */ }
+  const encode = (ids: string[], next = details) => JSON.stringify(ids.map((id) => `${id}~${next[id]?.stage || 1}~${next[id]?.count || ""}`));
+  const setStage = (id: string, stage: number) => onChange(encode(selected, { ...details, [id]: { stage, count: details[id]?.count || "" } }));
+  const setCount = (id: string, count: string) => onChange(encode(selected, { ...details, [id]: { stage: details[id]?.stage || 1, count } }));
 
   if (!user?.discordLinked) {
     return (
@@ -67,9 +78,21 @@ function DiscordBadgeChoices({ value, onChange }: { value: boolean | string | un
     );
   }
 
+  if (!isDiscordUserId(content)) {
+    return (
+      <div className="tw-discord-badges-locked">
+        <span className="tw-discord-badges-lock" aria-hidden="true">✦</span>
+        <span className="tw-discord-badges-lock-copy">
+          <b>Discord user IDs only</b>
+          <small>Enter a Discord user ID (or a discord.com/users/… link) to choose extra badges. Server invites and bots do not have user profile badges.</small>
+        </span>
+      </div>
+    );
+  }
+
   return <details className="tw-extra-discord-badges">
     <summary><span>Additional Discord badges</span><span className="tw-extra-count">{selected.length} selected</span></summary>
-    <p className="tw-foot-note">Only Discord-linked accounts can use these. They are display choices, not verified Discord flags.</p>
+    <p className="tw-foot-note">Only Discord-linked accounts can use these. They are display choices, not verified Discord flags. Stages follow Discord's real badge progression.</p>
     <div className="tw-extra-badge-groups">{EXTRA_BADGE_GROUPS.map((group) => {
       const badges = ADDITIONAL_DISCORD_BADGES.filter((badge) => group.ids.includes(badge.id));
       if (!badges.length) return null;
@@ -79,7 +102,21 @@ function DiscordBadgeChoices({ value, onChange }: { value: boolean | string | un
         <div className="tw-extra-badge-grid">{badges.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(encode(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span><i aria-hidden="true" /></button>)}</div>
       </details>;
     })}</div>
-    <div className="tw-badge-stages">{selected.map(id=>{const badge=ADDITIONAL_DISCORD_BADGES.find(item=>item.id===id);if(!badge)return null;return <div className="tw-badge-stage" key={id}><b>{badge.label}</b><Field label="Stage"><Select value={String(details[id]?.stage||1)} options={Array.from({length:9},(_,i)=>({value:String(i+1),label:`Stage ${i+1}`}))} onChange={stage=>onChange(encode(selected,{...details,[id]:{stage:Number(stage),count:details[id]?.count||""}}))}/></Field><Field label="Custom number"><TextInput inputMode="numeric" value={details[id]?.count||""} maxLength={12} placeholder="Optional" onChange={event=>onChange(encode(selected,{...details,[id]:{stage:details[id]?.stage||1,count:event.target.value.replace(/[^0-9.,]/g,"")}}))}/></Field></div>;})}</div>
+    <div className="tw-badge-stages">{selected.map((id) => {
+      const badge = ADDITIONAL_DISCORD_BADGES.find((item) => item.id === id);
+      if (!badge) return null;
+      const stages = badge.stages;
+      const current = stages.find((stage) => stage.level === details[id]?.stage) ?? stages[0];
+      if (!current) return null;
+      return <div className="tw-badge-stage" key={id}>
+        <b>{badge.label}</b>
+        {stages.length > 1
+          ? <Field label="Stage"><Select ariaLabel={`${badge.label} stage`} value={String(current.level)} options={stages.map((stage) => ({ value: String(stage.level), label: `${stage.name} · ${stage.requirement}` }))} onChange={(stage) => setStage(id, Number(stage))} /></Field>
+          : <Field label="Tier"><span className="tw-badge-stage-single">{current.name}</span></Field>}
+        {badge.countLabel ? <Field label={badge.countLabel} hint={badge.countHint}><TextInput inputMode="numeric" value={details[id]?.count || ""} maxLength={12} placeholder={badge.countPlaceholder} onChange={(event) => setCount(id, event.target.value.replace(/[^0-9.,+]/g, ""))} /></Field> : null}
+        {stages.length <= 1 && !badge.countLabel ? <small className="tw-badge-stage-note">{current.requirement}. No evolution tiers.</small> : null}
+      </div>;
+    })}</div>
   </details>;
 }
 
@@ -621,7 +658,7 @@ export function WidgetsPage() {
                 onChange={(event) => setContent(event.target.value)}
               />
             </Field>
-            {configuring.id === "discord" ? <DiscordBadgeChoices value={addOptions.profile_badges} onChange={(profile_badges) => setAddOptions((current) => ({ ...current, profile_badges }))} /> : null}
+            {configuring.id === "discord" ? <DiscordBadgeChoices value={addOptions.profile_badges} content={content} onChange={(profile_badges) => setAddOptions((current) => ({ ...current, profile_badges }))} /> : null}
             <div className="tw-option-grid">
               {configuring.options.map((option) =>
                 option.type === "toggle" ? (
@@ -693,7 +730,7 @@ export function WidgetsPage() {
               />
             </Field>
 
-            {editing.platform === "discord" ? <DiscordBadgeChoices value={editing.options.profile_badges} onChange={(profile_badges) => { updateOption(editing.id, "profile_badges", profile_badges); setEditing({ ...editing, options: { ...editing.options, profile_badges } }); }} /> : null}
+            {editing.platform === "discord" ? <DiscordBadgeChoices value={editing.options.profile_badges} content={content} onChange={(profile_badges) => { updateOption(editing.id, "profile_badges", profile_badges); setEditing({ ...editing, options: { ...editing.options, profile_badges } }); }} /> : null}
             {(WIDGET_PLATFORM_BY_ID.get(editing.platform)?.options ?? []).map((option) =>
               option.type === "toggle" ? (
                 <div className="tw-inline-toggle" key={option.key}>

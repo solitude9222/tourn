@@ -212,5 +212,8 @@
 
 .tw-extra-badge-grid button,.tw-extra-badge-grid button[aria-pressed="true"] {background:transparent;}
 .tw-extra-badge-grid button[aria-pressed="true"] {border-color:#ffffff70;}
-.tw-badge-stage {display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 0;border-top:1px solid #ffffff12;}
+.tw-badge-stage {display:grid;grid-template-columns:minmax(0,1.35fr) minmax(140px,.8fr);align-items:end;gap:12px;padding:16px 0;border-top:1px solid #ffffff12;}
 .tw-badge-stage>b {grid-column:1/-1;}
+.tw-badge-stage-single {display:flex;min-height:34px;align-items:center;color:var(--title);font-size:12px;}
+.tw-badge-stage-note {grid-column:1/-1;color:var(--sub);font-size:10.5px;line-height:1.45;}
+@media (max-width:640px){.tw-badge-stage{grid-template-columns:minmax(0,1fr);}}
