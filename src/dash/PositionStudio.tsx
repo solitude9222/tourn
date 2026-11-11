@@ -11,37 +11,51 @@ type PositionPatch = {
   joinPosition?: MetadataPosition;
 };
 
+type Zone = {
+  id: MetadataPosition;
+  label: string;
+  group: "outside" | "inside" | "inline" | "card" | "hidden";
+};
+
 const FIELDS: { id: FieldId; label: string }[] = [
   { id: "views", label: "Views" },
   { id: "location", label: "Location" },
   { id: "join", label: "Joined" },
 ];
 
-const ZONES: { id: MetadataPosition; label: string; group: "outside" | "inside" | "inline" | "card" | "hidden" }[] = [
-  { id: "outside-top-left", label: "Outside TL", group: "outside" },
-  { id: "outside-top-right", label: "Outside TR", group: "outside" },
-  { id: "outside-bottom-left", label: "Outside BL", group: "outside" },
-  { id: "outside-bottom-right", label: "Outside BR", group: "outside" },
-  { id: "outside-above", label: "Above card", group: "outside" },
-  { id: "outside-below", label: "Below card", group: "outside" },
-  { id: "outside-left", label: "Left of card", group: "outside" },
-  { id: "outside-right", label: "Right of card", group: "outside" },
+const OUTSIDE_ZONES: Zone[] = [
+  { id: "outside-above", label: "Above", group: "outside" },
+  { id: "outside-below", label: "Below", group: "outside" },
+  { id: "outside-left", label: "Left", group: "outside" },
+  { id: "outside-right", label: "Right", group: "outside" },
+  { id: "outside-top-left", label: "Top left", group: "outside" },
+  { id: "outside-top-right", label: "Top right", group: "outside" },
+  { id: "outside-bottom-left", label: "Bottom left", group: "outside" },
+  { id: "outside-bottom-right", label: "Bottom right", group: "outside" },
+];
+
+const CORNER_ZONES: Zone[] = [
   { id: "inside-top-left", label: "Inside TL", group: "inside" },
   { id: "inside-top-right", label: "Inside TR", group: "inside" },
   { id: "inside-bottom-left", label: "Inside BL", group: "inside" },
   { id: "inside-bottom-right", label: "Inside BR", group: "inside" },
+];
+
+const CARD_ZONES: Zone[] = [
+  { id: "above-name", label: "Above name", group: "inline" },
+  { id: "beside-avatar", label: "By avatar", group: "inline" },
   { id: "next-to-name", label: "Next to name", group: "inline" },
   { id: "next-to-handle", label: "Next to handle", group: "inline" },
-  { id: "beside-avatar", label: "By avatar", group: "inline" },
-  { id: "above-name", label: "Above name", group: "inline" },
+  { id: "under-name", label: "Under name", group: "card" },
   { id: "below-bio", label: "Below bio", group: "inline" },
   { id: "top", label: "Card top", group: "card" },
   { id: "top-right", label: "Card top-right", group: "card" },
-  { id: "under-name", label: "Under name", group: "card" },
-  { id: "footer", label: "Card footer", group: "card" },
+  { id: "footer", label: "Footer", group: "card" },
   { id: "side", label: "Side rail", group: "card" },
-  { id: "hidden", label: "Hidden", group: "hidden" },
 ];
+
+const HIDDEN_ZONE: Zone = { id: "hidden", label: "Hidden", group: "hidden" };
+const ZONES: Zone[] = [...OUTSIDE_ZONES, ...CORNER_ZONES, ...CARD_ZONES, HIDDEN_ZONE];
 
 const PRESETS: { id: string; name: string; patch: PositionPatch }[] = [
   {
@@ -142,12 +156,44 @@ export function PositionStudio({
     </span>
   );
 
+  const zone = (item: Zone) => (
+    <div
+      key={item.id}
+      className={`pos-zone pos-zone--${item.group}`}
+      data-position={item.id}
+      role="button"
+      tabIndex={0}
+      aria-label={`Place detail in ${item.label}`}
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        const field = (event.dataTransfer.getData("text/plain") || dragging) as FieldId;
+        if (FIELDS.some((entry) => entry.id === field)) place(field, item.id);
+      }}
+      onClick={() => {
+        if (active) place(active, item.id);
+      }}
+      onKeyDown={(event) => {
+        if ((event.key === "Enter" || event.key === " ") && active) {
+          event.preventDefault();
+          place(active, item.id);
+        }
+      }}
+    >
+      <span className="pos-zone-label">{item.label}</span>
+      <span className="pos-zone-chips">{FIELDS.filter((field) => positionOf(field.id) === item.id).map(chip)}</span>
+    </div>
+  );
+
   return (
     <div className="pos-studio">
       <div className="pos-studio-head">
         <span className="pos-studio-copy">
           <b>Position preview</b>
-          <small>Drag each detail into a slot, or start from a preset.</small>
+          <small>Drag each detail into a slot on the card, or start from a preset.</small>
         </span>
         <div className="pos-studio-modes" role="group" aria-label="Position editor mode">
           <button
@@ -180,49 +226,33 @@ export function PositionStudio({
           </div>
 
           <div className={`pos-studio-canvas${dragging ? " is-dragging" : ""}`}>
-            <div className="pos-studio-card" aria-hidden="true">
-              <span className="pos-studio-avatar" />
-              <span className="pos-studio-lines">
-                <i />
-                <i />
-                <i />
-              </span>
-            </div>
-            <div className="pos-studio-zones">
-              {ZONES.map((zone) => (
-                <div
-                  key={zone.id}
-                  className={`pos-zone pos-zone--${zone.group}`}
-                  data-position={zone.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Place detail in ${zone.label}`}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = "move";
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    const field = (event.dataTransfer.getData("text/plain") || dragging) as FieldId;
-                    if (FIELDS.some((item) => item.id === field)) place(field, zone.id);
-                  }}
-                  onClick={() => {
-                    if (active) place(active, zone.id);
-                  }}
-                  onKeyDown={(event) => {
-                    if ((event.key === "Enter" || event.key === " ") && active) {
-                      event.preventDefault();
-                      place(active, zone.id);
-                    }
-                  }}
-                >
-                  <span className="pos-zone-label">{zone.label}</span>
-                  <span className="pos-zone-chips">
-                    {FIELDS.filter((field) => positionOf(field.id) === zone.id).map(chip)}
+            <div className="pos-outside-layer">{OUTSIDE_ZONES.map(zone)}</div>
+
+            <div className="pos-studio-card">
+              <div className="pos-scaffold" aria-hidden="true">
+                <div className="pos-scaffold-head">
+                  <span className="pos-scaffold-avatar" />
+                  <span className="pos-scaffold-ident">
+                    <b>your name</b>
+                    <i>@handle</i>
                   </span>
                 </div>
-              ))}
+                <span className="pos-scaffold-line" />
+                <span className="pos-scaffold-line pos-scaffold-line--short" />
+                <div className="pos-scaffold-widgets">
+                  <span />
+                  <span />
+                </div>
+              </div>
+
+              <div className="pos-corner-layer">{CORNER_ZONES.map(zone)}</div>
+              <div className="pos-slot-grid">{CARD_ZONES.map(zone)}</div>
             </div>
+          </div>
+
+          <div className="pos-bin">
+            <span className="pos-bin-copy">Take it off the card</span>
+            {zone(HIDDEN_ZONE)}
           </div>
           <p className="pos-studio-hint">Click a detail and then a slot, or drag it. Hidden takes it off the card.</p>
         </>
@@ -232,7 +262,7 @@ export function PositionStudio({
             <Field key={field.id} label={field.label}>
               <Select
                 value={positionOf(field.id)}
-                options={ZONES.map((zone) => ({ value: zone.id, label: zone.label === "Hidden" ? "Hidden" : zone.label }))}
+                options={ZONES.map((entry) => ({ value: entry.id, label: entry.label }))}
                 onChange={(value) => place(field.id, value as MetadataPosition)}
               />
             </Field>
