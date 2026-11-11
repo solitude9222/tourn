@@ -130,8 +130,6 @@ export type WidgetDesign = {
   radius: number;
   /** Space between cards in the stack, in px. */
   gap: number;
-  /** Overall card density — scales padding, type and the avatar. */
-  scale: number;
   /** Show the live meta chips (members, followers, scrobbles…). */
   showMeta: boolean;
   /** Show Discord's public-flag badges on the card. */
@@ -165,7 +163,6 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   backgroundBlur: 0,
   radius: 16,
   gap: 10,
-  scale: 1,
   showMeta: true,
   showBadges: true,
   outlineEffect: "none",
@@ -181,13 +178,6 @@ const baseOptions = (): WidgetOption[] => [
     hint: "Embed will place inside your profile card.",
     type: "toggle",
     default: true,
-  },
-  {
-    key: "compact",
-    label: "Compact Layout",
-    hint: "Embed will use a compact layout.",
-    type: "toggle",
-    default: false,
   },
 ];
 
@@ -958,7 +948,6 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
         backgroundBlur: clamp(rawDesign.backgroundBlur, DEFAULT_WIDGET_DESIGN.backgroundBlur, 0, 30),
         radius: clamp(rawDesign.radius, DEFAULT_WIDGET_DESIGN.radius, 0, 30),
         gap: clamp(rawDesign.gap, DEFAULT_WIDGET_DESIGN.gap, 0, 28),
-        scale: clamp(rawDesign.scale, DEFAULT_WIDGET_DESIGN.scale, 0.85, 1.15),
         showMeta: rawDesign.showMeta !== false,
         showBadges: rawDesign.showBadges !== false,
         outlineEffect: (["none", "trace", "march", "pulse", "glow"] as const).includes(

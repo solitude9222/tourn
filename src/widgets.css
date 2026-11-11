@@ -587,9 +587,6 @@
 .widget-card {
   position: relative;
   display: block;
-  /* Global card size from the widget appearance panel. zoom is layout-aware,
-     so the whole card shrinks or grows instead of overlapping its neighbours. */
-  zoom: var(--wg-scale, 1);
   /* Cards fill their column: the dashboard shows them wide, the public page
      caps them to the profile card width. */
   width: 100%;
@@ -1006,27 +1003,11 @@
   border-radius: 50%;
 }
 
-/* Compact keeps every piece of information — it only tightens the card. */
-.widget-card.is-compact .widget-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px 4px;
-}
-
-.widget-card.is-compact {
-  min-height: 0;
-}
-
 /* The platform chip no longer fills the bottom row, so a widget with no live
    meta would keep a fixed-height hole under its title. Let it size to its
    content instead. */
 .widget-card:not(:has(.widget-card-meta > *)) {
   min-height: 0;
-}
-
-.widget-card.is-compact .widget-card-avatar {
-  width: 40px;
-  height: 40px;
 }
 
 .widget-card-actions {
@@ -1865,16 +1846,12 @@
 
 .widget-card-presence-notice { position: relative; z-index: 2; color: #bac5d5; }
 
-/* Compact cards use half the row, independently of platform. */
+/* Shared widget rows. */
 .lkr-widgets,.home-real-widgets { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch; }
 .lkr-widgets>.widget-card,.home-real-widgets>.widget-card {grid-column:1/-1;min-width:0;width:100%;}
-.lkr-widgets>.widget-card.is-compact,.home-real-widgets>.widget-card.is-compact {grid-column:span 1;}
-.widget-card.is-compact .widget-card-inner {min-width:0;gap:10px;padding:14px;}
-.widget-card.is-compact .widget-card-copy {min-width:0;}
 .widget-card-scrim {opacity:var(--wg-scrim-opacity,1);}
 .widget-card.is-bare {background:transparent!important;backdrop-filter:none;}
 .widget-card.is-bare .widget-card-art,.widget-card.is-bare .widget-card-scrim {display:none;}
-@media(max-width:380px){.widget-card.is-compact .widget-card-avatar{width:30px;height:30px;}.widget-card.is-compact .widget-card-inner{padding:10px;gap:7px;}}
 
 .widget-staged-badge {display:inline-flex;align-items:center;gap:3px;}
 .widget-staged-badge small {font-size:9px;line-height:1;color:var(--wg-text);}

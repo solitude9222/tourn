@@ -709,13 +709,6 @@
   gap: 10px;
 }
 
-@media (max-width: 640px) {
-  .lkr-card-compact .lkr-stacked-widgets .lkr-widgets,
-  .pv-card-compact .lkr-widgets {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 .pv-card-compact .widget-card {
   min-height: 82px;
   padding: 10px 11px;
@@ -4765,8 +4758,6 @@
 /* Layouts have distinct geometry; later legacy resets must not flatten them. */
 .lkr-flow.lkr-flow--left { display: grid; grid-template-columns: minmax(0, 660px) minmax(250px, 360px); align-items: center; justify-content: center; gap: 24px; max-width: 1080px; margin: auto; }
 .lkr-flow--left > .profile-preview { width: 100%; }
-.lkr-side-widgets { min-width: 0; width: 100%; }
-.lkr-side-widgets .lkr-widgets { display: flex; flex-direction: column; }
 .lkr-flow.lkr-flow--centered { display: flex; flex-direction: column; max-width: 560px; gap: 24px; margin: auto; }
 .profile-preview.pv-layout-centered .pv-topline { flex-direction: column !important; align-items: center !important; text-align: center; }
 .profile-preview.pv-layout-centered .pv-head-text { text-align: center; align-items: center; width: 100%; }
@@ -4793,7 +4784,7 @@
 .profile-overlay--chromatic { box-shadow: inset 30px 0 90px #ff244477, inset -30px 0 90px #00cfff77; mix-blend-mode: screen; }
 @keyframes overlayGrain { to { background-position: 31px -17px; } }
 @keyframes overlayFog { to { transform: translate3d(6%, -3%, 0) scale(1.1); } }
-@media(max-width: 900px) { .lkr-flow.lkr-flow--left { display: flex; flex-direction: column; } .lkr-side-widgets { max-width: 660px; } }
+@media(max-width: 900px) { .lkr-flow.lkr-flow--left { display: flex; flex-direction: column; } }
 
 .profile-preview, .profile-preview .pv-id h3, .profile-preview .pv-bio, .profile-preview .pv-head-text { font-family: var(--pv-font, inherit); }
 .profile-preview.pv-card-compact .pv-avatar { width: var(--pv-avatar); height: var(--pv-avatar); }
@@ -4832,8 +4823,6 @@
 .lkr-flow > .profile-preview { max-width:100%; min-width:0; margin:0; }
 .lkr-flow--stacked > .profile-preview, .lkr-flow--centered > .profile-preview { width:100%; }
 .lkr-flow > .lkr-custom-section, .lkr-flow > .lkr-stack { grid-column:1 / -1; width:100%; min-width:0; margin:0; }
-.lkr-side-widgets { min-width:0; width:100%; }
-.lkr-side-widgets .lkr-widgets-block { margin:0; }
 .profile-preview { container-type:inline-size; }
 .profile-preview .pv-body { display:flex; flex-direction:column; gap:20px; padding:max(16px,var(--pv-pad,32px)); min-width:0; }
 .profile-preview .pv-body > * { min-width:0; max-width:100%; margin-block:0; }
@@ -4904,11 +4893,6 @@
   grid-column: auto;
 }
 
-@media (max-width: 640px) {
-  .lkr-card-compact .lkr-stacked-widgets .lkr-widgets {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 .lkr-flow--left .profile-preview .pv-head-text, .lkr-flow--left .profile-preview .pv-bio { text-align:left; }
 .lkr-flow--left .profile-preview .pv-id, .lkr-flow--left .profile-preview .pv-ident, .lkr-flow--left .profile-preview .pv-links-block .pv-link-icons { justify-content:flex-start; }
 .lkr-flow .lkr-audio { width:100%; }
@@ -4925,18 +4909,14 @@
 .profile-overlay--dotted { background-image:radial-gradient(circle,var(--overlay-color,#fff) .65px,transparent .9px); background-size:6px 6px; }
 
 
-/* Shared, predictable half-width widgets across every card layout. */
+/* Widgets always use the same two-up grid. A lone or odd last card fills the
+   row instead of leaving a hole. */
 .lkr-page .lkr-widgets,.profile-preview .lkr-widgets {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;}
-.lkr-page .lkr-widgets>.widget-card,.profile-preview .lkr-widgets>.widget-card {grid-column:1/-1;width:100%;min-width:0;max-width:none;}
-.lkr-page .lkr-widgets>.widget-card.is-compact,.profile-preview .lkr-widgets>.widget-card.is-compact {grid-column:span 1;}
-/* Compact card style is a two-up card even when the individual widgets keep
-   their normal detail. Only an odd last card takes the full row. */
-.lkr-card-compact .lkr-stacked-widgets .lkr-widgets>.widget-card,
-.lkr-card-compact .lkr-side-widgets .lkr-widgets>.widget-card,
-.profile-preview.pv-card-compact .lkr-widgets>.widget-card {grid-column:span 1;}
-.lkr-card-compact .lkr-stacked-widgets .lkr-widgets>.widget-card:last-child:nth-child(odd),
-.lkr-card-compact .lkr-side-widgets .lkr-widgets>.widget-card:last-child:nth-child(odd),
-.profile-preview.pv-card-compact .lkr-widgets>.widget-card:last-child:nth-child(odd) {grid-column:1/-1;}
+.lkr-page .lkr-widgets>.widget-card,.profile-preview .lkr-widgets>.widget-card {grid-column:span 1;width:100%;min-width:0;max-width:none;}
+.lkr-page .lkr-widgets>.widget-card:only-child,
+.profile-preview .lkr-widgets>.widget-card:only-child,
+.lkr-page .lkr-widgets>.widget-card:last-child:nth-child(odd),
+.profile-preview .lkr-widgets>.widget-card:last-child:nth-child(odd) {grid-column:1/-1;}
 .profile-preview .pv-links-block .pv-link-icons,.lkr-flow--left .profile-preview .pv-links-block .pv-link-icons {justify-content:center!important;width:100%;}
 .profile-preview .pv-beam-glow {background:radial-gradient(circle,var(--pv-card-fx-color),transparent 68%);}
 .fx-text--aurora {color:transparent;background:linear-gradient(110deg,var(--fx-color-a),var(--fx-color-b),var(--fx-color-a));background-size:240% 100%;background-clip:text;animation:fxAurora var(--fx-speed) linear infinite;}
@@ -4968,45 +4948,54 @@
 .fx-sparkles i {width:3px;height:3px;max-width:3px;max-height:3px;filter:drop-shadow(0 0 1px var(--fx-color-a));}
 @keyframes fxReferenceSparkle {0%{opacity:.15;transform:translateX(-1px)}50%{opacity:.8}100%{opacity:.3;transform:translateX(1px)}}
 
-/* Compact widget mode: two per row in every card layout, including left and
-   centered, and contents that stay readable instead of shrinking. */
-.lkr-page .lkr-widgets,
-.profile-preview .lkr-widgets {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.lkr-page .lkr-widgets > .widget-card.is-compact,
-.profile-preview .lkr-widgets > .widget-card.is-compact,
-.lkr-page .lkr-widgets > .widget-card.is-compact.widget-card--wide,
-.profile-preview .lkr-widgets > .widget-card.is-compact.widget-card--wide {
-  grid-column: span 1;
-}
-.lkr-page .widget-card.is-compact .widget-card-inner,
-.profile-preview .widget-card.is-compact .widget-card-inner {
+/* Fixed widget-card sizing for the public two-up grid. */
+.lkr-page .lkr-widgets > .widget-card .widget-card-inner,
+.profile-preview .lkr-widgets > .widget-card .widget-card-inner {
   gap: 12px;
   padding: 17px;
 }
-.lkr-page .widget-card.is-compact .widget-card-avatar,
-.profile-preview .widget-card.is-compact .widget-card-avatar {
+.lkr-page .lkr-widgets > .widget-card .widget-card-avatar,
+.profile-preview .lkr-widgets > .widget-card .widget-card-avatar {
   width: 48px;
   height: 48px;
 }
-.lkr-page .widget-card.is-compact .widget-card-name b,
-.profile-preview .widget-card.is-compact .widget-card-name b {
+.lkr-page .lkr-widgets > .widget-card .widget-card-name b,
+.profile-preview .lkr-widgets > .widget-card .widget-card-name b {
   font-size: 16.5px;
 }
-.lkr-page .widget-card.is-compact .widget-card-handle,
-.profile-preview .widget-card.is-compact .widget-card-handle {
+.lkr-page .lkr-widgets > .widget-card .widget-card-handle,
+.profile-preview .lkr-widgets > .widget-card .widget-card-handle {
   font-size: 12.5px;
 }
-.lkr-page .widget-card.is-compact .widget-card-chip,
-.profile-preview .widget-card.is-compact .widget-card-chip {
+.lkr-page .lkr-widgets > .widget-card .widget-card-chip,
+.profile-preview .lkr-widgets > .widget-card .widget-card-chip {
   font-size: 10px;
   padding: 3px 7px;
 }
-.lkr-page .widget-card.is-compact .widget-card-tag,
-.profile-preview .widget-card.is-compact .widget-card-tag {
+.lkr-page .lkr-widgets > .widget-card .widget-card-tag,
+.profile-preview .lkr-widgets > .widget-card .widget-card-tag {
   height: 18px;
   font-size: 8px;
+}
+@media (max-width: 480px) {
+  .lkr-page .lkr-widgets > .widget-card .widget-card-inner,
+  .profile-preview .lkr-widgets > .widget-card .widget-card-inner {
+    gap: 10px;
+    padding: 13px;
+  }
+  .lkr-page .lkr-widgets > .widget-card .widget-card-avatar,
+  .profile-preview .lkr-widgets > .widget-card .widget-card-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .lkr-page .lkr-widgets > .widget-card .widget-card-name b,
+  .profile-preview .lkr-widgets > .widget-card .widget-card-name b {
+    font-size: 15px;
+  }
+  .lkr-page .lkr-widgets > .widget-card .widget-card-handle,
+  .profile-preview .lkr-widgets > .widget-card .widget-card-handle {
+    font-size: 11.5px;
+  }
 }
 .pv-card-compact .widget-card {
   min-height: 92px;
@@ -5026,30 +5015,8 @@
   font-size: 10px;
   padding: 3px 6px;
 }
-@media (max-width: 480px) {
-  .lkr-page .widget-card.is-compact .widget-card-inner,
-  .profile-preview .widget-card.is-compact .widget-card-inner {
-    gap: 10px;
-    padding: 13px;
-  }
-  .lkr-page .widget-card.is-compact .widget-card-avatar,
-  .profile-preview .widget-card.is-compact .widget-card-avatar {
-    width: 40px;
-    height: 40px;
-  }
-  .lkr-page .widget-card.is-compact .widget-card-name b,
-  .profile-preview .widget-card.is-compact .widget-card-name b {
-    font-size: 14.5px;
-  }
-  .lkr-page .widget-card.is-compact .widget-card-handle,
-  .profile-preview .widget-card.is-compact .widget-card-handle {
-    font-size: 11.5px;
-  }
-}
-
 /* Left layout: the card and a real side rail. The rail owns out-of-card
-   widgets, metadata and audio, and keeps multiple widgets two-up instead of
-   turning the whole layout into one vertical column. */
+   metadata and audio; widgets stay inside the card. */
 .lkr-page .lkr-flow--left { width: 100%; max-width: 1100px; }
 .lkr-page .lkr-primary--left {
   display: grid;
@@ -5065,10 +5032,6 @@
 .lkr-page .lkr-primary--left > .profile-preview { width: 100%; max-width: 100%; margin: 0; }
 .lkr-page .lkr-primary--left > .lkr-stack { grid-column: 1 / -1; width: 100%; }
 .lkr-side { display: flex; flex-direction: column; gap: 14px; width: 100%; min-width: 0; }
-.lkr-side-widgets { width: 100%; min-width: 0; }
-.lkr-side-widgets .lkr-widgets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; }
-.lkr-side-widgets .lkr-widgets > .widget-card.is-compact { grid-column: span 1; min-width: 0; width: 100%; }
-.lkr-side-widgets .lkr-widgets > .widget-card:only-child { grid-column: 1 / -1; }
 .lkr-side-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .lkr-side-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--pv-border-color); border-radius: 999px; background: var(--pv-card); color: var(--pv-muted); font-size: 12px; line-height: 1; backdrop-filter: blur(var(--pv-blur)); }
 .lkr-side-audio { width: 100%; }

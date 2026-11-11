@@ -324,10 +324,10 @@ export function LinkerPreview({
   const requestedAudioPosition = design.audioPosition === "hidden" ? "hidden" : assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
   const audioPosition = design.layout === "stacked" && requestedAudioPosition === "inside" ? "below" : design.layout !== "left" && requestedAudioPosition === "side" ? "below" : requestedAudioPosition;
   const requestedWidgetsPosition = design.widgetsPosition ?? "auto";
-  const widgetsPosition = requestedWidgetsPosition === "auto" ? (design.layout === "stacked" ? "below" : design.layout === "left" ? "side" : "inside") : requestedWidgetsPosition;
+  const widgetsPosition = requestedWidgetsPosition === "auto" ? (design.layout === "stacked" ? "below" : "inside") : requestedWidgetsPosition;
   // Stacked has always kept widgets under the card; preserve that even when a
   // profile saved its placement before the setting existed.
-  const effectiveWidgetsPosition = design.layout === "stacked" ? "below" : design.layout !== "left" && widgetsPosition === "side" ? "below" : widgetsPosition;
+  const effectiveWidgetsPosition = design.layout === "stacked" ? "below" : widgetsPosition;
   const profileCard = (includeWidgets = true) => (
     <ProfilePreview
       user={user}
@@ -356,7 +356,6 @@ export function LinkerPreview({
   const hasTrack =
     !hideAudio && audioPosition !== "hidden" && about.assets.audio.style !== "none" && Boolean(about.assets.audio.fileUrl);
 
-  const showWidgetsSide = design.layout === "left" && effectiveWidgetsPosition === "side" && orderedWidgets.length > 0;
   const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
   const showAudioSide = design.layout === "left" && audioPosition === "side" && hasTrack;
   const showAudioBelow = audioPosition === "below" && hasTrack;
@@ -371,10 +370,9 @@ export function LinkerPreview({
       {sideLocation && about.location.trim() ? <span className="lkr-side-pill"><PinIcon size={12} />{about.location.trim()}</span> : null}
     </div>
   ) : null;
-  const hasSide = showWidgetsSide || hasSideMeta || showAudioSide;
+  const hasSide = hasSideMeta || showAudioSide;
   const sideRail = hasSide ? (
     <aside className="lkr-side" aria-label="Profile extras">
-      {showWidgetsSide ? <div className="lkr-side-widgets">{widgetStack}</div> : null}
       {sideMeta}
       {showAudioSide ? <div className="lkr-side-audio"><AudioPlayer settings={about.assets.audio} enabled={!entryOpen} /></div> : null}
     </aside>

@@ -101,7 +101,6 @@ function WidgetCardSurface({
   const supported = widgetSupportsLive(platform.id);
   const hasArt = design.backgroundStyle === "art" && Boolean(live?.art);
   const background = hasArt ? "art" : design.backgroundStyle === "art" ? "frosted" : design.backgroundStyle;
-  const compact = widget.options.compact === true;
   // A widget with no surface of its own still has a readable version — the
   // card stays transparent and relies on its own type and chips.
   const bare = design.backgroundOpacity === 0;
@@ -145,7 +144,6 @@ function WidgetCardSurface({
     "--wg-blur": `${design.backgroundBlur}px`,
     "--wg-radius": `${design.radius}px`,
     "--wg-brand": platform.color,
-    "--wg-scale": design.scale,
     "--wg-edge": design.outlineColor,
     "--wg-edge-speed": `${design.outlineSpeed || 4}s`,
   } as CSSProperties;
@@ -155,8 +153,7 @@ function WidgetCardSurface({
       className={`widget-card widget-card--bg-${background}${hasArt ? " has-art" : ""}${
         live?.status ? ` is-${live.status}` : ""
       }${loading && !live ? " is-loading" : ""}${error ? " has-error" : ""}${
-        compact ? " is-compact" : ""
-      }${bare ? " is-bare" : ""}${preview ? " widget-card--preview" : ""}${
+        bare ? " is-bare" : ""}${preview ? " widget-card--preview" : ""}${
         design.outlineEffect && design.outlineEffect !== "none"
           ? ` has-edge-${design.outlineEffect}`
           : ""

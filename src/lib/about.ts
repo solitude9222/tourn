@@ -25,7 +25,7 @@ export type JoinPosition = "footer" | "under-name" | "side" | "hidden";
 /** Where the location pill sits. */
 export type LocationPosition = "top" | "under-name" | "footer" | "side" | "hidden";
 /** Where the widget cards sit relative to the profile card. */
-export type WidgetsPosition = "auto" | "inside" | "side" | "below";
+export type WidgetsPosition = "auto" | "inside" | "below";
 
 /** Browser-tab behaviour for the public page. */
 export type TabAnimation = "none" | "cycle" | "typewriter";
@@ -514,7 +514,7 @@ function loadDesign(input: unknown): AboutDesign {
     slideshow: raw.slideshow === true,
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "side", "popup", "fixed-bottom", "hidden"] as const, "auto"),
-    widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "side", "below"] as const, "auto"),
+    widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
       const item = section as Partial<ProfileSection>;
       const kind: ProfileSectionKind = item.kind === "project" || item.kind === "anime" || item.kind === "game" ? item.kind : "text";

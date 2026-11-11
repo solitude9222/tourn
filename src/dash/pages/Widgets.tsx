@@ -539,14 +539,6 @@ export function WidgetsPage() {
             <div className="tw-subhead">Stack</div>
             <div className="tw-form-grid">
               <Slider
-                label="Card size"
-                value={Math.round(design.scale * 100)}
-                min={85}
-                max={115}
-                suffix="%"
-                onChange={(value) => setDesign({ scale: value / 100 })}
-              />
-              <Slider
                 label="Spacing"
                 value={design.gap}
                 min={0}
