@@ -180,9 +180,9 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
 }
 
 export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
-  return <section className="page"><div className="wrap page-head" data-reveal>
-    <span className="eyebrow eyebrow--sm">THE TOURN MARKETPLACE</span><h1 className="page-title">Small name. <span className="accent">Big presence.</span></h1>
-    <p className="page-sub">Rare usernames, straight from Tourn. Find your favorite and make it part of your profile.</p>
+  return <section className="page marketplace-page"><div className="wrap page-head" data-reveal>
+    <h1 className="page-title">Marketplace<span className="market-title-dot">.</span></h1>
+    <p className="page-sub">A new username for your profile.</p>
   </div><div className="wrap"><UsernameMarket onSignUp={onSignUp}/></div></section>;
 }
 
