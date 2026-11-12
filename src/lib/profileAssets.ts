@@ -30,7 +30,7 @@ export type BackgroundEffectId =
   | "dust"
   | "leaf";
 export type OverlayEffectId = BackgroundEffectId | "dotted" | "grain" | "scanlines" | "vignette" | "bloom" | "fog" | "chromatic" | "custom";
-export type AudioStyle = "none" | "compact" | "lyrics" | "pill" | "popup";
+export type AudioStyle = "none" | "compact" | "lyrics" | "pill" | "popup" | "vinyl";
 export type TextEffectId =
   | "none"
   | "rgb"
@@ -480,6 +480,7 @@ export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
   { id: "compact", name: "Compact", hint: "One row: cover, title, transport, progress" },
   { id: "lyrics", name: "Lyrics", hint: "Custom or auto-fetched lyrics that follow playback" },
   { id: "pill", name: "Pill", hint: "A long bar with cover art and a track name that glides back and forth" },
+  { id: "vinyl", name: "Vinyl", hint: "A record in the card edge, spinning while it plays" },
   { id: "popup", name: "Popup", hint: "A collapsible music player in the top-left corner" },
 ];
 
@@ -557,11 +558,11 @@ function loadAudio(value: unknown): AudioSettings {
   void raw.source;
   void raw.trackUrl;
   return {
-    // Profiles saved with the old marquee/vinyl players land on the compact
-    // one instead of silently losing their track.
+    // Profiles saved with the old marquee player land on the pill it became;
+    // the vinyl player is supported again.
     style: choiceIn(
-      String(raw.style) === "marquee" || String(raw.style) === "vinyl"
-        ? "compact"
+      String(raw.style) === "marquee"
+        ? "pill"
         : raw.style,
       AUDIO_STYLES.map((item) => item.id),
       DEFAULT_PROFILE_ASSETS.audio.style,

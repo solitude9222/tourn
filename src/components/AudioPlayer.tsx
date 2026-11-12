@@ -282,6 +282,58 @@ export function AudioPlayer({
     </span>
   );
 
+  if (settings.style === "vinyl") {
+    // The record spins only while the track is actually playing, and the
+    // current lyric (custom or auto) rides under the artist line.
+    const currentLine =
+      (syncedLines.length && activeLine >= 0 ? syncedLines[activeLine]?.text : null) ??
+      plainFallback?.split("\n").find(Boolean) ??
+      null;
+
+    return (
+      <div
+        ref={musicTilt.ref}
+        onPointerMove={tilt > 0 ? musicTilt.onPointerMove : undefined}
+        onPointerLeave={tilt > 0 ? musicTilt.onPointerLeave : undefined}
+        className={`ap ap--vinyl ap-edge-${settings.edgeEffect}${tilt > 0 ? " has-tilt" : ""}`}
+        style={cardStyle}
+      >
+        {audioEl}
+        <span className={`ap-vinyl-disc${playing ? " is-spinning" : ""}`}>
+          <span className="ap-vinyl-label">{coverNode}</span>
+        </span>
+        <div className="ap-vinyl-copy">
+          <b>{title}</b>
+          <small>{artist || "Uploaded track"}</small>
+          {currentLine ? <em className="ap-vinyl-lyric">{currentLine}</em> : null}
+          <div
+            className="ap-progress is-seekable"
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              seekToFraction((event.clientX - rect.left) / rect.width);
+            }}
+          >
+            <span
+              className="ap-progress-fill"
+              style={{ width: `${duration ? (position / duration) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
+        <div className="ap-transport">
+          <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
+            <SkipBackIcon size={13} />
+          </button>
+          <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
+            {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
+          </button>
+          <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">
+            <SkipForwardIcon size={13} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (settings.style === "popup") {
     return       <div
         ref={musicTilt.ref}

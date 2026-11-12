@@ -991,27 +991,35 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   overflow: hidden;
 }
 
+/* Live details read as one line of text: no pill, no plate, no blur. */
 .widget-card-chip {
   display: inline-flex;
-  max-width: 156px;
+  max-width: 190px;
   min-width: 0;
   align-items: center;
   gap: 4px;
-  padding: 3px 6px;
+  padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.24);
-  color: #c3cdd5;
-  font-size: 8.5px;
-  line-height: 1.15;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #bac5cd;
+  font-size: 9px;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-  backdrop-filter: blur(6px);
+  backdrop-filter: none;
+}
+
+/* A quiet dot between details, so the row still reads as separate facts. */
+.widget-card-chip + .widget-card-chip::before {
+  content: "·";
+  margin-right: 2px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .widget-card-chip i {
@@ -1766,9 +1774,10 @@
   color: #8f98a2;
 }
 
+/* Keep the meta row plain text — no plate, no border. */
 .widget-card-chip {
-  border-color: rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.045);
+  border: 0;
+  background: none;
   color: #aeb6bf;
 }
 

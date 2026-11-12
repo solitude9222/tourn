@@ -127,9 +127,9 @@ function WidgetCardSurface({
       : `Add ${platform.contentLabel.toLowerCase()}`);
   // Discord exposes a lot of raw presence fields; one line keeps the card
   // readable instead of turning it into a wall of labels.
-  const meta = design.showMeta
-    ? (live?.meta.filter(Boolean).slice(0, platform.id === "discord" ? 2 : 3) ?? [])
-    : [];
+  // Every live detail the platform gives us is useful — the row is plain text
+  // now, so it can breathe instead of being cut to two chips.
+  const meta = design.showMeta ? (live?.meta.filter(Boolean).slice(0, 5) ?? []) : [];
 
   const style = {
     "--wg-border-color": hexToRgba(design.borderColor, design.borderOpacity),

@@ -11,6 +11,8 @@ import {
 import { DEFAULT_SETTINGS, FEATURED_TRACK } from "../config";
 import { ProfileCard } from "./ProfileCard";
 import { BADGE_CATALOGUE } from "../lib/badges";
+import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
+import { AudioPlayer } from "./AudioPlayer";
 import { Tooltip } from "./Tooltip";
 import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
 import {
@@ -22,13 +24,8 @@ import {
   DiscIcon,
   DiscordIcon,
   ExternalIcon,
-  PauseIcon,
-  PlayIcon,
-  SkipBackIcon,
-  SkipForwardIcon,
   SpotifyIcon,
   UsersIcon,
-  VolumeIcon,
 } from "./Icons";
 import "../home.css";
 
@@ -48,13 +45,6 @@ const HOME_WIDGETS: WidgetInstance[] = [
     content: FEATURED_TRACK.id,
     visible: true,
     options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("spotify")!),
-  },
-  {
-    id: "home-github",
-    platform: "github",
-    content: "1546745348020772915",
-    visible: true,
-    options: defaultWidgetOptions(WIDGET_PLATFORM_BY_ID.get("github")!),
   },
   {
     id: "home-steam",
@@ -80,7 +70,6 @@ const PLATFORM_STRIP = [
   "discord",
   "spotify",
   "steam",
-  "github",
   "roblox",
   "twitch",
   "valorant",
@@ -249,133 +238,6 @@ export function BentoSection({
 
 /* ----------------------------------------------------------------- audio */
 
-function Equalizer() {
-  return (
-    <span className="hm-eq" aria-hidden="true">
-      <i />
-      <i />
-      <i />
-      <i />
-    </span>
-  );
-}
-
-function AudioPreview({ style }: { style: AudioStyleId }) {
-  const track = FEATURED_TRACK;
-  const spotifyHref = `https://open.spotify.com/track/${track.id}`;
-
-  if (style === "marquee") {
-    return (
-      <div className="hm-audio-marquee">
-        <span className="hm-audio-play" aria-hidden="true">
-          <PlayIcon size={11} />
-        </span>
-        <span className="hm-audio-marquee-track">
-          <span>
-            {track.artist} · {track.title} · {track.artist} · {track.title}
-          </span>
-        </span>
-        <span className="hm-audio-volume" aria-hidden="true">
-          <VolumeIcon size={15} />
-        </span>
-      </div>
-    );
-  }
-
-  if (style === "vinyl") {
-    return (
-      <div className="hm-audio-vinyl">
-        <span className="hm-vinyl" aria-hidden="true">
-          <img src={track.art} alt="" />
-        </span>
-        <div className="hm-audio-vinyl-copy">
-          <div className="hm-audio-vinyl-head">
-            <div>
-              <b>{track.title}</b>
-              <small>{track.artist}</small>
-            </div>
-            <span className="hm-audio-controls" aria-hidden="true">
-              <SkipBackIcon size={12} />
-              <span className="hm-audio-pause">
-                <PauseIcon size={10} />
-              </span>
-              <SkipForwardIcon size={12} />
-            </span>
-          </div>
-          <em>I am sweeter than any valentine rose</em>
-          <span className="hm-audio-bar">
-            <i style={{ width: "36%" }} />
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  if (style === "lyrics") {
-    return (
-      <div className="hm-audio-lyrics">
-        <span className="hm-audio-lyrics-bg" aria-hidden="true" />
-        <div className="hm-audio-lyrics-inner">
-          <div className="hm-audio-lyrics-head">
-            <img src={track.art} alt="" />
-            <div>
-              <b>{track.title}</b>
-              <small>{track.artist}</small>
-            </div>
-            <span className="hm-audio-time">1:18 / 6:56</span>
-          </div>
-          <span className="hm-audio-bar">
-            <i style={{ width: "19%" }} />
-          </span>
-          <div className="hm-audio-lyric-lines">
-            <p className="is-dim">She said, early tomorrow, I will call for you</p>
-            <p className="is-current">I am sweeter than any valentine rose</p>
-            <p className="is-dim">I said, no my dear, I won't wait for you</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="hm-audio-compact">
-      <a
-        className="hm-audio-cover"
-        href={spotifyHref}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={`Open ${track.title} on Spotify`}
-      >
-        <img src={track.art} alt="" />
-      </a>
-      <div className="hm-audio-copy">
-        <div className="hm-audio-title">
-          <Equalizer />
-          <b>{track.title}</b>
-        </div>
-        <small>
-          {track.artist} · {track.album}
-        </small>
-        <span className="hm-audio-bar">
-          <i style={{ width: "41%" }} />
-        </span>
-        <span className="hm-audio-times">
-          <span>1:18</span>
-          <span>6:56</span>
-        </span>
-      </div>
-      <div className="hm-audio-transport" aria-hidden="true">
-        <VolumeIcon size={14} />
-        <SkipBackIcon size={13} />
-        <span className="hm-audio-pause">
-          <PauseIcon size={11} />
-        </span>
-        <SkipForwardIcon size={13} />
-      </div>
-    </div>
-  );
-}
-
 export function AudioSection() {
   const [style, setStyle] = useState<AudioStyleId>("compact");
   const active = AUDIO_STYLES.find((entry) => entry.id === style) ?? AUDIO_STYLES[0];
@@ -408,7 +270,23 @@ export function AudioSection() {
           </div>
           <p className="hm-audio-caption">{active.caption}</p>
           <div className={`hm-audio-frame hm-audio-frame--${style}`} key={style}>
-            <AudioPreview style={style} />
+            <AudioPlayer
+              settings={{
+                ...DEFAULT_PROFILE_ASSETS.audio,
+                // "Marquee" is the pill player's scrolling title strip.
+                style: style === "marquee" ? "pill" : style,
+                fileUrl: "/audio/preview.mp3",
+                coverUrl: FEATURED_TRACK.art,
+                title: FEATURED_TRACK.title,
+                artist: FEATURED_TRACK.artist,
+                volume: 0.35,
+                autoplay: false,
+                loop: true,
+                autoLyrics: false,
+                lyrics:
+                  "[00:00.00]A quiet pad, fading in\n[00:07.00]Every note plays from your own upload\n[00:14.00]Lyrics follow the track line by line\n[00:21.00]Pick a style and it is live",
+              }}
+            />
           </div>
         </div>
       </div>

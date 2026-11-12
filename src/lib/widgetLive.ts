@@ -580,10 +580,23 @@ async function spotifyLive(input: string, signal: AbortSignal): Promise<WidgetLi
     if (id === FEATURED_TRACK.id && !signal.aborted) return { id, title: `${FEATURED_TRACK.title} - ${FEATURED_TRACK.artist}`, image: FEATURED_TRACK.art };
     throw error;
   });
+  const featured = id === FEATURED_TRACK.id;
+  const minutes = Math.floor(FEATURED_TRACK.duration / 60);
+  const seconds = String(FEATURED_TRACK.duration % 60).padStart(2, "0");
+
   return {
     title: track.title,
     subtitle: "Spotify track",
-    meta: ["Open on Spotify"],
+    // The featured demo track carries its full public metadata, so the card
+    // reads like a real record instead of a single "open" link.
+    meta: featured
+      ? [
+          FEATURED_TRACK.artist,
+          FEATURED_TRACK.album,
+          FEATURED_TRACK.year,
+          `${minutes}:${seconds}`,
+        ]
+      : ["Open on Spotify"],
     avatar: track.image,
     decoration: null,
     banner: null,
