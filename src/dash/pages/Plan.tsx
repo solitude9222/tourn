@@ -2,8 +2,11 @@
    Premium and Billing.
    --------------------------------------------------------------------------- */
 
+import { useState } from "react";
+import { post } from "../../lib/backend";
+import { useAuth } from "../../lib/auth";
 import { useDash } from "../context";
-import { Button, Card, CardHead, Chip, EmptyState, Icon } from "../ui";
+import { Button, Card, CardHead, Chip, EmptyState, Field, Icon, TextInput } from "../ui";
 
 export function PremiumPage() {
   const { isPremium, go, notify } = useDash();
@@ -96,7 +99,7 @@ export function PremiumPage() {
           ))}
         </div>
         <p className="tw-foot-note">
-          Upgrade through secure Stripe checkout on the pricing page. Marketplace usernames are separate purchases.
+          Premium is a one-time $9.99 purchase through SellAuth on the pricing page. Marketplace usernames are separate purchases.
         </p>
         <div className="tw-row" style={{ marginTop: 12 }}>
           <Button variant="primary" icon="external" onClick={() => (window.location.hash = "#/premium")}>
@@ -112,7 +115,35 @@ export function PremiumPage() {
 }
 
 export function BillingPage() {
-  const { user, isPremium, go } = useDash();
+  const { user, isPremium, go, notify } = useDash();
+  const { retryAuth } = useAuth();
+  const [code, setCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+
+  /* SellAuth delivers a one-use TOURN code with every order. Redeeming it here
+     is the fallback path when the order couldn't be matched to this account
+     automatically (checkout as a guest, a different browser, a gift). */
+  const redeem = async () => {
+    if (!code.trim() || redeeming) return;
+    setRedeeming(true);
+    const result = await post<{ reward: { kind: string; handle: string | null } }>(
+      "/api/commerce/redeem",
+      { code },
+    );
+    setRedeeming(false);
+    if (!result.ok) {
+      notify("Couldn't redeem", result.error);
+      return;
+    }
+    setCode("");
+    await retryAuth();
+    notify(
+      "Code redeemed",
+      result.data.reward.kind === "premium"
+        ? "Premium is now active on this account."
+        : `@${result.data.reward.handle} is now yours.`,
+    );
+  };
 
   return (
     <>
@@ -130,12 +161,12 @@ export function BillingPage() {
             <b>{isPremium ? "Premium" : "Free"}</b>
           </div>
           <div>
-            <small>Billing cycle</small>
-            <b>{isPremium ? "Monthly" : "—"}</b>
+            <small>Purchase</small>
+            <b>{isPremium ? "One-time · $9.99" : "—"}</b>
           </div>
           <div>
-            <small>Next payment</small>
-            <b>{isPremium ? "Managed in checkout" : "—"}</b>
+            <small>Renewal</small>
+            <b>{isPremium ? "Never expires" : "—"}</b>
           </div>
           <div>
             <small>Account</small>
@@ -154,7 +185,30 @@ export function BillingPage() {
       </Card>
 
       <Card>
-        <CardHead icon="chart" title="Invoices" subtitle="Receipts appear here after a payment." />
+        <CardHead
+          icon="key"
+          title="Redeem a code"
+          subtitle="Paid on SellAuth? Paste the TOURN code from your order if Premium didn't switch on by itself."
+        />
+        <Field label="Purchase code" hint="Looks like TOURN-0F2A…, 32 characters after the dash.">
+          <TextInput
+            value={code}
+            placeholder="TOURN-"
+            onChange={(event) => setCode(event.target.value.toUpperCase())}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void redeem();
+            }}
+          />
+        </Field>
+        <div className="tw-row" style={{ marginTop: 12 }}>
+          <Button variant="primary" icon="key" disabled={!code.trim() || redeeming} onClick={() => void redeem()}>
+            {redeeming ? "Redeeming…" : "Redeem code"}
+          </Button>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead icon="chart" title="Invoices" subtitle="Receipts live in SellAuth, where the payment was made." />
         <EmptyState
           icon="save"
           title="No invoices yet"

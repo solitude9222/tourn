@@ -1,30 +1,13 @@
 /* ---------------------------------------------------------------------------
    SellAuth checkout embed.
 
-   Payments, stock and delivery live in the SellAuth store, not here: the
-   storefront only opens its checkout with the product this build sells. The
-   values come from env so the shop can change without a code change:
-
-     VITE_SELLAUTH_SHOP_ID               numeric shop id (dash.sellauth.com/api)
-     VITE_SELLAUTH_SHOP_URL              https://yourstore.com
-     VITE_SELLAUTH_PREMIUM_PRODUCT_ID    product id for Premium
-     VITE_SELLAUTH_PREMIUM_VARIANT_ID    optional exact variant (price/stock)
-
-   Delivery is what grants Premium: the product's dynamic delivery URL points
-   at the backend, which verifies the request and marks the buyer's account as
-   premium. Nothing in the browser can grant it.
+   The backend owns the store config and signs a checkout ticket into the
+   purchase metadata, so the delivery webhook can attach the order to the
+   signed-in account. The browser only opens the modal with the payload the
+   backend returned — it never picks prices or product ids.
    --------------------------------------------------------------------------- */
 
-const env = import.meta.env;
-
-const SHOP_ID = Number(env.VITE_SELLAUTH_SHOP_ID) || 0;
-const SHOP_URL = String(env.VITE_SELLAUTH_SHOP_URL || "").replace(/\/+$/, "");
-export const SELLAUTH_PREMIUM_PRODUCT_ID = Number(env.VITE_SELLAUTH_PREMIUM_PRODUCT_ID) || 0;
-export const SELLAUTH_PREMIUM_VARIANT_ID = Number(env.VITE_SELLAUTH_PREMIUM_VARIANT_ID) || 0;
-
-export const sellAuthConfigured = Boolean(
-  SHOP_ID && SHOP_URL && SELLAUTH_PREMIUM_PRODUCT_ID,
-);
+import { api } from "./backend";
 
 type SellAuthCartItem = {
   productId: number;
@@ -32,8 +15,17 @@ type SellAuthCartItem = {
   quantity: number;
 };
 
+type CheckoutPayload = {
+  shopId: number;
+  shopUrl: string;
+  cart: SellAuthCartItem[];
+  metadata?: Record<string, string>;
+  theme?: "dark" | "light";
+  returnUrl?: string;
+};
+
 type SellAuthApi = {
-  open: (options: { shopId: number; shopUrl: string; cart: SellAuthCartItem[] }) => void;
+  open: (options: CheckoutPayload) => void;
 };
 
 declare global {
@@ -61,23 +53,16 @@ function loadEmbed(): Promise<void> {
   return loading;
 }
 
-export async function openSellAuthCheckout(): Promise<void> {
-  if (!sellAuthConfigured) {
-    throw new Error(
-      "Checkout isn't connected yet — set the SellAuth shop and Premium product IDs.",
-    );
-  }
+export async function openSellAuthCheckout(
+  kind: "premium" | "oneCharacter" | "special" = "premium",
+): Promise<void> {
+  const result = await api<CheckoutPayload>("/api/commerce/checkout", {
+    method: "POST",
+    body: JSON.stringify({ kind }),
+  });
+  if (!result.ok) throw new Error(result.error || "The store is not open yet.");
+
   await loadEmbed();
   if (!window.sellAuth) throw new Error("The checkout didn't open. Try again in a moment.");
-  window.sellAuth.open({
-    shopId: SHOP_ID,
-    shopUrl: SHOP_URL,
-    cart: [
-      {
-        productId: SELLAUTH_PREMIUM_PRODUCT_ID,
-        variantId: SELLAUTH_PREMIUM_VARIANT_ID || undefined,
-        quantity: 1,
-      },
-    ],
-  });
+  window.sellAuth.open(result.data);
 }
