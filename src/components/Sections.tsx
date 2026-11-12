@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { SiteStats } from "../lib/siteStats";
 import { formatCompactNumber } from "../lib/format";
 import { WidgetCard } from "./WidgetCard";
@@ -12,19 +12,20 @@ import { DEFAULT_SETTINGS, FEATURED_TRACK } from "../config";
 import { ProfileCard } from "./ProfileCard";
 import { BADGE_CATALOGUE } from "../lib/badges";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
+import {
+  initialCommunityPeople,
+  loadCommunityPeople,
+  type CommunityPerson,
+} from "../lib/homePeople";
 import { AudioPlayer } from "./AudioPlayer";
 import { Tooltip } from "./Tooltip";
 import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
 import {
   ArrowRight,
-  ArrowUpRight,
-  CheckIcon,
   ChevronIcon,
-  DiscIcon,
   DiscordIcon,
   ExternalIcon,
   SpotifyIcon,
-  UsersIcon,
 } from "./Icons";
 import "../home.css";
 
@@ -86,56 +87,26 @@ const AUDIO_STYLES = [
 
 type AudioStyleId = (typeof AUDIO_STYLES)[number]["id"];
 
-const PAGE_SAMPLES = [
-  {
-    handle: "trackdown",
-    name: "trackdown",
-    bio: ["owner @ tourn.lol", "discord.gg/tourn"],
-    location: "trust in god",
-    gradient: "linear-gradient(150deg, #0b2540 0%, #123a52 44%, #08111c 100%)",
-  },
-  {
-    handle: "eivoran",
-    name: "EIVORAN",
-    bio: ["graphic designer · esports", "portfolio below"],
-    location: "oslo",
-    gradient: "linear-gradient(150deg, #3a1730 0%, #2a2140 46%, #0d0a14 100%)",
-  },
-  {
-    handle: "monty",
-    name: "monty",
-    bio: ["notes, photos and playlists", "hi :)"],
-    location: "london",
-    gradient: "linear-gradient(150deg, #0d2c28 0%, #1d3b2f 42%, #07120f 100%)",
-  },
+const PAGE_GRADIENTS = [
+  "linear-gradient(150deg, #0b2540 0%, #123a52 44%, #08111c 100%)",
+  "linear-gradient(150deg, #3a1730 0%, #2a2140 46%, #0d0a14 100%)",
+  "linear-gradient(150deg, #0d2c28 0%, #1d3b2f 42%, #07120f 100%)",
 ];
 
-const CHIPS = [
-  "trackdown",
-  "koni",
-  "monty",
-  "eivoran",
-  "psyduck",
-  "m0nty",
-  "aimlarps",
-  "tourn",
-  "nina",
-  "vee",
-  "solace",
-  "riven",
-  "eight",
-  "ash",
-  "luca",
-  "nova",
-  "kira",
-  "max",
-  "juno",
-  "rei",
-  "sage",
-  "zayn",
-  "wren",
-  "finn",
-];
+/** Real members, bundled snapshot first, then the live leaderboard. */
+function useCommunityPeople() {
+  const [people, setPeople] = useState<CommunityPerson[]>(() => initialCommunityPeople());
+  useEffect(() => {
+    let active = true;
+    void loadCommunityPeople().then((next) => {
+      if (active && next.length) setPeople(next);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return people;
+}
 
 /* ------------------------------------------------------------------- hero */
 
@@ -360,67 +331,65 @@ export function BadgesSection() {
 /* ---------------------------------------------------------- profile pages */
 
 export function PagesSection() {
-  const [index, setIndex] = useState(0);
-  const sample = PAGE_SAMPLES[index];
-  const thumbs = PAGE_SAMPLES.filter((_, i) => i !== index).slice(0, 2);
+  const people = useCommunityPeople().slice(0, 3);
 
   return (
     <section className="hm-section" id="pages">
-      <div className="hm-wrap hm-pages-wrap">
-        <div className="hm-sec-head">
+      <div className="hm-wrap">
+        <div className="hm-sec-head hm-sec-head--center">
           <span className="hm-label">Profile Pages</span>
           <h2 className="hm-title">Three looks. One editor.</h2>
           <p className="hm-sub">
-            Switch between live profile previews and see how different a tourn.lol page can feel.
+            Real pages from the community — three different looks, all built in the same editor.
           </p>
         </div>
 
         <div className="hm-pages-grid">
-          <div className="hm-page-preview" style={{ "--hm-page-bg": sample.gradient } as CSSProperties}>
-            <span className="hm-page-location">{sample.location}</span>
-            <div className="hm-page-card">
-              <span className="hm-page-avatar">{sample.name.slice(0, 1).toUpperCase()}</span>
-              <b>{sample.name}</b>
-              <small>@{sample.handle}</small>
-              <em>
-                {sample.bio.map((line) => (
-                  <span key={line}>{line}</span>
-                ))}
-              </em>
-              <span className="hm-page-links" aria-hidden="true">
-                <i>
-                  <DiscordIcon size={12} />
-                </i>
-                <i>
-                  <SpotifyIcon size={12} />
-                </i>
-                <i>
-                  <ExternalIcon size={12} />
-                </i>
-              </span>
-              <span className="hm-page-counts" aria-hidden="true">
-                128 · 4
-              </span>
-            </div>
-            <span className="hm-page-caption">
-              @{sample.handle} · Joined 187 years ago
-            </span>
-          </div>
-
-          <div className="hm-page-thumbs">
-            {thumbs.map((thumb) => (
-              <button
-                key={thumb.handle}
-                type="button"
-                className="hm-page-thumb"
-                style={{ "--hm-page-bg": thumb.gradient } as CSSProperties}
-                onClick={() => setIndex(PAGE_SAMPLES.findIndex((entry) => entry.handle === thumb.handle))}
+          {people.map((person, index) => {
+            const bio = person.bio
+              ? person.bio.split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 2)
+              : [`tourn.lol/${person.handle}`];
+            return (
+              <a
+                key={person.handle}
+                className="hm-page-preview"
+                href={`#/profile/${encodeURIComponent(person.handle)}`}
+                style={{ "--hm-page-bg": PAGE_GRADIENTS[index % PAGE_GRADIENTS.length] } as CSSProperties}
               >
-                <span className="hm-page-thumb-handle">@{thumb.handle}</span>
-                <b>{thumb.name}</b>
-              </button>
-            ))}
-          </div>
+                <span className="hm-page-location">
+                  {person.views === null ? "tourn.lol" : `${formatCompactNumber(person.views)} views`}
+                </span>
+                <span className="hm-page-card">
+                  <span className="hm-page-avatar">
+                    {person.avatar ? (
+                      <img src={person.avatar} alt="" loading="lazy" decoding="async" />
+                    ) : (
+                      person.name.slice(0, 1).toUpperCase()
+                    )}
+                  </span>
+                  <b>{person.name}</b>
+                  <small>@{person.handle}</small>
+                  <em>
+                    {bio.map((line) => (
+                      <span key={line}>{line}</span>
+                    ))}
+                  </em>
+                  <span className="hm-page-links" aria-hidden="true">
+                    <i>
+                      <DiscordIcon size={12} />
+                    </i>
+                    <i>
+                      <SpotifyIcon size={12} />
+                    </i>
+                    <i>
+                      <ExternalIcon size={12} />
+                    </i>
+                  </span>
+                </span>
+                <span className="hm-page-caption">@{person.handle}</span>
+              </a>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -451,13 +420,102 @@ function StatValue({ value }: { value: number | null }) {
   return <>{shown}</>;
 }
 
-export function StatsBand({
-  stats,
-  onClaim,
-}: {
-  stats: SiteStats;
-  onClaim?: () => void;
-}) {
+type ChartPoint = { label: string; value: number };
+
+/** Cumulative profile views across the most-viewed real creators. */
+function viewsSeries(people: CommunityPerson[]): ChartPoint[] {
+  let total = 0;
+  return people
+    .filter((person) => (person.views ?? 0) > 0)
+    .sort((a, b) => (a.views ?? 0) - (b.views ?? 0))
+    .slice(-8)
+    .map((person) => {
+      total += person.views ?? 0;
+      return { label: `@${person.handle}`, value: total };
+    });
+}
+
+/** Cumulative signups by the month the real accounts joined. */
+function signupSeries(people: CommunityPerson[]): ChartPoint[] {
+  const months = new Map<string, { date: Date; count: number }>();
+  for (const person of people) {
+    if (!person.joinedAt) continue;
+    const joined = new Date(person.joinedAt);
+    if (Number.isNaN(joined.getTime())) continue;
+    const key = `${joined.getFullYear()}-${joined.getMonth()}`;
+    const row = months.get(key);
+    if (row) row.count += 1;
+    else months.set(key, { date: new Date(joined.getFullYear(), joined.getMonth(), 1), count: 1 });
+  }
+  let total = 0;
+  return [...months.values()]
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((row) => {
+      total += row.count;
+      return {
+        label: row.date.toLocaleDateString(undefined, { month: "short", year: "2-digit" }),
+        value: total,
+      };
+    });
+}
+
+const CHART_WIDTH = 720;
+const CHART_HEIGHT = 200;
+const CHART_TOP = 16;
+const CHART_BOTTOM = 24;
+
+function TrendChart({ points, label }: { points: ChartPoint[]; label: string }) {
+  const gradientId = useId();
+  if (!points.length) {
+    return <p className="hm-chart-empty">Nothing recorded yet — the first page starts the line.</p>;
+  }
+
+  const max = Math.max(...points.map((point) => point.value), 1);
+  const usable = CHART_HEIGHT - CHART_TOP - CHART_BOTTOM;
+  const step = points.length > 1 ? CHART_WIDTH / (points.length - 1) : CHART_WIDTH;
+  const coords = points.map((point, index) => ({
+    x: points.length > 1 ? index * step : CHART_WIDTH / 2,
+    y: CHART_TOP + usable - (point.value / max) * usable,
+  }));
+  const line = coords.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ");
+  const area = `${line} L${CHART_WIDTH} ${CHART_HEIGHT - CHART_BOTTOM} L0 ${CHART_HEIGHT - CHART_BOTTOM} Z`;
+
+  return (
+    <div className="hm-chart">
+      <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} role="img" aria-label={label}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#5381f2" stopOpacity="0.42" />
+            <stop offset="100%" stopColor="#5381f2" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={area} fill={`url(#${gradientId})`} />
+        <path d={line} fill="none" stroke="#7d9bf5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {coords.map((point, index) => (
+          <circle key={index} cx={point.x} cy={point.y} r="3.5" fill="#0b0b0d" stroke="#7d9bf5" strokeWidth="2" />
+        ))}
+      </svg>
+      <div className="hm-chart-axis">
+        <span>{points[0].label}</span>
+        <span className="hm-chart-peak">{formatCompactNumber(points[points.length - 1].value)}</span>
+        <span>{points[points.length - 1].label}</span>
+      </div>
+    </div>
+  );
+}
+
+export function StatsBand({ stats }: { stats: SiteStats; onClaim?: () => void }) {
+  const people = useCommunityPeople();
+  const [metric, setMetric] = useState<"views" | "signups">("views");
+  const chart = useMemo(
+    () => (metric === "views" ? viewsSeries(people) : signupSeries(people)),
+    [metric, people],
+  );
+  // Enough copies that a short list still fills the strip before it loops.
+  const copies = people.length ? Math.max(2, Math.ceil(8 / people.length)) : 0;
+  const base = copies ? Array.from({ length: copies }, () => people).flat() : [];
+  const marquee = [...base, ...base];
+
   return (
     <section className="hm-section" id="community">
       <div className="hm-wrap">
@@ -467,93 +525,72 @@ export function StatsBand({
           <p className="hm-sub">A quick look at how the platform is being used.</p>
         </div>
 
-        <div className="hm-bento">
-          <article className="hm-stat hm-stat--tall">
-            <span className="hm-stat-icon">
-              <UsersIcon size={16} />
-            </span>
-            <div>
-              <b>
-                <StatValue value={stats.users} />
-              </b>
-              <span>Registered Users</span>
-            </div>
-            <UsersIcon size={190} className="hm-stat-mark" />
-          </article>
-
-          <article className="hm-stat">
-            <span className="hm-stat-icon">
-              <CheckIcon size={16} />
-            </span>
-            <div>
-              <b>
-                <StatValue value={stats.views} />
-              </b>
-              <span>Profile Views</span>
-            </div>
-            <ArrowUpRight size={180} className="hm-stat-mark" />
-          </article>
-
-          <article className="hm-stat">
-            <span className="hm-stat-icon">
-              <DiscIcon size={16} />
-            </span>
-            <div>
-              <b>15</b>
-              <span>Widget Platforms</span>
-            </div>
-            <DiscIcon size={180} className="hm-stat-mark" />
-          </article>
-
-          <article className="hm-stat hm-stat--narrow">
-            <span className="hm-stat-icon">
-              <img src="/logo.png" alt="" width={20} height={20} />
-            </span>
-            <div>
-              <b>{BADGE_CATALOGUE.length}</b>
-              <span>Badges</span>
-            </div>
-            <img src="/logo.png" alt="" className="hm-stat-mark" />
-          </article>
-
-          <article className="hm-stat hm-stat--cta">
-            <p>
-              Already <b>{stats.users === null ? "630" : formatCompactNumber(stats.users)}</b> people have a
-              tourn.lol profile.
-            </p>
-            <form
-              className="hm-claim"
-              onSubmit={(event) => {
-                event.preventDefault();
-                onClaim?.();
-              }}
-            >
-              <label className="hm-claim-field">
-                <span>tourn.lol/</span>
-                <input type="text" name="username" placeholder="username" aria-label="Username" />
-              </label>
-              <button type="submit" className="hm-btn hm-btn--blue hm-btn--sm">
-                Claim Your Username
-              </button>
-            </form>
-          </article>
+        <div className="hm-metrics" role="tablist" aria-label="Community metrics">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={metric === "views"}
+            className={`hm-metric${metric === "views" ? " is-active" : ""}`}
+            onClick={() => setMetric("views")}
+          >
+            <b>
+              <StatValue value={stats.views} />
+            </b>
+            <span>Profile views</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={metric === "signups"}
+            className={`hm-metric${metric === "signups" ? " is-active" : ""}`}
+            onClick={() => setMetric("signups")}
+          >
+            <b>
+              <StatValue value={stats.users} />
+            </b>
+            <span>Registered users</span>
+          </button>
+          <div className="hm-metric">
+            <b>15</b>
+            <span>Widget platforms</span>
+          </div>
+          <div className="hm-metric">
+            <b>{BADGE_CATALOGUE.length}</b>
+            <span>Badges</span>
+          </div>
         </div>
 
-        <div className="hm-chip-rows" aria-hidden="true">
-          {[0, 1, 2].map((row) => {
-            const slice = CHIPS.slice(row * 8, row * 8 + 8);
-            const doubled = [...slice, ...slice, ...slice];
-            return (
-              <div className={`hm-chip-row hm-chip-row--${row}`} key={row}>
-                {doubled.map((handle, i) => (
-                  <span className="hm-chip" key={`${handle}-${i}`}>
-                    <i />
-                    <small>@{handle}</small>
+        <div className="hm-chart-panel">
+          <div className="hm-chart-head">
+            <span>{metric === "views" ? "Views by creator" : "Signups by month"}</span>
+            <span>{people.length} creators</span>
+          </div>
+          <TrendChart
+            points={chart}
+            label={metric === "views" ? "Cumulative profile views" : "Cumulative signups"}
+          />
+        </div>
+
+        <div className="hm-people" aria-hidden="true">
+          {[0, 1].map((row) => (
+            <div className={`hm-people-row hm-people-row--${row}`} key={row}>
+              {marquee.map((person, index) => (
+                <span className="hm-person" key={`${row}-${person.handle}-${index}`}>
+                  <span className="hm-person-avatar">
+                    {person.avatar ? (
+                      <img src={person.avatar} alt="" loading="lazy" decoding="async" />
+                    ) : (
+                      person.name.slice(0, 1).toUpperCase()
+                    )}
                   </span>
-                ))}
-              </div>
-            );
-          })}
+                  <span className="hm-person-id">
+                    <b>{person.name}</b>
+                    <small>@{person.handle}</small>
+                  </span>
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>
