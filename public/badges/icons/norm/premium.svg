@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="star" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0.5" stop-color="#ffb0c8"/>
+      <stop offset="1" stop-color="#b18cff"/>
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes star-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .spin { animation: star-spin 7s linear infinite; transform-origin: 32px 32px; }
+    @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+  </style>
+  <g class="spin">
+    <path
+      d="M32 10 L37.3 24.7 L52.9 25.2 L40.6 34.8 L44.9 49.8 L32 41 L19.1 49.8 L23.4 34.8 L11.1 25.2 L26.7 24.7 Z"
+      fill="url(#star)"
+      stroke="url(#star)"
+      stroke-width="6"
+      stroke-linejoin="round"
+      stroke-linecap="round"/>
+  </g>
+</svg>

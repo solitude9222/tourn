@@ -1,0 +1,21 @@
+node_modules
+dist
+.tools
+.wrangler
+.env
+.env*.local
+*.local
+uploads
+
+# large local-only assets
+example.mp4
+*.mp4
+
+# extracted reference frames (local only)
+.ref/
+
+# local design reference, not part of the app
+linker-bio/
+
+# Local browser QA screenshots
+.tmp/

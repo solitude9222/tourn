@@ -1,0 +1,2 @@
+Language and tool logos bundled from react-icons (Simple Icons, Devicons and Font Awesome) and Devicon v2.17.0. Logos remain trademarks of their respective owners.
+Sources: https://github.com/react-icons/react-icons https://github.com/simple-icons/simple-icons https://github.com/devicons/devicon https://github.com/FortAwesome/Font-Awesome

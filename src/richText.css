@@ -1,0 +1,262 @@
+.rich-text {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.rich-text > span {
+  white-space: pre-wrap;
+}
+
+.rich-text p,
+.rich-text h3,
+.rich-text h4,
+.rich-text h5,
+.rich-text blockquote,
+.rich-text ul {
+  margin: 0;
+}
+
+.rich-text p + p,
+.rich-text p + .rt-code-block,
+.rich-text .rt-code-block + p,
+.rich-text p + .rt-quote,
+.rich-text p + .rt-list,
+.rich-text .rt-list + p,
+.rich-text .rt-heading + p {
+  margin-top: 0.62em;
+}
+
+.rich-text p {
+  line-height: inherit;
+}
+
+.rt-heading {
+  color: currentColor;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.rt-heading--1 {
+  font-size: 1.32em;
+}
+
+.rt-heading--2 {
+  font-size: 1.16em;
+}
+
+.rt-heading--3 {
+  font-size: 1.03em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.rt-heading + .rt-heading {
+  margin-top: 0.35em;
+}
+
+.rt-paragraph {
+  display: block;
+}
+
+.rt-paragraph > span {
+  white-space: pre-wrap;
+}
+
+.rt-code {
+  padding: 1px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #c8efff;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
+  font-size: 0.9em;
+}
+
+.rt-code-block {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  margin: 7px 0;
+  padding: 11px 10px 9px;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(168, 224, 255, 0.035), transparent 55%),
+    #08090b;
+  color: #d8f3ff;
+  font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
+  font-size: 10px;
+  line-height: 1.55;
+  white-space: pre;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.rt-code-block::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(168, 224, 255, 0.3), transparent);
+}
+
+.rt-code-block code {
+  font: inherit;
+  white-space: inherit;
+}
+
+.rt-code-lang {
+  display: block;
+  margin-bottom: 5px;
+  color: #61717d;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.rt-link {
+  color: var(--ice, #a8e0ff);
+  text-decoration: underline;
+  text-decoration-color: rgba(168, 224, 255, 0.45);
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  transition: color 0.16s ease, text-decoration-color 0.16s ease;
+}
+
+.rt-link:hover {
+  color: #f2fbff;
+  text-decoration-color: #a8e0ff;
+}
+
+/* Live values read as coloured text inside the sentence. They used to be
+   little pills at 0.86em, which sat at the wrong height and made a bio look
+   like a row of bubbles. */
+.rt-live,
+.rt-stamp,
+.rt-relative,
+.rt-countdown {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #b9e9ff;
+  font-size: inherit;
+  font-variant-numeric: tabular-nums;
+  line-height: inherit;
+  white-space: nowrap;
+}
+
+.rt-live {
+  color: #a7f3d0;
+}
+
+.rt-live i {
+  display: inline-block;
+  width: 0.36em;
+  height: 0.36em;
+  margin-right: 0.34em;
+  border-radius: 50%;
+  background: #5eead4;
+  vertical-align: 0.1em;
+  animation: rtPulse 2s ease-in-out infinite;
+}
+
+.rt-stamp svg,
+.rt-countdown svg {
+  opacity: 0.7;
+}
+
+.rt-date {
+  color: #ddd6fe;
+}
+
+.rt-relative {
+  color: #fde68a;
+}
+
+.rt-countdown {
+  color: #fed7aa;
+}
+
+.rt-strong {
+  color: currentColor;
+  font-weight: 700;
+}
+
+.rt-em {
+  color: currentColor;
+  font-style: italic;
+}
+
+.rt-underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rt-strike {
+  text-decoration: line-through;
+  opacity: 0.68;
+}
+
+.rt-highlight {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(253, 224, 71, 0.06) 8%, rgba(253, 224, 71, 0.24) 8%);
+  color: #fffbeb;
+}
+
+.rt-spoiler {
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  color: transparent;
+  text-shadow: 0 0 7px rgba(255, 255, 255, 0.5);
+  transition: background 0.16s ease, color 0.16s ease, text-shadow 0.16s ease;
+  cursor: help;
+}
+
+.rt-spoiler:hover,
+.rt-spoiler:focus-visible {
+  background: rgba(168, 224, 255, 0.1);
+  color: inherit;
+  text-shadow: none;
+}
+
+.rt-quote {
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid rgba(168, 224, 255, 0.34);
+  color: color-mix(in srgb, currentColor 78%, transparent);
+  font-style: italic;
+}
+
+.rt-list {
+  padding-left: 16px;
+  list-style: disc;
+}
+
+.rt-list li {
+  line-height: 1.6;
+}
+
+.rt-list li::marker {
+  color: rgba(168, 224, 255, 0.7);
+}
+
+@keyframes rtPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rt-live i {
+    animation: none;
+  }
+}
