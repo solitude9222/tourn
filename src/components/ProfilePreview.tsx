@@ -258,7 +258,6 @@ export function ProfilePreview({
       data-location={locationPosition}
     >
       {cardFx.id !== "none" ? <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" /> : null}
-      {cardFx.id === "beam" ? <><span className="pv-beam-glow pv-beam-glow--tl" aria-hidden="true" /><span className="pv-beam-glow pv-beam-glow--br" aria-hidden="true" /></> : null}
       {hasBanner ? (
         <div
           className={`pv-banner${banner.imageUrl ? " pv-banner--image" : ""}`}

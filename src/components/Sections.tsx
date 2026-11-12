@@ -18,7 +18,6 @@ import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
 import {
   ArrowRight,
   ArrowUpRight,
-  BoltIcon,
   CheckIcon,
   ChevronIcon,
   DiscIcon,
@@ -152,7 +151,6 @@ export function Hero({
   return (
     <section className="hm-hero" id="top">
       <div className="hm-hero-glow" aria-hidden="true" />
-      <div className="hm-hero-bolts" aria-hidden="true" />
       <div className="hm-wrap hm-hero-grid">
         <div className="hm-hero-copy">
           <h1 className="hm-hero-title">
@@ -509,13 +507,13 @@ export function StatsBand({
 
           <article className="hm-stat hm-stat--narrow">
             <span className="hm-stat-icon">
-              <BoltIcon size={16} />
+              <img src="/logo.png" alt="" width={20} height={20} />
             </span>
             <div>
               <b>{BADGE_CATALOGUE.length}</b>
               <span>Badges</span>
             </div>
-            <BoltIcon size={150} className="hm-stat-mark" />
+            <img src="/logo.png" alt="" className="hm-stat-mark" />
           </article>
 
           <article className="hm-stat hm-stat--cta">
@@ -683,7 +681,7 @@ export function CtaBanner({ onClaim }: { onClaim: () => void }) {
     <section className="hm-section hm-section--cta">
       <div className="hm-wrap">
         <div className="hm-cta">
-          <div className="hm-cta-bolts" aria-hidden="true" />
+          <div className="hm-cta-logo" aria-hidden="true" />
           <h2>Everything you need, right here.</h2>
           <p>Create your profile, connect your links, and keep your audience in one clean place.</p>
           <form
