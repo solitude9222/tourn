@@ -1,13 +1,14 @@
 /* ── profile sections ─────────────────────────────────────────────────────
-   Text stays a full-width block. Projects, anime and games are real showcase
-   cards: artwork, a status pill, metadata, genuine tech icons and links. */
+   Text stays a full-width block. Projects, anime and games stack vertically
+   as compact rows: a small thumbnail in the top-left corner, the writing
+   beside it. Flat surfaces, no gradient art panels. */
 
 .lkr-sections {
   grid-column: 1 / -1;
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
   margin-top: 28px;
 }
 
@@ -25,35 +26,36 @@
   position: relative;
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  overflow: hidden;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
   border: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.1));
-  border-radius: var(--pv-radius, 18px);
+  border-radius: 14px;
   background: var(--pv-card, #121218);
-  transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+  transition: border-color 0.18s ease;
 }
 
 .lkr-showcase:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--pv-accent, #b4bffa) 42%, transparent);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  border-color: color-mix(in srgb, var(--pv-accent, #b4bffa) 34%, transparent);
 }
 
 .lkr-showcase-art {
   position: relative;
   display: grid;
-  aspect-ratio: 16 / 10;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
   place-items: center;
   overflow: hidden;
-  background:
-    radial-gradient(120% 100% at 20% 0%, color-mix(in srgb, var(--pv-accent, #b4bffa) 28%, transparent), transparent 60%),
-    #0c0d12;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .lkr-showcase--anime .lkr-showcase-art,
 .lkr-showcase--game .lkr-showcase-art {
-  aspect-ratio: 3 / 4;
-  max-height: 360px;
+  width: 72px;
+  height: 72px;
+  max-height: none;
 }
 
 .lkr-showcase-art img {
@@ -64,39 +66,38 @@
 
 .lkr-showcase-art.is-empty > span {
   color: var(--pv-muted, #98a2b3);
-  font-size: 42px;
+  font-size: 24px;
   font-weight: 700;
-  opacity: 0.35;
+  opacity: 0.45;
 }
 
 .lkr-showcase-kind {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 4px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  background: rgba(6, 8, 12, 0.72);
-  backdrop-filter: blur(8px);
-  color: #eaf2ff;
-  font-size: 9px;
+  top: 4px;
+  left: 4px;
+  max-width: calc(100% - 8px);
+  padding: 2px 5px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(7, 8, 12, 0.82);
+  color: #e9eef8;
+  font-size: 7.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .lkr-showcase-kind--project {
-  border-color: rgba(180, 191, 250, 0.45);
   color: #cfd7ff;
 }
 
 .lkr-showcase-kind--anime {
-  border-color: rgba(244, 114, 182, 0.45);
   color: #ffd2e7;
 }
 
 .lkr-showcase-kind--game {
-  border-color: rgba(74, 222, 128, 0.4);
   color: #c8ffdd;
 }
 
@@ -105,8 +106,8 @@
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 8px;
-  padding: 18px;
+  gap: 6px;
+  padding: 0;
 }
 
 .lkr-showcase-meta-row {
@@ -116,34 +117,34 @@
 }
 
 .lkr-showcase-meta-row span {
-  padding: 3px 7px;
+  padding: 2px 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--pv-muted, #98a2b3);
-  font-size: 9.5px;
+  font-size: 9px;
 }
 
 .lkr-showcase-body h2 {
   margin: 0;
   color: var(--pv-text, #f4f6fb);
-  font-size: 20px;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .lkr-showcase-sub {
   margin: 0;
   color: var(--pv-accent, #b4bffa);
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
 .lkr-showcase-text {
   margin: 0;
   color: var(--pv-muted, #98a2b3);
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: 12px;
+  line-height: 1.6;
   white-space: pre-wrap;
 }
 
@@ -158,10 +159,10 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
   color: #d7dee8;
   font-size: 9.5px;
   font-weight: 600;
@@ -179,31 +180,30 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: auto;
-  padding-top: 10px;
+  margin-top: 4px;
 }
 
 .lkr-showcase-cta,
 .lkr-showcase-link {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 11px;
-  border-radius: 8px;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 6px;
   font-size: 10.5px;
   font-weight: 650;
   text-decoration: none;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: border-color 0.18s ease, background 0.18s ease;
 }
 
 .lkr-showcase-cta {
-  border: 1px solid color-mix(in srgb, var(--pv-accent, #b4bffa) 50%, transparent);
-  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pv-accent, #b4bffa) 42%, transparent);
+  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 12%, transparent);
   color: var(--pv-text, #f4f6fb);
 }
 
 .lkr-showcase-cta:hover {
-  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 28%, transparent);
+  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 20%, transparent);
 }
 
 .lkr-showcase-link {
@@ -212,17 +212,21 @@
 }
 
 .lkr-showcase-link:hover {
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.22);
   color: var(--pv-text, #f4f6fb);
 }
 
-@media (max-width: 720px) {
-  .lkr-sections {
-    grid-template-columns: minmax(0, 1fr);
+@media (max-width: 520px) {
+  .lkr-showcase {
+    gap: 11px;
+    padding: 12px;
   }
 
+  .lkr-showcase-art,
   .lkr-showcase--anime .lkr-showcase-art,
   .lkr-showcase--game .lkr-showcase-art {
-    max-height: 420px;
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
   }
 }
