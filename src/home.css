@@ -444,8 +444,10 @@
 .hm-audio-stage::before {
   content: "";
   position: absolute;
-  inset: -40px 10% 20%;
-  background: radial-gradient(520px 300px at 50% 40%, #081020, transparent 72%);
+  inset: -70px 6% 10%;
+  border-radius: 999px;
+  background: radial-gradient(520px 300px at 50% 45%, #081020, transparent 72%);
+  filter: blur(30px);
   pointer-events: none;
 }
 
@@ -460,6 +462,8 @@
 }
 
 .hm-seg {
+  position: relative;
+  z-index: 1;
   height: 32px;
   padding: 0 15px;
   border: 1px solid transparent;
@@ -470,7 +474,21 @@
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+  transition: color 0.16s ease;
+}
+
+/* One highlight for the whole chooser; it slides, it is never a square. */
+.hm-seg-glow {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: 32px;
+  border: 1px solid var(--hm-focus, #3965e6);
+  border-radius: 999px;
+  background: #141a2e;
+  box-shadow: 0 0 18px rgba(57, 101, 230, 0.32), inset 0 0 14px rgba(57, 101, 230, 0.16);
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), width 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
 }
 
 .hm-seg:hover {
@@ -478,8 +496,8 @@
 }
 
 .hm-seg.is-active {
-  border-color: var(--hm-focus);
-  background: #141a2e;
+  border-color: transparent;
+  background: none;
   color: #fff;
 }
 

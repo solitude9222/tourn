@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { SiteStats } from "../lib/siteStats";
 import { formatCompactNumber } from "../lib/format";
 import { WidgetCard } from "./WidgetCard";
@@ -81,7 +81,7 @@ const PLATFORM_STRIP = [
 const AUDIO_STYLES = [
   { id: "compact", label: "Compact", caption: "One row: cover, title, transport, progress." },
   { id: "lyrics", label: "Lyrics", caption: "Lyrics that follow playback line by line." },
-  { id: "marquee", label: "Marquee", caption: "A slim strip, the title runs through it. No transport." },
+  { id: "marquee", label: "Marquee", caption: "A slim strip, the title runs through it." },
   { id: "vinyl", label: "Vinyl", caption: "A record in the card edge, spinning while it plays." },
 ] as const;
 
@@ -240,7 +240,24 @@ export function BentoSection({
 
 export function AudioSection() {
   const [style, setStyle] = useState<AudioStyleId>("compact");
+  const segmentedRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const active = AUDIO_STYLES.find((entry) => entry.id === style) ?? AUDIO_STYLES[0];
+
+  // The chooser's highlight is a single sliding pill that glides to the tab in
+  // use, rather than a square painted onto whichever label is active.
+  useLayoutEffect(() => {
+    const wrap = segmentedRef.current;
+    if (!wrap) return;
+    const measure = () => {
+      const button = wrap.querySelector<HTMLButtonElement>(".hm-seg.is-active");
+      if (!button) return;
+      setIndicator({ left: button.offsetLeft, width: button.offsetWidth });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [style]);
 
   return (
     <section className="hm-section" id="audio">
@@ -254,7 +271,16 @@ export function AudioSection() {
         </div>
 
         <div className="hm-audio-stage">
-          <div className="hm-segmented" role="tablist" aria-label="Player style">
+          <div className="hm-segmented" role="tablist" aria-label="Player style" ref={segmentedRef}>
+            <span
+              className="hm-seg-glow"
+              aria-hidden="true"
+              style={{
+                width: indicator.width,
+                transform: `translateX(${indicator.left}px)`,
+                opacity: indicator.width ? 1 : 0,
+              }}
+            />
             {AUDIO_STYLES.map((entry) => (
               <button
                 key={entry.id}

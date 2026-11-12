@@ -9,7 +9,7 @@ import {
 import type { AudioSettings } from "../lib/profileAssets";
 import { hexToRgba } from "../lib/about";
 import { useTilt } from "../lib/useTilt";
-import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "./Icons";
+import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon, VolumeIcon } from "./Icons";
 import "../audioPlayer.css";
 
 function LyricsPanel({
@@ -282,6 +282,60 @@ export function AudioPlayer({
     </span>
   );
 
+  if (settings.style === "lyrics") {
+    return (
+      <div
+        ref={musicTilt.ref}
+        onPointerMove={tilt > 0 ? musicTilt.onPointerMove : undefined}
+        onPointerLeave={tilt > 0 ? musicTilt.onPointerLeave : undefined}
+        className={`ap ap--lyrics ap-edge-${settings.edgeEffect}${tilt > 0 ? " has-tilt" : ""}`}
+        style={cardStyle}
+      >
+        {audioEl}
+        <span className="ap-lyrics-bg" aria-hidden="true" />
+        <div className="ap-lyrics-inner">
+          <div className="ap-lyrics-head">
+            <span className="ap-cover ap-lyrics-cover">{coverNode}</span>
+            <div className="ap-lyrics-id">
+              <b>{title}</b>
+              <small>{artist || "Uploaded track"}</small>
+            </div>
+            <span className="ap-lyrics-clock">
+              {formatClock(position * 1000)} / {duration ? formatClock(duration * 1000) : "--:--"}
+            </span>
+            <button
+              type="button"
+              className="ap-play ap-lyrics-play"
+              onClick={togglePlay}
+              aria-label={playing ? "Pause" : "Play"}
+            >
+              {playing ? <PauseIcon size={11} /> : <PlayIcon size={11} />}
+            </button>
+          </div>
+          <div
+            className="ap-progress is-seekable"
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              seekToFraction((event.clientX - rect.left) / rect.width);
+            }}
+          >
+            <span
+              className="ap-progress-fill"
+              style={{ width: `${duration ? (position / duration) * 100 : 0}%` }}
+            />
+          </div>
+          <LyricsPanel
+            lines={syncedLines}
+            activeLine={activeLine}
+            loading={autoLyrics.loading}
+            plainFallback={plainFallback}
+            hint="No lyrics yet — add them in the dashboard."
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (settings.style === "vinyl") {
     // The record spins only while the track is actually playing, and the
     // current lyric (custom or auto) rides under the artist line.
@@ -303,8 +357,23 @@ export function AudioPlayer({
           <span className="ap-vinyl-label">{coverNode}</span>
         </span>
         <div className="ap-vinyl-copy">
-          <b>{title}</b>
-          <small>{artist || "Uploaded track"}</small>
+          <div className="ap-vinyl-head">
+            <div>
+              <b>{title}</b>
+              <small>{artist || "Uploaded track"}</small>
+            </div>
+            <div className="ap-transport">
+              <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
+                <SkipBackIcon size={12} />
+              </button>
+              <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
+                {playing ? <PauseIcon size={10} /> : <PlayIcon size={10} />}
+              </button>
+              <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">
+                <SkipForwardIcon size={12} />
+              </button>
+            </div>
+          </div>
           {currentLine ? <em className="ap-vinyl-lyric">{currentLine}</em> : null}
           <div
             className="ap-progress is-seekable"
@@ -318,17 +387,6 @@ export function AudioPlayer({
               style={{ width: `${duration ? (position / duration) * 100 : 0}%` }}
             />
           </div>
-        </div>
-        <div className="ap-transport">
-          <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
-            <SkipBackIcon size={13} />
-          </button>
-          <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
-            {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
-          </button>
-          <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">
-            <SkipForwardIcon size={13} />
-          </button>
         </div>
       </div>
     );
@@ -365,7 +423,14 @@ export function AudioPlayer({
       >
         {audioEl}
         <div className="ap-pill">
-          <span className="ap-cover ap-pill-cover">{coverNode}</span>
+          <button
+            type="button"
+            className="ap-play ap-marquee-play"
+            onClick={togglePlay}
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? <PauseIcon size={11} /> : <PlayIcon size={11} />}
+          </button>
           <span className="ap-pill-viewport" ref={pillViewport}>
             <span
               className={`ap-pill-text${pillOverflow ? "" : " is-static"}`}
@@ -381,11 +446,11 @@ export function AudioPlayer({
           </span>
           <button
             type="button"
-            className="ap-play ap-pill-play"
-            onClick={togglePlay}
-            aria-label={playing ? "Pause" : "Play"}
+            className="ap-vol"
+            onClick={() => setMuted(!muted)}
+            aria-label={muted ? "Unmute music" : "Mute music"}
           >
-            {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
+            <VolumeIcon size={15} />
           </button>
         </div>
         <div
@@ -413,47 +478,51 @@ export function AudioPlayer({
       style={cardStyle}
     >
       {audioEl}
-      <div className="ap-row">
-        <span className="ap-cover">{coverNode}</span>
-        <div className="ap-meta">
+      <span className="ap-cover ap-compact-cover">{coverNode}</span>
+      <div className="ap-meta">
+        <div className="ap-title-row">
+          <span className={`ap-eq${playing ? " is-on" : ""}`} aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
           <b className="ap-title">{title}</b>
-          <small className="ap-artist">{artist || "Uploaded track"}</small>
-          <div
-            className="ap-progress is-seekable"
-            onClick={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect();
-              seekToFraction((event.clientX - rect.left) / rect.width);
-            }}
-          >
-            <span className="ap-progress-fill" style={{ width: `${duration ? (position / duration) * 100 : 0}%` }} />
-          </div>
-          <div className="ap-times">
-            <span>{formatClock(position * 1000)}</span>
-            <span>{duration ? formatClock(duration * 1000) : "--:--"}</span>
-          </div>
         </div>
-        <div className="ap-transport">
-          <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
-            <SkipBackIcon size={13} />
-          </button>
-          <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
-            {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
-          </button>
-          <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">
-            <SkipForwardIcon size={13} />
-          </button>
+        <small className="ap-artist">{artist || "Uploaded track"}</small>
+        <div
+          className="ap-progress is-seekable"
+          onClick={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            seekToFraction((event.clientX - rect.left) / rect.width);
+          }}
+        >
+          <span className="ap-progress-fill" style={{ width: `${duration ? (position / duration) * 100 : 0}%` }} />
+        </div>
+        <div className="ap-times">
+          <span>{formatClock(position * 1000)}</span>
+          <span>{duration ? formatClock(duration * 1000) : "--:--"}</span>
         </div>
       </div>
-
-      {settings.style === "lyrics" ? (
-        <LyricsPanel
-          lines={syncedLines}
-          activeLine={activeLine}
-          loading={autoLyrics.loading}
-          plainFallback={plainFallback}
-          hint="No lyrics yet — add them in the dashboard."
-        />
-      ) : null}
+      <div className="ap-transport">
+        <button
+          type="button"
+          className="ap-vol"
+          onClick={() => setMuted(!muted)}
+          aria-label={muted ? "Unmute music" : "Mute music"}
+        >
+          <VolumeIcon size={14} />
+        </button>
+        <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
+          <SkipBackIcon size={13} />
+        </button>
+        <button type="button" className="ap-play ap-play--big" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
+          {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
+        </button>
+        <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">
+          <SkipForwardIcon size={13} />
+        </button>
+      </div>
     </div>
   );
 }
