@@ -3,6 +3,7 @@ import { api, post } from "../lib/backend";
 import { useAuth, type Account } from "../lib/auth";
 import { ArrowRight, BoltIcon, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
 import "../leaderboard.css";
+import "../pages.css";
 
 type BoardRow = {
   username: string;
