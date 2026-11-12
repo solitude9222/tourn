@@ -85,13 +85,17 @@
   min-height: 560px;
   align-items: center;
   justify-content: center;
-  padding: 82px 96px 104px;
+  padding: 96px 78px 104px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(168, 224, 255, 0.06), transparent 58%),
-    #090a0c;
+  background: #090a0c;
+}
+
+/* The outside slots hug the card itself, so the stage wraps both. */
+.pos-studio-stage {
+  position: relative;
+  width: min(370px, 100%);
 }
 
 .pos-outside-layer {
@@ -105,26 +109,25 @@
   pointer-events: auto;
 }
 
-.pos-outside-layer .pos-zone[data-position="outside-top-left"] { left: 10px; top: 10px; }
-.pos-outside-layer .pos-zone[data-position="outside-top-right"] { right: 10px; top: 10px; }
-.pos-outside-layer .pos-zone[data-position="outside-bottom-left"] { left: 10px; bottom: 10px; }
-.pos-outside-layer .pos-zone[data-position="outside-bottom-right"] { right: 10px; bottom: 10px; }
-.pos-outside-layer .pos-zone[data-position="outside-above"] { top: 10px; left: 50%; transform: translateX(-50%); }
-.pos-outside-layer .pos-zone[data-position="outside-below"] { bottom: 10px; left: 50%; transform: translateX(-50%); }
-.pos-outside-layer .pos-zone[data-position="outside-left"] { left: 10px; top: 50%; transform: translateY(-50%); }
-.pos-outside-layer .pos-zone[data-position="outside-right"] { right: 10px; top: 50%; transform: translateY(-50%); }
+.pos-outside-layer .pos-zone[data-position="outside-top-left"] { left: 0; top: -30px; }
+.pos-outside-layer .pos-zone[data-position="outside-top-right"] { right: 0; top: -30px; }
+.pos-outside-layer .pos-zone[data-position="outside-bottom-left"] { left: 0; bottom: -34px; }
+.pos-outside-layer .pos-zone[data-position="outside-bottom-right"] { right: 0; bottom: -34px; }
+.pos-outside-layer .pos-zone[data-position="outside-above"] { top: -30px; left: 50%; transform: translateX(-50%); }
+.pos-outside-layer .pos-zone[data-position="outside-below"] { bottom: -34px; left: 50%; transform: translateX(-50%); }
+.pos-outside-layer .pos-zone[data-position="outside-left"] { left: -62px; top: 50%; transform: translateY(-50%); }
+.pos-outside-layer .pos-zone[data-position="outside-right"] { right: -62px; top: 50%; transform: translateY(-50%); }
 
 /* ── the scaffolded card ─────────────────────────────────────────────── */
 
 .pos-studio-card {
   position: relative;
   z-index: 1;
-  width: min(370px, 100%);
+  width: 100%;
   padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  box-shadow: 0 26px 60px -34px rgba(0, 0, 0, 0.9);
+  background: #101116;
 }
 
 .pos-scaffold {
@@ -205,7 +208,7 @@
 
 .pos-corner-layer .pos-zone {
   position: absolute;
-  width: 84px;
+  width: 66px;
   pointer-events: auto;
 }
 
@@ -217,10 +220,28 @@
 .pos-slot-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "top top-right"
+    "above-name above-name"
+    "beside-avatar next-to-name"
+    "next-to-handle next-to-handle"
+    "under-name below-bio"
+    "footer side";
   gap: 6px;
   padding-top: 4px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
+
+.pos-slot-grid .pos-zone[data-position="top"] { grid-area: top; }
+.pos-slot-grid .pos-zone[data-position="top-right"] { grid-area: top-right; }
+.pos-slot-grid .pos-zone[data-position="above-name"] { grid-area: above-name; }
+.pos-slot-grid .pos-zone[data-position="beside-avatar"] { grid-area: beside-avatar; }
+.pos-slot-grid .pos-zone[data-position="next-to-name"] { grid-area: next-to-name; }
+.pos-slot-grid .pos-zone[data-position="next-to-handle"] { grid-area: next-to-handle; }
+.pos-slot-grid .pos-zone[data-position="under-name"] { grid-area: under-name; }
+.pos-slot-grid .pos-zone[data-position="below-bio"] { grid-area: below-bio; }
+.pos-slot-grid .pos-zone[data-position="footer"] { grid-area: footer; }
+.pos-slot-grid .pos-zone[data-position="side"] { grid-area: side; }
 
 .pos-zone {
   display: flex;

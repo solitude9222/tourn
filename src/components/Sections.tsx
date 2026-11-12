@@ -14,6 +14,7 @@ import { ProfilePreview } from "./ProfilePreview";
 import { ProfileCard } from "./ProfileCard";
 import { BADGE_CATALOGUE } from "../lib/badges";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
+import type { About } from "../lib/about";
 import {
   initialCommunityPeople,
   loadCommunityPeople,
@@ -89,11 +90,23 @@ const AUDIO_STYLES = [
 
 type AudioStyleId = (typeof AUDIO_STYLES)[number]["id"];
 
-const PAGE_GRADIENTS = [
-  "linear-gradient(150deg, #0b2540 0%, #123a52 44%, #08111c 100%)",
-  "linear-gradient(150deg, #3a1730 0%, #2a2140 46%, #0d0a14 100%)",
-  "linear-gradient(150deg, #0d2c28 0%, #1d3b2f 42%, #07120f 100%)",
-];
+/** Each preview paints the profile's own background, never a stand-in. */
+function previewBackground(about: About) {
+  const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
+  const bg = assets.background;
+  const vars = {
+    "--pv-bg": about.design.colors.background,
+    "--pv-accent": about.design.colors.accent,
+    "--hm-page-bg": about.design.colors.background,
+    "--lkr-bg-color": bg.color,
+    "--lkr-bg-from": bg.from,
+    "--lkr-bg-to": bg.to,
+    "--lkr-bg-angle": `${bg.angle || 160}deg`,
+    "--lkr-bg-blur": `${bg.blur}px`,
+    "--lkr-bg-dim": bg.dim,
+  } as CSSProperties;
+  return { bg, vars };
+}
 
 /** Real members, bundled snapshot first, then the live leaderboard. */
 function useCommunityPeople() {
@@ -347,8 +360,26 @@ export function PagesSection() {
         <p className="hm-sub">Real published profiles. Their own styles, links and badges, straight from the community.</p>
       </div>
       <div className="hm-pages-grid hm-pages-grid--live">
-        {profiles.map(({ account, profile, earned }, index) => profile && (
-          <article key={account.id} className="hm-page-preview" style={{ "--hm-page-bg": PAGE_GRADIENTS[index] } as CSSProperties}>
+        {profiles.map(({ account, profile, earned }) => profile && (() => {
+          const { bg, vars } = previewBackground(profile.about);
+          return (
+          <article key={account.id} className="hm-page-preview" style={vars}>
+            <div
+              className={`lkr-bg hm-preview-bg lkr-bg--${bg.style}`}
+              aria-hidden="true"
+              style={
+                bg.style === "gradient"
+                  ? { background: `linear-gradient(${bg.angle || 160}deg, ${bg.from}, ${bg.to})` }
+                  : bg.style === "solid"
+                    ? { background: bg.color }
+                    : undefined
+              }
+            >
+              {bg.style === "image" && bg.imageUrl ? (
+                <span className="lkr-bg-image" style={{ backgroundImage: `url("${bg.imageUrl.replace(/"/g, '\\"')}")` }} />
+              ) : null}
+              <span className="lkr-bg-dim" />
+            </div>
             <div className="hm-live-profile" inert>
               <ProfilePreview user={account} about={profile.about} badges={profile.badges.equipped.filter(b => !earned || earned.includes(b.id))} badgeStyle={profile.badges.style} links={profile.links.links} linkDesign={profile.links.design} hideAudio disableTilt>
                 {profile.widgets.widgets.filter(w => w.visible !== false).map(widget => <WidgetCard key={widget.id} widget={widget} design={profile.widgets.design} />)}
@@ -356,7 +387,8 @@ export function PagesSection() {
             </div>
             <a className="hm-page-caption" href={'#/profile/' + encodeURIComponent(account.username)}>Visit @{account.username} <ArrowRight size={13} /></a>
           </article>
-        ))}
+          );
+        })())}
       </div>
       {!profiles.length && <p className="hm-sub">Published profiles will appear here when the community is available.</p>}
     </div></section>

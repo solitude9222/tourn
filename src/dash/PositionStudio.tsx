@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { MetadataPosition } from "../lib/about";
+import type { AboutLayout, MetadataPosition } from "../lib/about";
 import { Field, Select } from "./ui";
 import "./positionStudio.css";
 
@@ -89,19 +89,26 @@ export function PositionStudio({
   viewPosition,
   locationPosition,
   joinPosition,
+  layout,
   onChange,
 }: {
   viewPosition: MetadataPosition;
   locationPosition: MetadataPosition;
   joinPosition: MetadataPosition;
+  layout: AboutLayout;
   onChange: (patch: PositionPatch) => void;
 }) {
   const [mode, setMode] = useState<"preview" | "dropdowns">("preview");
   const [active, setActive] = useState<FieldId | null>(null);
   const [dragging, setDragging] = useState<FieldId | null>(null);
 
+  // The side rail only exists on the Left layout; everywhere else that value
+  // is drawn in the footer, so the dropdown must show where it really lands.
+  const shown = (position: MetadataPosition): MetadataPosition =>
+    position === "side" && layout !== "left" ? "footer" : position;
+
   const positionOf = (field: FieldId): MetadataPosition =>
-    field === "views" ? viewPosition : field === "location" ? locationPosition : joinPosition;
+    shown(field === "views" ? viewPosition : field === "location" ? locationPosition : joinPosition);
 
   const place = (field: FieldId, position: MetadataPosition) => {
     const patch: PositionPatch =
@@ -184,7 +191,7 @@ export function PositionStudio({
       }}
     >
       <span className="pos-zone-label">{item.label}</span>
-      <span className="pos-zone-chips">{FIELDS.filter((field) => positionOf(field.id) === item.id).map(chip)}</span>
+      <span className="pos-zone-chips">{FIELDS.filter((field) => shown(positionOf(field.id)) === item.id).map(chip)}</span>
     </div>
   );
 
@@ -226,6 +233,7 @@ export function PositionStudio({
           </div>
 
           <div className={`pos-studio-canvas${dragging ? " is-dragging" : ""}`}>
+            <div className="pos-studio-stage">
             <div className="pos-outside-layer">{OUTSIDE_ZONES.map(zone)}</div>
 
             <div className="pos-studio-card">
@@ -247,6 +255,7 @@ export function PositionStudio({
 
               <div className="pos-corner-layer">{CORNER_ZONES.map(zone)}</div>
               <div className="pos-slot-grid">{CARD_ZONES.map(zone)}</div>
+            </div>
             </div>
           </div>
 

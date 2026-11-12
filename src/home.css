@@ -633,11 +633,25 @@
 }
 
 .hm-page-preview::after {
-  content: "";
+  content: none;
+}
+
+/* The card floats over the profile's real background, not a site gradient. */
+.hm-page-preview > .hm-preview-bg {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.18);
-  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.hm-page-preview > .hm-preview-bg .lkr-bg-image {
+  inset: 0;
+}
+
+.hm-page-preview > .hm-live-profile {
+  position: relative;
+  z-index: 2;
 }
 
 .hm-page-card {

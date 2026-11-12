@@ -169,6 +169,7 @@ export function LayoutPage() {
           viewPosition={design.viewPosition}
           locationPosition={design.locationPosition}
           joinPosition={design.joinPosition}
+          layout={design.layout}
           onChange={updateDesign}
         />
 
