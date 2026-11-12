@@ -1,3 +1,4 @@
+import { UsernameMarket } from "./UsernameMarket";
 import { useEffect, useState, type ReactNode } from "react";
 import { api, post } from "../lib/backend";
 import { useAuth, type Account } from "../lib/auth";
@@ -178,94 +179,22 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
   );
 }
 
-const SHOP_ITEMS = [
-  {
-    name: "Bolt frame",
-    desc: "An animated ring around your avatar, visible on your bio and the board.",
-    price: "250",
-    icon: <BoltIcon size={18} />,
-    tone: "accent",
-  },
-  {
-    name: "Verified mark",
-    desc: "A quiet check next to your handle. Manually reviewed, never sold in bulk.",
-    price: "500",
-    icon: <CheckIcon size={18} />,
-    tone: "green",
-  },
-  {
-    name: "Custom domain",
-    desc: "Point yourname.gg at the same bio instead of the tourn.lol path.",
-    price: "900",
-    icon: <ExternalIcon size={18} />,
-    tone: "violet",
-  },
-];
-
 export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
-  return (
-    <section className="page">
-      <div className="wrap page-head" data-reveal>
-        <span className="eyebrow eyebrow--sm">shop</span>
-        <h1 className="page-title">Cosmetics, nothing else.</h1>
-        <p className="page-sub">
-          No pay-to-rank, no boosts, no ads on other people's pages. Just a few things that make
-          your link look like yours.
-        </p>
-      </div>
+  return <section className="page"><div className="wrap page-head" data-reveal>
+    <span className="eyebrow eyebrow--sm">THE TOURN MARKETPLACE</span><h1 className="page-title">Small name. <span className="accent">Big presence.</span></h1>
+    <p className="page-sub">Rare usernames, straight from Tourn. Find your favorite and make it part of your profile.</p>
+  </div><div className="wrap"><UsernameMarket onSignUp={onSignUp}/></div></section>;
+}
 
-      <div className="wrap">
-        <a className="premium-banner" href="#/premium" data-reveal data-reveal-delay="40">
-          <span className="premium-banner-icon" aria-hidden="true">
-            <BoltIcon size={20} />
-          </span>
-          <span className="premium-banner-copy">
-            <b>tourn.lol Premium</b>
-            <small>Every effect, every audio style, a second claim on swats.bio — one plan.</small>
-          </span>
-          <span className="premium-banner-cta">
-            See Premium
-            <ArrowRight size={14} />
-          </span>
-        </a>
-
-        <div className="shop-grid" data-reveal data-reveal-delay="80">
-          {SHOP_ITEMS.map((item, index) => (
-            <article
-              className="shop-card"
-              key={item.name}
-              data-reveal
-              data-reveal-delay={index * 70}
-            >
-              <span className={`shop-icon shop-icon--${item.tone}`}>{item.icon}</span>
-              <h3>{item.name}</h3>
-              <p>{item.desc}</p>
-              <div className="shop-foot">
-                <span className="shop-price">
-                  {item.price}
-                  <small>credits</small>
-                </span>
-                <button type="button" className="mini-btn" disabled>
-                  Coming soon
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="shop-note" data-reveal data-reveal-delay="220">
-          <p>
-            Premium runs through Stripe's secure checkout. Create an account now and anything you
-            unlock later attaches to the same handle.
-          </p>
-          <button type="button" className="btn btn-primary btn-sm" onClick={onSignUp}>
-            Create your account
-            <ArrowRight size={14} />
-          </button>
-        </div>
-      </div>
-    </section>
-  );
+function PlanCards({onSignUp,onPremium,buying}:{onSignUp:()=>void;onPremium:()=>void;buying:boolean}) {
+  const {user,isPremiumUser}=useAuth();
+  return <div className="plan-choice-grid">
+    <article className="plan-choice"><span className="eyebrow eyebrow--sm">NORMAL</span><h2>Your space on the internet.</h2><div className="plan-choice-price">$0 <small>forever</small></div><p>A complete profile with your links, widgets, badges and your own design.</p><ul><li>Profile editor and asset uploads</li><li>Links and live platform widgets</li><li>Profile views and analytics</li></ul><a className="btn btn-ghost" href={user?'#/dashboard':'#/premium'} onClick={e=>{if(!user){e.preventDefault();onSignUp();}}}>{user?'Open your dashboard':'Create your profile'} <ArrowRight size={14}/></a></article>
+    <article className="plan-choice plan-choice--premium"><span className="eyebrow eyebrow--sm">✦ PREMIUM</span><h2>Every detail. Your way.</h2><div className="plan-choice-price">$3 <small>/ month</small></div><p>Go further with animated effects, expressive audio and a second profile address.</p><ul><li>Background, overlay and text effects</li><li>Vinyl, marquee and lyrics players</li><li>Glass links and a swats.bio claim</li></ul>{isPremiumUser ? <a className="btn btn-primary" href="#/dashboard/billing">Manage Premium <ArrowRight size={14}/></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={onPremium}>{buying ? "Opening checkout…" : "Get Premium"} <ArrowRight size={14}/></button>}</article>
+  </div>;
+}
+function PlanComparison() {
+  return <section className="plan-compare-section"><span className="eyebrow eyebrow--sm">SIDE BY SIDE</span><h2>Find your fit.</h2><p>The essentials are free. Premium adds more ways to express yourself.</p><div className="premium-table"><div className="premium-table-head"><span>Included features</span><span>Normal</span><span>✦ Premium</span></div>{PREMIUM_COMPARE.map(row=><div className="premium-table-row" key={row.label}><span className="premium-table-label">{row.label}</span><span className={'premium-table-cell '+(row.free?'is-in':'is-out')}>{row.free?<CheckIcon size={15}/>:<span aria-label="Not included">—</span>}</span><span className="premium-table-cell is-in"><CheckIcon size={15}/></span></div>)}</div></section>;
 }
 
 /* -------------------------------------------------------------- premium */
@@ -294,8 +223,8 @@ const PREMIUM_PERKS = [
   },
   {
     icon: <TrophyIcon size={16} />,
-    title: "A second handle, kept forever",
-    desc: "Premium claims yourname on swats.bio as well as tourn.lol. Both links stay live, and your claim is checked against every taken handle first.",
+    title: "A second profile address",
+    desc: "Premium claims yourname on swats.bio as well as tourn.lol. Your second claim stays active while Premium is active, subject to a grace period after cancellation.",
   },
   {
     icon: <ExternalIcon size={16} />,
@@ -370,6 +299,7 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
       </div>
 
       <div className="wrap">
+        <PlanCards onSignUp={onSignUp} onPremium={()=>void buyPremium()} buying={buying} />
         <div className="premium-hero" data-reveal>
           <div className="premium-hero-plan">
             <span className="premium-hero-badge">
@@ -381,7 +311,7 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
               <span>/month</span>
             </div>
             <p>
-              One plan. No tiers, no credits, no per-effect upsells — the whole platform, every
+              One plan for profile customization, every
               future effect included.
             </p>
             {isPremiumUser ? (
@@ -424,26 +354,7 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
           </ul>
         </div>
 
-        <div className="premium-table" data-reveal data-reveal-delay="80">
-          <div className="premium-table-head">
-            <span>What's in the plan</span>
-            <span>Free</span>
-            <span className="premium-table-head--premium">
-              <BoltIcon size={12} /> Premium
-            </span>
-          </div>
-          {PREMIUM_COMPARE.map((row) => (
-            <div className="premium-table-row" key={row.label}>
-              <span className="premium-table-label">{row.label}</span>
-              <span className={`premium-table-cell${row.free ? " is-in" : " is-out"}`}>
-                {row.free ? <CheckIcon size={13} /> : "—"}
-              </span>
-              <span className="premium-table-cell is-in">
-                <CheckIcon size={13} />
-              </span>
-            </div>
-          ))}
-        </div>
+        <PlanComparison />
 
         <div className="premium-faq">
           {PREMIUM_FAQ.map((item, index) => (
@@ -491,7 +402,7 @@ const LEGAL_SECTIONS: LegalSection[] = [
       "These terms are the agreement between you and tourn.lol (\"tourn.lol\", \"we\", \"us\") for using this website and the profile pages it hosts. By creating an account, signing in with Discord, or visiting a published page, you accept them. If you do not accept them, do not use the service.",
       "tourn.lol is in open beta. Features can be added, changed, limited or removed, and the service can be interrupted for maintenance. We do not guarantee uninterrupted availability, and we may suspend an account that breaks these terms.",
       "You are responsible for the content you publish: your display name, bio, links, widgets, badge choices, audio and images. You must own or have permission to use everything you upload, and you must keep your account credentials and Discord session secure.",
-      "Handles are allocated first-come. A handle stays yours while the account is in use and these terms are respected. We may reclaim a handle that impersonates someone, infringes a trademark, or is reserved for the operation of the site. We do not sell, auction or transfer handles outside the account that claimed them.",
+      "Handles are allocated first-come. A handle stays yours while the account is in use and these terms are respected. We may reclaim a handle that impersonates someone, infringes a trademark, or is reserved for the operation of the site. Single-character usernames and special characters are sold through the official marketplace. Purchased names can be transferred to another member using the dashboard gifting flow.",
     ],
   },
   {

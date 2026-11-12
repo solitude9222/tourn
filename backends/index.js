@@ -1,3 +1,5 @@
+import { requestOriginAllowed, canEditMember, verifiedDiscordEmail, privilegedEmail } from "./security.js";
+import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid, startUsernameReconciliation } from "./usernames.js";
 import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
 /* ---------------------------------------------------------------------------
    tourn.lol backend — one Express app on Railway Postgres.
@@ -217,6 +219,8 @@ create table if not exists invite_codes (
 
 async function initDb() {
   await pool.query(SCHEMA);
+  await pool.query(MARKET_SCHEMA);
+  startUsernameReconciliation(pool,stripe);
   await pool.query(AUDIO_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
   // Trim history created before the limit existed, and keep the table small on
@@ -399,7 +403,7 @@ async function currentUser(req) {
 }
 
 const cleanHandle = (input) =>
-  String(input ?? "").trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
+  String(input ?? "").trim().toLowerCase();
 
 /* The public shape of an account — never includes email, password, MFA or
    Discord ids. Used by every profile page read. */
@@ -424,7 +428,7 @@ async function userByHandle(handle) {
   if (!clean) return null;
   const { rows } = await pool.query(
     `select * from users
-     where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1
+     where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null)
      limit 1`,
     [clean],
   );
@@ -501,7 +505,7 @@ const RESERVED = new Set([
 async function claimTaken(clean, exceptUserId) {
   const { rows } = await pool.query(
     `select id from users
-     where (username = $1 or alias = $1 or alias2 = $1) and id <> $2
+     where (username = $1 or alias = $1 or alias2 = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null)) and id <> $2
      limit 1`,
     [clean, exceptUserId ?? "00000000-0000-0000-0000-000000000000"],
   );
@@ -576,10 +580,11 @@ function inviteOf(row) {
 }
 
 async function uniqueUsername(base) {
-  const root = cleanHandle(base) || "player";
+  const raw = cleanHandle(base).replace(/[^a-z0-9]/g, "");
+  const root = raw.length >= 3 ? raw.slice(0, 20) : "player";
   let candidate = root;
   for (let i = 0; i < 50; i += 1) {
-    const { rows } = await pool.query("select id from users where username = $1", [candidate]);
+    const { rows } = await pool.query("select id from users where username = $1 or alias = $1 or alias2 = $1", [candidate]);
     if (rows.length === 0) return candidate;
     candidate = `${root}${Math.floor(Math.random() * 9000) + 100}`;
   }
@@ -681,13 +686,12 @@ app.use(
    session or signature. */
 app.use((req, res, next) => {
   if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return next();
-  const origin = req.get("origin");
-  if (!origin || FRONTEND_ORIGINS.has(origin)) return next();
+  if (requestOriginAllowed(req,FRONTEND_ORIGINS)) return next();
   return res.status(403).json({ error: "Cross-origin request blocked." });
 });
 
 /* Signed-in responses and billing must never sit in a shared cache. */
-app.use(["/api/auth", "/api/billing"], (_req, res, next) => {
+app.use(["/api/auth", "/api/billing", "/api/account", "/api/admin", "/api/market"], (_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
@@ -879,6 +883,11 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
+      if (session.metadata?.kind === "username") {
+        await fulfillUsername(pool, session);
+        profilePageCache.clear();
+        return res.json({ received: true });
+      }
       const userId = session.client_reference_id || session.metadata?.userId || null;
       const customerId = typeof session.customer === "string" ? session.customer : null;
       if (session.subscription) {
@@ -888,12 +897,6 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
           customerId,
           subscriptionId: subscription.id,
           active: ["active", "trialing"].includes(subscription.status),
-        });
-      } else if (userId) {
-        await applySubscription({
-          userId,
-          customerId,
-          active: session.payment_status === "paid",
         });
       }
     } else if (event.type.startsWith("customer.subscription.")) {
@@ -978,6 +981,8 @@ app.post("/api/billing/portal", billingLimiter, requireAuth, async (req, res) =>
 });
 
 app.use(express.json({ limit: "256kb" }));
+
+registerUsernameMarket(app, {pool, stripe, requireAuth, requireAdmin, limiter:billingLimiter, origin:CANONICAL_FRONTEND_ORIGIN, invalidate:()=>profilePageCache.clear()});
 
 /* ── runtime public env (the only config the static site needs) ────────── */
 
@@ -1141,29 +1146,20 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
       return res.status(409).json({ error: "An account with that email already exists — sign in instead." });
     }
 
-    const first = await pool.query("select count(*)::int as count from users");
-    const isFirst = first.rows[0].count === 0;
+    // Password registration does not prove email ownership and never grants roles.
+    if(privilegedEmail(email,OWNER_EMAIL_ADDRESS,ADMIN_EMAIL.trim().toLowerCase())) {
+      return res.status(403).json({error:"Use your verified Discord account or the configured administrator sign-in for this address."});
+    }
     let invite = null;
-    if (!isFirst) {
-      const mode = await registrationMode();
-      if (mode === "closed") {
-        return res.status(403).json({ error: "New accounts are closed right now." });
-      }
-      if (mode === "invite") {
-        invite = await usableInvite(inviteCode);
-        if (!invite) {
-          return res.status(403).json({ error: "That invite code isn't valid or has already been used." });
-        }
-      }
+    const mode = await registrationMode();
+    if (mode === "closed") return res.status(403).json({ error: "New accounts are closed right now." });
+    if (mode === "invite") {
+      invite = await usableInvite(inviteCode);
+      if (!invite) return res.status(403).json({ error: "That invite code isn't valid or has already been used." });
     }
 
     const username = await uniqueUsername(email.split("@")[0]);
     const hash = await bcrypt.hash(password, 12);
-    const ownerEmail = OWNER_EMAIL_ADDRESS;
-    const adminEmail = ADMIN_EMAIL.trim().toLowerCase();
-    const isOwner = Boolean(ownerEmail && email === ownerEmail);
-    const isAdmin = Boolean((adminEmail && email === adminEmail) || isOwner);
-
     // "Premium rain" signup gift: the account keeps Premium forever, so the
     // rain effect (and the rest of the cosmetic plan) survives turning it off.
     const rainGift = await premiumRainEnabled();
@@ -1174,8 +1170,8 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
         username,
         email,
         hash,
-        isOwner || isFirst,
-        isAdmin || isFirst,
+        false,
+        false,
         Boolean(invite?.premium) || rainGift,
       ],
     );
@@ -1438,18 +1434,18 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     const me = await meRes.json();
 
     const discordId = String(me.id);
-    const email = me.email ? String(me.email).toLowerCase() : null;
+    const email = verifiedDiscordEmail(me);
     const avatar = me.avatar
       ? `https://cdn.discordapp.com/avatars/${discordId}/${me.avatar}.png?size=256`
       : null;
     const displayName = me.global_name || me.username || "player";
 
-    // Existing account by Discord id, else by email (attach Discord to it).
+    // Discord identity is authoritative. Email equality alone must never link accounts.
     let { rows } = await pool.query("select * from users where discord_id = $1", [discordId]);
     let user = rows[0] ?? null;
-    if (!user && email) {
-      const byEmail = await pool.query("select * from users where email = $1", [email]);
-      user = byEmail.rows[0] ?? null;
+    if (!user && email && !state.linkUserId) {
+      const byEmail = await pool.query("select id from users where email = $1", [email]);
+      if (byEmail.rows.length) return res.redirect(`${returnOrigin}/#/?error=account_link_required`);
     }
 
     const ownerEmail = OWNER_EMAIL_ADDRESS;
@@ -1494,22 +1490,14 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       );
       user = updated.rows[0];
     } else {
-      const first = await pool.query("select count(*)::int as count from users");
-      const isFirst = first.rows[0].count === 0;
-
-      // Registration policy. The very first account always gets in, otherwise
-      // nobody could ever configure the site.
+      // Only a verified, configured privileged identity may bypass closed signup.
       let invite = null;
-      if (!isFirst) {
+      if (!isOwner && !isAdmin) {
         const mode = await registrationMode();
-        if (mode === "closed") {
-          return res.redirect(`${returnOrigin}/#/?error=registration_closed`);
-        }
+        if (mode === "closed") return res.redirect(`${returnOrigin}/#/?error=registration_closed`);
         if (mode === "invite") {
           invite = await usableInvite(state.invite);
-          if (!invite) {
-            return res.redirect(`${returnOrigin}/#/?error=invite_required`);
-          }
+          if (!invite) return res.redirect(`${returnOrigin}/#/?error=invite_required`);
         }
       }
 
@@ -1523,8 +1511,8 @@ app.get("/api/auth/discord/callback", async (req, res) => {
           email,
           discordId,
           avatar,
-          isOwner || isFirst,
-          isAdmin || isFirst,
+          isOwner,
+          isAdmin,
           Boolean(invite?.premium) || rainGift,
         ],
       );
@@ -1715,6 +1703,7 @@ app.post("/api/security/confirm-code", requireAuth, async (req, res) => {
 app.post("/api/profile/alias", requireAuth, async (req, res) => {
   try {
     const clean = cleanHandle(req.body?.alias);
+    if (clean && !freeHandleValid(clean)) return res.status(400).json({ error: "Free usernames use 3–24 letters or numbers. Single characters and symbols are marketplace exclusives." });
     if (clean && clean.length < 3) return res.status(400).json({ error: "Aliases need at least 3 characters." });
     if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
     if (RESERVED.has(clean)) return res.status(400).json({ error: `"${clean}" is reserved by the site.` });
@@ -1743,6 +1732,7 @@ app.post("/api/profile/alias2", requireAuth, async (req, res) => {
       );
       return res.json({ account: accountOf(rows[0]) });
     }
+    if (!freeHandleValid(clean)) return res.status(400).json({ error: "Free usernames use 3–24 letters or numbers. Single characters and symbols are marketplace exclusives." });
     if (clean.length < 3) return res.status(400).json({ error: "Aliases need at least 3 characters." });
     if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
     if (RESERVED.has(clean) || clean === user.username) {
@@ -1960,7 +1950,7 @@ async function canonicalViewHandle(input) {
   const handle = cleanHandle(input);
   if (!handle) return null;
   const { rows } = await pool.query(
-    "select username from users where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1 limit 1", [handle],
+    "select username from users where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null) limit 1", [handle],
   );
   return rows[0]?.username?.toLowerCase() || null;
 }
@@ -2029,10 +2019,13 @@ app.get("/api/admin/profiles", requireAdmin, async (_req, res) => {
 
 app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
   try {
-    const target = await pool.query("select id, username from users where id = $1", [req.params.id]);
+    const target = await pool.query("select id, username, is_owner from users where id = $1", [req.params.id]);
     const account = target.rows[0];
     if (!account) return res.status(404).json({ error: "No such account." });
 
+    if (!canEditMember(req.user,account,req.body)) {
+      return res.status(403).json({error:"Only the owner can change staff roles or edit an owner account."});
+    }
     const patch = {};
     if (typeof req.body?.premium === "boolean") patch.premium = req.body.premium;
     if (typeof req.body?.is_admin === "boolean") {
@@ -2079,7 +2072,7 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
         if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
         if (RESERVED.has(clean)) return res.status(400).json({ error: `"${clean}" is reserved by the site.` });
         const taken = await pool.query(
-          `select id from users where (username = $1 or alias = $1 or alias2 = $1) and id <> $2 limit 1`,
+          `select id from users where (username = $1 or alias = $1 or alias2 = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null)) and id <> $2 limit 1`,
           [clean, account.id],
         );
         if (taken.rowCount > 0) return res.status(400).json({ error: `@${clean} is already claimed.` });

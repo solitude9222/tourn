@@ -20,7 +20,7 @@ export function PremiumPage() {
     {
       id: "premium",
       name: "Premium",
-      price: "$4.99",
+      price: "$3",
       hint: "The full customisation toolkit.",
       features: [
         "Custom badges",
@@ -96,8 +96,7 @@ export function PremiumPage() {
           ))}
         </div>
         <p className="tw-foot-note">
-          Checkout is not live yet. The plan page opens the public pricing page, where the payment
-          provider is connected.
+          Upgrade through secure Stripe checkout on the pricing page. Marketplace usernames are separate purchases.
         </p>
         <div className="tw-row" style={{ marginTop: 12 }}>
           <Button variant="primary" icon="external" onClick={() => (window.location.hash = "#/premium")}>

@@ -38,14 +38,11 @@ backend serves the `dist/` bundle and the SPA alongside the API, so
 
 ## Accounts
 
-- **Sign-up is Discord-only** — `GET /api/auth/discord` starts the OAuth
-  flow, the callback creates the account and session.
+- **Sign-up** supports email/password and Discord OAuth. Password registration creates ordinary members and does not verify email ownership. Link Discord from an existing signed-in account in Settings; email equality alone never links accounts.
 - **Email + password sign-in** works for accounts that added a password in
   **Settings → Security** (Discord accounts can set one; leave "current
   password" empty the first time).
-- **Owner** = the account whose email matches `OWNER_EMAIL` (the legacy
-  `VITE_OWNER_EMAIL` name still works), or the seeded `ADMIN_EMAIL`, or the
-  first account created. Owner profile renders on the home card and at `/demo`.
+- **Owner** access comes from a verified Discord email matching `OWNER_EMAIL` (the legacy `VITE_OWNER_EMAIL` name still works), a server-seeded administrator, or an explicit owner grant. Public signup never promotes the first account. Owner profile renders on the home card and at `/demo`.
 - There are **no demo accounts** — without a reachable backend, sign-in is
   disabled and the UI says so.
 
@@ -170,3 +167,19 @@ presence still requires Lanyard monitoring. Additional badge display choices are
 stored with the widget; badges that Discord does not expose are labelled as
 unverified display choices. Their artwork sources are documented in
 `public/badges/discord/SOURCES.md`.
+
+
+### Username marketplace
+
+The Admin → Username stock tab manages real inventory. Add one letter, number, or symbol, set its one-time USD price, and enable **List for sale**. There is no automatically seeded stock. Unlisted names stay hidden; sold or reserved names cannot be repriced or reassigned by the stock editor.
+
+Deploy the backend with `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`. The existing `/api/billing/webhook` endpoint must receive Stripe `checkout.session.completed` events. Database initialization creates the inventory and transfer tables automatically. Signed-in buyers are sent to Stripe; only a signed, paid webhook with a matching order, buyer, amount and currency grants ownership and activates the account alias. Frontend success redirects never grant ownership. Checkout orders are stored before contacting Stripe, and retries use the same idempotency key and request payload. Each buyer can hold one pending order. Signed-in buyers can resume or cancel it. Pending reservations are only released after Stripe confirms expiration; a bounded background task reconciles expired or interrupted sessions. Public stock reads do not contact Stripe.
+
+Dashboard → Aliases lists owned names and lets members activate or gift them. Transfers require the recipient's original username twice, remove the sender's active claim, and retain a transfer record. All owned names resolve to their owner's actual published profile. Free claims use 3–24 letters and numbers; single characters and symbols are reserved for stock sales. Existing claimed names cannot be listed. Existing names remain resolvable.
+
+Run `npm run test:usernames` for the payment, ownership, claim-policy and gifting tests. A local frontend without its backend shows a service-unavailable message rather than invented inventory. Real checkout needs a running backend, database, Stripe credentials and webhook forwarding.
+
+
+The marketplace is separate from Premium pricing: it contains the single-character and special-character collections, each with explicit selection and a random picker. Random selection reveals the exact name and its admin-set price before purchase. Preview stock in local QA is disposable test data and is never seeded by production code.
+
+See [SECURITY.md](SECURITY.md) for the security review, test coverage and private vulnerability reporting guidance. Run `npm run test:security` before pushing changes to stock, billing or permissions.

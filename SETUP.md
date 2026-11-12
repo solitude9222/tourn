@@ -74,8 +74,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=
 and `/api/health` → `{"ok":true}`.
 
 **First admin:** if `ADMIN_EMAIL`/`ADMIN_PASSWORD` are set, the backend seeds
-that account automatically (owner + admin). Otherwise the **first account
-ever created becomes owner + admin**.
+that account automatically (owner + admin). Otherwise use Discord with a verified email matching `OWNER_EMAIL`. Public email/password registration never grants owner or admin roles, and the first signup is not privileged.
 
 ### 4) Discord OAuth (sign-up)
 
@@ -105,7 +104,7 @@ Railway to your final domain (used for the OAuth return).
 
 ### 6) Make yourself the owner
 
-Sign up with Discord → your email matches `OWNER_EMAIL` (or the seeded
+Sign up with Discord → your verified email matches `OWNER_EMAIL` (or the seeded
 `ADMIN_EMAIL`) → owner + admin. Then **Settings → Security** → set a password,
 **Settings → Claims** → claim your alias. `/demo` and the home card show your
 page immediately.

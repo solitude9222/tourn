@@ -17,6 +17,7 @@ export type Page =
   | "home"
   | "account-profile"
   | "badges"
+  | "aliases"
   | "affiliates"
   | "analytics"
   | "customize-profile"

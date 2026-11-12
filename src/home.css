@@ -1419,3 +1419,20 @@ button.hm-metric:focus-visible {
     font-size: clamp(52px, 15vw, 76px);
   }
 }
+
+/* Published-profile gallery and claim field */
+.hm-pages-grid--live { perspective:1400px; gap:24px; padding:18px 8px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.hm-pages-grid--live .hm-page-preview { min-width:0; height:480px; display:flex; flex-direction:column; justify-content:center; overflow:hidden; }
+.hm-pages-grid--live .hm-page-preview:first-child { transform:rotateY(12deg) rotateZ(-3deg); }
+.hm-pages-grid--live .hm-page-preview:last-child { transform:rotateY(-12deg) rotateZ(3deg); }
+.hm-pages-grid--live .hm-page-preview:nth-child(2) { z-index:2; transform:translateY(-12px); }
+.hm-live-profile { width:500px; flex:none; zoom:.56; pointer-events:none; }
+.hm-live-profile .about-preview { max-width:100%; }
+.hm-pages-grid--live .hm-page-caption { z-index:3; position:absolute; inset:auto 0 0; display:flex; gap:10px; align-items:center; justify-content:center; padding:20px; background:linear-gradient(transparent,#080a12 35%); color:#dce4ff; }
+.hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #38486b; border-radius:16px; background:#101521; box-shadow:0 12px 45px #0005; }
+.hm-claim--cta .hm-claim-field { display:flex; flex:1; min-width:0; align-items:center; gap:2px; padding:0 10px; border:0; background:transparent; color:#8090af; font-family:inherit; font-size:15px; }
+.hm-claim--cta input { width:100%; min-width:0; padding:0; border:0; outline:0; background:transparent; color:#fff; font:inherit; box-shadow:none; }
+.hm-claim--cta:focus-within { outline:2px solid #6490ff; outline-offset:3px; }
+.hm-claim--cta input::placeholder { color:#78849d; }
+.hm-btn--claim { border-radius:10px; padding:0 20px; background:#5078ed; color:white; }
+@media(max-width:800px){ .hm-pages-grid--live { grid-template-columns:1fr; max-width:480px; margin-inline:auto; } .hm-pages-grid--live .hm-page-preview:first-child,.hm-pages-grid--live .hm-page-preview:last-child,.hm-pages-grid--live .hm-page-preview:nth-child(2){transform:none;} }

@@ -48,7 +48,8 @@ function handleFromPath(): string | null {
   if (!segment || RESERVED_PATHS.has(segment)) return null;
   // A dot is a file request (logo.png, favicon.ico), not a handle.
   if (/\.[a-z0-9]+$/.test(segment)) return null;
-  const handle = segment.replace(/[^a-z0-9._-]/g, "");
+  let handle: string;
+  try { handle = decodeURIComponent(segment); } catch { return null; }
   return handle || null;
 }
 

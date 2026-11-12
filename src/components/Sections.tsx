@@ -9,6 +9,8 @@ import {
   type WidgetInstance,
 } from "../lib/widgets";
 import { DEFAULT_SETTINGS, FEATURED_TRACK } from "../config";
+import { initialHomePreviews, refreshHomePreviews } from "../lib/homePreview";
+import { ProfilePreview } from "./ProfilePreview";
 import { ProfileCard } from "./ProfileCard";
 import { BADGE_CATALOGUE } from "../lib/badges";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
@@ -331,68 +333,33 @@ export function BadgesSection() {
 /* ---------------------------------------------------------- profile pages */
 
 export function PagesSection() {
-  const people = useCommunityPeople().slice(0, 3);
-
+  const [pool, setPool] = useState(initialHomePreviews);
+  useEffect(() => {
+    let active = true;
+    void refreshHomePreviews().then(next => { if (active && next) setPool(next); });
+    return () => { active = false; };
+  }, []);
+  const profiles = pool.profiles.filter(row => row.profile).slice(0, 3);
   return (
-    <section className="hm-section" id="pages">
-      <div className="hm-wrap">
-        <div className="hm-sec-head hm-sec-head--center">
-          <span className="hm-label">Profile Pages</span>
-          <h2 className="hm-title">Three looks. One editor.</h2>
-          <p className="hm-sub">
-            Real pages from the community — three different looks, all built in the same editor.
-          </p>
-        </div>
-
-        <div className="hm-pages-grid">
-          {people.map((person, index) => {
-            const bio = person.bio
-              ? person.bio.split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 2)
-              : [`tourn.lol/${person.handle}`];
-            return (
-              <a
-                key={person.handle}
-                className="hm-page-preview"
-                href={`#/profile/${encodeURIComponent(person.handle)}`}
-                style={{ "--hm-page-bg": PAGE_GRADIENTS[index % PAGE_GRADIENTS.length] } as CSSProperties}
-              >
-                <span className="hm-page-location">
-                  {person.views === null ? "tourn.lol" : `${formatCompactNumber(person.views)} views`}
-                </span>
-                <span className="hm-page-card">
-                  <span className="hm-page-avatar">
-                    {person.avatar ? (
-                      <img src={person.avatar} alt="" loading="lazy" decoding="async" />
-                    ) : (
-                      person.name.slice(0, 1).toUpperCase()
-                    )}
-                  </span>
-                  <b>{person.name}</b>
-                  <small>@{person.handle}</small>
-                  <em>
-                    {bio.map((line) => (
-                      <span key={line}>{line}</span>
-                    ))}
-                  </em>
-                  <span className="hm-page-links" aria-hidden="true">
-                    <i>
-                      <DiscordIcon size={12} />
-                    </i>
-                    <i>
-                      <SpotifyIcon size={12} />
-                    </i>
-                    <i>
-                      <ExternalIcon size={12} />
-                    </i>
-                  </span>
-                </span>
-                <span className="hm-page-caption">@{person.handle}</span>
-              </a>
-            );
-          })}
-        </div>
+    <section className="hm-section" id="pages"><div className="hm-wrap">
+      <div className="hm-sec-head hm-sec-head--center">
+        <span className="hm-label">Profile Pages</span><h2 className="hm-title">Three looks. One editor.</h2>
+        <p className="hm-sub">Real published profiles. Their own styles, links and badges, straight from the community.</p>
       </div>
-    </section>
+      <div className="hm-pages-grid hm-pages-grid--live">
+        {profiles.map(({ account, profile, earned }, index) => profile && (
+          <article key={account.id} className="hm-page-preview" style={{ "--hm-page-bg": PAGE_GRADIENTS[index] } as CSSProperties}>
+            <div className="hm-live-profile" inert>
+              <ProfilePreview user={account} about={profile.about} badges={profile.badges.equipped.filter(b => !earned || earned.includes(b.id))} badgeStyle={profile.badges.style} links={profile.links.links} linkDesign={profile.links.design} hideAudio disableTilt>
+                {profile.widgets.widgets.filter(w => w.visible !== false).map(widget => <WidgetCard key={widget.id} widget={widget} design={profile.widgets.design} />)}
+              </ProfilePreview>
+            </div>
+            <a className="hm-page-caption" href={'#/profile/' + encodeURIComponent(account.username)}>Visit @{account.username} <ArrowRight size={13} /></a>
+          </article>
+        ))}
+      </div>
+      {!profiles.length && <p className="hm-sub">Published profiles will appear here when the community is available.</p>}
+    </div></section>
   );
 }
 

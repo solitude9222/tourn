@@ -60,7 +60,7 @@ export const RESERVED_HANDLES = new Set([
 ]);
 
 export function normalizeHandle(input: string): string {
-  return input.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
+  return input.trim().toLowerCase();
 }
 
 /**

@@ -1,3 +1,4 @@
+import { UsernameStockPanel } from "./UsernameStockPanel";
 import { DiscordAutomationPanel } from "./DiscordAutomationPanel";
 import { DataTransferPanel } from "./DataTransferPanel";
 import { HOME_PREVIEW_MODE_KEY, type HomePreviewMode } from "../lib/homePreview";
@@ -40,7 +41,7 @@ import {
 import { Select } from "./Select";
 import "../admin.css";
 
-type Tab = "overview" | "members" | "invites" | "settings" | "data" | "bot";
+type Tab = "usernames" | "overview" | "members" | "invites" | "settings" | "data" | "bot";
 
 type RegistrationMode = "open" | "invite" | "closed";
 
@@ -94,6 +95,7 @@ type BotStatus = {
 };
 
 const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
+  { id: "usernames", label: "Username stock", icon: <KeyIcon size={13} /> },
   { id: "overview", label: "Overview", icon: <EyeIcon size={13} /> },
   { id: "members", label: "Members", icon: <UsersIcon size={13} /> },
   { id: "invites", label: "Invites", icon: <KeyIcon size={13} /> },
@@ -919,6 +921,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
           </section>
         </>
       ) : null}
+
+      {tab === "usernames" ? <UsernameStockPanel /> : null}
 
       {tab === "members" ? (
         <section className="adm-panel">

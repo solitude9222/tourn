@@ -11,6 +11,7 @@ const OAUTH_ERRORS: Record<string, string> = {
   discord_token:
     "Discord stopped before the handshake finished. Press Continue with Discord once more — if it keeps happening, create an account with an email and password instead.",
   discord_profile: "Discord didn't share a profile — allow email sharing on the consent screen and try again.",
+  account_link_required: "An account already uses this email. Sign in with its password, then connect Discord from Settings. Contact support if you did not create that account.",
   oauth_failed: "Discord sign-in failed. Try again, or use an email and password.",
   registration_closed: "New accounts are closed right now — existing members can still sign in.",
   invite_required: "That invite code isn't valid or has already been used.",

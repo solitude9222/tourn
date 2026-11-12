@@ -16,6 +16,8 @@
     "test:discord": "node --test tests/discord-automation.test.mjs",
     "test:data-transfer": "node --test tests/data-transfer.test.mjs",
     "test:audio": "node --test tests/audio.test.mjs",
+    "test:security": "node --test tests/security.test.mjs tests/usernames.test.mjs",
+    "test:usernames": "node --test tests/usernames.test.mjs",
     "test:analytics": "node --test tests/analytics.test.mjs"
   },
   "dependencies": {

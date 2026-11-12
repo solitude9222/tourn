@@ -1,3 +1,4 @@
+import { AliasesPage } from "./pages/Aliases";
 import type { ProfileDocument } from "../lib/serverProfile";
 /* ---------------------------------------------------------------------------
    tourn.lol dashboard root.
@@ -73,6 +74,7 @@ const PROFILE_TABS: TabDef[] = [
 ];
 
 const META: Record<Page, { title: string; subtitle: string; icon: IconName; crumb: string }> = {
+  aliases: {title:"Aliases",subtitle:"Own, activate and gift your usernames.",icon:"link",crumb:"Account"},
   home: { title: "Home", subtitle: "Here's how your profile and live data are doing.", icon: "home", crumb: "Home" },
   "account-profile": {
     title: "Profile",
@@ -499,6 +501,9 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "templates":
       content = <TemplatesPage />;
+      break;
+    case "aliases":
+      content = <AliasesPage />;
       break;
     case "billing":
       content = <BillingPage />;
