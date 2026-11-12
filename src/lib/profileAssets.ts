@@ -479,7 +479,7 @@ export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "No audio player shown" },
   { id: "compact", name: "Compact", hint: "One row: cover, title, transport, progress" },
   { id: "lyrics", name: "Lyrics", hint: "Custom or auto-fetched lyrics that follow playback" },
-  { id: "pill", name: "Marquee", hint: "A slim strip with the track name gliding through it" },
+  { id: "pill", name: "Pill", hint: "A long bar with cover art and a track name that glides back and forth" },
   { id: "vinyl", name: "Vinyl", hint: "A record in the card edge, spinning while it plays" },
   { id: "popup", name: "Popup", hint: "A collapsible music player in the top-left corner" },
 ];
