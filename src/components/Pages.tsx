@@ -1,8 +1,9 @@
 import { UsernameMarket } from "./UsernameMarket";
 import { useEffect, useState, type ReactNode } from "react";
-import { api, post } from "../lib/backend";
+import { api } from "../lib/backend";
+import { openSellAuthCheckout } from "../lib/sellAuth";
 import { useAuth, type Account } from "../lib/auth";
-import { ArrowRight, BoltIcon, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
+import { ArrowRight, CheckIcon, ChevronIcon, TrophyIcon } from "./Icons";
 import "../leaderboard.css";
 import "../pages.css";
 
@@ -190,7 +191,7 @@ function PlanCards({onSignUp,onPremium,buying}:{onSignUp:()=>void;onPremium:()=>
   const {user,isPremiumUser}=useAuth();
   return <div className="plan-choice-grid">
     <article className="plan-choice"><span className="eyebrow eyebrow--sm">NORMAL</span><h2>Your space on the internet.</h2><div className="plan-choice-price">$0 <small>forever</small></div><p>A complete profile with your links, widgets, badges and your own design.</p><ul><li>Profile editor and asset uploads</li><li>Links and live platform widgets</li><li>Profile views and analytics</li></ul><a className="btn btn-ghost" href={user?'#/dashboard':'#/premium'} onClick={e=>{if(!user){e.preventDefault();onSignUp();}}}>{user?'Open your dashboard':'Create your profile'} <ArrowRight size={14}/></a></article>
-    <article className="plan-choice plan-choice--premium"><span className="eyebrow eyebrow--sm">✦ PREMIUM</span><h2>Every detail. Your way.</h2><div className="plan-choice-price">$3 <small>/ month</small></div><p>Go further with animated effects, expressive audio and a second profile address.</p><ul><li>Background, overlay and text effects</li><li>Vinyl, marquee and lyrics players</li><li>Glass links and a swats.bio claim</li></ul>{isPremiumUser ? <a className="btn btn-primary" href="#/dashboard/billing">Manage Premium <ArrowRight size={14}/></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={onPremium}>{buying ? "Opening checkout…" : "Get Premium"} <ArrowRight size={14}/></button>}</article>
+    <article className="plan-choice plan-choice--premium"><span className="eyebrow eyebrow--sm">PREMIUM</span><h2>Every detail. Your way.</h2><div className="plan-choice-price">$9.99 <small>once</small></div><p>One payment, permanent access to animated effects, expressive audio and a second profile address.</p><ul><li>Background, overlay and text effects</li><li>Vinyl, marquee and lyrics players</li><li>Glass links and a swats.bio claim</li></ul>{isPremiumUser ? <a className="btn btn-primary" href="#/dashboard/billing">Manage Premium <ArrowRight size={14}/></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={onPremium}>{buying ? "Opening checkout…" : "Get Premium"} <ArrowRight size={14}/></button>}</article>
   </div>;
 }
 function PlanComparison() {
@@ -199,7 +200,7 @@ function PlanComparison() {
 
 /* -------------------------------------------------------------- premium */
 
-const PREMIUM_PRICE = "$3";
+const PREMIUM_PRICE = "$9.99";
 
 const PREMIUM_COMPARE: { label: string; free: boolean }[] = [
   { label: "Bio page with your handle", free: true },
@@ -215,47 +216,33 @@ const PREMIUM_COMPARE: { label: string; free: boolean }[] = [
   { label: "Second claim — swats.bio/you", free: false },
 ];
 
-const PREMIUM_PERKS = [
-  {
-    icon: <BoltIcon size={16} />,
-    title: "Every effect, unlocked",
-    desc: "Rain, snow, shooting stars, aurora and spotlights behind your card — plus VHS, grain and dotters over it. Text effects too: RGB flow, glitch, neon, typewriter.",
-  },
-  {
-    icon: <TrophyIcon size={16} />,
-    title: "A second profile address",
-    desc: "Premium claims yourname on swats.bio as well as tourn.lol. Your second claim stays active while Premium is active, subject to a grace period after cancellation.",
-  },
-  {
-    icon: <ExternalIcon size={16} />,
-    title: "Audio that actually plays",
-    desc: "Marquee strips, a spinning vinyl and lyrics that follow the track line by line. Upload your own file and visitors get real transport controls, not a dead link.",
-  },
-];
-
 const PREMIUM_FAQ = [
   {
     q: "How much is it?",
-    a: `Premium is ${PREMIUM_PRICE}/month, billed securely through Stripe. You can cancel from the billing portal at any time, and an early grant made during the beta stays on your account.`,
+    a: `Premium is ${PREMIUM_PRICE}, paid once. It does not renew and there is no subscription to cancel — the account keeps it permanently.`,
   },
   {
-    q: "How do I get it during the beta?",
-    a: "Create an account and you're in the running — Premium is granted to beta supporters and reviewers. Everything else stays free either way.",
+    q: "How does checkout work?",
+    a: "Checkout runs through SellAuth, which owns the payment, the stock and the delivery. Sign in to tourn.lol first so the order can be attached to the right profile.",
   },
   {
-    q: "What happens to my second claim if I cancel?",
-    a: "Nothing dramatic. The swats.bio claim is released after a grace period so someone else can take it, and every other part of your page keeps working.",
+    q: "When does Premium switch on?",
+    a: "As soon as the payment is confirmed: SellAuth reports the completed order to tourn.lol and Premium is applied to the account you were signed in with. Nothing to paste.",
+  },
+  {
+    q: "What happens to my second claim?",
+    a: "Your swats.bio claim stays live while Premium is active. Since Premium does not expire, it stays live until you release the name or delete the account.",
   },
 ];
 
 export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
-  const { user, isPremiumUser, retryAuth } = useAuth();
+  const { user, isPremiumUser } = useAuth();
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
 
-  /* Checkout is created on the server with the price id it owns, so the
-     browser can never pick an amount. Signed-out visitors get the sign-up
-     dialog first; everything else is a normal redirect to Stripe. */
+  /* SellAuth owns the money and the stock; opening its checkout is the whole
+     handoff. Signed-out visitors get the sign-up dialog first, because the
+     order has to belong to an account before it can grant anything. */
   const buyPremium = async () => {
     if (!user) {
       onSignUp();
@@ -263,26 +250,14 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
     }
     setBuying(true);
     setBuyError(null);
-    const result = await post<{ url?: string }>("/api/billing/checkout");
-    if (result.ok && result.data.url) {
-      window.location.href = result.data.url;
-      return;
+    try {
+      await openSellAuthCheckout();
+    } catch (error) {
+      setBuyError(error instanceof Error ? error.message : "Checkout is unavailable right now.");
+    } finally {
+      setBuying(false);
     }
-    setBuying(false);
-    setBuyError(result.ok ? "Checkout didn't return a link." : result.error);
   };
-
-  const [checkoutState] = useState(() =>
-    new URLSearchParams(window.location.search).get("checkout"),
-  );
-
-  // Stripe redirects back before its webhook has necessarily landed. Re-check
-  // the account once so the page flips to Premium without a manual reload.
-  useEffect(() => {
-    if (checkoutState !== "success") return;
-    const timer = window.setTimeout(() => void retryAuth(), 1800);
-    return () => window.clearTimeout(timer);
-  }, [checkoutState, retryAuth]);
 
   return (
     <section className="page">
@@ -292,67 +267,20 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
           Everything, <span className="accent">unlocked.</span>
         </h1>
         <p className="page-sub">
-          The core bio link stays free forever. Premium is one plan that turns on every effect,
-          every audio style and a second claim on swats.bio — {PREMIUM_PRICE}/month, billed
-          securely through Stripe. Cancel anytime.
+          The core bio link stays free forever. Premium is one payment of {PREMIUM_PRICE} that
+          turns on every effect, every audio style and a second claim on swats.bio — yours
+          permanently, with nothing to renew.
         </p>
       </div>
 
       <div className="wrap">
         <PlanCards onSignUp={onSignUp} onPremium={()=>void buyPremium()} buying={buying} />
-        <div className="premium-hero" data-reveal>
-          <div className="premium-hero-plan">
-            <span className="premium-hero-badge">
-              <BoltIcon size={13} />
-              {isPremiumUser ? "Active on your account" : "Secure checkout · cancel anytime"}
-            </span>
-            <div className="premium-hero-price">
-              <b>{PREMIUM_PRICE}</b>
-              <span>/month</span>
-            </div>
-            <p>
-              One plan for profile customization, every
-              future effect included.
-            </p>
-            {isPremiumUser ? (
-              <a className="btn btn-primary btn-sm" href="#/dashboard">
-                Manage your page
-                <ArrowRight size={13} />
-              </a>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => void buyPremium()}
-                disabled={buying}
-              >
-                {buying ? "Opening checkout…" : "Buy premium"}
-                <ArrowRight size={13} />
-              </button>
-            )}
-            {buyError ? (
-              <p className="premium-buy-note" role="alert">
-                {buyError}
-              </p>
-            ) : null}
-            {checkoutState === "success" && !isPremiumUser ? (
-              <p className="premium-buy-note premium-buy-note--ok" role="status">
-                Payment received — Stripe is confirming your plan. This page updates in a moment.
-              </p>
-            ) : null}
-          </div>
-          <ul className="premium-hero-points">
-            {PREMIUM_PERKS.map((perk) => (
-              <li key={perk.title}>
-                <span className="premium-perk-icon">{perk.icon}</span>
-                <span>
-                  <b>{perk.title}</b>
-                  <small>{perk.desc}</small>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+
+        {buyError ? (
+          <p className="premium-buy-note" role="alert">
+            {buyError}
+          </p>
+        ) : null}
 
         <PlanComparison />
 
@@ -376,7 +304,7 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
           <p>
             {isPremiumUser
               ? "Premium is already active on this account — everything on this page is unlocked."
-              : "Payments run through Stripe. tourn.lol never sees or stores your card details, and a grant made during the beta stays on your account."}
+              : "Checkout runs through SellAuth. Sign in first so the purchase is tied to your tourn.lol account, and Premium stays on it permanently."}
           </p>
           <a className="btn btn-ghost btn-sm" href="#/legal">
             Read the terms
@@ -457,9 +385,9 @@ const LEGAL_SECTIONS: LegalSection[] = [
     title: "7. Premium, payments and refunds",
     body: [
       "Premium is a cosmetic upgrade: effects, audio styles and a second claim. It never affects ranking, visibility of other pages, or access to the core bio link, which stays free.",
-      "During the beta, Premium is granted by staff and checkout is not live. No payment is taken on tourn.lol while the beta runs. When paid Premium opens, the price and billing interval will be shown before you pay, and purchases will be handled by a payment processor that receives your payment details — we never see or store full card numbers.",
-      "Paid subscriptions will renew for the period you chose until cancelled. You can cancel at any time and keep Premium until the end of the paid period. Where consumer law gives you a right of withdrawal, contact legal@tourn.lol within 14 days of a charge and we will refund it if the upgrade has not been materially used.",
-      "If a beta grant is withdrawn, or a payment fails, Premium features switch off but your page, links and handle remain. Nothing you wrote is deleted because a plan ended.",
+      "Premium is a single one-time payment of $9.99, processed by SellAuth, which receives your payment details — tourn.lol never sees or stores full card numbers. The price is shown before you pay and never renews.",
+      "Because Premium does not expire and is not a subscription, there is nothing to cancel. Where consumer law gives you a right of withdrawal, contact legal@tourn.lol within 14 days of the charge and we will refund it if the upgrade has not been materially used.",
+      "If a payment is reversed or refunded, Premium features switch off but your page, links and handle remain. Nothing you wrote is deleted because a purchase was undone.",
     ],
   },
   {

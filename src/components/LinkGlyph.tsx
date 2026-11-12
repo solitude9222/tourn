@@ -20,20 +20,30 @@ export function LinkGlyph({
   size: number;
   brandIcon?: ComponentType<{ size?: number; className?: string }>;
 }) {
-  const [failed, setFailed] = useState(false);
+  const [src, setSrc] = useState(iconUrl ?? "");
 
   useEffect(() => {
-    setFailed(false);
+    setSrc(iconUrl ?? "");
   }, [iconUrl]);
 
-  if (iconUrl && !failed) {
+  // Google's favicon service occasionally has no icon for a domain. When that
+  // happens, try the site's own icon through DuckDuckGo before falling back to
+  // the generic platform mark.
+  const fallback =
+    iconUrl && iconUrl.includes("google.com/s2/favicons")
+      ? iconUrl
+          .replace("https://www.google.com/s2/favicons?domain=", "https://icons.duckduckgo.com/ip3/")
+          .replace(/&sz=\d+/, ".ico")
+      : "";
+
+  if (src) {
     return (
       <img
-        src={iconUrl}
+        src={src}
         alt=""
         className="pv-link-img"
         style={{ width: size, height: size }}
-        onError={() => setFailed(true)}
+        onError={() => setSrc(fallback && src !== fallback ? fallback : "")}
       />
     );
   }

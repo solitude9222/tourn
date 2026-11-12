@@ -1,3 +1,4 @@
+import { COMMERCE_SCHEMA, registerSellAuthDelivery, registerSellAuthRoutes } from "./commerce.js";
 import { requestOriginAllowed, canEditMember, verifiedDiscordEmail, privilegedEmail } from "./security.js";
 import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid, startUsernameReconciliation } from "./usernames.js";
 import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
@@ -220,6 +221,7 @@ create table if not exists invite_codes (
 async function initDb() {
   await pool.query(SCHEMA);
   await pool.query(MARKET_SCHEMA);
+  await pool.query(COMMERCE_SCHEMA);
   startUsernameReconciliation(pool,stripe);
   await pool.query(AUDIO_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
@@ -691,7 +693,7 @@ app.use((req, res, next) => {
 });
 
 /* Signed-in responses and billing must never sit in a shared cache. */
-app.use(["/api/auth", "/api/billing", "/api/account", "/api/admin", "/api/market"], (_req, res, next) => {
+app.use(["/api/auth", "/api/billing", "/api/account", "/api/admin", "/api/market", "/api/commerce"], (_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
@@ -848,7 +850,7 @@ function requireStripe(res) {
 async function applySubscription({ userId, customerId, subscriptionId, active }) {
   if (userId) {
     await pool.query(
-      `update users set premium = $2,
+      `update users set premium = premium_lifetime or $2,
          stripe_customer_id = coalesce($3, stripe_customer_id),
          stripe_subscription_id = coalesce($4, stripe_subscription_id)
        where id = $1`,
@@ -858,13 +860,15 @@ async function applySubscription({ userId, customerId, subscriptionId, active })
   }
   if (customerId) {
     await pool.query(
-      `update users set premium = $2,
+      `update users set premium = premium_lifetime or $2,
          stripe_subscription_id = coalesce($3, stripe_subscription_id)
        where stripe_customer_id = $1`,
       [customerId, active, subscriptionId ?? null],
     );
   }
 }
+
+registerSellAuthDelivery(app,{pool,rawParser:express.raw({type:"application/json",limit:"256kb"}),jwt,secret:JWT_SECRET,invalidate:()=>profilePageCache.clear()});
 
 app.post("/api/billing/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   if (!stripe || !STRIPE_WEBHOOK_SECRET) {
@@ -915,49 +919,7 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
   }
 });
 
-app.post("/api/billing/checkout", billingLimiter, requireAuth, async (req, res) => {
-  if (!requireStripe(res)) return;
-  try {
-    const { rows } = await pool.query(
-      "select id, email, username, premium, stripe_customer_id from users where id = $1",
-      [req.auth.sub],
-    );
-    const user = rows[0];
-    if (!user) return res.status(401).json({ error: "Sign in first." });
-    if (user.premium) return res.status(409).json({ error: "Premium is already active on this account." });
-
-    let customerId = user.stripe_customer_id;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email || undefined,
-        name: user.username,
-        metadata: { userId: user.id },
-      });
-      customerId = customer.id;
-      await pool.query("update users set stripe_customer_id = $2 where id = $1", [
-        user.id,
-        customerId,
-      ]);
-    }
-
-    const origin = returnOriginFromReferer(req);
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
-      allow_promotion_codes: true,
-      client_reference_id: user.id,
-      subscription_data: { metadata: { userId: user.id } },
-      success_url: `${origin}/premium?checkout=success`,
-      cancel_url: `${origin}/premium?checkout=cancelled`,
-    });
-    if (!session.url) return res.status(502).json({ error: "Stripe didn't return a checkout link." });
-    res.json({ url: session.url });
-  } catch (error) {
-    console.error("[billing] checkout failed:", error.message);
-    res.status(502).json({ error: "Couldn't open checkout — try again in a moment." });
-  }
-});
+app.post("/api/billing/checkout", requireAuth, (_req,res)=>res.status(410).json({error:"Premium is now a permanent SellAuth purchase. Open the Premium page."}));
 
 app.post("/api/billing/portal", billingLimiter, requireAuth, async (req, res) => {
   if (!requireStripe(res)) return;
@@ -982,6 +944,8 @@ app.post("/api/billing/portal", billingLimiter, requireAuth, async (req, res) =>
 
 app.use(express.json({ limit: "256kb" }));
 
+registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limiter:billingLimiter,jwt,secret:JWT_SECRET,invalidate:()=>profilePageCache.clear()});
+app.use(["/api/market/usernames","/api/market/checkout","/api/admin/usernames"],(_req,res)=>res.status(410).json({error:"Products, prices and stock are managed in SellAuth."}));
 registerUsernameMarket(app, {pool, stripe, requireAuth, requireAdmin, limiter:billingLimiter, origin:CANONICAL_FRONTEND_ORIGIN, invalidate:()=>profilePageCache.clear()});
 
 /* ── runtime public env (the only config the static site needs) ────────── */

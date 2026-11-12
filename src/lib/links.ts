@@ -99,7 +99,11 @@ export function faviconUrlFor(input: string): string {
 /** The image to render for a link, or "" when its brand mark should be used. */
 export function linkIconUrl(link: Pick<LinkInstance, "platform" | "url" | "iconUrl">): string {
   if (link.iconUrl.trim()) return link.iconUrl;
-  return FAVICON_PLATFORMS.has(link.platform.trim().toLowerCase()) ? faviconUrlFor(link.url) : "";
+  const platform = link.platform.trim().toLowerCase();
+  // A name we don't know is still a real website, so its own favicon is a
+  // better mark than the generic fallback.
+  if (!getPlatform(platform)) return faviconUrlFor(link.url);
+  return FAVICON_PLATFORMS.has(platform) ? faviconUrlFor(link.url) : "";
 }
 
 export function createLink(platformId: string): LinkInstance {

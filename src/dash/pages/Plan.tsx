@@ -20,8 +20,8 @@ export function PremiumPage() {
     {
       id: "premium",
       name: "Premium",
-      price: "$3",
-      hint: "The full customisation toolkit.",
+      price: "$9.99",
+      hint: "One payment, permanent access to the full customisation toolkit.",
       features: [
         "Custom badges",
         "Gradient & glow card effects",
