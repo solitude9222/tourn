@@ -508,3 +508,12 @@
 .ap-popup {position:relative;}
 @keyframes apEdgeTrace {to{--ap-edge-angle:360deg;}}
 @keyframes apEdgePulse {0%,100%{opacity:.2}50%{opacity:.9}}
+
+/* Cover art inside the popup button, so the top-left player shows the art. */
+.ap-popup-icon { position: relative; overflow: hidden; }
+.ap-popup-icon.has-cover { padding: 0; border-color: rgba(255, 255, 255, 0.22); background: #0b0d10; }
+.ap-popup-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.ap-popup-glyph { display: grid; place-items: center; }
+.ap-popup-glyph svg { width: 48%; height: 48%; }
+.ap-popup-state { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(6, 8, 12, 0.42); color: #fff; }
+.ap-popup-state svg { width: 46%; height: 46%; }

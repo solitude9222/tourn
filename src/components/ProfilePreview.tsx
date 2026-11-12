@@ -231,6 +231,8 @@ export function ProfilePreview({
     "--pv-pill-border": hexToRgba(design.colors.accent, design.pills.borderOpacity),
     "--pv-pill-radius": `${design.pills.radius}px`,
     "--pv-pill-blur": `${design.pills.blur}px`,
+    "--pv-meta-glow": design.metaGlowColor || "#b4bffa",
+    "--pv-meta-glow-strength": design.metaGlowStrength ?? 0,
     "--pv-zoom": decoration.zoom ?? 1,
     "--pv-rotate": `${decoration.rotate ?? 0}deg`,
   } as CSSProperties;

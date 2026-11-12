@@ -15,6 +15,7 @@ import { WidgetCard } from "./WidgetCard";
 import { ProfileInteractions } from "./ProfileInteractions";
 import { AudioPlayer } from "./AudioPlayer";
 import { ProfileSections } from "./ProfileSections";
+import { BadgeRow } from "./BadgeRow";
 import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
 import "../about.css";
 
@@ -424,6 +425,52 @@ export function LinkerPreview({
         : null}
     </>
   ) : null;
+  const tooltips = design.tooltips;
+  const showLinksSlide = slideshowActive && design.slideshowLinks && links.links.some((link) => link.visible && link.url.trim());
+  const showBadgesSlide = slideshowActive && design.slideshowBadges && badges.equipped.length > 0;
+  const showAboutSlide = slideshowActive && design.slideshowAbout && Boolean(about.bio.trim());
+  const slideshowExtras = showLinksSlide || showBadgesSlide || showAboutSlide ? (
+    <>
+      {showAboutSlide ? (
+        <div className="lkr-slide">
+          <section className="lkr-slide-panel">
+            <span className="lkr-slide-label">About me</span>
+            <p>{about.bio}</p>
+          </section>
+        </div>
+      ) : null}
+      {showLinksSlide ? (
+        <div className="lkr-slide">
+          <section className="lkr-slide-panel">
+            <span className="lkr-slide-label">Links</span>
+            <ProfileLinks
+              links={links.links}
+              design={links.design}
+              tooltipStyle={tooltips.style}
+              tooltipEnabled={tooltips.enabled}
+              tooltipAnimation={tooltips.animation}
+            />
+          </section>
+        </div>
+      ) : null}
+      {showBadgesSlide ? (
+        <div className="lkr-slide">
+          <section className="lkr-slide-panel">
+            <span className="lkr-slide-label">Badges</span>
+            <BadgeRow
+              badges={badges.equipped}
+              style={badges.style ?? DEFAULT_BADGE_STYLE}
+              size={26}
+              tooltipStyle={tooltips.style}
+              tooltipEnabled={tooltips.enabled}
+              tooltipAnimation={tooltips.animation}
+            />
+          </section>
+        </div>
+      ) : null}
+    </>
+  ) : null;
+
   const [slideIndex, setSlideIndex] = useState(0);
   const [slideCount, setSlideCount] = useState(0);
   useEffect(() => {
@@ -476,6 +523,7 @@ export function LinkerPreview({
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
       </div>
       {sectionContent}
+      {slideshowExtras}
     </div>
   );
 

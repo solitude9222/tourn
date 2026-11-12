@@ -212,6 +212,13 @@ export type AboutDesign = {
   sections: ProfileSection[];
   sectionsEnabled?: boolean;
   slideshow?: boolean;
+  /** Extra slideshow pages: links, badges and the bio on their own screens. */
+  slideshowLinks?: boolean;
+  slideshowBadges?: boolean;
+  slideshowAbout?: boolean;
+  /** Glow around the location, view and join details. */
+  metaGlowColor?: string;
+  metaGlowStrength?: number;
   skills?: string[];
   audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "fixed-bottom" | "hidden";
   widgetsPosition: WidgetsPosition;
@@ -576,6 +583,11 @@ function loadDesign(input: unknown): AboutDesign {
     theme,
     sectionsEnabled: typeof raw.sectionsEnabled === "boolean" ? raw.sectionsEnabled : Boolean(raw.sections?.length),
     slideshow: raw.slideshow === true,
+    slideshowLinks: raw.slideshowLinks === true,
+    slideshowBadges: raw.slideshowBadges === true,
+    slideshowAbout: raw.slideshowAbout === true,
+    metaGlowColor: validColor(raw.metaGlowColor, "#b4bffa"),
+    metaGlowStrength: numberIn(raw.metaGlowStrength, 0, 0, 1),
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "side", "popup", "fixed-bottom", "hidden"] as const, "auto"),
     widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),

@@ -4997,7 +4997,7 @@
 .lkr-slideshow {height:min(88dvh,860px);max-height:100dvh;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scroll-behavior:smooth;touch-action:pan-y;scrollbar-width:none;-ms-overflow-style:none;}
 .lkr-slideshow::-webkit-scrollbar {display:none;}
 .lkr-page .lkr-flow.lkr-flow--slideshow {width:100%;max-width:100%;padding-block:0;padding-inline:clamp(20px,5vw,72px);}
-.lkr-slide {scroll-snap-align:start;scroll-snap-stop:always;min-height:100%;display:flex;flex-direction:column;justify-content:safe center;width:100%;padding-block:48px;}
+.lkr-slide {scroll-snap-align:start;scroll-snap-stop:always;min-height:100%;display:flex;flex-direction:column;justify-content:flex-start;width:100%;padding-block:26px 48px;}
 .lkr-slide>.lkr-sections{width:min(100%,1120px);margin-inline:auto;}
 .lkr-skills-wrap {display:flex;justify-content:center;width:100%;}
 .lkr-skills-wrap>.lkr-skills-section {width:min(100%,1000px);margin-top:0;}
@@ -5201,4 +5201,45 @@
 .lkr-side-audio .ap { margin-top: 0; }
 @media (max-width: 760px) {
   .lkr-page .lkr-primary--left, .lkr-page .lkr-primary--left--empty { grid-template-columns: minmax(0, 1fr); max-width: 660px; }
+}
+
+/* ── slideshow extra pages ────────────────────────────────────────────────
+   Links, badges and the bio can each get their own screen after the card. */
+.lkr-slide-panel {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 720px);
+  margin-inline: auto;
+  padding: 26px;
+  border: 1px solid var(--pv-border-color);
+  border-radius: var(--pv-radius);
+  background: var(--pv-card);
+  color: var(--pv-text);
+}
+.lkr-slide-label {
+  color: var(--pv-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.lkr-slide-panel p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* The location, view and join icons take an optional glow of their own. */
+.pv-location svg,
+.pv-foot-item svg,
+.pv-views svg {
+  filter: drop-shadow(
+    0 0 calc(1px + var(--pv-meta-glow-strength, 0) * 9px)
+      color-mix(
+        in srgb,
+        var(--pv-meta-glow, #b4bffa) calc(var(--pv-meta-glow-strength, 0) * 100%),
+        transparent
+      )
+  );
 }

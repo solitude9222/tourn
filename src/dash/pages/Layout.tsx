@@ -174,6 +174,24 @@ export function LayoutPage() {
         />
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
+          <Field label="Detail glow" hint="Glow behind the location, view and join icons.">
+            <ColorField
+              value={design.metaGlowColor ?? "#b4bffa"}
+              onChange={(metaGlowColor) => updateDesign({ metaGlowColor })}
+            />
+          </Field>
+          <Slider
+            label="Glow strength"
+            value={Math.round((design.metaGlowStrength ?? 0) * 100)}
+            min={0}
+            max={100}
+            step={5}
+            suffix="%"
+            onChange={(value) => updateDesign({ metaGlowStrength: value / 100 })}
+          />
+        </div>
+
+        <div className="tw-form-grid" style={{ marginTop: 16 }}>
           <Field label="Audio player" hint="Manage the track and player under Music.">
             <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "popup", label: "Popup · top left" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }, { value: "hidden", label: "Hidden" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
           </Field>
@@ -330,6 +348,11 @@ export function LayoutPage() {
       {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Sections scroll normally below your profile. Projects, anime and games become real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
         <p className="tw-foot-note">Text sections span the page. Project cards show your real tech stack; anime and game cards pull real artwork and metadata from public catalogues.</p>
         <div className="tw-stack"><div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div><div className="tw-inline-toggle"><span><b>Vertical slideshow</b><small>Scroll, swipe or drag down from your card through your sections.</small></span><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div></div>
+        {design.slideshow === true ? <div className="tw-stack" style={{ marginTop: 12 }}>
+          <div className="tw-inline-toggle"><span><b>About me slide</b><small>Your bio gets its own screen after the card.</small></span><Toggle label="About me slide" checked={design.slideshowAbout===true} onChange={slideshowAbout=>updateDesign({slideshowAbout})}/></div>
+          <div className="tw-inline-toggle"><span><b>Links slide</b><small>Move your links onto their own screen.</small></span><Toggle label="Links slide" checked={design.slideshowLinks===true} onChange={slideshowLinks=>updateDesign({slideshowLinks})}/></div>
+          <div className="tw-inline-toggle"><span><b>Badges slide</b><small>Move your badge rail onto its own screen.</small></span><Toggle label="Badges slide" checked={design.slideshowBadges===true} onChange={slideshowBadges=>updateDesign({slideshowBadges})}/></div>
+        </div> : null}
         <div className="tw-section-list">
           {design.sections.map((section, index) => (
             <div key={section.id} draggable onDragStart={event=>{if((event.target as HTMLElement).closest('input,textarea,select,button')){event.preventDefault();return;}setDragSection(index);}} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();if(dragSection===null)return;const sections=[...design.sections];const [moved]=sections.splice(dragSection,1);sections.splice(index,0,moved);updateDesign({sections});setDragSection(null);}}><div className="tw-section-drag" title="Drag to reorder">⠿ Drag to reorder</div><SectionEditor
