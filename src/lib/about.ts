@@ -363,17 +363,17 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   // avatar, a 36px name and a 20px bio, with a dark glass surface (55% fill,
   // 12px blur) and a 1px border at 12%. Every other metric is scaled from the
   // card's width, so these are "px at 720 wide".
-  cardWidth: 720,
-  cardRadius: 24,
+  cardWidth: 620,
+  cardRadius: 35,
   borderWidth: 1,
   borderOpacity: 0.12,
   backgroundOpacity: 0.55,
   backgroundBlur: 12,
-  avatarSize: 120,
+  avatarSize: 112,
   widgetGap: 10,
-  cardPadding: 32,
-  nameSize: 36,
-  bioSize: 20,
+  cardPadding: 22,
+  nameSize: 30,
+  bioSize: 16,
   tilt: 0,
   stackTilt: false,
   widgetTilt: false,
@@ -610,7 +610,29 @@ function loadEntry(input: unknown): EntrySettings {
   };
 }
 
+/* Cards whose geometry was never touched still carry the old defaults, so they
+   move onto the reference measurements (620×272, 35px radius, 112px avatar).
+   Anyone who changed a size keeps exactly what they chose. */
 function loadDesign(input: unknown): AboutDesign {
+  const design = loadDesignRaw(input);
+  if (
+    design.cardWidth === 720 &&
+    design.cardRadius === 24 &&
+    design.avatarSize === 120 &&
+    design.cardPadding === 32 &&
+    design.nameSize === 36
+  ) {
+    design.cardWidth = 620;
+    design.cardRadius = 35;
+    design.avatarSize = 112;
+    design.cardPadding = 22;
+    design.nameSize = 30;
+    design.bioSize = 16;
+  }
+  return design;
+}
+
+function loadDesignRaw(input: unknown): AboutDesign {
   const raw = (input ?? {}) as Partial<AboutDesign>;
   const rawColors = (raw.colors ?? {}) as Partial<ProfileColors>;
   const rawPills = (raw.pills ?? {}) as Partial<PillStyle>;

@@ -5858,3 +5858,60 @@
 .lkr-page .lkr-flow--slideshow > .lkr-slide:first-child {
   padding-block: clamp(24px, 6vh, 64px);
 }
+
+/* ── reference card pass ─────────────────────────────────────────────────
+   Measurements taken from the 1649×928 reference: 620×272 card, 35px radius,
+   112px avatar at 22px inset, 30px glowing name, 12.5px muted joined line, and
+   the page line 19px from the left with 20px below it at 12px/600. */
+.profile-preview .pv-joined-inline,
+.profile-preview .pv-head-text .pv-joined-inline .pv-foot-item {
+  color: #bdbcc4;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* the name carries a soft white glow, as on the reference */
+.profile-preview .pv-name,
+.profile-preview .pv-name-row h1,
+.profile-preview .pv-head-text .pv-id h3 {
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.32);
+}
+
+/* page line: location | views, pinned to the viewport, not the card */
+.profile-preview .pv-page-meta {
+  left: 19px;
+  bottom: 20px;
+  gap: 0;
+  color: #a7a7ab;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.profile-preview .pv-page-meta .pv-location,
+.profile-preview .pv-page-meta .pv-views,
+.profile-preview .pv-page-meta .pv-foot-item {
+  gap: 5px;
+  color: #a7a7ab;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.profile-preview .pv-page-meta .pv-location svg,
+.profile-preview .pv-page-meta .pv-views svg,
+.profile-preview .pv-page-meta .pv-foot-item svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.85;
+}
+
+.profile-preview .pv-page-meta .pv-pin + .pv-pin::before {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 11px;
+  margin: 0 10px;
+  background: rgba(167, 167, 171, 0.42);
+}
