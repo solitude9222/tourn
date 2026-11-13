@@ -368,18 +368,24 @@ export function LayoutPage() {
       </Card> : null}
       {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Two kinds only: the projects you built, and the animes you like. Both render as real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
         <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime library.</p>
-        <div className="tw-stack"><div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div><div className="tw-inline-toggle"><span><b>Vertical slideshow</b><small>Scroll, swipe or drag down from your card through your sections.</small></span><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div></div>
-        {design.slideshow === true ? <div className="tw-stack" style={{ marginTop: 12 }}>
-          <div className="tw-inline-toggle"><span><b>About me slide</b><small>Your bio gets its own screen after the card.</small></span><Toggle label="About me slide" checked={design.slideshowAbout===true} onChange={slideshowAbout=>updateDesign({slideshowAbout})}/></div>
-          <div className="tw-inline-toggle"><span><b>Links slide</b><small>Move your links onto their own screen.</small></span><Toggle label="Links slide" checked={design.slideshowLinks===true} onChange={slideshowLinks=>updateDesign({slideshowLinks})}/></div>
-          <div className="tw-inline-toggle"><span><b>Badges slide</b><small>Move your badge rail onto its own screen.</small></span><Toggle label="Badges slide" checked={design.slideshowBadges===true} onChange={slideshowBadges=>updateDesign({slideshowBadges})}/></div>
-        </div> : null}
+        <div className="tw-toggle-grid">
+          <div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div>
+          <div className="tw-inline-toggle"><b>Vertical slideshow</b><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div>
+          {design.slideshow === true ? <>
+            <div className="tw-inline-toggle"><b>About slide</b><Toggle label="About me slide" checked={design.slideshowAbout===true} onChange={slideshowAbout=>updateDesign({slideshowAbout})}/></div>
+            <div className="tw-inline-toggle"><b>Links slide</b><Toggle label="Links slide" checked={design.slideshowLinks===true} onChange={slideshowLinks=>updateDesign({slideshowLinks})}/></div>
+            <div className="tw-inline-toggle"><b>Badges slide</b><Toggle label="Badges slide" checked={design.slideshowBadges===true} onChange={slideshowBadges=>updateDesign({slideshowBadges})}/></div>
+          </> : null}
+        </div>
         {design.slideshowAbout === true ? (
-          <div className="tw-about-editor">
-            <div className="tw-about-editor-head">
-              <b>About me slide</b>
-              <small>Its own page in the slideshow: a title, a line under it, some writing and speciality tags.</small>
-            </div>
+          <details className="tw-about-editor">
+            <summary className="tw-about-editor-head">
+              <span>
+                <b>About slide</b>
+                <small>{design.aboutSlide.title.trim() || "Untitled"} · {design.aboutSlide.tags.length} tag{design.aboutSlide.tags.length === 1 ? "" : "s"}</small>
+              </span>
+              <span className="tw-details-hint">Edit</span>
+            </summary>
             <div className="tw-form-grid">
               <Field label="Title">
                 <TextInput
@@ -408,6 +414,11 @@ export function LayoutPage() {
               </Field>
             </div>
 
+            <details className="tw-tag-drawer">
+              <summary>
+                <b>Speciality tags</b>
+                <small>{design.aboutSlide.tags.length ? `${design.aboutSlide.tags.length} selected` : "Pick the skills this is about"}</small>
+              </summary>
             <div className="tw-about-tag-groups">
               {["Languages", "Frontend", "Backend & data", "Tools & platforms"].map((group) => {
                 const items = TECH_STACK.filter((tech) => (techCategory(tech.id) === group ? true : group === "Tools & platforms" && !["Languages", "Frontend", "Backend & data"].includes(techCategory(tech.id))));
@@ -445,7 +456,8 @@ export function LayoutPage() {
                 );
               })}
             </div>
-          </div>
+            </details>
+          </details>
         ) : null}
 
         <div className="tw-section-list">

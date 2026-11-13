@@ -673,3 +673,140 @@
   background: rgba(180, 191, 250, 0.12);
   color: #eef1ff;
 }
+
+/* ── collapsed section editors ────────────────────────────────────────────
+   Each section is one summary row until you open it, so a long list stays a
+   list instead of a wall of inputs. */
+.tw-section-editor > summary,
+.tw-about-editor > summary,
+.tw-tag-drawer > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.tw-section-editor > summary::-webkit-details-marker,
+.tw-about-editor > summary::-webkit-details-marker,
+.tw-tag-drawer > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tw-section-editor[open] > summary,
+.tw-about-editor[open] > summary {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.tw-section-editor > summary::after,
+.tw-about-editor > summary::after,
+.tw-tag-drawer > summary::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-right: 1.5px solid #7d8290;
+  border-bottom: 1.5px solid #7d8290;
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform 0.18s ease;
+}
+
+.tw-section-editor[open] > summary::after,
+.tw-about-editor[open] > summary::after,
+.tw-tag-drawer[open] > summary::after {
+  transform: rotate(225deg) translateY(-1px);
+}
+
+.tw-section-editor > summary:hover,
+.tw-about-editor > summary:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tw-section-editor-body {
+  padding-top: 14px;
+}
+
+/* About page block */
+.tw-about-editor > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #141419;
+}
+
+.tw-about-editor > summary span {
+  display: grid;
+  gap: 2px;
+}
+
+.tw-about-editor > summary b {
+  font-size: 12.5px;
+}
+
+.tw-about-editor > summary small,
+.tw-tag-drawer > summary small {
+  color: #8b8f98;
+  font-size: 11px;
+}
+
+.tw-details-hint {
+  color: #8b8f98;
+  font-size: 11px;
+}
+
+.tw-about-editor > .tw-form-grid,
+.tw-about-editor > .tw-tag-drawer {
+  margin-top: 14px;
+}
+
+/* Tag picker drawer */
+.tw-tag-drawer {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #141419;
+}
+
+.tw-tag-drawer > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px;
+}
+
+.tw-tag-drawer > summary b {
+  font-size: 12px;
+}
+
+.tw-tag-drawer > .tw-about-tag-groups {
+  padding: 0 14px 14px;
+}
+
+/* Toggles: two compact columns instead of a tall stack */
+.tw-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.tw-toggle-grid .tw-inline-toggle {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #141419;
+  font-size: 12px;
+}
+
+/* The summary carries the card chrome now, so the wrapper drops its own. */
+.tw-about-editor {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.tw-about-editor-head {
+  margin-bottom: 0;
+}

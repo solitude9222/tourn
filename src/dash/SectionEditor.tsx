@@ -63,14 +63,14 @@ export function SectionEditor({
   };
 
   return (
-    <div className={`tw-section-editor tw-section-editor--${section.kind}`}>
-      <div className="tw-section-editor-head">
+    <details className={`tw-section-editor tw-section-editor--${section.kind}`}>
+      <summary className="tw-section-editor-head">
         <span className="tw-section-number">{String(index + 1).padStart(2, "0")}</span>
         <span className="tw-section-editor-title">
           <b>{section.title || (project ? "Untitled project" : `${picks.length || ""} interest${picks.length === 1 ? "" : "s"}`.trim() || "Interests")}</b>
           <small>{KINDS.find((kind) => kind.id === section.kind)?.label} section</small>
         </span>
-        <span className="tw-section-editor-actions">
+        <span className="tw-section-editor-actions" onClick={(event) => event.stopPropagation()}>
           {index > 0 ? (
             <Button onClick={onMoveUp} aria-label="Move section up">
               Move up
@@ -80,8 +80,9 @@ export function SectionEditor({
             Remove
           </Button>
         </span>
-      </div>
+      </summary>
 
+      <div className="tw-section-editor-body">
       <div className="tw-section-kind-row">
         {KINDS.map((kind) => (
           <button
@@ -281,6 +282,7 @@ export function SectionEditor({
           })
         }
       />
-    </div>
+      </div>
+    </details>
   );
 }

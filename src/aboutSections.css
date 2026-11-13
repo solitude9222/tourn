@@ -634,3 +634,17 @@
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
+
+/* Two projects fill the row: auto-fit collapses the empty tracks that left
+   both cards bunched on the left of a wide page. */
+.lkr-sections {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.lkr-sections .lkr-showcase--project {
+  min-height: 300px;
+}
+
+.lkr-sections .lkr-showcase--project .lkr-showcase-body h2 {
+  font-size: 26px;
+}
