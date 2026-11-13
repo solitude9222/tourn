@@ -145,7 +145,7 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
   }
   const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(handle?{handle}:{})},secret,{algorithm:'HS256',expiresIn:'2h'});
   const variantId=config.variants?.[kind];
-  res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],...(variantId?{variantId}:{}),quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark',returnUrl:config.shopUrl?String(env.FRONTEND_URL||'https://tourn.lol').split(',')[0]+'/#/dashboard/billing':undefined});
+  res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],...(variantId?{variantId}:{}),quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark'});
  }));
  app.post('/api/commerce/redeem',limiter,requireAuth,wrap(async(req,res)=>{
   const code=typeof req.body?.code==='string'?req.body.code.trim().toUpperCase():'';if(!/^TOURN-[A-F0-9]{32}$/.test(code))throw fail(400,'Enter the complete TOURN code from your purchase.');

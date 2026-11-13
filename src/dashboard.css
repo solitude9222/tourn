@@ -5423,3 +5423,47 @@ body:has(.dash) {
   font-size: 11.5px;
   line-height: 1.5;
 }
+
+/* Billing: what a code or order granted */
+.bill-granted {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.bill-granted-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(124, 140, 220, 0.28);
+  border-radius: 13px;
+  background: rgba(124, 140, 220, 0.08);
+}
+.bill-granted-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #171c28;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  flex: none;
+}
+.bill-granted-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin-right: auto;
+}
+.bill-granted-copy b {
+  color: #fff;
+  font-size: 13.5px;
+}
+.bill-granted-copy small {
+  color: #94a1b8;
+  font-size: 11.5px;
+  line-height: 1.5;
+}

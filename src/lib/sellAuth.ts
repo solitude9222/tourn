@@ -22,6 +22,8 @@ type CheckoutPayload = {
   metadata?: Record<string, string>;
   theme?: "dark" | "light";
   returnUrl?: string;
+  onSuccess?: (payload: { invoiceId?: string | number }) => void;
+  onClose?: (payload: { reason?: string }) => void;
 };
 
 type SellAuthApi = {
@@ -65,5 +67,21 @@ export async function openSellAuthCheckout(
 
   await loadEmbed();
   if (!window.sellAuth) throw new Error("The checkout didn't open. Try again in a moment.");
-  window.sellAuth.open(result.data);
+
+  // When a paid buyer closes the checkout, land them in Billing so they see what
+  // the order added to their account. A buyer who never paid stays where they were.
+  let paid = false;
+  const toBilling = () => {
+    const next = "#/dashboard/billing?checkout=1";
+    if (window.location.hash !== next) window.location.hash = next;
+  };
+  window.sellAuth.open({
+    ...result.data,
+    onSuccess: () => {
+      paid = true;
+    },
+    onClose: () => {
+      if (paid) toBilling();
+    },
+  });
 }

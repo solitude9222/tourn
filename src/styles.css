@@ -5016,3 +5016,53 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .page-enter,.profile-page>.lkr-page {animation:routeSoftEnter .4s cubic-bezier(.2,.7,.2,1) both;}
 @keyframes routeSoftEnter {from{opacity:0}to{opacity:1}}
 
+
+/* Crash screen — never leave the page blank */
+.crash-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #080a0f;
+  color: #e7ecf5;
+}
+.crash-card {
+  width: min(440px, 100%);
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #262c39;
+  border-radius: 16px;
+  background: #10131a;
+}
+.crash-card b {
+  font-size: 16px;
+}
+.crash-card p {
+  margin: 0;
+  color: #8b96a9;
+  font-size: 12.5px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+.crash-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.crash-btn {
+  padding: 9px 13px;
+  border: 1px solid #2a3040;
+  border-radius: 9px;
+  background: transparent;
+  color: #cfd8e8;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.crash-btn--primary {
+  border-color: #4a63c9;
+  background: #1d2743;
+  color: #fff;
+}

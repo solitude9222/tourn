@@ -2,8 +2,8 @@
    Premium and Billing.
    --------------------------------------------------------------------------- */
 
-import { useState } from "react";
-import { post } from "../../lib/backend";
+import { useEffect, useState } from "react";
+import { api, post } from "../../lib/backend";
 import { useAuth } from "../../lib/auth";
 import { useDash } from "../context";
 import { Button, Card, CardHead, Chip, EmptyState, Field, Icon, TextInput } from "../ui";
@@ -119,6 +119,32 @@ export function BillingPage() {
   const { retryAuth } = useAuth();
   const [code, setCode] = useState("");
   const [redeeming, setRedeeming] = useState(false);
+  const [result, setResult] = useState<{ kind: string; handle: string | null } | null>(null);
+  const [granted, setGranted] = useState<{ kind: string; handle: string | null; redeemed_at: string }[]>([]);
+
+  /* Landing back here after checkout: wait for the delivery webhook to attach
+     the order to this account, then show what was granted. */
+  useEffect(() => {
+    if (!/[?&]checkout=1/.test(`?${window.location.hash.split("?")[1] ?? ""}`)) return;
+    let alive = true;
+    let tries = 0;
+    const poll = async () => {
+      const response = await api<{ purchases: { kind: string; handle: string | null; redeemed_at: string }[] }>(
+        "/api/commerce/purchases",
+      );
+      if (!alive) return;
+      if (response.ok && response.data.purchases.length) {
+        setGranted(response.data.purchases);
+        await retryAuth();
+        return;
+      }
+      if (++tries < 20) window.setTimeout(() => void poll(), 3000);
+    };
+    void poll();
+    return () => {
+      alive = false;
+    };
+  }, [retryAuth]);
 
   /* SellAuth delivers a one-use TOURN code with every order. Redeeming it here
      is the fallback path when the order couldn't be matched to this account
@@ -126,23 +152,27 @@ export function BillingPage() {
   const redeem = async () => {
     if (!code.trim() || redeeming) return;
     setRedeeming(true);
-    const result = await post<{ reward: { kind: string; handle: string | null } }>(
-      "/api/commerce/redeem",
-      { code },
-    );
-    setRedeeming(false);
-    if (!result.ok) {
-      notify("Couldn't redeem", result.error);
-      return;
+    setResult(null);
+    try {
+      const response = await post<{ reward: { kind: string; handle: string | null } }>("/api/commerce/redeem", { code });
+      if (!response.ok) {
+        notify("Couldn't redeem", response.error);
+        return;
+      }
+      setCode("");
+      setResult(response.data.reward);
+      await retryAuth();
+      notify(
+        "Code redeemed",
+        response.data.reward.kind === "premium"
+          ? "Premium is now active on this account."
+          : `@${response.data.reward.handle} is now yours.`,
+      );
+    } catch {
+      notify("Couldn't redeem", "The server didn't answer. Try again in a moment.");
+    } finally {
+      setRedeeming(false);
     }
-    setCode("");
-    await retryAuth();
-    notify(
-      "Code redeemed",
-      result.data.reward.kind === "premium"
-        ? "Premium is now active on this account."
-        : `@${result.data.reward.handle} is now yours.`,
-    );
   };
 
   return (
@@ -183,6 +213,28 @@ export function BillingPage() {
           </Button>
         </div>
       </Card>
+
+      {result || granted.length ? (
+        <Card>
+          <CardHead
+            icon="check"
+            title="Added to your account"
+            subtitle={result ? "That code is spent and its contents are yours." : "Your order came through and is attached to this account."}
+          />
+          <div className="bill-granted">
+            {result ? <GrantedRow kind={result.kind} handle={result.handle} /> : null}
+            {!result
+              ? granted.map((row) => <GrantedRow key={`${row.kind}-${row.handle}-${row.redeemed_at}`} kind={row.kind} handle={row.handle} />)
+              : null}
+          </div>
+          <div className="tw-row" style={{ marginTop: 12 }}>
+            <Button variant="primary" onClick={() => go("aliases")}>
+              Open inventory
+            </Button>
+            <Button onClick={() => go("account-profile")}>Put a name on my profile</Button>
+          </div>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHead
@@ -233,3 +285,25 @@ export function BillingPage() {
   );
 }
 
+
+function GrantedRow({ kind, handle }: { kind: string; handle: string | null }) {
+  const label = kind === "premium" ? "Premium" : kind === "badge" ? "Badge" : "Username";
+  const detail =
+    kind === "premium"
+      ? "Lifetime Premium is active — effects, audio and the second claim are unlocked."
+      : kind === "badge"
+        ? `The “${handle}” badge was added to your profile.`
+        : `@${handle} is yours. Turn it on from your inventory.`;
+  return (
+    <div className="bill-granted-row">
+      <span className="bill-granted-mark" aria-hidden="true">
+        {kind === "premium" ? "★" : kind === "badge" ? "❖" : (handle ?? "?").slice(0, 1)}
+      </span>
+      <span className="bill-granted-copy">
+        <b>{label}</b>
+        <small>{detail}</small>
+      </span>
+      <Chip tone="success">Granted</Chip>
+    </div>
+  );
+}
