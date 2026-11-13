@@ -74,8 +74,18 @@ export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=proc
    kind='badge';handle=badge.badge;
   }
   else{let variants={};try{variants=JSON.parse(env.SELLAUTH_USERNAME_VARIANTS||'{}');}catch{}const mapping=variants[String(item.variant_id)];
-   if(![config.products.oneCharacter,config.products.special].filter(Boolean).includes(Number(item.product_id))||!mapping||mapping.productId!==Number(item.product_id)||typeof mapping.handle!=='string'||[...mapping.handle].length!==1||!/^([a-z0-9]|\p{S})$/u.test(mapping.handle)||/[<>]/.test(mapping.handle))throw fail(400,'Unmapped product variant.');
-   if(quantity!==1)throw fail(400,'Unique usernames must be purchased individually.');kind='username';handle=mapping.handle;
+   const isUsernameProduct=[config.products.oneCharacter,config.products.special].filter(Boolean).includes(Number(item.product_id));
+   // The buyer picks the handle on tourn.lol; the signed checkout ticket carries
+   // it, so one SellAuth product covers every letter and number without a
+   // variant per character.
+   let requested=null;try{const ticket=jwt.verify(payload.metadata?.tourn_checkout||'',secret,{algorithms:['HS256']});if(ticket.kind==='commerce'&&typeof ticket.handle==='string'&&[...ticket.handle].length===1&&/^([a-z0-9]|\p{S})$/u.test(ticket.handle))requested=ticket.handle;}catch{}
+   if(mapping){
+    if(!isUsernameProduct||mapping.productId!==Number(item.product_id)||typeof mapping.handle!=='string'||[...mapping.handle].length!==1||!/^([a-z0-9]|\p{S})$/u.test(mapping.handle)||/[<>]/.test(mapping.handle))throw fail(400,'Unmapped product variant.');
+    kind='username';handle=mapping.handle;
+   } else if(isUsernameProduct && requested){
+    kind='username';handle=requested;
+   } else throw fail(400,'Unmapped product variant.');
+   if(quantity!==1)throw fail(400,'Unique usernames must be purchased individually.');
   }
   const db=await pool.connect();try{
    await db.query('begin');await db.query("select pg_advisory_xact_lock(hashtextextended($1,0))",['sellauth:'+payload.shop_id+':'+item.id]);
@@ -97,12 +107,31 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
   const config=commerceConfig(env);const kind=req.body?.kind;
   if(!['premium','oneCharacter','special','badge'].includes(kind))throw fail(400,'Choose a product.');
   if(!config.shopId||!config.shopUrl||!config.products[kind])throw fail(503,'The store is not open yet.');
-  const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce'},secret,{algorithm:'HS256',expiresIn:'2h'});
+  // 1-character usernames are chosen on tourn.lol and travel inside the signed
+  // ticket, so the store needs one product rather than a variant per character.
+  let handle=null;
+  if(kind==='oneCharacter'||kind==='special'){
+   const raw=typeof req.body?.handle==='string'?req.body.handle.trim().toLowerCase():'';
+   if([...raw].length!==1||!(/^[a-z0-9]$/.test(raw)||/^\p{S}$/u.test(raw)))throw fail(400,'Choose one letter, number or symbol.');
+   const db=await pool.connect();
+   try{
+    const {rows}=await db.query("select 1 from users where username=$1 or alias=$1 or alias2=$1 union all select 1 from username_inventory where handle=$1 and owner_id is not null union all select 1 from commerce_codes where handle=$1 limit 1",[raw]);
+    if(rows.length)throw fail(409,'That username is already taken.');
+   } finally { db.release(); }
+   handle=raw;
+  }
+  const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(handle?{handle}:{})},secret,{algorithm:'HS256',expiresIn:'2h'});
   res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark',returnUrl:config.shopUrl?String(env.FRONTEND_URL||'https://tourn.lol').split(',')[0]+'/#/dashboard/billing':undefined});
  }));
  app.post('/api/commerce/redeem',limiter,requireAuth,wrap(async(req,res)=>{
   const code=typeof req.body?.code==='string'?req.body.code.trim().toUpperCase():'';if(!/^TOURN-[A-F0-9]{32}$/.test(code))throw fail(400,'Enter the complete TOURN code from your purchase.');
   const db=await pool.connect();try{await db.query('begin');const reward=await redeemCommerceCode(db,code,req.auth.sub);await db.query('commit');invalidate();res.json({ok:true,reward});}catch(error){await db.query('rollback');throw error;}finally{db.release();}
+ }));
+ app.get('/api/commerce/availability',limiter,wrap(async(req,res)=>{
+  const handle=String(req.query.handle||'').trim().toLowerCase();
+  if([...handle].length!==1||!(/^[a-z0-9]$/.test(handle)||/^\p{S}$/u.test(handle)))return res.set('Cache-Control','no-store').json({available:false,reason:'Enter one letter, number or symbol.'});
+  const {rows}=await pool.query("select 1 from users where username=$1 or alias=$1 or alias2=$1 union all select 1 from username_inventory where handle=$1 and owner_id is not null union all select 1 from commerce_codes where handle=$1 limit 1",[handle]);
+  res.set('Cache-Control','no-store').json({available:rows.length===0});
  }));
  app.get('/api/commerce/purchases',requireAuth,wrap(async(req,res)=>{const {rows}=await pool.query('select kind,handle,redeemed_at from commerce_codes where redeemed_by=$1 order by redeemed_at desc',[req.auth.sub]);res.json({purchases:rows});}));
  app.post('/api/admin/commerce/codes',limiter,requireAdmin,wrap(async(req,res)=>{

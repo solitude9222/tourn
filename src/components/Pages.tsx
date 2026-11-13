@@ -184,6 +184,34 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
   const [shopUrl, setShopUrl] = useState<string | null>(null);
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [handle, setHandle] = useState("");
+  const [handleState, setHandleState] = useState<"idle" | "checking" | "free" | "taken" | "invalid">("idle");
+
+  const checkHandle = async (value: string) => {
+    const next = Array.from(value.trim().toLowerCase())[0] ?? "";
+    setHandle(next);
+    if (!next) { setHandleState("idle"); return; }
+    setHandleState("checking");
+    const result = await api<{ available: boolean; reason?: string }>(
+      `/api/commerce/availability?handle=${encodeURIComponent(next)}`,
+    );
+    if (!result.ok) { setHandleState("idle"); return; }
+    setHandleState(result.data.available ? "free" : result.data.reason ? "invalid" : "taken");
+  };
+
+  const buyUsername = async () => {
+    if (!user) { onSignUp(); return; }
+    if (!handle || handleState !== "free") return;
+    setBuying(true);
+    setError(null);
+    try {
+      await openSellAuthCheckout("oneCharacter", handle);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Checkout is unavailable right now.");
+    } finally {
+      setBuying(false);
+    }
+  };
 
   // Stock, prices and receipts all live in the SellAuth store; this page only
   // points at it and opens the Premium checkout.
@@ -220,11 +248,31 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
           {isPremiumUser ? <a className="btn btn-ghost" href="#/dashboard/billing">Manage Premium <ArrowRight size={14} /></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={() => void buyPremium()}>{buying ? "Opening checkout…" : "Buy Premium"} <ArrowRight size={14} /></button>}
         </article>
         <article className="store-card" data-reveal data-reveal-delay="60">
-          <span className="eyebrow eyebrow--sm">USERNAMES & BADGES</span>
-          <h2>Pick your name, wear your badge.</h2>
-          <p>Single-letter and special-character usernames and the badge collection are listed in the store with live stock. Checkout there and the order is tied to your tourn.lol account.</p>
-          <a className="btn btn-ghost" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">Open the store <ExternalIcon size={14} /></a>
-          {!shopUrl ? <p className="store-note">The store link appears once the shop URL is configured on the backend.</p> : null}
+          <span className="eyebrow eyebrow--sm">1-CHARACTER USERNAME</span>
+          <h2>Claim a single character.</h2>
+          <p>Type the letter, number or symbol you want. Availability is checked live on your account, then checkout opens with that name attached to the order.</p>
+          <div className="store-handle">
+            <span className="store-handle-prefix">tourn.lol/</span>
+            <input
+              value={handle}
+              maxLength={1}
+              placeholder="a"
+              aria-label="Choose one character"
+              onChange={(event) => void checkHandle(event.target.value)}
+            />
+          </div>
+          <p className={`store-handle-state is-${handleState}`}>
+            {handleState === "checking" ? "Checking availability…" : null}
+            {handleState === "free" ? `@${handle} is available.` : null}
+            {handleState === "taken" ? `@${handle} is already taken.` : null}
+            {handleState === "invalid" ? "Use one letter, number or symbol." : null}
+            {handleState === "idle" ? "Price is shown at checkout." : null}
+          </p>
+          <button type="button" className="btn btn-primary" disabled={buying || handleState !== "free"} onClick={() => void buyUsername()}>
+            {buying ? "Opening checkout…" : user ? "Buy this name" : "Sign in to buy"}
+            <ArrowRight size={14} />
+          </button>
+          {shopUrl ? <a className="store-link" href={shopUrl} target="_blank" rel="noreferrer">Browse badges & everything else <ExternalIcon size={12} /></a> : null}
         </article>
       </div>
       {error ? <p className="premium-buy-note" role="alert">{error}</p> : null}

@@ -469,3 +469,50 @@
     padding: 20px;
   }
 }
+
+/* Claim-a-name field on the store page. */
+.store-handle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #2b2d36;
+  border-radius: 10px;
+  background: #0c0d11;
+  color: #7f8899;
+  font-size: 14px;
+}
+.store-handle input {
+  width: 1.4em;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  text-transform: lowercase;
+}
+.store-handle:focus-within {
+  border-color: #4a6fd6;
+}
+.store-handle-state {
+  color: #7d8797;
+  font-size: 11.5px;
+  min-height: 16px;
+}
+.store-handle-state.is-free { color: #7fd39a; }
+.store-handle-state.is-taken,
+.store-handle-state.is-invalid { color: #e09393; }
+.store-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #8b9cbd;
+  font-size: 11.5px;
+}
+.store-link:hover { color: #c8d6f5; }
