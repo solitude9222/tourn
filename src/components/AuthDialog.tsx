@@ -344,9 +344,10 @@ function PasswordResetDialog({ onClose, onDone }: { onClose: () => void; onDone:
     setBusy(true);
     setError(null);
     setHint(null);
-    const result = await post<{ ok: boolean; delivered: boolean }>("/api/auth/password-reset/start", {
-      email: email.trim(),
-    });
+    const result = await post<{ ok: boolean; delivered: boolean; reason?: string }>(
+      "/api/auth/password-reset/start",
+      { email: email.trim() },
+    );
     setBusy(false);
     if (!result.ok) {
       setError(result.error);
@@ -356,7 +357,8 @@ function PasswordResetDialog({ onClose, onDone }: { onClose: () => void; onDone:
     setHint(
       result.data.delivered
         ? "The bot just DM'd you a 6-digit code. It expires in 15 minutes."
-        : "If that email has a Discord account linked, a code is on its way. Nothing arrived? Link Discord in Settings and make sure the bot shares a server with you.",
+        : result.data.reason ||
+          "If that email has a Discord account linked, a code is on its way. Nothing arrived? Link Discord in Settings and make sure the bot shares a server with you.",
     );
   };
 

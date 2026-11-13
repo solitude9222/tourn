@@ -22,17 +22,33 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
  token=String(token || '').trim();defaultGuildId=String(defaultGuildId || '').trim();
  let client=null,lastError=null,configCache=null,configAt=0,syncing=false,lastSync=null,lastSyncCount=0,timer=null,reconnect=null,leaderTimer=null,lastLeaderboardAt=0;
  const members=new Map(),awards=new Map();
+ /* Plain REST over fetch. The gateway is a websocket, so it can be down (or
+     still logging in) while the token itself is perfectly good — everything
+     that only reads or posts should still work in that state. */
+ const rawRest=async(method,path,body)=>{
+  if(!token){const error=new Error('DISCORD_BOT_TOKEN is not configured.');error.status=503;throw error;}
+  const response=await fetch(`https://discord.com/api/v10${path}`,{method,headers:{Authorization:`Bot ${token}`,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+  const text=await response.text();
+  let data=null;try{data=text?JSON.parse(text):null;}catch{data=null;}
+  if(!response.ok){
+   const failure=new Error(response.status===401?'Discord rejected the bot token.':response.status===403?'The bot lacks permission for that action.':response.status===404?'Not found in Discord.':`Discord answered ${response.status}${data?.message?`: ${data.message}`:''}.`);
+   failure.status=response.status;failure.discordCode=data?.code;failure.discordMessage=data?.message;throw failure;
+  }
+  return data;
+ };
  const request=injectedRequest || (async path=>{
   if(!token){const error=new Error('DISCORD_BOT_TOKEN is not configured.');error.status=503;throw error;}
-  // discord.js handles Discord route buckets and Retry-After for every REST call.
-  if(!client)throw new Error('Discord connection is starting.');
-  try{return await client.rest.get(path);}catch(error){const failure=new Error(error.status===401?'Discord rejected the bot token.':error.status===403?'The bot does not have access to this server.':error.status===404?'The server or member was not found.':'Discord is temporarily unavailable.');failure.status=error.status;failure.discordCode=error.code;throw failure;}
+  // discord.js handles Discord route buckets and Retry-After once the gateway
+  // is up; before that, go straight to REST so a connection problem cannot
+  // masquerade as a broken token.
+  if(!client || !client.isReady())return rawRest('GET',path);
+  try{return await client.rest.get(path);}catch(error){const failure=new Error(error.status===401?'Discord rejected the bot token.':error.status===403?'The bot does not have access to this server.':error.status===404?'The server or member was not found.':error.message || 'Discord is temporarily unavailable.');failure.status=error.status;failure.discordCode=error.code;throw failure;}
  });
  async function postLeaderboard(force=false){
   const saved=await config();
   if(!saved.leaderboard.enabled && !force) return {posted:false,reason:'Leaderboard posting is off.'};
   if(!snowflake(saved.leaderboard.channelId)) return {posted:false,reason:'Choose a channel for the leaderboard first.'};
-  if(!client || !client.isReady()) return {posted:false,reason:'The bot is not connected to Discord.'};
+  if(!token) return {posted:false,reason:'DISCORD_BOT_TOKEN is not set on the backend.'};
   let rows=[];
   try{({rows}=await pool.query(`select u.username,u.alias,coalesce(v.views,0)::int as views from users u left join profile_views v on v.username=u.username order by views desc, u.created_at asc limit 10`));}
   catch(error){throw new Error(`Leaderboard query failed: ${error.message}`);}
@@ -41,12 +57,13 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   const description=rows.map((row,index)=>`${medals[index] || `\`${String(index+1).padStart(2,'0')}\``}  [${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)})  ·  **${Number(row.views).toLocaleString('en-US')}** views`).join('\n');
   const embed={title:'🏆 tourn.lol leaderboard',description,url:'https://tourn.lol/leaderboard',color:0x7d9bf5,thumbnail:{url:'https://tourn.lol/logo.png'},footer:{text:'Ranked by profile views'},timestamp:new Date().toISOString()};
   try{
-    await client.rest.post(`/channels/${saved.leaderboard.channelId}/messages`,{body:{embeds:[embed]}});
+    // Post over REST directly: this works whether or not the gateway socket is
+    // currently up, which is the usual reason a scheduled post looked dead.
+    await rawRest('POST',`/channels/${saved.leaderboard.channelId}/messages`,{embeds:[embed]});
   }catch(error){
-    console.error('[discord] leaderboard REST post failed',error?.status,error?.message);
-    // The REST route can fail for reasons the gateway does not (stale token,
-    // uncached route); try the connected client before giving up.
+    console.error('[discord] leaderboard post failed',error?.status,error?.message);
     try{
+      if(!client?.isReady())throw error;
       const channel=await client.channels.fetch(saved.leaderboard.channelId);
       if(!channel?.isTextBased())throw error;
       await channel.send({embeds:[embed]});
@@ -112,7 +129,63 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
  }
  function stop(){if(timer)clearInterval(timer);if(leaderTimer)clearInterval(leaderTimer);if(reconnect)clearTimeout(reconnect);client?.destroy();}
  function connection(){return {configured:Boolean(token),gatewayConnected:Boolean(client?.isReady()),serverConnected:Boolean(client?.isReady() && (defaultGuildId || configCache?.guildId ? client.guilds.cache.has(configCache?.guildId || defaultGuildId):client.guilds.cache.size===1))};}
- return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard};
+ /* Effective permissions in one channel: @everyone, the bot's roles, then the
+     channel overwrites in Discord's own order. ADMINISTRATOR wins outright. */
+ function channelPermissions(member,roles,channel,guild){
+  const find=id=>roles.find(role=>String(role.id)===String(id));
+  let perms=BigInt(find(guild)?.permissions||0);
+  for(const id of member.roles||[]){const role=find(id);if(role)perms|=BigInt(role.permissions||0);}
+  if((perms&(1n<<3n))!==0n)return ~0n;
+  const overwrites=Array.isArray(channel.permission_overwrites)?channel.permission_overwrites:[];
+  const apply=overwrite=>{if(!overwrite)return;perms=(perms&~BigInt(overwrite.deny||0))|BigInt(overwrite.allow||0);};
+  apply(overwrites.find(item=>String(item.id)===String(guild)));
+  for(const id of member.roles||[])apply(overwrites.find(item=>String(item.id)===String(id)));
+  apply(overwrites.find(item=>item.type===1 && String(item.id)===String(member.user?.id)));
+  return perms;
+ }
+
+ /* Live self-test the admin panel can run. Every line is a real Discord call
+     made with the deployment's own token, so it reports the actual failure
+     instead of guessing from the UI. */
+ async function diagnose(options={}){
+  const report=[];
+  const add=(id,label,ok,detail,optional=false)=>report.push({id,label,ok,detail,optional});
+  const tokenSet=Boolean(token);
+  add('token','Bot token configured',tokenSet,tokenSet?'DISCORD_BOT_TOKEN is present on the backend.':'No DISCORD_BOT_TOKEN on the backend — nothing can post or DM.');
+  if(!tokenSet)return {ok:false,report};
+  let me=null;
+  try{const data=await rawRest('GET','/users/@me');me={id:String(data.id),username:data.username};add('identity','Token accepted by Discord',true,`Signed in as ${data.username} (${data.id}).`);}
+  catch(error){add('identity','Token accepted by Discord',false,error.message);return {ok:false,report};}
+  const guild=await guildId();
+  let channels=[];
+  try{
+   const [guildData,channelData]=await Promise.all([rawRest('GET',`/guilds/${guild}`),rawRest('GET',`/guilds/${guild}/channels`)]);
+   channels=(Array.isArray(channelData)?channelData:[]).filter(channel=>channel.type===0||channel.type===5);
+   add('guild',`Bot is in ${guildData.name}`,true,`${channels.length} text channel(s) visible.`);
+  }catch(error){add('guild','Bot can see the tourn.lol server',false,`${error.message} Re-invite the bot and give it View Channels.`);return {ok:false,report};}
+  const channelId=String(options?.channelId||'').trim();
+  if(snowflake(channelId)){
+   const channel=channels.find(item=>String(item.id)===channelId);
+   if(!channel)add('channel','Leaderboard channel reachable',false,`Channel ${channelId} is not a text channel the bot can see. Pick another.`);
+   else{
+    add('channel','Leaderboard channel reachable',true,`#${channel.name}.`);
+    try{
+     const [member,roles]=await Promise.all([rawRest('GET',`/guilds/${guild}/members/${me.id}`),rawRest('GET',`/guilds/${guild}/roles`)]);
+     const perms=channelPermissions(member,roles,channel,guild);
+     const missing=[];if((perms&(1n<<11n))===0n)missing.push('Send Messages');if((perms&(1n<<14n))===0n)missing.push('Embed Links');
+     add('permissions','Bot can post embeds there',missing.length===0,missing.length?`Missing ${missing.join(' + ')} in #${channel.name}.`:`Send Messages and Embed Links granted in #${channel.name}.`);
+    }catch(error){add('permissions','Bot permissions in that channel',false,error.message);}
+   }
+  }else add('channel','Leaderboard channel chosen',false,'Pick a leaderboard channel to test it.','optional');
+  const dmId=String(options?.discordId||'').trim();
+  if(snowflake(dmId)){
+   try{const dm=await rawRest('POST','/users/@me/channels',{recipient_id:dmId});add('dm','Bot can DM that account',true,`DM channel ${dm.id} opened.`);}
+   catch(error){add('dm','Bot can DM that account',false,error.status===403?'Discord refused the DM — that account has "direct messages from server members" off, or shares no server with the bot.':error.message);}
+  }else add('dm','DM delivery',false,'Enter a Discord user ID to test a DM.','optional');
+  add('gateway','Gateway socket connected',Boolean(client?.isReady()),client?.isReady()?'Connected.':'Not connected — posts and DMs still go over REST, but role sync waits for it.',true);
+  return {ok:report.every(item=>item.ok||item.optional),report};
+ }
+ return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose};
 }
 export function registerDiscordAutomation(app,service,requireAdmin){
  app.get('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{res.json({...(await service.inspect(req.query.guildId)),config:await service.config()});}catch(error){res.status(503).json({error:error.message});}});
@@ -120,4 +193,5 @@ export function registerDiscordAutomation(app,service,requireAdmin){
  app.post('/api/admin/bot/sync',requireAdmin,async(_req,res)=>{res.json({started:true});void service.syncAll().catch(()=>{});});
  app.post('/api/admin/bot/recheck',requireAdmin,async(_req,res)=>{try{res.json(await service.inspect());}catch(error){res.status(503).json({error:error.message});}});
  app.post('/api/admin/bot/leaderboard',requireAdmin,async(_req,res)=>{try{res.json(await service.postLeaderboard(true));}catch(error){res.status(503).json({error:error.message});}});
+ app.post('/api/admin/bot/diagnose',requireAdmin,async(req,res)=>{try{res.json(await service.diagnose({channelId:req.body?.channelId,discordId:req.body?.discordId}));}catch(error){res.status(503).json({error:error.message});}});
 }

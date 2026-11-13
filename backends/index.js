@@ -612,7 +612,11 @@ async function uniqueUsername(base) {
 }
 
 async function sendDiscordDm(discordId, content) {
-  if (!DISCORD_BOT_TOKEN || !discordId) return false;
+  sendDiscordDm.lastError = "";
+  if (!DISCORD_BOT_TOKEN || !discordId) {
+    sendDiscordDm.lastError = "DISCORD_BOT_TOKEN is not set on the backend.";
+    return false;
+  }
   try {
     const channelRes = await fetch("https://discord.com/api/v10/users/@me/channels", {
       method: "POST",
@@ -622,7 +626,15 @@ async function sendDiscordDm(discordId, content) {
       },
       body: JSON.stringify({ recipient_id: discordId }),
     });
-    if (!channelRes.ok) return false;
+    if (!channelRes.ok) {
+      sendDiscordDm.lastError =
+        channelRes.status === 401
+          ? "Discord rejected the bot token."
+          : channelRes.status === 403
+            ? "Discord refused to open a DM — that account has \"direct messages from server members\" turned off, or shares no server with the bot."
+            : `Discord answered ${channelRes.status} when opening the DM.`;
+      return false;
+    }
     const channel = await channelRes.json();
     const msgRes = await fetch(`https://discord.com/api/v10/channels/${channel.id}/messages`, {
       method: "POST",
@@ -632,8 +644,13 @@ async function sendDiscordDm(discordId, content) {
       },
       body: JSON.stringify({ content }),
     });
-    return msgRes.ok;
-  } catch {
+    if (!msgRes.ok) {
+      sendDiscordDm.lastError = `Discord answered ${msgRes.status} when sending the DM.`;
+      return false;
+    }
+    return true;
+  } catch (error) {
+    sendDiscordDm.lastError = `Could not reach Discord: ${error.message}`;
     return false;
   }
 }
@@ -1148,7 +1165,7 @@ app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
       user.discord_id,
       `tourn.lol — your password reset code is ${code}. It expires in 15 minutes. If you didn't ask for this, ignore this message; your password stays the same.`,
     );
-    res.json({ ok: true, delivered: Boolean(sent) });
+    res.json({ ok: true, delivered: Boolean(sent), reason: sent ? "" : sendDiscordDm.lastError });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -2291,7 +2308,7 @@ app.post("/api/admin/bot/test-dm", requireAdmin, async (req, res) => {
     const sent = await sendDiscordDm(discordId, message);
     if (!sent) {
       return res.status(502).json({
-        error: "Discord rejected the DM. The bot must share a server with that user.",
+        error: sendDiscordDm.lastError || "Discord rejected the DM. The bot must share a server with that user.",
       });
     }
     res.json({ ok: true });
