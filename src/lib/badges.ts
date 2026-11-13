@@ -213,19 +213,17 @@ const PLATFORM: BadgeDef[] = [
 const EXTRA: BadgeDef[] = [
   { id: "developer", name: "Developer", description: "Built tourn.lol", requirement: "Granted by staff to the people who build and maintain tourn.lol.", group: "platform", art: `${ICON}/developer.svg`, color: "#7dd3fc" },
   { id: "administrator", name: "Administrator", description: "Runs the platform", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/administrator.svg`, color: "#f87171" },
-  { id: "host", name: "Host", description: "Uploads their own images", requirement: "Automatic: upload at least 5 images to your assets.", group: "platform", art: `${ICON}/host.svg`, color: "#38bdf8" },
-  { id: "host-pro", name: "Host Pro", description: "Heavy image hosting", requirement: "Automatic: Premium plus 20 uploaded images.", group: "platform", art: `${ICON}/host-pro.svg`, color: "#818cf8" },
   { id: "gifter", name: "Gifter", description: "Gifted a product to someone", requirement: "Automatic: transfer a username or product to another member.", group: "platform", art: `${ICON}/gifter.svg`, color: "#f472b6" },
   { id: "event-winner", name: "Winner", description: "Won a tourn.lol event", requirement: "Granted by staff for winning an event.", group: "platform", art: `${ICON}/event-winner.svg`, color: "#fbbf24" },
   { id: "event-second", name: "Second Place", description: "Placed second in an event", requirement: "Granted by staff for second place in an event.", group: "platform", art: `${ICON}/event-second.svg`, color: "#cbd5e1" },
   { id: "event-third", name: "Third Place", description: "Placed third in an event", requirement: "Granted by staff for third place in an event.", group: "platform", art: `${ICON}/event-third.svg`, color: "#d97706" },
   { id: "beta-tester", name: "Beta Tester", description: "Tested the beta", requirement: "Granted by staff to accounts that tested an early build.", group: "platform", art: `${ICON}/beta-tester.svg`, color: "#a3e635" },
   { id: "early-supporter", name: "Early Supporter", description: "Joined at the start", requirement: "Automatic: one of the first 100 accounts on tourn.lol.", group: "platform", art: `${ICON}/early-supporter.svg`, color: "#f0abfc" },
-  { id: "inviter", name: "Inviter", description: "Brought 5 people in", requirement: "Automatic: 5 accounts joined with your referral link.", group: "platform", art: `${ICON}/inviter.svg`, color: "#34d399" },
-  { id: "server-tag", name: "Server Tag", description: "Wears the server tag", requirement: "Automatic: wear the tourn.lol tag in Discord.", group: "platform", art: `${ICON}/server-tag.svg`, color: "#5865f2" },
+  { id: "inviter", name: "Inviter", description: "Brought 5 people in", requirement: "Automatic: 5 accounts joined with one of your invite codes.", group: "platform", art: `${ICON}/inviter.svg`, color: "#34d399" },
+  { id: "server-tag", name: "Server Tag", description: "Wears the server tag", requirement: "Automatic: staff attach this badge to your Discord role in the automation rules.", group: "platform", art: `${ICON}/server-tag.svg`, color: "#5865f2" },
   { id: "innovator", name: "Innovator", description: "Shaped the product", requirement: "Granted by staff when your feature suggestion ships.", group: "platform", art: `${ICON}/innovator.svg`, color: "#22d3ee" },
   { id: "trace", name: "Trace", description: "200 profile views", requirement: "Automatic: reach 200 profile views.", group: "platform", art: `${ICON}/trace.svg`, color: "#60a5fa" },
-  { id: "orion", name: "Orion", description: "Spent €20 in the store", requirement: "Automatic: spend €20 across store orders.", group: "platform", art: `${ICON}/orion.svg`, color: "#c084fc" },
+  { id: "orion", name: "Orion", description: "Four store purchases", requirement: "Automatic: redeem four store purchases on this account.", group: "platform", art: `${ICON}/orion.svg`, color: "#c084fc" },
 ];
 
 const SEASONAL: BadgeDef[] = [

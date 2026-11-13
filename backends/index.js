@@ -205,6 +205,8 @@ create table if not exists profiles (
   updated_at timestamptz not null default now()
 );
 
+alter table users add column if not exists invited_by uuid references users(id) on delete set null;
+
 create table if not exists invite_codes (
   code text primary key,
   created_by uuid references users(id) on delete set null,
@@ -489,6 +491,19 @@ async function earnedBadges(user, profile) {
     if ((seen.rows[0]?.n ?? 0) >= 200) earned.push("trace");
   } catch {
     /* views are best-effort — the badge just stays locked */
+  }
+  try {
+    // Gifter: has sent a username to someone else.
+    const gifts = await pool.query("select 1 from username_transfers where sender_id = $1 limit 1", [user.id]);
+    if (gifts.rows.length) earned.push("gifter");
+    // Orion: four redeemed store purchases on this account.
+    const bought = await pool.query("select count(*)::int as n from commerce_codes where redeemed_by = $1", [user.id]);
+    if ((bought.rows[0]?.n ?? 0) >= 4) earned.push("orion");
+    // Inviter: five accounts joined through codes this user created.
+    const invited = await pool.query("select count(*)::int as n from users where invited_by = $1", [user.id]);
+    if ((invited.rows[0]?.n ?? 0) >= 5) earned.push("inviter");
+  } catch {
+    /* activity badges stay locked until their tables exist */
   }
   if (ageDays < 7) earned.push("newbie");
   if (ageDays >= 30 && bio.length >= 20) earned.push("user");
@@ -1142,8 +1157,8 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
     // rain effect (and the rest of the cosmetic plan) survives turning it off.
     const rainGift = await premiumRainEnabled();
     const inserted = await pool.query(
-      `insert into users (username, email, password_hash, is_owner, is_admin, premium)
-       values ($1, $2, $3, $4, $5, $6) returning *`,
+      `insert into users (username, email, password_hash, is_owner, is_admin, premium, invited_by)
+       values ($1, $2, $3, $4, $5, $6, $7) returning *`,
       [
         username,
         email,
@@ -1151,6 +1166,7 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
         false,
         false,
         Boolean(invite?.premium) || rainGift,
+        invite?.created_by ?? null,
       ],
     );
     if (invite) {
@@ -1482,8 +1498,8 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       const username = await uniqueUsername(displayName);
       const rainGift = await premiumRainEnabled();
       const inserted = await pool.query(
-        `insert into users (username, email, discord_id, avatar_url, is_owner, is_admin, premium)
-         values ($1, $2, $3, $4, $5, $6, $7) returning *`,
+        `insert into users (username, email, discord_id, avatar_url, is_owner, is_admin, premium, invited_by)
+         values ($1, $2, $3, $4, $5, $6, $7, $8) returning *`,
         [
           username,
           email,
@@ -1492,6 +1508,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
           isOwner,
           isAdmin,
           Boolean(invite?.premium) || rainGift,
+          invite?.created_by ?? null,
         ],
       );
       user = inserted.rows[0];
