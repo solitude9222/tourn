@@ -113,6 +113,11 @@ export function ProfilePreview({
   const locationPosition = custom
     ? insideMetadata(design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name")
     : basic.locationPosition;
+  // Basic mode also owns the identity block: picture on the left, name, handle
+  // and join date stacked beside it, matching the reference card.
+  const pfpPosition = custom ? design.pfpPosition : design.layout === "centered" ? "above" : "left";
+  const namePosition = custom ? design.namePosition : design.layout === "centered" ? "center" : "left";
+  const bioPosition = custom ? design.bioPosition : design.layout === "centered" ? "center" : "left";
   const viewCount = typeof views === "number" ? views : null;
   const showViews = !hideViews && viewCount !== null && viewPosition !== "hidden";
   // The links row and the player are titled sections too, so the card reads as
@@ -289,10 +294,10 @@ export function ProfilePreview({
         compact ? " profile-preview--compact" : ""
       }${className ? ` ${className}` : ""}`}
       style={{ ...style, ...tilt.style }}
-      data-pfp={design.pfpPosition}
+      data-pfp={pfpPosition}
       data-badges={design.badgePosition}
-      data-name={design.namePosition}
-      data-bio={design.bioPosition}
+      data-name={namePosition}
+      data-bio={bioPosition}
       data-shape={design.avatarShape}
       data-views={viewPosition}
       data-join={joinPosition}
