@@ -499,9 +499,6 @@ async function earnedBadges(user, profile) {
     // Orion: four redeemed store purchases on this account.
     const bought = await pool.query("select count(*)::int as n from commerce_codes where redeemed_by = $1", [user.id]);
     if ((bought.rows[0]?.n ?? 0) >= 4) earned.push("orion");
-    // Inviter: five accounts joined through codes this user created.
-    const invited = await pool.query("select count(*)::int as n from users where invited_by = $1", [user.id]);
-    if ((invited.rows[0]?.n ?? 0) >= 5) earned.push("inviter");
   } catch {
     /* activity badges stay locked until their tables exist */
   }

@@ -219,7 +219,7 @@ const EXTRA: BadgeDef[] = [
   { id: "event-third", name: "Third Place", description: "Placed third in an event", requirement: "Granted by staff for third place in an event.", group: "platform", art: `${ICON}/event-third.svg`, color: "#d97706" },
   { id: "beta-tester", name: "Beta Tester", description: "Tested the beta", requirement: "Granted by staff to accounts that tested an early build.", group: "platform", art: `${ICON}/beta-tester.svg`, color: "#a3e635" },
   { id: "early-supporter", name: "Early Supporter", description: "Joined at the start", requirement: "Automatic: one of the first 100 accounts on tourn.lol.", group: "platform", art: `${ICON}/early-supporter.svg`, color: "#f0abfc" },
-  { id: "inviter", name: "Inviter", description: "Brought 5 people in", requirement: "Automatic: 5 accounts joined with one of your invite codes.", group: "platform", art: `${ICON}/inviter.svg`, color: "#34d399" },
+  { id: "inviter", name: "Inviter", description: "Brought 5 people in", requirement: "Granted by staff once you bring in 5 members.", group: "platform", art: `${ICON}/inviter.svg`, color: "#34d399" },
   { id: "server-tag", name: "Server Tag", description: "Wears the server tag", requirement: "Automatic: staff attach this badge to your Discord role in the automation rules.", group: "platform", art: `${ICON}/server-tag.svg`, color: "#5865f2" },
   { id: "innovator", name: "Innovator", description: "Shaped the product", requirement: "Granted by staff when your feature suggestion ships.", group: "platform", art: `${ICON}/innovator.svg`, color: "#22d3ee" },
   { id: "trace", name: "Trace", description: "200 profile views", requirement: "Automatic: reach 200 profile views.", group: "platform", art: `${ICON}/trace.svg`, color: "#60a5fa" },
