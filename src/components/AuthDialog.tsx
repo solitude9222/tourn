@@ -346,7 +346,7 @@ function PasswordResetDialog({ onClose, onDone }: { onClose: () => void; onDone:
     setHint(null);
     const result = await post<{ ok: boolean; delivered: boolean; reason?: string }>(
       "/api/auth/password-reset/start",
-      { email: email.trim() },
+      { identifier: email.trim() },
     );
     setBusy(false);
     if (!result.ok) {
@@ -368,7 +368,7 @@ function PasswordResetDialog({ onClose, onDone }: { onClose: () => void; onDone:
     setBusy(true);
     setError(null);
     const result = await post<{ ok: boolean }>("/api/auth/password-reset/complete", {
-      email: email.trim(),
+      identifier: email.trim(),
       code,
       password,
     });
@@ -392,17 +392,17 @@ function PasswordResetDialog({ onClose, onDone }: { onClose: () => void; onDone:
       {step === "email" ? (
         <form className="auth-form" onSubmit={requestCode}>
           <p className="auth-reset-copy">
-            Enter the email on your account. The Discord bot sends your reset code to the Discord
-            account linked to it.
+            Enter the email on your account or your Discord user ID. The bot DMs the reset code to
+            the Discord account linked to it.
           </p>
           <label className="field">
-            <span>Email</span>
+            <span>Email or Discord ID</span>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
+              placeholder="you@example.com or 123456789012345678"
+              autoComplete="username"
               autoFocus
               required
             />
@@ -459,7 +459,7 @@ function PasswordResetDialog({ onClose, onDone }: { onClose: () => void; onDone:
               setCode("");
             }}
           >
-            Use a different email
+            Use a different account
           </button>
         </form>
       )}

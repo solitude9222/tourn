@@ -1136,19 +1136,20 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
    Knowing an email is therefore not enough to take an account over. */
 app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
   try {
-    const email = String(req.body?.email ?? "").trim().toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      return res.status(400).json({ error: "Enter the email on your account." });
+    const identifier = String(req.body?.identifier ?? req.body?.email ?? "").trim();
+    const isDiscordId = /^\d{16,20}$/.test(identifier);
+    const email = identifier.toLowerCase();
+    if (!isDiscordId && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: "Enter the email or Discord ID on your account." });
     }
-    const { rows } = await pool.query(
-      "select id, discord_id from users where lower(email) = $1",
-      [email],
-    );
+    const { rows } = isDiscordId
+      ? await pool.query("select id, discord_id from users where discord_id = $1", [identifier])
+      : await pool.query("select id, discord_id from users where lower(email) = $1", [email]);
     const user = rows[0];
     // Be explicit about why nothing arrived — silently answering "ok" left
     // people with no idea whether the email, the link or the bot was at fault.
     if (!user)
-      return res.json({ ok: true, delivered: false, reason: "No account uses that email. Check the spelling, or create an account." });
+      return res.json({ ok: true, delivered: false, reason: "No account uses that email or Discord ID. Check the spelling, or create an account." });
     if (!user.discord_id)
       return res.json({
         ok: true,
@@ -1183,12 +1184,14 @@ app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
 
 app.post("/api/auth/password-reset/complete", authLimiter, async (req, res) => {
   try {
-    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    const identifier = String(req.body?.identifier ?? req.body?.email ?? "").trim();
     const code = String(req.body?.code ?? "").replace(/\D/g, "");
     const password = String(req.body?.password ?? "");
-    if (!email || code.length !== 6) return res.status(400).json({ error: "Enter the 6-digit code from Discord." });
+    if (!identifier || code.length !== 6) return res.status(400).json({ error: "Enter the 6-digit code from Discord." });
     if (password.length < 8) return res.status(400).json({ error: "Use a new password with at least 8 characters." });
-    const { rows } = await pool.query("select id from users where lower(email) = $1", [email]);
+    const { rows } = /^\d{16,20}$/.test(identifier)
+      ? await pool.query("select id from users where discord_id = $1", [identifier])
+      : await pool.query("select id from users where lower(email) = $1", [identifier.toLowerCase()]);
     const user = rows[0];
     if (!user) return res.status(400).json({ error: "That code isn't right." });
     const found = await pool.query(
@@ -1533,8 +1536,23 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     let { rows } = await pool.query("select * from users where discord_id = $1", [discordId]);
     let user = rows[0] ?? null;
     if (!user && email && !state.linkUserId) {
-      const byEmail = await pool.query("select id from users where email = $1", [email]);
-      if (byEmail.rows.length) return res.redirect(`${returnOrigin}/#/?error=account_link_required`);
+      // `verifiedDiscordEmail` only hands back an address Discord has verified,
+      // so whoever completed the handshake controls that mailbox. Adopting the
+      // existing email account is safe, and beats stranding them on "an account
+      // already uses this email".
+      const byEmail = await pool.query(
+        "select id, discord_id from users where lower(email) = $1",
+        [email],
+      );
+      const existing = byEmail.rows[0];
+      if (existing?.discord_id) return res.redirect(`${returnOrigin}/#/?error=discord_taken`);
+      if (existing) {
+        const adopted = await pool.query(
+          "update users set discord_id = $1, avatar_url = coalesce($2, avatar_url) where id = $3 returning *",
+          [discordId, avatar, existing.id],
+        );
+        user = adopted.rows[0];
+      }
     }
 
     const ownerEmail = OWNER_EMAIL_ADDRESS;
