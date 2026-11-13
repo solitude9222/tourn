@@ -5847,3 +5847,14 @@
   max-width: min(100%, var(--pv-width, 720px));
   margin-inline: auto;
 }
+
+/* ── slideshow: the card sits in the middle of the screen ─────────────────
+   Centred vertically as well as horizontally, so the slide reads as one calm
+   page instead of a card pinned to the top. */
+.lkr-page .lkr-flow--slideshow > .lkr-slide {
+  justify-content: safe center;
+  padding-block: clamp(24px, 6vh, 64px);
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide:first-child {
+  padding-block: clamp(24px, 6vh, 64px);
+}
