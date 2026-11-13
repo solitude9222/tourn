@@ -14,7 +14,7 @@ import { ProfileLinks } from "./ProfileLinks";
 import { AudioPlayer } from "./AudioPlayer";
 import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
-import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
+import { CalendarIcon } from "./Icons";
 import "../about.css";
 
 /** The card is full-bleed on phones, so its type has to follow the screen. */
@@ -124,7 +124,9 @@ export function ProfilePreview({
   // labelled blocks (Connections, Links, Music) instead of one long stack.
   const visibleLinks = links.filter((link) => link.visible && link.url.trim());
   const hasLinks = visibleLinks.length > 0;
-  const hasAudio = assets.audio.style !== "none" && Boolean(assets.audio.fileUrl);
+  // An uploaded track always shows a player; "None" just means the owner
+  // never picked a style, and AudioPlayer falls back to the compact layout.
+  const hasAudio = Boolean(assets.audio.fileUrl);
   const showJoined = !hideJoined && Boolean(joined) && joinPosition !== "hidden";
   // The badge rail carries no explanation popover any more: the little arrow
   // that opened it pushed the rail away from the name. Each badge still shows
@@ -151,7 +153,7 @@ export function ProfilePreview({
 
   const locationPill = location && !hideLocation ? (
     <span className="pv-location">
-      <PinIcon size={10} />
+      <LocationGlyph size={12} />
       {location}
     </span>
   ) : null;
@@ -167,7 +169,7 @@ export function ProfilePreview({
   const viewStyle = design.viewStyle ?? "icon";
   const viewsNode = (
     <span className="pv-foot-item" data-view-style={viewStyle} title={viewCount === null ? undefined : `${viewCount} views`}>
-      {viewStyle === "icon" ? <EyeIcon size={10} /> : null}
+      {viewStyle === "icon" ? <ViewsGlyph size={12} /> : null}
       {viewStyle === "text" ? `${viewNumber} views` : viewNumber}
     </span>
   );
@@ -333,7 +335,7 @@ export function ProfilePreview({
           {locationPosition === "top" || locationPosition === "top-right" ? locationPill : null}
           {design.badgePosition === "top-right" ? badgeRow : null}
           {showJoined && (joinPosition === "top" || joinPosition === "top-right") ? joinedNode : null}
-          {showViews && (viewPosition === "top" || viewPosition === "top-right") ? <span className="pv-views" aria-label={`${viewCount} profile views`}><EyeIcon size={12} />{viewCount.toLocaleString("en-US")}</span> : null}
+          {showViews && (viewPosition === "top" || viewPosition === "top-right") ? <span className="pv-views" aria-label={`${viewCount} profile views`}><ViewsGlyph size={12} />{viewCount.toLocaleString("en-US")}</span> : null}
         </div> : null}
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
@@ -457,5 +459,46 @@ export function ProfilePreview({
         ) : null}
       </div>
     </article>
+  );
+}
+
+/** Views: a slim eye with a lash crown, lighter than the old solid eye. */
+function ViewsGlyph({ size = 12 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.65"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2.6 12S6.2 5.7 12 5.7 21.4 12 21.4 12 17.8 18.3 12 18.3 2.6 12 2.6 12Z" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.9v1.6M20.6 5.9l-1.1 1.2M3.4 5.9l1.1 1.2" opacity="0.5" />
+    </svg>
+  );
+}
+
+/** Location: a slim map pin with a hollow centre. */
+function LocationGlyph({ size = 12 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.65"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 21.2c3.9-3.4 6.6-6.6 6.6-10.1a6.6 6.6 0 1 0-13.2 0c0 3.5 2.7 6.7 6.6 10.1Z" />
+      <circle cx="12" cy="10.9" r="2.4" />
+    </svg>
   );
 }

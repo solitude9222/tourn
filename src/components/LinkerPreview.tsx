@@ -363,7 +363,7 @@ export function LinkerPreview({
   // rearrange what is inside it. `stacked` is the exception: it lifts the
   // player out under the card so the track has its own titled panel.
   const hasTrack =
-    !hideAudio && audioPosition !== "hidden" && about.assets.audio.style !== "none" && Boolean(about.assets.audio.fileUrl);
+    !hideAudio && audioPosition !== "hidden" && Boolean(about.assets.audio.fileUrl);
 
   const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
   const showAudioSide = design.layout === "left" && audioPosition === "side" && hasTrack;

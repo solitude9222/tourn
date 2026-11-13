@@ -6110,3 +6110,32 @@
   padding: 18px 18px 20px;
   margin: 0;
 }
+
+/* ── meta icons ───────────────────────────────────────────────────────────
+   Views and location are plain inline icons now: no pill, no border, no
+   blur behind them, and the glyphs share one weight. */
+.pv-views,
+.pv-location,
+.pv-foot-item,
+.pv-joined-inline {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.pv-location svg,
+.pv-views svg,
+.pv-foot-item svg,
+.pv-joined-inline svg {
+  color: color-mix(in srgb, var(--pv-accent) 62%, var(--pv-muted));
+  opacity: 0.95;
+  stroke-width: 1.65;
+}
+
+.pv-foot-item svg {
+  opacity: 0.9;
+}

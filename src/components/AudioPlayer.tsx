@@ -8,6 +8,7 @@ import {
 } from "../lib/lyrics";
 import type { AudioSettings } from "../lib/profileAssets";
 import { hexToRgba } from "../lib/about";
+import { apiBase } from "../lib/backend";
 import { useTilt } from "../lib/useTilt";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "./Icons";
 import "../audioPlayer.css";
@@ -87,6 +88,16 @@ export function AudioPlayer({
   const artist = settings.artist.trim();
   const cover = settings.coverUrl.trim() || null;
   const hasTrack = Boolean(settings.fileUrl);
+  // "None" only means "no style picked" — with a track uploaded it should still
+  // play, so it renders as the compact player instead of vanishing.
+  const style = settings.style === "none" ? "compact" : settings.style;
+  // Saved uploads can hold a relative /api path; resolve it so the audio
+  // element can actually fetch the file.
+  const trackSrc = !settings.fileUrl
+    ? ""
+    : /^(https?:|data:|blob:)/i.test(settings.fileUrl)
+      ? settings.fileUrl
+      : `${apiBase()}${settings.fileUrl}`;
   // A track can outlive its upload (re-deploy, deleted row). Say so instead of
   // presenting a play button that silently does nothing.
   const [loadFailed, setLoadFailed] = useState(false);
@@ -135,7 +146,7 @@ export function AudioPlayer({
   // and duration are CSS variables, so the back-and-forth marquee runs on the
   // compositor instead of updating React on every frame.
   useEffect(() => {
-    if (settings.style !== "pill") return;
+    if (style !== "pill") return;
     const viewport = pillViewport.current;
     const text = pillText.current;
     if (!viewport || !text) {
@@ -159,7 +170,7 @@ export function AudioPlayer({
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [settings.style, settings.fileUrl, title, artist, hasTrack]);
+  }, [style, settings.fileUrl, title, artist, hasTrack]);
 
   // Autoplay is held while the entry screen is up: the song starts when the
   // visitor actually enters, not while the intro is still covering the page.
@@ -260,16 +271,16 @@ export function AudioPlayer({
     [syncedLines, position],
   );
 
-  if (settings.style === "none" || !hasTrack) return null;
+  if (!hasTrack) return null;
 
   const audioEl = (
     <audio
       ref={audioRef}
-      src={settings.fileUrl}
+      src={trackSrc}
       preload="auto"
       onError={() => {
         setLoadFailed(true);
-        console.warn("[tourn] audio failed to load", settings.fileUrl);
+        console.warn("[tourn] audio failed to load", trackSrc);
       }}
       onCanPlay={() => setLoadFailed(false)}
       loop={settings.loop}
@@ -290,7 +301,7 @@ export function AudioPlayer({
     </span>
   );
 
-  if (settings.style === "vinyl") {
+  if (style === "vinyl") {
     // The record spins only while the track is actually playing, and the
     // current lyric (custom or auto) rides under the artist line.
     const currentLine =
@@ -346,7 +357,7 @@ export function AudioPlayer({
   // transparent player cannot leave a ghost frame, border or icon behind.
   if (settings.cardOpacity <= 0.005) return null;
 
-  if (settings.style === "popup") {
+  if (style === "popup") {
     return       <div
         ref={musicTilt.ref}
         onPointerMove={tilt > 0 ? musicTilt.onPointerMove : undefined}
@@ -364,7 +375,7 @@ export function AudioPlayer({
     </div>;
   }
 
-  if (settings.style === "pill") {
+  if (style === "pill") {
     const durationSeconds = Math.min(26, Math.max(8, pillOverflow / 16));
     const pillStyle = {
       "--ap-pill-end": `-${pillOverflow}px`,
@@ -426,7 +437,7 @@ export function AudioPlayer({
       ref={musicTilt.ref}
       onPointerMove={tilt > 0 ? musicTilt.onPointerMove : undefined}
       onPointerLeave={tilt > 0 ? musicTilt.onPointerLeave : undefined}
-      className={`ap ap-edge-${settings.edgeEffect} ap--${settings.style}${tilt > 0 ? " has-tilt" : ""}`}
+      className={`ap ap-edge-${settings.edgeEffect} ap--${style}${tilt > 0 ? " has-tilt" : ""}`}
       style={cardStyle}
     >
       {audioEl}
@@ -463,7 +474,7 @@ export function AudioPlayer({
         </div>
       </div>
 
-      {settings.style === "lyrics" ? (
+      {style === "lyrics" ? (
         <LyricsPanel
           lines={syncedLines}
           activeLine={activeLine}
