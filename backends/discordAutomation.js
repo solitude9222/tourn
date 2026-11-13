@@ -3,6 +3,9 @@ export const DISCORD_AUTOMATION_SCHEMA=`create table if not exists discord_badge
  user_id uuid not null references users(id) on delete cascade,
  badge_id text not null,auto_equip boolean not null default true,verified_at timestamptz not null default now(),primary key(user_id,badge_id)
 );`;
+/* The bot only ever works in the tourn.lol server. Every guild selector is gone:
+   other servers the bot happens to be in are ignored entirely. */
+export const TOURN_GUILD_ID = '1557276191050698782';
 export const ROLE_BADGE_IDS=['owner','staff','verified','partner','donator','coder','bughunter','newbie','user','premium','booster','halloween_2026','christmas_2026','dc_indiscord'];
 const snowflake=id=>typeof id==='string' && /^\d{16,20}$/.test(id);
 export function normalizeAutomation(raw={}){
@@ -29,17 +32,31 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   const saved=await config();
   if(!saved.leaderboard.enabled && !force) return {posted:false,reason:'Leaderboard posting is off.'};
   if(!snowflake(saved.leaderboard.channelId)) return {posted:false,reason:'Choose a channel for the leaderboard first.'};
-  if(!client) return {posted:false,reason:'The bot is not connected.'};
-  const {rows}=await pool.query(`select u.username,u.alias,coalesce(v.views,0)::int as views from users u left join profile_views v on v.username=u.username order by views desc, u.created_at asc limit 10`);
-  const lines=rows.map((row,index)=>`${['🥇','🥈','🥉'][index] || `**${index+1}.**`} [${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)}) — ${Number(row.views).toLocaleString('en-US')} views`);
-  if(!lines.length) return {posted:false,reason:'There is nobody on the leaderboard yet.'};
-  await client.rest.post(`/channels/${saved.leaderboard.channelId}/messages`,{body:{content:`🏆 **tourn.lol leaderboard**
-${lines.join('\n')}`}});
+  if(!client || !client.isReady()) return {posted:false,reason:'The bot is not connected to Discord.'};
+  let rows=[];
+  try{({rows}=await pool.query(`select u.username,u.alias,coalesce(v.views,0)::int as views from users u left join profile_views v on v.username=u.username order by views desc, u.created_at asc limit 10`));}
+  catch(error){throw new Error(`Leaderboard query failed: ${error.message}`);}
+  if(!rows.length) return {posted:false,reason:'There is nobody on the leaderboard yet.'};
+  const medals=['🥇','🥈','🥉'];
+  const description=rows.map((row,index)=>`${medals[index] || `\`${String(index+1).padStart(2,'0')}\``}  [${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)})  ·  **${Number(row.views).toLocaleString('en-US')}** views`).join('\n');
+  try{
+    await client.rest.post(`/channels/${saved.leaderboard.channelId}/messages`,{body:{embeds:[{
+      title:'🏆 tourn.lol leaderboard',
+      description,
+      url:'https://tourn.lol/leaderboard',
+      color:0x7d9bf5,
+      thumbnail:{url:'https://tourn.lol/logo.png'},
+      footer:{text:'Ranked by profile views'},
+      timestamp:new Date().toISOString(),
+    }]}});
+  }catch(error){
+    throw new Error(error.status===403?'The bot cannot post in that channel. Give it Send Messages and Embed Links.':`Discord rejected the leaderboard: ${error.message}`);
+  }
   lastLeaderboardAt=Date.now();
   return {posted:true,count:rows.length};
  }
  async function config(){if(configCache && Date.now()-configAt<15000)return configCache;let raw={};try{raw=JSON.parse(await readSetting('discord_automation','{}'));}catch{}configCache=normalizeAutomation(raw);configAt=Date.now();return configCache;}
- async function guildId(){const saved=await config();return saved.guildId || defaultGuildId || (client?.guilds.cache.size===1?client.guilds.cache.first().id:'');}
+ async function guildId(){return TOURN_GUILD_ID;}
  async function member(discordId,force=false){
   const guild=await guildId();if(!token || !guild || !snowflake(discordId))return null;
   const key=guild+':'+discordId,cached=members.get(key);if(!force && cached && Date.now()-cached.at<30000)return cached.value;
@@ -57,9 +74,8 @@ ${lines.join('\n')}`}});
   catch(error){await connection.query('rollback');throw error;}finally{connection.release();}
   awards.set(user.id,{at:Date.now(),discordId:user.discord_id,value:result});if(awards.size>10000)awards.clear();return result;
  }
- async function inspect(override){
-  if(override && !snowflake(override))throw new Error("Choose a valid server.");
-  const guild=override || await guildId();let bot=null,server=null,roles=[],channels=[],error=null;
+ async function inspect(){
+  const guild=await guildId();let bot=null,server=null,roles=[],channels=[],error=null;
   try{const data=await request('/users/@me');bot={id:String(data.id),username:data.username,avatar:data.avatar?`https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64`:null};  if(guild){const [data,roleData,channelData]=await Promise.all([request(`/guilds/${guild}`),request(`/guilds/${guild}/roles`),request(`/guilds/${guild}/channels`).catch(()=>[])]);channels=(Array.isArray(channelData)?channelData:[]).filter(channel=>channel.type===0||channel.type===5).map(channel=>({id:String(channel.id),name:String(channel.name),type:channel.type===5?'announcement':'text'})).sort((a,b)=>a.name.localeCompare(b.name));server={id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=64`:null};roles=roleData.map(role=>({id:String(role.id),name:role.name,color:role.color,position:role.position,managed:Boolean(role.managed),icon:role.icon?`https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.png`:null})).sort((a,b)=>b.position-a.position);}}
   catch(failure){error=failure.message;lastError=error;}
   const guilds=client?.guilds.cache.map(item=>({id:item.id,name:item.name})) || [];
@@ -67,7 +83,7 @@ ${lines.join('\n')}`}});
   return {configured:Boolean(token),tokenValid:Boolean(bot),gatewayConnected:Boolean(client?.isReady()),serverConnected:Boolean(server),bot,guildId:guild || null,guild:server,guilds,roles,channels,error:error || (!token?'Set DISCORD_BOT_TOKEN on the backend.':!guild?'Choose a server the bot has joined.':!client?.isReady()?lastError || 'Discord Gateway is connecting.':null),inviteUrl:appId?`https://discord.com/oauth2/authorize?client_id=${appId}&scope=bot&permissions=0${guild?`&guild_id=${guild}&disable_guild_select=true`:''}`:null,lastSync,lastSyncCount,syncing};
  }
  async function save(raw,isOwner){
-  const next=normalizeAutomation(raw);if(next.rules.some(rule=>!snowflake(rule.roleId)||!ROLE_BADGE_IDS.includes(rule.badgeId)))throw new Error('Choose an actual Discord role and a listed badge for every rule.');
+  const next=normalizeAutomation(raw);next.guildId=TOURN_GUILD_ID;if(next.rules.some(rule=>!snowflake(rule.roleId)||!ROLE_BADGE_IDS.includes(rule.badgeId)))throw new Error('Choose an actual Discord role and a listed badge for every rule.');
   if(next.rules.length && !next.guildId && !await guildId())throw new Error('Choose a Discord server first.');
   if(!isOwner){const previous=await config();for(const rule of [...previous.rules,...next.rules]){if(!['owner','staff'].includes(rule.badgeId))continue;const before=previous.rules.find(item=>item.id===rule.id),after=next.rules.find(item=>item.id===rule.id);if(JSON.stringify(before)!==JSON.stringify(after))throw new Error('Only the site owner can change Owner or Staff badge rules.');}}
   const guild=next.guildId || await guildId();if(guild){const roles=await request(`/guilds/${guild}/roles`);if(next.rules.some(rule=>!roles.some(role=>String(role.id)===rule.roleId)))throw new Error('A selected Discord role no longer exists. Refresh the role list.');}
