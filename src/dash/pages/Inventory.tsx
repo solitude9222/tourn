@@ -4,6 +4,7 @@ import { useAuth } from "../../lib/auth";
 import { BADGE_CATALOGUE, BUYABLE_BADGES, EARNABLE_BADGES } from "../../lib/badges";
 import { useDash } from "../context";
 import { Button, Icon } from "../ui";
+import { TradeDialog } from "../Trades";
 
 type InventoryTab = "usernames" | "badges" | "collectables";
 
@@ -30,9 +31,7 @@ export function InventoryPage() {
   const [names, setNames] = useState<OwnedNames | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [gift, setGift] = useState("");
-  const [recipient, setRecipient] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [tradeOpen, setTradeOpen] = useState(false);
 
   const load = useCallback(async () => {
     const result = await api<OwnedNames>("/api/account/aliases");
@@ -53,10 +52,7 @@ export function InventoryPage() {
       setMessage(result.error);
       return;
     }
-    setMessage(path.endsWith("gift") ? "Gift sent. The name is in their inventory now." : "That name is now on your profile.");
-    setGift("");
-    setRecipient("");
-    setConfirm("");
+    setMessage("That name is now on your profile.");
     await Promise.all([load(), retryAuth()]);
   };
 
@@ -198,48 +194,11 @@ export function InventoryPage() {
                     </Button>
                   )}
                   {row.account ? null : (
-                    <Button
-                      disabled={busy}
-                      onClick={() => {
-                        setGift(row.handle === gift ? "" : row.handle);
-                        setRecipient("");
-                        setConfirm("");
-                      }}
-                    >
-                      Gift
+                    <Button disabled={busy} icon="move" onClick={() => setTradeOpen(true)}>
+                      TRADE
                     </Button>
                   )}
                 </div>
-                {gift === row.handle ? (
-                  <form
-                    className="owned-gift"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      void action("/api/account/aliases/gift", { handle: gift, recipient, confirmRecipient: confirm });
-                    }}
-                  >
-                    <span>
-                      <b>Give @{gift} to another member</b>
-                      <small>Ownership transfers and the name leaves your account.</small>
-                    </span>
-                    <label>
-                      Their original username
-                      <input required value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="username" autoComplete="off" />
-                    </label>
-                    <label>
-                      Type it again to confirm
-                      <input required value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder="username" autoComplete="off" />
-                    </label>
-                    <div className="tw-row">
-                      <Button type="submit" variant="primary" disabled={busy || !recipient || recipient !== confirm}>
-                        Send gift
-                      </Button>
-                      <Button type="button" disabled={busy} onClick={() => setGift("")}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                ) : null}
               </article>
             );
           })}
@@ -309,6 +268,8 @@ export function InventoryPage() {
           <span className="invt-chip is-soon">COMING SOON</span>
         </div>
       ) : null}
+
+      <TradeDialog open={tradeOpen} onClose={() => setTradeOpen(false)} onSent={setMessage} />
     </>
   );
 }

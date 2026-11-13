@@ -222,7 +222,6 @@ const EXTRA: BadgeDef[] = [
   { id: "inviter", name: "Inviter", description: "Brought 5 people in", requirement: "Granted by staff once you bring in 5 members.", group: "platform", art: `${ICON}/inviter.svg`, color: "#34d399" },
   { id: "server-tag", name: "Server Tag", description: "Wears the server tag", requirement: "Automatic: staff attach this badge to your Discord role in the automation rules.", group: "platform", art: `${ICON}/server-tag.svg`, color: "#5865f2" },
   { id: "innovator", name: "Innovator", description: "Shaped the product", requirement: "Granted by staff when your feature suggestion ships.", group: "platform", art: `${ICON}/innovator.svg`, color: "#22d3ee" },
-  { id: "trace", name: "Trace", description: "200 profile views", requirement: "Automatic: reach 200 profile views.", group: "platform", art: `${ICON}/trace.svg`, color: "#60a5fa" },
   { id: "orion", name: "Orion", description: "Four store purchases", requirement: "Automatic: redeem four store purchases on this account.", group: "platform", art: `${ICON}/orion.svg`, color: "#c084fc" },
 ];
 
@@ -248,6 +247,14 @@ export const EARNABLE_BADGES: BadgeDef[] = BADGE_CATALOGUE.filter((badge) => !ba
 /** Bought from the store and granted on delivery. */
 export const BUYABLE_BADGES: BadgeDef[] = BADGE_CATALOGUE.filter((badge) => badge.buyable);
 export const BADGE_MAP = new Map(BADGE_CATALOGUE.map((b) => [b.id, b]));
+
+/** Admins hold the whole catalogue automatically; everyone else gets theirs. */
+export function ownedWithAdmin(earned: string[], isAdmin: boolean): string[] {
+  if (!isAdmin) return earned;
+  const set = new Set(earned);
+  for (const badge of BADGE_CATALOGUE) set.add(badge.id);
+  return [...set];
+}
 
 export function badgeDef(id: string): BadgeDef | undefined {
   return BADGE_MAP.get(id);

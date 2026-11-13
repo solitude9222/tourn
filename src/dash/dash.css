@@ -4592,3 +4592,300 @@
   background: #3d63f2;
   color: #fff;
 }
+
+/* --------------------------------------------------------------- trades */
+.trade-form {
+  display: grid;
+  gap: 16px;
+}
+.trade-peer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.trade-peer > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+}
+.trade-peer small {
+  color: var(--nav);
+  font-size: 11.5px;
+}
+.trade-peer-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  font-weight: 700;
+}
+.trade-people {
+  display: grid;
+  gap: 8px;
+}
+.trade-people-list {
+  display: grid;
+  gap: 4px;
+  max-height: 208px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.trade-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.trade-person:hover {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+.trade-person b {
+  flex: 1;
+  font-weight: 600;
+}
+.trade-person-go {
+  color: var(--nav);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.trade-group {
+  display: grid;
+  gap: 8px;
+}
+.trade-group-label {
+  color: var(--nav);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.trade-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.trade-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.trade-chip:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.trade-chip.is-on {
+  border-color: var(--accent, #4c7cf3);
+  background: rgba(76, 124, 243, 0.14);
+}
+.trade-chip--badge img {
+  border-radius: 4px;
+  object-fit: contain;
+}
+.trade-hint,
+.trade-empty {
+  margin: 0;
+  color: var(--nav);
+  font-size: 11.5px;
+}
+.trade-field {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--nav);
+}
+.trade-field textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+.trade-sure {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 11px;
+  background: rgba(251, 191, 36, 0.06);
+  font-size: 12px;
+  line-height: 1.45;
+  color: #f7d98a;
+}
+.trade-sure input {
+  margin-top: 2px;
+  accent-color: #fbbf24;
+}
+.trade-error {
+  margin: 0;
+  color: #ff8b8b;
+  font-size: 12px;
+}
+.trade-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.trade-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  font-size: 12.5px;
+}
+.trade-item.is-mine {
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.trade-item small {
+  color: var(--nav);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.trade-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 2px solid var(--border);
+  color: var(--nav);
+  font-size: 12.5px;
+}
+.trade-add {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.trade-chat {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.trade-chat-log {
+  display: grid;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.trade-msg {
+  display: grid;
+  gap: 2px;
+  justify-self: start;
+  max-width: 82%;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.trade-msg.is-mine {
+  justify-self: end;
+  background: rgba(76, 124, 243, 0.12);
+  border-color: rgba(76, 124, 243, 0.3);
+}
+.trade-msg small {
+  color: var(--nav);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.trade-msg p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.trade-chat-send {
+  display: flex;
+  gap: 8px;
+}
+.trade-chat-send .tw-control {
+  flex: 1;
+}
+
+/* trade notifications */
+.tw-bell-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f87171;
+}
+.tw-user-bell {
+  position: relative;
+}
+.tw-note-list {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0;
+}
+.tw-note-row {
+  display: grid;
+  gap: 7px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.tw-note-row.is-new {
+  border-color: rgba(251, 191, 36, 0.32);
+  background: rgba(251, 191, 36, 0.05);
+}
+.tw-note-copy {
+  display: grid;
+  gap: 2px;
+}
+.tw-note-copy b {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.tw-note-copy small {
+  color: var(--nav);
+  font-size: 11px;
+}
+.tw-note-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tw-note-actions .tw-btn {
+  padding: 5px 10px;
+  font-size: 11.5px;
+}
+.tw-note-empty {
+  color: var(--nav);
+  font-size: 11.5px;
+}

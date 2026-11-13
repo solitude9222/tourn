@@ -13,7 +13,7 @@ import type { Account } from "../lib/auth";
 import type { About } from "../lib/about";
 import type { Settings } from "../config";
 import type { WidgetStore } from "../lib/widgets";
-import type { BadgeStore } from "../lib/badges";
+import { ownedWithAdmin, type BadgeStore } from "../lib/badges";
 import type { LinkStore } from "../lib/links";
 import type { LanyardData } from "../lib/api";
 import type { Polled } from "../lib/hooks";
@@ -366,7 +366,7 @@ export function Dashboard(props: DashboardProps) {
       settings,
       isPremium,
       isAdmin,
-      earned,
+      earned: ownedWithAdmin(earned, isAdmin),
       profileViews,
       dirty,
       setAbout: (updater: (current: About) => About) => changeDraft("about",updater),

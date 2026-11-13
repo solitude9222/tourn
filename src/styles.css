@@ -5103,3 +5103,41 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   line-height: 16px;
   text-align: center;
 }
+
+/* Compact account pill: avatar, name and chevron in one control. */
+.head-actions .profile-menu {
+  gap: 0;
+  padding: 2px 4px 2px 2px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+.head-actions .profile-menu:hover,
+.head-actions .profile-menu.is-open {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.055);
+}
+.profile-trigger {
+  height: 30px;
+  padding: 0;
+  gap: 7px;
+}
+.profile-trigger .avatar--xs {
+  width: 26px;
+  height: 26px;
+}
+.profile-trigger-copy {
+  flex-direction: row;
+  align-items: center;
+}
+.profile-trigger-name {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  max-width: 128px;
+}
+.profile-trigger-sub {
+  display: none;
+}
+.profile-more {
+  width: 20px;
+  height: 26px;
+}

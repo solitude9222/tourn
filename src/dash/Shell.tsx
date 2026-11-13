@@ -8,6 +8,18 @@ import { useAuth } from "../lib/auth";
 import { forgetAccount, loadAccounts, switchSession, type StoredAccount } from "../lib/accounts";
 import { useDash, type Page, type ProfileTab, type TabDef } from "./context";
 import { Button, Icon, IconButton, type IconName } from "./ui";
+import { api, post } from "../lib/backend";
+import { TradeThread } from "./Trades";
+
+type ShellTrade = {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  sender_username: string;
+  recipient_username: string;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  item_count: number;
+};
 
 type NavChild = { page: Page; tab?: ProfileTab; label: string; icon: IconName };
 type NavGroup = {
@@ -136,6 +148,8 @@ export function Shell({
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notes, setNotes] = useState(false);
+  const [trades, setTrades] = useState<ShellTrade[]>([]);
+  const [threadId, setThreadId] = useState<string | null>(null);
   const [saved, setSaved] = useState<StoredAccount[]>(() => loadAccounts());
   const [switching, setSwitching] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -143,6 +157,29 @@ export function Shell({
   const displayName = about.displayName.trim() || user.username;
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
   const ownGroup = PAGE_GROUP[page];
+
+  const loadTrades = async () => {
+    const result = await api<{ trades: ShellTrade[] }>("/api/trades");
+    if (result.ok) setTrades(result.data.trades);
+  };
+
+  const answerTrade = async (id: string, accept: boolean) => {
+    const result = await post(`/api/trades/${id}/respond`, { accept });
+    if (result.ok) {
+      notify(
+        accept ? "Trade accepted" : "Trade declined",
+        accept ? "The items moved to their new owners." : "Nothing changed hands.",
+      );
+    }
+    await loadTrades();
+    retryAuth();
+  };
+
+  useEffect(() => {
+    if (notes) void loadTrades();
+  }, [notes]);
+
+  const incoming = trades.filter((trade) => trade.status === "pending" && trade.recipient_id === user.id);
 
   useEffect(() => {
     if (ownGroup) setOpenGroups([ownGroup]);
@@ -450,24 +487,51 @@ export function Shell({
 
               <button
                 type="button"
-                className="tw-user-bell"
+                className={`tw-user-bell${incoming.length ? " is-on" : ""}`}
                 aria-label="Notifications"
                 aria-expanded={notes}
                 onClick={() => setNotes((open) => !open)}
               >
                 <Icon name="bell" size={15} />
+                {incoming.length ? <i className="tw-bell-dot" /> : null}
               </button>
             </div>
 
             {notes ? (
               <div className="tw-note-pop" role="status">
-                <b>No new notifications</b>
+                <b>{incoming.length ? `${incoming.length} trade${incoming.length === 1 ? "" : "s"} waiting on you` : "No new notifications"}</b>
+                <div className="tw-note-list">
+                  {trades.slice(0, 5).map((trade) => (
+                    <div className={`tw-note-row${trade.status === "pending" ? " is-new" : ""}`} key={trade.id}>
+                      <span className="tw-note-copy">
+                        <b>@{trade.sender_username} wants to trade</b>
+                        <small>
+                          {trade.item_count} item{trade.item_count === 1 ? "" : "s"} · {trade.status}
+                        </small>
+                      </span>
+                      <span className="tw-note-actions">
+                        {trade.status === "pending" && trade.recipient_id === user.id ? (
+                          <>
+                            <Button variant="primary" onClick={() => void answerTrade(trade.id, true)}>
+                              Accept
+                            </Button>
+                            <Button onClick={() => void answerTrade(trade.id, false)}>Decline</Button>
+                          </>
+                        ) : null}
+                        <Button onClick={() => setThreadId(trade.id)}>Open</Button>
+                      </span>
+                    </div>
+                  ))}
+                  {!trades.length ? <small className="tw-note-empty">Nothing here yet.</small> : null}
+                </div>
                 <small>{profileViews ?? 0} profile views so far.</small>
               </div>
             ) : null}
           </div>
         </div>
       </aside>
+
+      <TradeThread open={Boolean(threadId)} tradeId={threadId} onClose={() => setThreadId(null)} onChanged={() => void loadTrades()} />
 
       {mobileOpen ? (
         <button

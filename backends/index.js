@@ -1,6 +1,7 @@
 import { COMMERCE_SCHEMA, registerSellAuthDelivery, registerSellAuthRoutes } from "./commerce.js";
 import { requestOriginAllowed, canEditMember, verifiedDiscordEmail, privilegedEmail } from "./security.js";
 import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid, startUsernameReconciliation } from "./usernames.js";
+import { TRADE_SCHEMA, registerTradeRoutes } from "./trades.js";
 import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
 /* ---------------------------------------------------------------------------
    tourn.lol backend — one Express app on Railway Postgres.
@@ -224,6 +225,7 @@ async function initDb() {
   await pool.query(SCHEMA);
   await pool.query(MARKET_SCHEMA);
   await pool.query(COMMERCE_SCHEMA);
+  await pool.query(TRADE_SCHEMA);
   startUsernameReconciliation(pool,stripe);
   await pool.query(AUDIO_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
@@ -480,18 +482,6 @@ async function earnedBadges(user, profile) {
   if (user.premium) earned.push("premium");
   if (user.is_admin) earned.push("administrator");
   if (rank <= 100) earned.push("early-supporter");
-  try {
-    const handles = [user.username, user.alias, user.alias2].filter(Boolean);
-    const owned = await pool.query("select handle from username_inventory where owner_id = $1", [user.id]);
-    const all = [...handles, ...owned.rows.map((row) => row.handle)];
-    const seen = await pool.query(
-      "select coalesce(sum(views), 0)::int as n from profile_views where username = any($1::text[])",
-      [all],
-    );
-    if ((seen.rows[0]?.n ?? 0) >= 200) earned.push("trace");
-  } catch {
-    /* views are best-effort — the badge just stays locked */
-  }
   try {
     // Gifter: has sent a username to someone else.
     const gifts = await pool.query("select 1 from username_transfers where sender_id = $1 limit 1", [user.id]);
@@ -973,6 +963,7 @@ app.use(express.json({ limit: "256kb" }));
 registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limiter:billingLimiter,jwt,secret:JWT_SECRET,invalidate:()=>profilePageCache.clear()});
 app.use(["/api/market/usernames","/api/market/checkout","/api/admin/usernames"],(_req,res)=>res.status(410).json({error:"Products, prices and stock are managed in SellAuth."}));
 registerUsernameMarket(app, {pool, stripe, requireAuth, requireAdmin, limiter:billingLimiter, origin:CANONICAL_FRONTEND_ORIGIN, invalidate:()=>profilePageCache.clear()});
+registerTradeRoutes(app, {pool, requireAuth, limiter:billingLimiter});
 
 /* ── runtime public env (the only config the static site needs) ────────── */
 
