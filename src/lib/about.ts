@@ -180,7 +180,8 @@ export const DEFAULT_PILL_STYLE: PillStyle = {
   blur: 6,
 };
 
-export type ProfileSectionKind = "text" | "project" | "anime" | "game";
+/** Sections are just two things now: work you built, and things you like. */
+export type ProfileSectionKind = "project" | "interest";
 
 /** A named link inside a project/media section. */
 export type ProfileSectionLink = { label: string; url: string };
@@ -204,7 +205,7 @@ export type ProfileSection = {
   meta: string;
 };
 
-export function createProfileSection(kind: ProfileSectionKind = "text"): ProfileSection {
+export function createProfileSection(kind: ProfileSectionKind = "project"): ProfileSection {
   const id = globalThis.crypto?.randomUUID?.() ?? `section-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return { id, title: "", text: "", image: "", url: "", kind, subtitle: "", status: "", stack: [], links: [], meta: "" };
 }
@@ -667,7 +668,9 @@ function loadDesignRaw(input: unknown): AboutDesign {
     widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
       const item = section as Partial<ProfileSection>;
-      const kind: ProfileSectionKind = item.kind === "project" || item.kind === "anime" || item.kind === "game" ? item.kind : "text";
+      // Older documents had text, anime and game sections; they all become
+      // Interests, which is the single library-backed kind now.
+      const kind: ProfileSectionKind = item.kind === "project" ? "project" : "interest";
       const links = Array.isArray(item.links)
         ? item.links
             .filter((link) => link && typeof link.url === "string" && /^https?:\/\//i.test(link.url))

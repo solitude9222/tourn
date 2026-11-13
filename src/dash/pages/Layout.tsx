@@ -15,10 +15,8 @@ import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
 
 const SECTION_KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
-  { id: "text", label: "Text", hint: "Title and paragraph" },
-  { id: "project", label: "Project", hint: "Stack, links, artwork" },
-  { id: "anime", label: "Anime", hint: "500+ real titles" },
-  { id: "game", label: "Game", hint: "400+ real games" },
+  { id: "project", label: "Projects", hint: "Artwork, stack and links" },
+  { id: "interest", label: "Interests", hint: "Pick animes from the library" },
 ];
 
 /** The three page layouts and the positions each one starts with. */
@@ -367,8 +365,8 @@ export function LayoutPage() {
           </Field>
         </div>
       </Card> : null}
-      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Sections scroll normally below your profile. Projects, anime and games become real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
-        <p className="tw-foot-note">Text sections span the page. Project cards show your real tech stack; anime and game cards pull real artwork and metadata from public catalogues.</p>
+      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Two kinds only: the projects you built, and the animes you like. Both render as real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
+        <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime library.</p>
         <div className="tw-stack"><div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div><div className="tw-inline-toggle"><span><b>Vertical slideshow</b><small>Scroll, swipe or drag down from your card through your sections.</small></span><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div></div>
         {design.slideshow === true ? <div className="tw-stack" style={{ marginTop: 12 }}>
           <div className="tw-inline-toggle"><span><b>About me slide</b><small>Your bio gets its own screen after the card.</small></span><Toggle label="About me slide" checked={design.slideshowAbout===true} onChange={slideshowAbout=>updateDesign({slideshowAbout})}/></div>
@@ -391,7 +389,7 @@ export function LayoutPage() {
             /></div>
           ))}
         </div>
-        {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a text block, a project, or a title from the anime and game libraries.</p> : null}
+        {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a project you built, or an anime you like.</p> : null}
         <div className="tw-section-add">
           <span className="tw-section-add-label">Add a section</span>
           <div className="tw-section-add-row">

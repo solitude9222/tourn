@@ -404,10 +404,9 @@ export function LinkerPreview({
   const slidesRef=useRef<HTMLDivElement>(null);
   const dragRef=useRef<{y:number;scroll:number}|null>(null);
   const groupedSections:typeof design.sections[]=[];
-  for(const section of design.sections){const last=groupedSections[groupedSections.length-1];if(last && section.kind!=="text" && last[0].kind===section.kind)last.push(section);else groupedSections.push([section]);}
+  for(const section of design.sections){const last=groupedSections[groupedSections.length-1];if(last && last[0].kind===section.kind)last.push(section);else groupedSections.push([section]);}
   const skills=(design.skills||[]).flatMap(id=>{const item=TECH_BY_ID.get(id);return item?[item]:[];});
   const skillPills=skills.length?<section className="lkr-skills-section"><h2>Skills</h2><div className="lkr-tech-row">{skills.map(item=><span key={item.id} className="lkr-tech"><img src={techIconUrl(item)} alt=""/>{item.name}</span>)}</div></section>:null;
-  const firstText = groupedSections.findIndex((group) => group[0].kind === "text");
   const sectionsVisible = design.sectionsEnabled === true || design.cardStyle === "slide";
   const hasSkills = skills.length > 0;
   // Sections only ever appear as slideshow pages; the plain stack is gone.
@@ -423,13 +422,11 @@ export function LinkerPreview({
   const skillWrap = skillPills ? <div className={`lkr-skills-wrap${slideshowActive ? " lkr-slide" : ""}`}>{skillPills}</div> : null;
   const sectionContent = sectionsVisible || skillPills ? (
     <>
-      {sectionsVisible ? null : skillWrap}
-      {sectionsVisible && firstText < 0 ? skillWrap : null}
+      {skillWrap}
       {sectionsVisible
-        ? groupedSections.map((group, index) => (
+        ? groupedSections.map((group) => (
             <div key={group[0].id} className={slideshowActive ? "lkr-slide" : ""}>
               <ProfileSections sections={group} />
-              {index === firstText ? skillPills : null}
             </div>
           ))
         : null}

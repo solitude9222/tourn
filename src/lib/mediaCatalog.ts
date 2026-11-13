@@ -1,5 +1,5 @@
 /* Anime and game libraries, backed by public APIs with no key:
-   - AniList GraphQL for anime: thousands of real titles, 24 per page.
+   - AniList GraphQL for anime: thousands of real titles, 48 per page.
    - FreeToGame for games: the full free-to-play catalogue (400+ titles).
    Results are cached per page so paging back and forth is instant. */
 
@@ -116,7 +116,7 @@ async function loadAnime(query: string, page: number, signal?: AbortSignal): Pro
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: ANIME_QUERY,
-      variables: { page, perPage: 24, search: query.trim() || null },
+      variables: { page, perPage: 48, search: query.trim() || null },
     }),
     signal,
   });
@@ -180,9 +180,9 @@ async function loadGames(query: string, page: number, signal?: AbortSignal): Pro
   const filtered = search
     ? games.filter((game) => `${game.title} ${game.subtitle}`.toLowerCase().includes(search))
     : games;
-  const start = (page - 1) * 24;
+  const start = (page - 1) * 48;
   return {
-    items: filtered.slice(start, start + 24),
-    hasMore: start + 24 < filtered.length,
+    items: filtered.slice(start, start + 48),
+    hasMore: start + 48 < filtered.length,
   };
 }

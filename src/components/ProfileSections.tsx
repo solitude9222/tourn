@@ -2,15 +2,13 @@ import type { ProfileSection } from "../lib/about";
 import { TECH_BY_ID, techIconUrl } from "../lib/techStack";
 import "../aboutSections.css";
 
-/* Public rendering for profile sections. Text sections stay full width; every
-   project, anime and game becomes a real card with artwork, status, metadata,
-   genuine technology icons and links. */
+/* Public rendering for profile sections. Projects are wide, full-size cards;
+   interests are poster cards from the anime library. Both carry real artwork,
+   metadata, genuine technology icons and links. */
 
-const KIND_LABEL: Record<string, string> = {
-  text: "Section",
+const KIND_LABEL: Record<ProfileSection["kind"], string> = {
   project: "Project",
-  anime: "Anime",
-  game: "Game",
+  interest: "Interest",
 };
 
 function safeUrl(url: string): string | null {
@@ -42,21 +40,6 @@ export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
     <div className="lkr-sections">
       {sections.map((section) => {
         const mainUrl = safeUrl(section.url);
-        if (section.kind === "text") {
-          return (
-            <section className="lkr-custom-section lkr-section--text" key={section.id}>
-              {section.title ? <h2>{section.title}</h2> : null}
-              {section.image ? <img src={section.image} alt="" loading="lazy" /> : null}
-              {section.text ? <p>{section.text}</p> : null}
-              {mainUrl ? (
-                <a href={mainUrl} target="_blank" rel="noreferrer">
-                  Open link
-                </a>
-              ) : null}
-            </section>
-          );
-        }
-
         const kinds = [section.status, section.meta].filter(Boolean);
         return (
           <article className={`lkr-showcase lkr-showcase--${section.kind}`} key={section.id}>
@@ -94,7 +77,7 @@ export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
                 <div className="lkr-showcase-links">
                   {mainUrl ? (
                     <a className="lkr-showcase-cta" href={mainUrl} target="_blank" rel="noreferrer">
-                      {section.kind === "project" ? "View project" : section.kind === "anime" ? "Open anime" : "Open game"}
+                      {section.kind === "project" ? "View project" : "Open anime"}
                       <span aria-hidden="true">↗</span>
                     </a>
                   ) : null}

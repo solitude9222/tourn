@@ -1,61 +1,51 @@
 /* ── profile sections ─────────────────────────────────────────────────────
-   Text stays a full-width block. Projects, anime and games stack vertically
-   as compact rows: a small thumbnail in the top-left corner, the writing
-   beside it. Flat surfaces, no gradient art panels. */
+   Two kinds. A project is a full-width card with a large artwork panel and
+   roomy type; an interest is a poster card from the anime library. Nothing
+   here is a 54px thumbnail row any more. */
 
 .lkr-sections {
   grid-column: 1 / -1;
   display: grid;
   width: 100%;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-  margin-top: 28px;
+  gap: 16px;
+  margin-top: 32px;
 }
 
-.lkr-sections .lkr-section--text {
-  grid-column: 1 / -1;
-  width: 100%;
-  margin: 0;
-}
-
-.lkr-sections .lkr-custom-section h2 {
-  margin-bottom: 14px;
-}
+/* ── projects: full width, artwork beside the writing ─────────────────────── */
 
 .lkr-showcase {
   position: relative;
   display: flex;
   min-width: 0;
-  align-items: flex-start;
-  gap: 11px;
-  padding: 11px;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
   border: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.1));
-  border-radius: 14px;
+  border-radius: 18px;
   background: var(--pv-card, #121218);
-  transition: border-color 0.18s ease;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.lkr-showcase--project {
+  grid-column: 1 / -1;
 }
 
 .lkr-showcase:hover {
-  border-color: color-mix(in srgb, var(--pv-accent, #b4bffa) 34%, transparent);
+  border-color: color-mix(in srgb, var(--pv-accent, #b4bffa) 36%, transparent);
+  transform: translateY(-2px);
 }
 
 .lkr-showcase-art {
   position: relative;
   display: grid;
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
+  flex: 0 0 38%;
+  width: 38%;
+  max-width: 340px;
+  min-height: 232px;
   place-items: center;
   overflow: hidden;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.lkr-showcase--anime .lkr-showcase-art,
-.lkr-showcase--game .lkr-showcase-art {
-  width: 54px;
-  height: 54px;
-  max-height: none;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .lkr-showcase-art img {
@@ -66,24 +56,24 @@
 
 .lkr-showcase-art.is-empty > span {
   color: var(--pv-muted, #98a2b3);
-  font-size: 19px;
+  font-size: 46px;
   font-weight: 700;
-  opacity: 0.45;
+  opacity: 0.28;
 }
 
 .lkr-showcase-kind {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  max-width: calc(100% - 8px);
-  padding: 2px 5px;
+  top: 12px;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  padding: 4px 9px;
   overflow: hidden;
-  border-radius: 4px;
-  background: rgba(7, 8, 12, 0.82);
+  border-radius: 7px;
+  background: rgba(7, 8, 12, 0.84);
   color: #e9eef8;
-  font-size: 7.5px;
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -93,12 +83,8 @@
   color: #cfd7ff;
 }
 
-.lkr-showcase-kind--anime {
+.lkr-showcase-kind--interest {
   color: #ffd2e7;
-}
-
-.lkr-showcase-kind--game {
-  color: #c8ffdd;
 }
 
 .lkr-showcase-body {
@@ -106,72 +92,73 @@
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 6px;
-  padding: 0;
+  gap: 10px;
+  justify-content: center;
+  padding: 22px 24px;
 }
 
 .lkr-showcase-meta-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .lkr-showcase-meta-row span {
-  padding: 2px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 3px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.03);
   color: var(--pv-muted, #98a2b3);
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 .lkr-showcase-body h2 {
   margin: 0;
   color: var(--pv-text, #f4f6fb);
-  font-size: 13.5px;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  font-size: clamp(19px, 2vw, 24px);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
 }
 
 .lkr-showcase-sub {
   margin: 0;
   color: var(--pv-accent, #b4bffa);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
 .lkr-showcase-text {
   margin: 0;
   color: var(--pv-muted, #98a2b3);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.65;
   white-space: pre-wrap;
 }
 
 .lkr-tech-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
   margin-top: 2px;
 }
 
 .lkr-tech {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 7px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 7px;
   background: rgba(255, 255, 255, 0.03);
   color: #d7dee8;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .lkr-tech img {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
 }
 
@@ -179,7 +166,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   margin-top: 4px;
 }
 
@@ -187,23 +174,23 @@
 .lkr-showcase-link {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 9px;
-  border-radius: 6px;
-  font-size: 10.5px;
+  gap: 5px;
+  padding: 8px 13px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 650;
   text-decoration: none;
   transition: border-color 0.18s ease, background 0.18s ease;
 }
 
 .lkr-showcase-cta {
-  border: 1px solid color-mix(in srgb, var(--pv-accent, #b4bffa) 42%, transparent);
-  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pv-accent, #b4bffa) 44%, transparent);
+  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 14%, transparent);
   color: var(--pv-text, #f4f6fb);
 }
 
 .lkr-showcase-cta:hover {
-  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 20%, transparent);
+  background: color-mix(in srgb, var(--pv-accent, #b4bffa) 22%, transparent);
 }
 
 .lkr-showcase-link {
@@ -216,71 +203,82 @@
   color: var(--pv-text, #f4f6fb);
 }
 
-@media (max-width: 520px) {
-  .lkr-showcase {
-    gap: 11px;
-    padding: 12px;
-  }
+/* ── interests: poster cards from the anime library ───────────────────────── */
 
-  .lkr-showcase-art,
-  .lkr-showcase--anime .lkr-showcase-art,
-  .lkr-showcase--game .lkr-showcase-art {
-    width: 46px;
-    height: 46px;
-    flex-basis: 46px;
-  }
+.lkr-section--interest {
+  display: block;
 }
 
-/* Anime and games read as vertical poster cards: art on top, details under.
-   Projects keep the compact row, so the two kinds stay distinguishable. */
-.lkr-sections:has(.lkr-showcase--anime),
-.lkr-sections:has(.lkr-showcase--game) {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.lkr-showcase--anime,
-.lkr-showcase--game {
+.lkr-showcase--interest {
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
+  gap: 0;
 }
 
-.lkr-showcase--anime .lkr-showcase-art,
-.lkr-showcase--game .lkr-showcase-art {
-  width: 100%;
-  height: auto;
+.lkr-showcase--interest .lkr-showcase-art {
   flex: none;
-  aspect-ratio: 3 / 4;
-  border-radius: 10px;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
+  border-radius: 0;
 }
 
-.lkr-showcase--anime .lkr-showcase-kind,
-.lkr-showcase--game .lkr-showcase-kind {
-  top: 6px;
-  left: 6px;
-  padding: 3px 6px;
-  font-size: 8.5px;
+.lkr-showcase--interest .lkr-showcase-kind {
+  top: 10px;
+  left: 10px;
 }
 
-.lkr-showcase--anime .lkr-showcase-body h2,
-.lkr-showcase--game .lkr-showcase-body h2 {
-  font-size: 12.5px;
+.lkr-showcase--interest .lkr-showcase-body {
+  gap: 6px;
+  padding: 14px 15px 16px;
+  justify-content: flex-start;
 }
 
-.lkr-showcase--anime .lkr-showcase-body,
-.lkr-showcase--game .lkr-showcase-body {
-  gap: 4px;
+.lkr-showcase--interest .lkr-showcase-body h2 {
+  font-size: 15px;
 }
 
-.lkr-showcase--anime .lkr-showcase-text,
-.lkr-showcase--game .lkr-showcase-text {
-  font-size: 11px;
+.lkr-showcase--interest .lkr-showcase-text {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.lkr-showcase--interest .lkr-showcase-links {
+  margin-top: 6px;
+}
+
+/* Any grid holding interests becomes a poster grid; projects stay full width. */
+.lkr-sections:has(.lkr-showcase--interest) {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+.lkr-sections:has(.lkr-showcase--interest) .lkr-showcase--project {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 700px) {
+  .lkr-showcase {
+    flex-direction: column;
+  }
+
+  .lkr-showcase-art {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+
+  .lkr-showcase-body {
+    padding: 16px;
+  }
+
+  .lkr-showcase-body h2 {
+    font-size: 18px;
+  }
 }
 
 @media (max-width: 430px) {
-  .lkr-sections:has(.lkr-showcase--anime),
-  .lkr-sections:has(.lkr-showcase--game) {
+  .lkr-sections:has(.lkr-showcase--interest) {
     grid-template-columns: minmax(0, 1fr);
   }
 }

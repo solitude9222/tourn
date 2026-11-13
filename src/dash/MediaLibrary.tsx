@@ -71,7 +71,7 @@ export function MediaLibrary({
       title={kind === "anime" ? "Anime library" : "Game library"}
       subtitle={
         kind === "anime"
-          ? "Thousands of real titles from AniList. Pick one to fill the section."
+          ? "20,000+ real titles from AniList, 48 per page. Pick one to fill the section."
           : "400+ real free-to-play games from the FreeToGame catalogue. Pick one to fill the section."
       }
       onClose={onClose}
@@ -135,7 +135,7 @@ export function MediaLibrary({
         {hasMore ? (
           <div className="tw-media-more">
             <Button disabled={loading} onClick={() => setPage((current) => current + 1)}>
-              {loading ? "Loading…" : "Load 24 more"}
+              {loading ? "Loading…" : "Load 48 more"}
             </Button>
           </div>
         ) : null}

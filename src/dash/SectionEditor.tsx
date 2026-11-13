@@ -1,4 +1,4 @@
-import {SkillPicker} from "./SkillPicker";
+import { SkillPicker } from "./SkillPicker";
 import { useState } from "react";
 import { type ProfileSection, type ProfileSectionKind } from "../lib/about";
 import { fileToDataUrl } from "./files";
@@ -8,10 +8,8 @@ import { useDash } from "./context";
 import "./sections.css";
 
 const KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
-  { id: "text", label: "Text", hint: "A title and paragraph" },
-  { id: "project", label: "Project", hint: "Artwork, stack, links" },
-  { id: "anime", label: "Anime", hint: "From the anime library" },
-  { id: "game", label: "Game", hint: "From the game library" },
+  { id: "project", label: "Project", hint: "Something you built: artwork, stack, links" },
+  { id: "interest", label: "Interest", hint: "Pick an anime from the library" },
 ];
 
 export function SectionEditor({
@@ -29,7 +27,7 @@ export function SectionEditor({
 }) {
   const { notify } = useDash();
   const [libraryOpen, setLibraryOpen] = useState(false);
-
+  const project = section.kind === "project";
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
@@ -39,8 +37,6 @@ export function SectionEditor({
     }
     onChange({ image: await fileToDataUrl(file) });
   };
-
-
 
   return (
     <div className={`tw-section-editor tw-section-editor--${section.kind}`}>
@@ -81,27 +77,25 @@ export function SectionEditor({
       </div>
 
       <div className="tw-form-grid">
-        <Field label="Section title">
+        <Field label={project ? "Project name" : "Interest"}>
           <TextInput
             value={section.title}
             maxLength={100}
-            placeholder={section.kind === "project" ? "Project name" : section.kind === "anime" ? "Anime title" : "Section title"}
+            placeholder={project ? "Project name" : "Anime title"}
             onChange={(event) => onChange({ title: event.target.value })}
           />
         </Field>
 
-        {section.kind !== "text" ? (
-          <Field label={section.kind === "project" ? "One-line summary" : "Subtitle"} hint="Shown under the title.">
-            <TextInput
-              value={section.subtitle}
-              maxLength={180}
-              placeholder={section.kind === "project" ? "A Discord bot for tournament servers" : "TV · 2024 · 12 eps"}
-              onChange={(event) => onChange({ subtitle: event.target.value })}
-            />
-          </Field>
-        ) : null}
+        <Field label={project ? "One-line summary" : "Subtitle"} hint="Shown under the title.">
+          <TextInput
+            value={section.subtitle}
+            maxLength={180}
+            placeholder={project ? "A Discord bot for tournament servers" : "TV · 2024 · 12 eps"}
+            onChange={(event) => onChange({ subtitle: event.target.value })}
+          />
+        </Field>
 
-        {section.kind === "project" ? (
+        {project ? (
           <>
             <Field label="Status badge" hint="Live, In progress, Archived…">
               <TextInput value={section.status} maxLength={28} placeholder="Live" onChange={(event) => onChange({ status: event.target.value })} />
@@ -110,14 +104,12 @@ export function SectionEditor({
               <TextInput value={section.meta} maxLength={80} placeholder="2026 · Solo build" onChange={(event) => onChange({ meta: event.target.value })} />
             </Field>
           </>
-        ) : null}
-
-        {section.kind === "anime" || section.kind === "game" ? (
+        ) : (
           <>
-            <Field label="Library" hint="Fill every field from a real public catalogue." className="tw-span-2">
+            <Field label="Anime library" hint="Search thousands of real titles, artwork and metadata included." className="tw-span-2">
               <div className="tw-section-library">
                 <Button icon="search" onClick={() => setLibraryOpen(true)}>
-                  Browse {section.kind === "anime" ? "500+ anime" : "400+ games"}
+                  Browse the anime library
                 </Button>
                 {section.meta ? <span className="tw-section-library-meta">{section.meta}</span> : null}
               </div>
@@ -126,10 +118,16 @@ export function SectionEditor({
               <TextInput value={section.meta} maxLength={80} placeholder="★ 8.7 · Action, Fantasy" onChange={(event) => onChange({ meta: event.target.value })} />
             </Field>
           </>
-        ) : null}
+        )}
 
         <Field label="Description" className="tw-span-2">
-          <Textarea rows={4} value={section.text} maxLength={4000} placeholder="What is it, what did you build, why does it matter?" onChange={(event) => onChange({ text: event.target.value })} />
+          <Textarea
+            rows={4}
+            value={section.text}
+            maxLength={4000}
+            placeholder={project ? "What is it, what did you build, why does it matter?" : "Why do you like it?"}
+            onChange={(event) => onChange({ text: event.target.value })}
+          />
         </Field>
 
         <Field label="Artwork URL">
@@ -139,17 +137,17 @@ export function SectionEditor({
           <FileUpload aria-label={`Section ${index + 1} artwork upload`} accept="image/*" onChange={(event) => void upload(event.target.files?.[0])} />
         </Field>
 
-        {section.kind === "project" ? (
+        {project ? (
           <Field label="Tech stack" hint="Choose languages, frameworks and tools." className="tw-span-2">
-            <SkillPicker value={section.stack} onChange={stack=>onChange({stack})}/>
+            <SkillPicker value={section.stack} onChange={(stack) => onChange({ stack })} />
           </Field>
         ) : null}
 
-        <Field label={section.kind === "project" ? "Project URL" : "Main link"} hint="Used by the card's main button.">
+        <Field label={project ? "Project URL" : "Main link"} hint="Used by the card's main button.">
           <TextInput value={section.url} placeholder="https://…" onChange={(event) => onChange({ url: event.target.value })} />
         </Field>
 
-        {section.kind === "project" ? (
+        {project ? (
           <Field label="Extra links" hint="GitHub, demo, docs — up to six." className="tw-span-2">
             <div className="tw-section-links">
               {section.links.map((link, linkIndex) => (
@@ -195,7 +193,7 @@ export function SectionEditor({
 
       <MediaLibrary
         open={libraryOpen}
-        kind={section.kind === "game" ? "game" : "anime"}
+        kind="anime"
         onClose={() => setLibraryOpen(false)}
         onPick={(item) =>
           onChange({
@@ -204,7 +202,7 @@ export function SectionEditor({
             image: item.image,
             meta: item.meta,
             url: item.url,
-            kind: item.kind,
+            kind: "interest",
           })
         }
       />
