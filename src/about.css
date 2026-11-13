@@ -5727,3 +5727,50 @@
   margin-right: 9px;
   opacity: 0.28;
 }
+
+/* ── page details: one tight unit per item, clear space between them ──────
+   The icon and its number read as a single label (4px apart); the location and
+   the views are separated by real space instead of a hairline that sat closer
+   to one side than the other. */
+.profile-preview .pv-page-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11.5px;
+  line-height: 1;
+}
+.profile-preview .pv-page-meta .pv-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+.profile-preview .pv-page-meta .pv-location,
+.profile-preview .pv-page-meta .pv-views,
+.profile-preview .pv-page-meta .pv-foot-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  font-size: 11.5px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.profile-preview .pv-page-meta .pv-location svg,
+.profile-preview .pv-page-meta .pv-views svg,
+.profile-preview .pv-page-meta .pv-foot-item svg {
+  display: block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  transform: none;
+  opacity: 0.8;
+}
+.profile-preview .pv-page-meta .pv-pin + .pv-pin::before {
+  content: none;
+  display: none;
+}
