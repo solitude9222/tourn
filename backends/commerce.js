@@ -56,6 +56,8 @@ export async function redeemCommerceCode(db,code,userId){
 }
 const wrap=fn=>async(req,res)=>{try{await fn(req,res);}catch(error){console.error('[commerce]',error.message);res.status(error.status||503).json({error:error.status?error.message:'Purchase fulfillment is temporarily unavailable. Please try again.'});}};
 export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=process.env,invalidate=()=>{}}){
+ // A plain GET lets you confirm the URL is reachable from the store dashboard.
+ app.get('/api/commerce/sellauth/delivery',(_req,res)=>res.set('Cache-Control','no-store').json({ok:true,delivery:'ready'}));
  app.post('/api/commerce/sellauth/delivery',rawParser,wrap(async(req,res)=>{
   if(!verifySellAuthSignature(req.body,req.get('x-signature'),env.SELLAUTH_WEBHOOK_SECRET))throw fail(401,'Invalid signature.');
   const payload=JSON.parse(req.body.toString('utf8')),config=commerceConfig(env);
