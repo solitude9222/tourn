@@ -253,7 +253,13 @@ export function ProfilePreview({
 
   const style = {
     "--pv-scale": scale,
-    "--pv-font": design.customFontUrl ? `"tourn-${user.id}", sans-serif` : design.font ? `"${design.font.replace(/["\\]/g, "")}", sans-serif` : '"Segoe UI", system-ui, sans-serif',
+    // Lexend is the site font, so an untouched card matches the rest of tourn.lol
+    // instead of falling back to Segoe UI.
+    "--pv-font": design.customFontUrl
+      ? `"tourn-${user.id}", "Lexend", sans-serif`
+      : design.font
+        ? `"${design.font.replace(/["\\]/g, "")}", "Lexend", sans-serif`
+        : '"Lexend", "Segoe UI", system-ui, sans-serif',
     "--pv-accent": design.colors.accent,
     "--pv-text": design.colors.text,
     "--pv-muted": design.colors.muted,

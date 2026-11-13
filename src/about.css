@@ -6052,3 +6052,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Card motion matches the dashboard: a longer, softer rise. */
+.lkr-slide,
+.lkr-sections > *,
+.lkr-about-slide > *,
+.lkr-widgets-block > * {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.22, 0.72, 0.2, 1);
+  will-change: opacity, transform;
+}
