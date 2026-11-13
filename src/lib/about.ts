@@ -233,6 +233,8 @@ export type AboutDesign = {
   /** Glow around the location, view and join details. */
   metaGlowColor?: string;
   metaGlowStrength?: number;
+  /** The "About me" slideshow page: its own copy and speciality tags. */
+  aboutSlide: { title: string; subtitle: string; text: string; tags: string[] };
   /** Off keeps each layout's own detail positions and hides position controls. */
   advancedLayout?: boolean;
   /** How the view counter reads. */
@@ -364,6 +366,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
 
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   sections: [],
+  aboutSlide: { title: "About me", subtitle: "", text: "", tags: [] },
   audioPosition: "auto",
   widgetsPosition: "auto",
   customFontUrl: "",
@@ -675,6 +678,14 @@ function loadDesignRaw(input: unknown): AboutDesign {
     slideshowAbout: raw.slideshowAbout === true,
     metaGlowColor: validColor(raw.metaGlowColor, "#b4bffa"),
     metaGlowStrength: numberIn(raw.metaGlowStrength, 0, 0, 1),
+    aboutSlide: {
+      title: typeof raw.aboutSlide?.title === "string" ? raw.aboutSlide.title.slice(0, 100) : "About me",
+      subtitle: typeof raw.aboutSlide?.subtitle === "string" ? raw.aboutSlide.subtitle.slice(0, 180) : "",
+      text: typeof raw.aboutSlide?.text === "string" ? raw.aboutSlide.text.slice(0, 4000) : "",
+      tags: Array.isArray(raw.aboutSlide?.tags)
+        ? [...new Set(raw.aboutSlide.tags.filter((tag): tag is string => typeof tag === "string"))].slice(0, 40)
+        : [],
+    },
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "side", "popup", "fixed-bottom", "hidden"] as const, "auto"),
     widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),

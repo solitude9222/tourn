@@ -435,7 +435,11 @@ export function LinkerPreview({
   const tooltips = design.tooltips;
   const showLinksSlide = slideshowActive && design.slideshowLinks && links.links.some((link) => link.visible && link.url.trim());
   const showBadgesSlide = slideshowActive && design.slideshowBadges && badges.equipped.length > 0;
-  const showAboutSlide = slideshowActive && design.slideshowAbout && Boolean(about.bio.trim());
+  const aboutSlide = design.aboutSlide ?? { title: "About me", subtitle: "", text: "", tags: [] };
+  const showAboutSlide =
+    slideshowActive &&
+    design.slideshowAbout &&
+    Boolean(about.bio.trim() || aboutSlide.text.trim() || aboutSlide.tags.length);
 
   // A slideshow must open on its first page; without this a restored scroll
   // position or a late layout shift can leave the card's top above the fold.
@@ -447,9 +451,26 @@ export function LinkerPreview({
     <>
       {showAboutSlide ? (
         <div className="lkr-slide">
-          <section className="lkr-slide-panel">
+          <section className="lkr-slide-panel lkr-about-slide">
             <span className="lkr-slide-label">About me</span>
-            <p>{about.bio}</p>
+            <h2 className="lkr-about-title">{aboutSlide.title || "About me"}</h2>
+            {aboutSlide.subtitle ? <p className="lkr-about-sub">{aboutSlide.subtitle}</p> : null}
+            {about.bio.trim() || aboutSlide.text.trim() ? (
+              <p className="lkr-about-text">{aboutSlide.text.trim() || about.bio}</p>
+            ) : null}
+            {aboutSlide.tags.length ? (
+              <div className="lkr-about-tags">
+                {aboutSlide.tags.map((id) => {
+                  const tech = TECH_BY_ID.get(id);
+                  return (
+                    <span className="lkr-about-tag" key={id}>
+                      {tech ? <img src={techIconUrl(tech)} alt="" loading="lazy" /> : null}
+                      {tech?.name ?? id}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}

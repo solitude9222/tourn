@@ -36,8 +36,10 @@ function TechBadge({ id }: { id: string }) {
 export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
   if (!sections.length) return null;
 
+  const single = sections.length === 1 && sections[0].kind === "project";
+
   return (
-    <div className="lkr-sections">
+    <div className={`lkr-sections${single ? " lkr-sections--single" : ""}`}>
       {sections.map((section) => {
         const mainUrl = safeUrl(section.url);
 
@@ -57,7 +59,7 @@ export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
                       </span>
                       <span className="lkr-interest-copy">
                         <b>{pick.title || "Untitled"}</b>
-                        <small>{pick.meta || pick.subtitle}</small>
+                        <small>{[pick.subtitle, pick.meta].filter(Boolean).join(" · ")}</small>
                       </span>
                     </>
                   );

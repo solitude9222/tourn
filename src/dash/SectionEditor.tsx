@@ -221,8 +221,24 @@ export function SectionEditor({
                     {pick.image ? <img src={pick.image} alt="" loading="lazy" /> : null}
                   </span>
                   <span className="tw-section-pick-copy">
-                    <b>{pick.title || "Untitled"}</b>
-                    <small>{pick.meta || pick.subtitle || "Anime"}</small>
+                    <TextInput
+                      value={pick.title}
+                      maxLength={100}
+                      placeholder="Title"
+                      aria-label={`Title for pick ${pick.title || "untitled"}`}
+                      onChange={(event) =>
+                        onChange({ items: picks.map((item) => (item.id === pick.id ? { ...item, title: event.target.value } : item)) })
+                      }
+                    />
+                    <TextInput
+                      value={pick.subtitle}
+                      maxLength={180}
+                      placeholder="Subtitle"
+                      aria-label={`Subtitle for pick ${pick.title || "untitled"}`}
+                      onChange={(event) =>
+                        onChange({ items: picks.map((item) => (item.id === pick.id ? { ...item, subtitle: event.target.value } : item)) })
+                      }
+                    />
                   </span>
                   <button
                     type="button"

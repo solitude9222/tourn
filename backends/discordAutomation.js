@@ -6,7 +6,8 @@ export const DISCORD_AUTOMATION_SCHEMA=`create table if not exists discord_badge
 export const ROLE_BADGE_IDS=['owner','staff','verified','partner','donator','coder','bughunter','newbie','user','premium','booster','halloween_2026','christmas_2026','dc_indiscord'];
 const snowflake=id=>typeof id==='string' && /^\d{16,20}$/.test(id);
 export function normalizeAutomation(raw={}){
- return {enabled:raw.enabled!==false,guildId:snowflake(raw.guildId)?raw.guildId:'',rules:Array.isArray(raw.rules)?raw.rules.slice(0,50).map((rule,index)=>({id:String(rule.id||`rule-${index}`).slice(0,80),roleId:String(rule.roleId||''),badgeId:String(rule.badgeId||''),enabled:rule.enabled!==false,autoEquip:rule.autoEquip!==false})):[]};
+ const board=raw.leaderboard && typeof raw.leaderboard==='object'?raw.leaderboard:{};
+ return {enabled:raw.enabled!==false,guildId:snowflake(raw.guildId)?raw.guildId:'',rules:Array.isArray(raw.rules)?raw.rules.slice(0,50).map((rule,index)=>({id:String(rule.id||`rule-${index}`).slice(0,80),roleId:String(rule.roleId||''),badgeId:String(rule.badgeId||''),enabled:rule.enabled!==false,autoEquip:rule.autoEquip!==false})):[],leaderboard:{enabled:board.enabled===true,channelId:snowflake(board.channelId)?board.channelId:'',intervalMinutes:Math.min(1440,Math.max(15,Number(board.intervalMinutes)||60))}};
 }
 export function matchedRoleBadges(config,member,guildId){
  if(!config.enabled || !member?.present)return {eligible:[],equip:[]};
@@ -16,7 +17,7 @@ export function matchedRoleBadges(config,member,guildId){
 }
 export function createDiscordAutomation({pool,readSetting,writeSetting,token,defaultGuildId='',applicationId='',request:injectedRequest,gatewayFactory,onChange=()=>{}}){
  token=String(token || '').trim();defaultGuildId=String(defaultGuildId || '').trim();
- let client=null,lastError=null,configCache=null,configAt=0,syncing=false,lastSync=null,lastSyncCount=0,timer=null,reconnect=null;
+ let client=null,lastError=null,configCache=null,configAt=0,syncing=false,lastSync=null,lastSyncCount=0,timer=null,reconnect=null,leaderTimer=null,lastLeaderboardAt=0;
  const members=new Map(),awards=new Map();
  const request=injectedRequest || (async path=>{
   if(!token){const error=new Error('DISCORD_BOT_TOKEN is not configured.');error.status=503;throw error;}
@@ -24,6 +25,19 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   if(!client)throw new Error('Discord connection is starting.');
   try{return await client.rest.get(path);}catch(error){const failure=new Error(error.status===401?'Discord rejected the bot token.':error.status===403?'The bot does not have access to this server.':error.status===404?'The server or member was not found.':'Discord is temporarily unavailable.');failure.status=error.status;failure.discordCode=error.code;throw failure;}
  });
+ async function postLeaderboard(force=false){
+  const saved=await config();
+  if(!saved.leaderboard.enabled && !force) return {posted:false,reason:'Leaderboard posting is off.'};
+  if(!snowflake(saved.leaderboard.channelId)) return {posted:false,reason:'Choose a channel for the leaderboard first.'};
+  if(!client) return {posted:false,reason:'The bot is not connected.'};
+  const {rows}=await pool.query(`select u.username,u.alias,coalesce(v.views,0)::int as views from users u left join profile_views v on v.username=u.username order by views desc, u.created_at asc limit 10`);
+  const lines=rows.map((row,index)=>`${['🥇','🥈','🥉'][index] || `**${index+1}.**`} [${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)}) — ${Number(row.views).toLocaleString('en-US')} views`);
+  if(!lines.length) return {posted:false,reason:'There is nobody on the leaderboard yet.'};
+  await client.rest.post(`/channels/${saved.leaderboard.channelId}/messages`,{body:{content:`🏆 **tourn.lol leaderboard**
+${lines.join('\n')}`}});
+  lastLeaderboardAt=Date.now();
+  return {posted:true,count:rows.length};
+ }
  async function config(){if(configCache && Date.now()-configAt<15000)return configCache;let raw={};try{raw=JSON.parse(await readSetting('discord_automation','{}'));}catch{}configCache=normalizeAutomation(raw);configAt=Date.now();return configCache;}
  async function guildId(){const saved=await config();return saved.guildId || defaultGuildId || (client?.guilds.cache.size===1?client.guilds.cache.first().id:'');}
  async function member(discordId,force=false){
@@ -45,12 +59,12 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
  }
  async function inspect(override){
   if(override && !snowflake(override))throw new Error("Choose a valid server.");
-  const guild=override || await guildId();let bot=null,server=null,roles=[],error=null;
-  try{const data=await request('/users/@me');bot={id:String(data.id),username:data.username,avatar:data.avatar?`https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64`:null};if(guild){const [data,roleData]=await Promise.all([request(`/guilds/${guild}`),request(`/guilds/${guild}/roles`)]);server={id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=64`:null};roles=roleData.map(role=>({id:String(role.id),name:role.name,color:role.color,position:role.position,managed:Boolean(role.managed),icon:role.icon?`https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.png`:null})).sort((a,b)=>b.position-a.position);}}
+  const guild=override || await guildId();let bot=null,server=null,roles=[],channels=[],error=null;
+  try{const data=await request('/users/@me');bot={id:String(data.id),username:data.username,avatar:data.avatar?`https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64`:null};  if(guild){const [data,roleData,channelData]=await Promise.all([request(`/guilds/${guild}`),request(`/guilds/${guild}/roles`),request(`/guilds/${guild}/channels`).catch(()=>[])]);channels=(Array.isArray(channelData)?channelData:[]).filter(channel=>channel.type===0||channel.type===5).map(channel=>({id:String(channel.id),name:String(channel.name),type:channel.type===5?'announcement':'text'})).sort((a,b)=>a.name.localeCompare(b.name));server={id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=64`:null};roles=roleData.map(role=>({id:String(role.id),name:role.name,color:role.color,position:role.position,managed:Boolean(role.managed),icon:role.icon?`https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.png`:null})).sort((a,b)=>b.position-a.position);}}
   catch(failure){error=failure.message;lastError=error;}
   const guilds=client?.guilds.cache.map(item=>({id:item.id,name:item.name})) || [];
   const appId=bot?.id;
-  return {configured:Boolean(token),tokenValid:Boolean(bot),gatewayConnected:Boolean(client?.isReady()),serverConnected:Boolean(server),bot,guildId:guild || null,guild:server,guilds,roles,error:error || (!token?'Set DISCORD_BOT_TOKEN on the backend.':!guild?'Choose a server the bot has joined.':!client?.isReady()?lastError || 'Discord Gateway is connecting.':null),inviteUrl:appId?`https://discord.com/oauth2/authorize?client_id=${appId}&scope=bot&permissions=0${guild?`&guild_id=${guild}&disable_guild_select=true`:''}`:null,lastSync,lastSyncCount,syncing};
+  return {configured:Boolean(token),tokenValid:Boolean(bot),gatewayConnected:Boolean(client?.isReady()),serverConnected:Boolean(server),bot,guildId:guild || null,guild:server,guilds,roles,channels,error:error || (!token?'Set DISCORD_BOT_TOKEN on the backend.':!guild?'Choose a server the bot has joined.':!client?.isReady()?lastError || 'Discord Gateway is connecting.':null),inviteUrl:appId?`https://discord.com/oauth2/authorize?client_id=${appId}&scope=bot&permissions=0${guild?`&guild_id=${guild}&disable_guild_select=true`:''}`:null,lastSync,lastSyncCount,syncing};
  }
  async function save(raw,isOwner){
   const next=normalizeAutomation(raw);if(next.rules.some(rule=>!snowflake(rule.roleId)||!ROLE_BADGE_IDS.includes(rule.badgeId)))throw new Error('Choose an actual Discord role and a listed badge for every rule.');
@@ -73,14 +87,16 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   client.on(Events.ShardDisconnect,()=>{lastError='Discord Gateway disconnected; reconnecting.';});
   const login=()=>void client.login(token).catch(error=>{lastError=String(error.message).replaceAll(token,'[redacted]');reconnect=setTimeout(login,60000);reconnect.unref?.();});login();
   timer=setInterval(()=>{void syncAll().catch(error=>{lastError=error.message;});},60000);timer.unref?.();
+  leaderTimer=setInterval(()=>{void (async()=>{const saved=await config();if(!saved.leaderboard.enabled||!saved.leaderboard.channelId)return;if(Date.now()-lastLeaderboardAt<saved.leaderboard.intervalMinutes*60000)return;await postLeaderboard();})().catch(error=>{lastError=error.message;});},60000);leaderTimer.unref?.();
  }
- function stop(){if(timer)clearInterval(timer);if(reconnect)clearTimeout(reconnect);client?.destroy();}
+ function stop(){if(timer)clearInterval(timer);if(leaderTimer)clearInterval(leaderTimer);if(reconnect)clearTimeout(reconnect);client?.destroy();}
  function connection(){return {configured:Boolean(token),gatewayConnected:Boolean(client?.isReady()),serverConnected:Boolean(client?.isReady() && (defaultGuildId || configCache?.guildId ? client.guilds.cache.has(configCache?.guildId || defaultGuildId):client.guilds.cache.size===1))};}
- return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection};
+ return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard};
 }
 export function registerDiscordAutomation(app,service,requireAdmin){
  app.get('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{res.json({...(await service.inspect(req.query.guildId)),config:await service.config()});}catch(error){res.status(503).json({error:error.message});}});
  app.patch('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{const config=await service.save(req.body,Boolean(req.user.is_owner));res.json({config});}catch(error){res.status(400).json({error:error.message});}});
  app.post('/api/admin/bot/sync',requireAdmin,async(_req,res)=>{res.json({started:true});void service.syncAll().catch(()=>{});});
  app.post('/api/admin/bot/recheck',requireAdmin,async(_req,res)=>{try{res.json(await service.inspect());}catch(error){res.status(503).json({error:error.message});}});
+ app.post('/api/admin/bot/leaderboard',requireAdmin,async(_req,res)=>{try{res.json(await service.postLeaderboard(true));}catch(error){res.status(503).json({error:error.message});}});
 }

@@ -79,6 +79,8 @@ export const TECH_STACK: Tech[] = [
   { id: "unreal", name: "Unreal Engine", slug: "unrealengine", color: "#ffffff" },
   { id: "discordjs", name: "Discord.js", slug: "discorddotjs", color: "#5865f2" },
   { id: "electron", name: "Electron", slug: "electron", color: "#47848f" },
+  { id: "jquery", name: "jQuery", slug: "jquery", color: "#0769ad" },
+  { id: "threejs", name: "Three.js", slug: "threedotjs", color: "#ffffff" },
 ];
 
 export const TECH_BY_ID = new Map(TECH_STACK.map((tech) => [tech.id, tech]));

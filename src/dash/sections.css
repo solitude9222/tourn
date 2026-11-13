@@ -583,3 +583,93 @@
   border-color: rgba(248, 113, 113, 0.4);
   color: #f87171;
 }
+
+/* Picks carry their own title and subtitle inputs. */
+.tw-section-pick-copy .tw-control {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 11.5px;
+}
+
+/* ── about slide editor ─────────────────────────────────────────────────── */
+.tw-about-editor {
+  margin: 18px 0 6px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.tw-about-editor-head {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+
+.tw-about-editor-head b {
+  font-size: 12.5px;
+}
+
+.tw-about-editor-head small {
+  color: var(--nav);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.tw-about-tag-groups {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.tw-tag-group {
+  display: grid;
+  gap: 7px;
+}
+
+.tw-tag-group-label {
+  color: var(--nav);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.tw-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tw-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nav);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.tw-tag-pill img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  opacity: 0.8;
+}
+
+.tw-tag-pill:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+  color: var(--title);
+}
+
+.tw-tag-pill.is-on {
+  border-color: rgba(180, 191, 250, 0.5);
+  background: rgba(180, 191, 250, 0.12);
+  color: #eef1ff;
+}

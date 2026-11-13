@@ -10,6 +10,7 @@ import { createProfileSection, defaultMetadata, type AboutLayout, type JoinPosit
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
+import { TECH_STACK, techCategory, techIconUrl } from "../../lib/techStack";
 import { PositionStudio } from "../PositionStudio";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
@@ -373,6 +374,80 @@ export function LayoutPage() {
           <div className="tw-inline-toggle"><span><b>Links slide</b><small>Move your links onto their own screen.</small></span><Toggle label="Links slide" checked={design.slideshowLinks===true} onChange={slideshowLinks=>updateDesign({slideshowLinks})}/></div>
           <div className="tw-inline-toggle"><span><b>Badges slide</b><small>Move your badge rail onto its own screen.</small></span><Toggle label="Badges slide" checked={design.slideshowBadges===true} onChange={slideshowBadges=>updateDesign({slideshowBadges})}/></div>
         </div> : null}
+        {design.slideshowAbout === true ? (
+          <div className="tw-about-editor">
+            <div className="tw-about-editor-head">
+              <b>About me slide</b>
+              <small>Its own page in the slideshow: a title, a line under it, some writing and speciality tags.</small>
+            </div>
+            <div className="tw-form-grid">
+              <Field label="Title">
+                <TextInput
+                  value={design.aboutSlide.title}
+                  maxLength={100}
+                  placeholder="About me"
+                  onChange={(event) => updateDesign({ aboutSlide: { ...design.aboutSlide, title: event.target.value } })}
+                />
+              </Field>
+              <Field label="Subtitle" hint="One line under the title.">
+                <TextInput
+                  value={design.aboutSlide.subtitle}
+                  maxLength={180}
+                  placeholder="Designer, builder, night owl"
+                  onChange={(event) => updateDesign({ aboutSlide: { ...design.aboutSlide, subtitle: event.target.value } })}
+                />
+              </Field>
+              <Field label="Writing" className="tw-span-2">
+                <Textarea
+                  rows={4}
+                  value={design.aboutSlide.text}
+                  maxLength={4000}
+                  placeholder="What you do, what you are into…"
+                  onChange={(event) => updateDesign({ aboutSlide: { ...design.aboutSlide, text: event.target.value } })}
+                />
+              </Field>
+            </div>
+
+            <div className="tw-about-tag-groups">
+              {["Languages", "Frontend", "Backend & data", "Tools & platforms"].map((group) => {
+                const items = TECH_STACK.filter((tech) => (techCategory(tech.id) === group ? true : group === "Tools & platforms" && !["Languages", "Frontend", "Backend & data"].includes(techCategory(tech.id))));
+                if (!items.length) return null;
+                return (
+                  <div className="tw-tag-group" key={group}>
+                    <span className="tw-tag-group-label">{group === "Tools & platforms" ? "Apps & tools" : group}</span>
+                    <div className="tw-tag-row">
+                      {items.map((tech) => {
+                        const on = design.aboutSlide.tags.includes(tech.id);
+                        return (
+                          <button
+                            key={tech.id}
+                            type="button"
+                            className={`tw-tag-pill${on ? " is-on" : ""}`}
+                            aria-pressed={on}
+                            onClick={() =>
+                              updateDesign({
+                                aboutSlide: {
+                                  ...design.aboutSlide,
+                                  tags: on
+                                    ? design.aboutSlide.tags.filter((id) => id !== tech.id)
+                                    : [...design.aboutSlide.tags, tech.id].slice(0, 40),
+                                },
+                              })
+                            }
+                          >
+                            <img src={techIconUrl(tech)} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                            {tech.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
         <div className="tw-section-list">
           {design.sections.map((section, index) => (
             <div key={section.id} draggable onDragStart={event=>{if((event.target as HTMLElement).closest('input,textarea,select,button')){event.preventDefault();return;}setDragSection(index);}} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();if(dragSection===null)return;const sections=[...design.sections];const [moved]=sections.splice(dragSection,1);sections.splice(index,0,moved);updateDesign({sections});setDragSection(null);}}><div className="tw-section-drag" title="Drag to reorder">⠿ Drag to reorder</div><SectionEditor
