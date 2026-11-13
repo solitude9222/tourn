@@ -10,7 +10,6 @@ import {readDurableDraft,writeDurableDraft} from "./draftStorage";
 
 import type { Account } from "./auth";
 import { api } from "./backend";
-import { IS_SWATS_HOST } from "./swats";
 import { normalizeAbout, type About } from "./about";
 import { normalizeWidgetStore, type WidgetStore } from "./widgets";
 import { normalizeBadgeStore, type BadgeStore } from "./badges";
@@ -91,8 +90,7 @@ export async function fetchPublicProfile(handle: string): Promise<PublicProfileR
   const pending = inflight.get(key);
   if (pending) return pending;
   const request = (async (): Promise<PublicProfileResult> => {
-    const suffix = IS_SWATS_HOST ? "?site=swats" : "";
-    const result = await api<ProfilePayload>(`/api/profile/${encodeURIComponent(handle)}${suffix}`);
+    const result = await api<ProfilePayload>(`/api/profile/${encodeURIComponent(handle)}`);
     if (!result.ok) {
       return { ok: false, notFound: result.status === 404, error: result.error };
     }

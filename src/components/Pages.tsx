@@ -362,20 +362,29 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
                 {pool.length === 1 ? "" : "s"} left right now.
               </p>
             ) : (
-              <label className="shop-modal-field">
-                Pick your {PICKER_COPY[picker].noun}
-                <select value={specific} onChange={(event) => setSpecific(event.target.value)}>
-                  <option value="">Choose…</option>
-                  {pool.map((character) => (
-                    <option key={character} value={character}>
-                      {character}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="shop-pick">
+                <span className="shop-pick-label">Pick your {PICKER_COPY[picker].noun}</span>
+                {pool.length ? (
+                  <div className="shop-pick-grid" role="listbox" aria-label={`Available ${PICKER_COPY[picker].noun}s`}>
+                    {pool.map((character) => (
+                      <button
+                        key={character}
+                        type="button"
+                        role="option"
+                        aria-selected={specific === character}
+                        className={`shop-pick-key${specific === character ? " is-active" : ""}`}
+                        onClick={() => setSpecific(character)}
+                      >
+                        {character}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="shop-modal-note">Nothing free in this category right now.</p>
+                )}
+                <small className="shop-pick-count">{pool.length} available — taken characters are hidden.</small>
+              </div>
             )}
-
-            {!pool.length && mode === "specific" ? <p className="shop-modal-note">Nothing free in this category right now.</p> : null}
             {error ? (
               <p className="shop-modal-error" role="alert">
                 {error}
