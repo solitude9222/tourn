@@ -44,10 +44,12 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   if(!client || !client.isReady())return rawRest('GET',path);
   try{return await client.rest.get(path);}catch(error){const failure=new Error(error.status===401?'Discord rejected the bot token.':error.status===403?'The bot does not have access to this server.':error.status===404?'The server or member was not found.':error.message || 'Discord is temporarily unavailable.');failure.status=error.status;failure.discordCode=error.code;throw failure;}
  });
- async function postLeaderboard(force=false){
+ async function postLeaderboard(force=false,channelOverride=''){
   const saved=await config();
   if(!saved.leaderboard.enabled && !force) return {posted:false,reason:'Leaderboard posting is off.'};
-  if(!snowflake(saved.leaderboard.channelId)) return {posted:false,reason:'Choose a channel for the leaderboard first.'};
+  // "Post now" can carry the channel the admin just picked, before saving.
+  const channelId=snowflake(String(channelOverride||''))?String(channelOverride):saved.leaderboard.channelId;
+  if(!snowflake(channelId)) return {posted:false,reason:'Choose a channel for the leaderboard first.'};
   if(!token) return {posted:false,reason:'DISCORD_BOT_TOKEN is not set on the backend.'};
   let rows=[];
   try{({rows}=await pool.query(`select u.username,u.alias,coalesce(v.views,0)::int as views from users u left join profile_views v on v.username=u.username order by views desc, u.created_at asc limit 10`));}
@@ -59,12 +61,12 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   try{
     // Post over REST directly: this works whether or not the gateway socket is
     // currently up, which is the usual reason a scheduled post looked dead.
-    await rawRest('POST',`/channels/${saved.leaderboard.channelId}/messages`,{embeds:[embed]});
+    await rawRest('POST',`/channels/${channelId}/messages`,{embeds:[embed]});
   }catch(error){
     console.error('[discord] leaderboard post failed',error?.status,error?.message);
     try{
       if(!client?.isReady())throw error;
-      const channel=await client.channels.fetch(saved.leaderboard.channelId);
+      const channel=await client.channels.fetch(channelId);
       if(!channel?.isTextBased())throw error;
       await channel.send({embeds:[embed]});
     }catch(fallbackError){
@@ -199,6 +201,6 @@ export function registerDiscordAutomation(app,service,requireAdmin){
  app.patch('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{const config=await service.save(req.body,Boolean(req.user.is_owner));res.json({config});}catch(error){res.status(400).json({error:error.message});}});
  app.post('/api/admin/bot/sync',requireAdmin,async(_req,res)=>{res.json({started:true});void service.syncAll().catch(()=>{});});
  app.post('/api/admin/bot/recheck',requireAdmin,async(_req,res)=>{try{res.json(await service.inspect());}catch(error){res.status(503).json({error:error.message});}});
- app.post('/api/admin/bot/leaderboard',requireAdmin,async(_req,res)=>{try{res.json(await service.postLeaderboard(true));}catch(error){res.status(503).json({error:error.message});}});
+ app.post('/api/admin/bot/leaderboard',requireAdmin,async(req,res)=>{try{res.json(await service.postLeaderboard(true,String(req.body?.channelId||'')));}catch(error){res.status(503).json({error:error.message});}});
  app.post('/api/admin/bot/diagnose',requireAdmin,async(req,res)=>{try{res.json(await service.diagnose({channelId:req.body?.channelId,discordId:req.body?.discordId}));}catch(error){res.status(503).json({error:error.message});}});
 }

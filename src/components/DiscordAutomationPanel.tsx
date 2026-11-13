@@ -17,7 +17,13 @@ export function DiscordAutomationPanel({isOwner}:{isOwner:boolean}){
  useEffect(()=>{if(!syncing)return;const timer=setInterval(()=>void load(undefined,true),2000);return()=>clearInterval(timer);},[syncing]);
  const dirty=Boolean(config && JSON.stringify(config)!==saved);
  const update=(id:string,patch:Partial<Rule>)=>setConfig(current=>current?{...current,rules:current.rules.map(rule=>rule.id===id?{...rule,...patch}:rule)}:current);
- async function postNow(){setBusy(true);setError('');setMessage('');const result=await api<{posted:boolean;reason?:string;count?:number}>('/api/admin/bot/leaderboard',{method:'POST'});setBusy(false);if(!result.ok){setError(result.error);return;}setMessage(result.data.posted?`Leaderboard posted (${result.data.count} entries).`:result.data.reason || 'Nothing to post.');}
+ async function postNow(){
+  if(!config?.leaderboard.channelId){setError('Choose a leaderboard channel first.');return;}
+  setBusy(true);setError('');setMessage('');
+  // Save the picked channel/interval first, so "Post now" cannot use a stale
+  // saved config and complain that no channel is chosen.
+  if(dirty){const saveResult=await api<{config:Config}>('/api/admin/bot/automation',{method:'PATCH',body:JSON.stringify(config)});if(!saveResult.ok){setBusy(false);setError(saveResult.error);return;}setConfig(saveResult.data.config);setSaved(JSON.stringify(saveResult.data.config));}
+  const result=await api<{posted:boolean;reason?:string;count?:number}>('/api/admin/bot/leaderboard',{method:'POST',body:JSON.stringify({channelId:config.leaderboard.channelId})});setBusy(false);if(!result.ok){setError(result.error);return;}setMessage(result.data.posted?`Leaderboard posted (${result.data.count} entries).`:result.data.reason || 'Nothing to post.');}
  async function save(){if(!config)return;setBusy(true);setError('');setMessage('');const result=await api<{config:Config}>('/api/admin/bot/automation',{method:'PATCH',body:JSON.stringify(config)});setBusy(false);if(!result.ok){setError(result.error);return;}setConfig(result.data.config);setSaved(JSON.stringify(result.data.config));setMessage('Rules saved to PostgreSQL. Matching badges update automatically.');}
  async function testDm(){setBusy(true);setError('');setMessage('');const result=await post<{ok?:boolean;sent?:boolean}>('/api/admin/bot/test-dm',{discordId:dmId.trim()});setBusy(false);if(!result.ok){setError(result.error);return;}setMessage('Test DM sent — check Discord.');}
  async function runDiagnose(){setDiagnosing(true);setError('');const result=await api<{ok:boolean;report:Check[]}>('/api/admin/bot/diagnose',{method:'POST',body:JSON.stringify({channelId:config?.leaderboard.channelId || ''})});setDiagnosing(false);if(!result.ok){setError(result.error);return;}setDiag(result.data);}

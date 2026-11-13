@@ -5038,3 +5038,45 @@
   display: grid;
   gap: 12px;
 }
+
+/* ── fields with a little depth ─────────────────────────────────────────── */
+.tw-control {
+  height: 40px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+    var(--bar);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.tw-control:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tw-control:focus-within {
+  border-color: rgba(125, 155, 245, 0.6);
+  box-shadow: 0 0 0 3px rgba(125, 155, 245, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.tw-textarea {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    var(--bar);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.tw-textarea:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tw-textarea:focus {
+  border-color: rgba(125, 155, 245, 0.6);
+  box-shadow: 0 0 0 3px rgba(125, 155, 245, 0.14);
+}
