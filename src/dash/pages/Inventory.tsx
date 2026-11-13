@@ -1,4 +1,3 @@
-import "../../pages.css";
 import { useCallback, useEffect, useState } from "react";
 import { api, post } from "../../lib/backend";
 import { useAuth } from "../../lib/auth";

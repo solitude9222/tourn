@@ -5408,3 +5408,52 @@
 .pv-pin-group--inside-bottom-left { bottom: calc(var(--pv-pad, 32px) * 0.5); left: calc(var(--pv-pad, 32px) * 0.6); }
 .pv-pin--inside-bottom-right,
 .pv-pin-group--inside-bottom-right { bottom: calc(var(--pv-pad, 32px) * 0.5); right: calc(var(--pv-pad, 32px) * 0.6); }
+
+/* Inside pins sit the same distance from the top and the side, and icon-plus-
+   number pairs share one baseline so a views counter never looks nudged. */
+.pv-pin--inside-top-left,
+.pv-pin-group--inside-top-left,
+.pv-pin--inside-bottom-left,
+.pv-pin-group--inside-bottom-left {
+  left: max(12px, calc(var(--pv-pad, 32px) * 0.6));
+}
+.pv-pin--inside-top-right,
+.pv-pin-group--inside-top-right,
+.pv-pin--inside-bottom-right,
+.pv-pin-group--inside-bottom-right {
+  right: max(12px, calc(var(--pv-pad, 32px) * 0.6));
+}
+.pv-pin--inside-top-left,
+.pv-pin--inside-top-right,
+.pv-pin-group--inside-top-left,
+.pv-pin-group--inside-top-right {
+  top: max(12px, calc(var(--pv-pad, 32px) * 0.6));
+}
+.pv-pin--inside-bottom-left,
+.pv-pin--inside-bottom-right,
+.pv-pin-group--inside-bottom-left,
+.pv-pin-group--inside-bottom-right {
+  bottom: max(12px, calc(var(--pv-pad, 32px) * 0.6));
+}
+.pv-pin .pv-views,
+.pv-pin .pv-location,
+.pv-pin .pv-foot-item,
+.pv-pin-group .pv-views,
+.pv-pin-group .pv-location,
+.pv-pin-group .pv-foot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5px * var(--pv-scale, 1));
+  font-size: max(9.5px, calc(12px * var(--pv-scale, 1)));
+  line-height: 1.15;
+}
+.pv-pin .pv-views svg,
+.pv-pin .pv-location svg,
+.pv-pin .pv-foot-item svg,
+.pv-pin-group .pv-views svg,
+.pv-pin-group .pv-location svg,
+.pv-pin-group .pv-foot-item svg {
+  flex: none;
+  position: static;
+  transform: none;
+}
