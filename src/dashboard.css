@@ -4999,3 +4999,127 @@ body:has(.dash) {
   font-size: 11px;
   line-height: 1.45;
 }
+
+/* Inventory → usernames */
+.addr-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 16px;
+}
+.addr-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.addr-label {
+  min-width: 68px;
+  color: #7f8ba3;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.addr-value {
+  color: #c6d0e2;
+  font-size: 14px;
+}
+.addr-value b {
+  color: #fff;
+  font-weight: 600;
+}
+.addr-row .tw-chip {
+  margin-left: auto;
+}
+.addr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.owned-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.owned-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.owned-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: #171b25;
+  color: #c9d4ea;
+  font-size: 16px;
+  font-weight: 600;
+}
+.owned-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.owned-copy b {
+  color: #fff;
+  font-size: 15px;
+}
+.owned-copy small {
+  color: #8491a8;
+  font-size: 11px;
+}
+.owned-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+.owned-gift {
+  flex-basis: 100%;
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.owned-gift > span {
+  display: grid;
+  gap: 3px;
+}
+.owned-gift > span b {
+  color: #fff;
+  font-size: 13px;
+}
+.owned-gift > span small {
+  color: #8491a8;
+  font-size: 11px;
+}
+.owned-gift label {
+  display: grid;
+  gap: 6px;
+  color: #8491a8;
+  font-size: 11px;
+}
+.owned-gift input {
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  background: #0c0e12;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.dash-note {
+  margin: 0;
+  color: #a9b6cc;
+  font-size: 13px;
+}

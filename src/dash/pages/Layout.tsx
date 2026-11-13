@@ -11,7 +11,6 @@ import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
 import { PositionStudio } from "../PositionStudio";
-import { ProfilePreview } from "../../components/ProfilePreview";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
 
@@ -172,18 +171,6 @@ export function LayoutPage() {
           joinPosition={design.joinPosition}
           layout={design.layout}
           onChange={updateDesign}
-          preview={
-            <ProfilePreview
-              user={user}
-              about={about}
-              badges={badges.equipped}
-              badgeStyle={badges.style}
-              links={links.links}
-              linkDesign={links.design}
-              hideAudio
-              disableTilt
-            />
-          }
         />
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
