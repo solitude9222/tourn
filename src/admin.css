@@ -2319,3 +2319,19 @@
   font-size: 11.5px;
   line-height: 1.7;
 }
+
+/* Free claim field beside the stock copy button. */
+.adm-claim-input {
+  width: 62px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--adm-line, rgba(255, 255, 255, 0.14));
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  text-align: center;
+  text-transform: lowercase;
+}

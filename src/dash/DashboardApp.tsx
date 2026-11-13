@@ -29,7 +29,8 @@ import { EffectsPage } from "./pages/Effects";
 import { BadgesPage } from "./pages/Badges";
 import { LinksPage } from "./pages/Links";
 import { WidgetsPage } from "./pages/Widgets";
-import { AssetBrowserPage, LeaderboardPage, TemplatesPage } from "./pages/Community";
+import { AssetBrowserPage, LeaderboardPage } from "./pages/Community";
+import { TemplatesPage } from "./pages/Templates";
 import { BillingPage, PremiumPage } from "./pages/Plan";
 
 const AccountSettingsPage = lazy(() =>

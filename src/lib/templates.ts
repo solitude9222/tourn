@@ -221,10 +221,9 @@ export function mergeTemplate(
     links,
     widgets: chosen.has("widgets")
       ? {
-          widgets: usable.widgets.widgets.map((item) => ({
-            ...item,
-            id: `${item.id}-${Math.random().toString(16).slice(2, 8)}`,
-          })),
+          // Appearance only: a template never adds, removes or re-points a
+          // widget, so the account keeps the widgets it actually configured.
+          widgets: current.widgets.widgets,
           design: { ...usable.widgets.design },
         }
       : current.widgets,

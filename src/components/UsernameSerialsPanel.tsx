@@ -13,6 +13,27 @@ export function UsernameSerialsPanel() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ serials: Serial[]; skipped: Skipped[] } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [claim, setClaim] = useState("");
+  const [claimNote, setClaimNote] = useState("");
+  const [claiming, setClaiming] = useState(false);
+
+  const claimHandle = async () => {
+    const handle = claim.trim().toLowerCase();
+    if (!handle) return;
+    setClaiming(true);
+    setClaimNote("");
+    const response = await api<{ ok: boolean; handle: string }>("/api/admin/usernames/claim", {
+      method: "POST",
+      body: JSON.stringify({ handle }),
+    });
+    setClaiming(false);
+    if (!response.ok) {
+      setClaimNote(response.error);
+      return;
+    }
+    setClaimNote(`@${response.data.handle} is in your inventory.`);
+    setClaim("");
+  };
 
   const generate = async () => {
     setBusy(true);
@@ -51,6 +72,27 @@ export function UsernameSerialsPanel() {
           One code per character. Paste them into a SellAuth serial product; the buyer redeems theirs in Dashboard → Billing.
         </span>
       </div>
+
+      <div className="adm-serial-row">
+        <input
+          className="adm-claim-input"
+          value={claim}
+          maxLength={2}
+          placeholder="k"
+          aria-label="Username to claim"
+          onChange={(event) => {
+            setClaim(event.target.value);
+            setClaimNote("");
+          }}
+        />
+        <button type="button" className="adm-action" disabled={claiming || !claim.trim()} onClick={() => void claimHandle()}>
+          {claiming ? "Claiming…" : "Claim for me, free"}
+        </button>
+        <span className="adm-hint">
+          Takes the character out of stock and puts it in your inventory. If it was never stocked, it is added as yours.
+        </span>
+      </div>
+      {claimNote ? <p className="adm-hint">{claimNote}</p> : null}
 
       <label className="adm-field">
         Characters

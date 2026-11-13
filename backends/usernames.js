@@ -156,6 +156,28 @@ export function registerUsernameMarket(app, { pool, stripe, requireAuth, require
     const {rows}=await pool.query('select i.*,u.username as owner_username from username_inventory i left join users u on u.id=i.owner_id order by i.handle');
     res.json({items:rows});
   }));
+
+  // Admins take a character out of stock for free. If it was never stocked, the
+  // row is created already owned, so it lands straight in their inventory.
+  app.post('/api/admin/usernames/claim', requireAdmin, route(async (req,res) => {
+    const handle=String(req.body?.handle || '').trim().toLowerCase();
+    if (!stockHandleValid(handle)) throw fail(400,'Enter one letter, number or safe symbol.');
+    const db=await pool.connect();
+    try {
+      await db.query('begin');
+      const item=(await db.query('select * from username_inventory where handle=$1 for update',[handle])).rows[0];
+      if (item?.owner_id && item.owner_id!==req.auth.sub) throw fail(409,'This username is already owned.');
+      const other=(await db.query('select id from users where (username=$1 or alias=$1 or alias2=$1) and id<>$2 limit 1',[handle,req.auth.sub])).rows[0];
+      if (other) throw fail(409,'This username belongs to another account.');
+      if (item) {
+        await db.query('update username_inventory set owner_id=$2,listed=false,checkout_id=null,buyer_id=null,order_id=null,checkout_payload=null,reservation_at=null,acquired_at=coalesce(acquired_at,now()) where handle=$1',[handle,req.auth.sub]);
+      } else {
+        await db.query('insert into username_inventory(handle,owner_id,listed,acquired_at) values($1,$2,false,now())',[handle,req.auth.sub]);
+      }
+      await db.query('commit'); invalidate();
+      res.json({ok:true,handle});
+    } catch(error) { await db.query('rollback'); throw error; } finally { db.release(); }
+  }));
   app.post('/api/admin/usernames', requireAdmin, route(async (req,res) => {
     const handle=String(req.body?.handle || '').trim().toLowerCase();
     const price=req.body?.priceCents;
