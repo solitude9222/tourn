@@ -2,7 +2,7 @@ import "../../pages.css";
 import { useCallback, useEffect, useState } from "react";
 import { api, post } from "../../lib/backend";
 import { useAuth } from "../../lib/auth";
-import { BADGE_CATALOGUE } from "../../lib/badges";
+import { BADGE_CATALOGUE, BUYABLE_BADGES, EARNABLE_BADGES } from "../../lib/badges";
 import { useDash } from "../context";
 import { Button, Icon } from "../ui";
 
@@ -256,23 +256,47 @@ export function InventoryPage() {
       ) : null}
 
       {tab === "badges" ? (
-        <div className="invt-badges">
-          {[...BADGE_CATALOGUE]
-            .sort((a, b) => Number(owned.has(b.id)) - Number(owned.has(a.id)))
-            .map((badge) => {
-              const has = owned.has(badge.id);
-              return (
-                <article className={`invt-badge${has ? " is-owned" : ""}`} key={badge.id} style={{ ["--c" as string]: badge.color }}>
-                  <span className="invt-badge-icon">
-                    <img src={badge.art} alt="" width={30} height={30} loading="lazy" />
+        <>
+          {[
+            { id: "earnable", label: "Earnable", hint: "Unlocked by activity, dates or staff", items: EARNABLE_BADGES },
+            { id: "buyable", label: "Buyable", hint: "Bought from the store and granted on delivery", items: BUYABLE_BADGES },
+          ].map((list) => {
+            const unlocked = list.items.filter((badge) => owned.has(badge.id)).length;
+            return (
+              <section className="invt-block" key={list.id}>
+                <header className="invt-block-head">
+                  <span>
+                    <h3>{list.label}</h3>
+                    <small>{list.hint}</small>
                   </span>
-                  <b>{badge.name}</b>
-                  <small>{has ? badge.description : badge.requirement}</small>
-                  <span className="invt-badge-dot" aria-hidden="true" />
-                </article>
-              );
-            })}
-        </div>
+                  <span className="invt-chip">{unlocked}/{list.items.length}</span>
+                </header>
+                <div className="invt-badges">
+                  {[...list.items]
+                    .sort((a, b) => Number(owned.has(b.id)) - Number(owned.has(a.id)))
+                    .map((badge) => {
+                      const has = owned.has(badge.id);
+                      return (
+                        <article className={`invt-badge${has ? " is-owned" : ""}`} key={badge.id} style={{ ["--c" as string]: badge.color }}>
+                          <span className="invt-badge-icon">
+                            <img src={badge.art} alt="" width={30} height={30} loading="lazy" />
+                          </span>
+                          <b>{badge.name}</b>
+                          <small>{has ? badge.description : badge.requirement}</small>
+                          <span className="invt-badge-dot" aria-hidden="true" />
+                          {badge.buyable && !has ? (
+                            <a className="invt-badge-buy" href="#/shop">
+                              Buy
+                            </a>
+                          ) : null}
+                        </article>
+                      );
+                    })}
+                </div>
+              </section>
+            );
+          })}
+        </>
       ) : null}
 
       {tab === "collectables" ? (

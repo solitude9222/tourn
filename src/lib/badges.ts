@@ -24,6 +24,8 @@ export type BadgeDef = {
   art: string;
   /** Default tint colour for monochrome mode */
   color: string;
+  /** Sold in the store instead of being unlocked by activity. */
+  buyable?: boolean;
 };
 
 export type BadgeStyle = {
@@ -193,15 +195,15 @@ const ICON = "/badges/icons/norm";
 const PLATFORM: BadgeDef[] = [
   { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: `${ICON}/owner.gif`, color: "#b4bffa" },
   { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/staffteam.png`, color: "#38bdf8" },
-  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: `${ICON}/verifed.png`, color: "#b4bffa" },
-  { id: "partner", name: "Partner", description: "Official platform partner", requirement: "Granted by staff to official partners.", group: "platform", art: `${ICON}/parnter.png`, color: "#60a5fa" },
-  { id: "donator", name: "Donator", description: "Donated to keep the site running", requirement: "Granted by staff after a donation.", group: "platform", art: `${ICON}/donator.gif`, color: "#fbbf24" },
+  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "platform", art: `${ICON}/verifed.png`, color: "#b4bffa", buyable: true },
+  { id: "partner", name: "Partner", description: "Official platform partner", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "platform", art: `${ICON}/parnter.png`, color: "#60a5fa", buyable: true },
+  { id: "donator", name: "Donator", description: "Helped keep the site running", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "platform", art: `${ICON}/donator.gif`, color: "#fbbf24", buyable: true },
   { id: "coder", name: "Coder", description: "Contributed code", requirement: "Automatic: publish a profile with a GitHub link or GitHub widget.", group: "platform", art: `${ICON}/coder.gif`, color: "#22c55e" },
-  { id: "bughunter", name: "Bug Hunter", description: "Found and reported a real bug", requirement: "Granted by staff for a reproducible bug report.", group: "platform", art: `${ICON}/bughunter.png`, color: "#a3e635" },
+  { id: "bughunter", name: "Bug Hunter", description: "Reported a real bug", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "platform", art: `${ICON}/bughunter.png`, color: "#a3e635", buyable: true },
   { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: `${ICON}/newbie.png`, color: "#b4bffa" },
   { id: "user", name: "Active User", description: "Long-time active member", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: `${ICON}/iverauser.gif`, color: "#b4bffa" },
   { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: `${ICON}/premium.svg`, color: "#f472b6" },
-  { id: "booster", name: "Booster", description: "Server booster", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: `${ICON}/booster.png`, color: "#f472b6" },
+  { id: "booster", name: "Booster", description: "Stood out in the community", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "platform", art: `${ICON}/booster.png`, color: "#f472b6", buyable: true },
 ];
 
 /* ── seasonal badges ───────────────────────────────────────── */
@@ -220,6 +222,10 @@ const DISCORD: BadgeDef[] = [
 /* ── full catalogue ────────────────────────────────────────── */
 
 export const BADGE_CATALOGUE: BadgeDef[] = [...PLATFORM, ...SEASONAL, ...DISCORD];
+/** Unlocked by activity, dates or staff. */
+export const EARNABLE_BADGES: BadgeDef[] = BADGE_CATALOGUE.filter((badge) => !badge.buyable);
+/** Bought from the store and granted on delivery. */
+export const BUYABLE_BADGES: BadgeDef[] = BADGE_CATALOGUE.filter((badge) => badge.buyable);
 export const BADGE_MAP = new Map(BADGE_CATALOGUE.map((b) => [b.id, b]));
 
 export function badgeDef(id: string): BadgeDef | undefined {

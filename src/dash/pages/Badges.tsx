@@ -8,7 +8,7 @@
    --------------------------------------------------------------------------- */
 
 import { useMemo, useState } from "react";
-import { BADGE_ANIMATIONS, BADGE_CATALOGUE, BADGE_ROW_PRESETS, badgeDef, type BadgeDef, type BadgeGroup } from "../../lib/badges";
+import { BADGE_ANIMATIONS, BADGE_CATALOGUE, BADGE_ROW_PRESETS, BUYABLE_BADGES, EARNABLE_BADGES, badgeDef, type BadgeDef } from "../../lib/badges";
 import { BadgeChip, BadgeRow } from "../../components/BadgeRow";
 import { useDash } from "../context";
 import { Button, Card, CardHead, Chip, ColorField, EmptyState, Field, Icon, IconButton, Modal, Select, Slider, Toggle } from "../ui";
@@ -16,10 +16,9 @@ import "../badgeStudio.css";
 
 const MAX_ACTIVE = 30;
 
-const GROUPS: { id: BadgeGroup; label: string; hint: string }[] = [
-  { id: "platform", label: "Platform", hint: "Earned on tourn.lol" },
-  { id: "seasonal", label: "Seasonal", hint: "Limited to a date" },
-  { id: "discord", label: "Discord", hint: "From the tourn.lol server" },
+const LISTS: { id: "earnable" | "buyable"; label: string; hint: string; items: BadgeDef[] }[] = [
+  { id: "earnable", label: "Earnable", hint: "Unlocked by activity, dates or staff", items: EARNABLE_BADGES },
+  { id: "buyable", label: "Buyable", hint: "Bought from the store and granted on delivery", items: BUYABLE_BADGES },
 ];
 
 type Filter = "all" | "earned" | "shown";
@@ -265,10 +264,9 @@ export function BadgesPage() {
           }
         />
 
-        {GROUPS.map((group) => {
-          const items = BADGE_CATALOGUE.filter((badge) => badge.group === group.id && visible(badge));
-          if (!items.length) return null;
-          const unlocked = items.filter((badge) => earnedSet.has(badge.id)).length;
+        {LISTS.map((group) => {
+          const items = group.items.filter(visible);
+          const unlocked = group.items.filter((badge) => earnedSet.has(badge.id)).length;
           return (
             <details className="tw-badge-group" key={group.id} open>
               <summary className="tw-badge-group-head">
@@ -276,7 +274,7 @@ export function BadgesPage() {
                   <h3>{group.label}</h3>
                   <small>{group.hint}</small>
                 </span>
-                <span className="tw-badge-group-count">{unlocked}/{items.length}</span>
+                <span className="tw-badge-group-count">{unlocked}/{group.items.length}</span>
               </summary>
               <div className="tw-badge-list">
                 {items.map((badge) => {
@@ -305,6 +303,16 @@ export function BadgesPage() {
                           variant={isActive ? "primary" : "plain"}
                           onClick={() => (isEarned ? toggleBadge(badge) : setDetail(badge))}
                         />
+                        {badge.buyable && !isEarned ? (
+                          <IconButton
+                            label={`Buy ${badge.name}`}
+                            icon="external"
+                            variant="primary"
+                            onClick={() => {
+                              window.location.hash = "#/shop";
+                            }}
+                          />
+                        ) : null}
                         <IconButton
                           label={`About ${badge.name}`}
                           icon="help"

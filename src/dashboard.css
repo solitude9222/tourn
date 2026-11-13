@@ -5860,3 +5860,47 @@ body:has(.dash) {
     font-size: 26px;
   }
 }
+
+/* Inventory: badge lists */
+.invt-block {
+  margin-bottom: 22px;
+}
+.invt-block-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.invt-block-head h3 {
+  margin: 0;
+  color: #f2f2f5;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.invt-block-head small {
+  display: block;
+  margin-top: 2px;
+  color: #8b8b98;
+  font-size: 11.5px;
+}
+.invt-badge-buy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(61, 99, 242, 0.5);
+  border-radius: 8px;
+  background: rgba(61, 99, 242, 0.14);
+  color: #8ba4ff;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.invt-badge-buy:hover {
+  background: #3d63f2;
+  color: #fff;
+}
