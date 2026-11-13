@@ -39,18 +39,23 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   if(!rows.length) return {posted:false,reason:'There is nobody on the leaderboard yet.'};
   const medals=['🥇','🥈','🥉'];
   const description=rows.map((row,index)=>`${medals[index] || `\`${String(index+1).padStart(2,'0')}\``}  [${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)})  ·  **${Number(row.views).toLocaleString('en-US')}** views`).join('\n');
+  const embed={title:'🏆 tourn.lol leaderboard',description,url:'https://tourn.lol/leaderboard',color:0x7d9bf5,thumbnail:{url:'https://tourn.lol/logo.png'},footer:{text:'Ranked by profile views'},timestamp:new Date().toISOString()};
   try{
-    await client.rest.post(`/channels/${saved.leaderboard.channelId}/messages`,{body:{embeds:[{
-      title:'🏆 tourn.lol leaderboard',
-      description,
-      url:'https://tourn.lol/leaderboard',
-      color:0x7d9bf5,
-      thumbnail:{url:'https://tourn.lol/logo.png'},
-      footer:{text:'Ranked by profile views'},
-      timestamp:new Date().toISOString(),
-    }]}});
+    await client.rest.post(`/channels/${saved.leaderboard.channelId}/messages`,{body:{embeds:[embed]}});
   }catch(error){
-    throw new Error(error.status===403?'The bot cannot post in that channel. Give it Send Messages and Embed Links.':`Discord rejected the leaderboard: ${error.message}`);
+    console.error('[discord] leaderboard REST post failed',error?.status,error?.message);
+    // The REST route can fail for reasons the gateway does not (stale token,
+    // uncached route); try the connected client before giving up.
+    try{
+      const channel=await client.channels.fetch(saved.leaderboard.channelId);
+      if(!channel?.isTextBased())throw error;
+      await channel.send({embeds:[embed]});
+    }catch(fallbackError){
+      const status=error?.status ?? fallbackError?.status;
+      if(status===403||status===401||status===50001)throw new Error('The bot cannot post in that channel. Give it Send Messages and Embed Links, and make sure it can see the channel.');
+      if(status===404)throw new Error('That channel no longer exists — pick another leaderboard channel.');
+      throw new Error(`Discord rejected the leaderboard: ${fallbackError?.message || error?.message || 'unknown error'}`);
+    }
   }
   lastLeaderboardAt=Date.now();
   return {posted:true,count:rows.length};
@@ -76,7 +81,7 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
  }
  async function inspect(){
   const guild=await guildId();let bot=null,server=null,roles=[],channels=[],error=null;
-  try{const data=await request('/users/@me');bot={id:String(data.id),username:data.username,avatar:data.avatar?`https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64`:null};  if(guild){const [data,roleData,channelData]=await Promise.all([request(`/guilds/${guild}`),request(`/guilds/${guild}/roles`),request(`/guilds/${guild}/channels`).catch(()=>[])]);channels=(Array.isArray(channelData)?channelData:[]).filter(channel=>channel.type===0||channel.type===5).map(channel=>({id:String(channel.id),name:String(channel.name),type:channel.type===5?'announcement':'text'})).sort((a,b)=>a.name.localeCompare(b.name));server={id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=64`:null};roles=roleData.map(role=>({id:String(role.id),name:role.name,color:role.color,position:role.position,managed:Boolean(role.managed),icon:role.icon?`https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.png`:null})).sort((a,b)=>b.position-a.position);}}
+  try{const data=await request('/users/@me');bot={id:String(data.id),username:data.username,avatar:data.avatar?`https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64`:null};  if(guild){const [data,roleData,channelData]=await Promise.all([request(`/guilds/${guild}`).catch(()=>null),request(`/guilds/${guild}/roles`).catch(()=>[]),request(`/guilds/${guild}/channels`).catch(()=>[])]);if(!data)throw new Error(`The bot cannot see server ${guild} — re-invite it and check its permissions.`);channels=(Array.isArray(channelData)?channelData:[]).filter(channel=>channel.type===0||channel.type===5).map(channel=>({id:String(channel.id),name:String(channel.name),type:channel.type===5?'announcement':'text'})).sort((a,b)=>a.name.localeCompare(b.name));server={id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=64`:null};roles=roleData.map(role=>({id:String(role.id),name:role.name,color:role.color,position:role.position,managed:Boolean(role.managed),icon:role.icon?`https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.png`:null})).sort((a,b)=>b.position-a.position);}}
   catch(failure){error=failure.message;lastError=error;}
   const guilds=client?.guilds.cache.map(item=>({id:item.id,name:item.name})) || [];
   const appId=bot?.id;

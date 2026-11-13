@@ -44,7 +44,7 @@ export function AccountSettingsPage() {
 
 export function AdminPage() {
   return (
-    <div className="tw-legacy-embed">
+    <div className="tw-legacy-embed adm adm--embedded">
       <AdminDashboard embedded />
     </div>
   );

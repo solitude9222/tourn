@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../lib/auth";
-import { api } from "../lib/backend";
+import { api, post } from "../lib/backend";
 import { ArrowRight, CloseIcon, DiscordIcon } from "./Icons";
 
 export type AuthMode = "signin" | "signup";
@@ -68,6 +68,7 @@ export function AuthDialog({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [invite, setInvite] = useState("");
+  const [resetOpen, setResetOpen] = useState(false);
   const [registration, setRegistration] = useState<"open" | "invite" | "closed">("open");
 
   useEffect(() => {
@@ -81,6 +82,7 @@ export function AuthDialog({
     if (urlError) clearOAuthError();
     setNotice(null);
     setPassword("");
+    setResetOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mode]);
 
@@ -248,6 +250,20 @@ export function AuthDialog({
               />
             </label>
 
+            {!signingUp ? (
+              <button
+                type="button"
+                className="auth-forgot"
+                onClick={() => {
+                  setError(null);
+                  setNotice(null);
+                  setResetOpen(true);
+                }}
+              >
+                Forgot password?
+              </button>
+            ) : null}
+
             {error ? <p className="auth-error">{error}</p> : null}
             {notice ? <p className="auth-notice">{notice}</p> : null}
 
@@ -292,7 +308,159 @@ export function AuthDialog({
             </button>
           </p>
         </div>
+
+        {resetOpen ? (
+          <PasswordResetDialog
+            onClose={() => setResetOpen(false)}
+            onDone={() => {
+              setResetOpen(false);
+              setPassword("");
+              setNotice("Password updated — sign in with your new password.");
+            }}
+          />
+        ) : null}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Forgot-password, delivered by the Discord bot. The email only identifies the
+ * account; the code is DM'd to the Discord user linked to it, so an email alone
+ * can't take the account over.
+ */
+function PasswordResetDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
+
+  const requestCode = async (event: FormEvent) => {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    setHint(null);
+    const result = await post<{ ok: boolean; delivered: boolean }>("/api/auth/password-reset/start", {
+      email: email.trim(),
+    });
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    setStep("code");
+    setHint(
+      result.data.delivered
+        ? "The bot just DM'd you a 6-digit code. It expires in 15 minutes."
+        : "If that email has a Discord account linked, a code is on its way. Nothing arrived? Link Discord in Settings and make sure the bot shares a server with you.",
+    );
+  };
+
+  const submitCode = async (event: FormEvent) => {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    const result = await post<{ ok: boolean }>("/api/auth/password-reset/complete", {
+      email: email.trim(),
+      code,
+      password,
+    });
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    onDone();
+  };
+
+  return (
+    <div className="auth-reset" role="group" aria-label="Reset your password">
+      <div className="auth-reset-head">
+        <h3>Reset your password</h3>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label="Back to sign in">
+          <CloseIcon size={16} />
+        </button>
+      </div>
+
+      {step === "email" ? (
+        <form className="auth-form" onSubmit={requestCode}>
+          <p className="auth-reset-copy">
+            Enter the email on your account. The Discord bot sends your reset code to the Discord
+            account linked to it.
+          </p>
+          <label className="field">
+            <span>Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              autoFocus
+              required
+            />
+          </label>
+          {error ? <p className="auth-error">{error}</p> : null}
+          <button type="submit" className="btn btn-primary auth-submit" disabled={busy}>
+            {busy ? <span className="spinner" /> : <DiscordIcon size={16} />}
+            Send code via Discord
+          </button>
+          <button type="button" className="auth-forgot" onClick={onClose}>
+            Back to sign in
+          </button>
+        </form>
+      ) : (
+        <form className="auth-form" onSubmit={submitCode}>
+          {hint ? <p className="auth-notice">{hint}</p> : null}
+          <label className="field">
+            <span>Code from Discord</span>
+            <input
+              inputMode="numeric"
+              value={code}
+              onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="123456"
+              autoComplete="one-time-code"
+              autoFocus
+              required
+            />
+          </label>
+          <label className="field">
+            <span>New password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="At least 8 characters"
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </label>
+          {error ? <p className="auth-error">{error}</p> : null}
+          <button type="submit" className="btn btn-primary auth-submit" disabled={busy}>
+            {busy ? <span className="spinner" /> : null}
+            Set new password
+            {busy ? null : <ArrowRight size={14} />}
+          </button>
+          <button
+            type="button"
+            className="auth-forgot"
+            onClick={() => {
+              setStep("email");
+              setError(null);
+              setHint(null);
+              setCode("");
+            }}
+          >
+            Use a different email
+          </button>
+        </form>
+      )}
     </div>
   );
 }

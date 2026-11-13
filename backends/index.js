@@ -1113,6 +1113,82 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
   }
 });
 
+/* ── password reset through the Discord bot ─────────────────────────────
+   Forgot-password is unauthenticated, so the email is only a lookup: the code
+   itself is delivered by the bot to the Discord account linked to that user.
+   Knowing an email is therefore not enough to take an account over. */
+app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
+  try {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: "Enter the email on your account." });
+    }
+    const { rows } = await pool.query(
+      "select id, discord_id from users where lower(email) = $1",
+      [email],
+    );
+    const user = rows[0];
+    // Same answer either way: no account enumeration from this endpoint.
+    if (!user || !user.discord_id) return res.json({ ok: true, delivered: false });
+    const recent = await pool.query(
+      `select count(*)::int as count from verification_codes
+       where user_id = $1 and action = 'password-reset' and created_at > now() - interval '1 hour'`,
+      [user.id],
+    );
+    if (recent.rows[0].count >= 3) {
+      return res.status(429).json({ error: "Too many reset codes requested — try again in an hour." });
+    }
+    const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+    await pool.query(
+      `insert into verification_codes (user_id, action, code_hash, expires_at)
+       values ($1, 'password-reset', $2, now() + interval '15 minutes')`,
+      [user.id, await bcrypt.hash(code, 10)],
+    );
+    const sent = await sendDiscordDm(
+      user.discord_id,
+      `tourn.lol — your password reset code is ${code}. It expires in 15 minutes. If you didn't ask for this, ignore this message; your password stays the same.`,
+    );
+    res.json({ ok: true, delivered: Boolean(sent) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/auth/password-reset/complete", authLimiter, async (req, res) => {
+  try {
+    const email = String(req.body?.email ?? "").trim().toLowerCase();
+    const code = String(req.body?.code ?? "").replace(/\D/g, "");
+    const password = String(req.body?.password ?? "");
+    if (!email || code.length !== 6) return res.status(400).json({ error: "Enter the 6-digit code from Discord." });
+    if (password.length < 8) return res.status(400).json({ error: "Use a new password with at least 8 characters." });
+    const { rows } = await pool.query("select id from users where lower(email) = $1", [email]);
+    const user = rows[0];
+    if (!user) return res.status(400).json({ error: "That code isn't right." });
+    const found = await pool.query(
+      `select * from verification_codes
+       where user_id = $1 and action = 'password-reset' and used = false and expires_at > now()
+       order by created_at desc limit 1`,
+      [user.id],
+    );
+    const record = found.rows[0];
+    if (!record) return res.status(400).json({ error: "That code expired — request a new one." });
+    if (!(await bcrypt.compare(code, record.code_hash))) {
+      return res.status(400).json({ error: "That code isn't right." });
+    }
+    await pool.query("update users set password_hash = $1 where id = $2", [
+      await bcrypt.hash(password, 12),
+      user.id,
+    ]);
+    await pool.query(
+      "update verification_codes set used = true where user_id = $1 and action = 'password-reset'",
+      [user.id],
+    );
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 /* Email + password sign-up. Discord used to be the only door in, so a broken
    Discord handshake meant nobody could create an account at all. */
 app.post("/api/auth/register", authLimiter, async (req, res) => {
