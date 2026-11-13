@@ -2776,3 +2776,18 @@
   flex: 1;
   min-width: 0;
 }
+
+/* Admin fields: black surfaces too. */
+.adm select,
+.adm input[type="text"],
+.adm input[type="number"],
+.adm input[type="url"],
+.adm input[type="search"],
+.adm input[type="email"],
+.adm input[type="password"],
+.adm textarea {
+  background: #000;
+  background-image: none;
+  box-shadow: none;
+  border-color: #2a2a30;
+}

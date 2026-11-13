@@ -5338,3 +5338,48 @@ button:active,
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 -1px 0 rgba(0, 0, 0, 0.65);
 }
+
+/* Public fields and dropdowns: black, nothing else. */
+.field input,
+.field textarea,
+.ui-select {
+  background: #000;
+  background-image: none;
+  box-shadow: none;
+  border-color: #2a2a30;
+}
+
+.field input:focus,
+.field textarea:focus {
+  background: #000;
+  border-color: #4a6fd6;
+  box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
+}
+
+.ui-select-pop {
+  background: #000;
+  background-image: none;
+}
+
+/* Globally loaded, so every sheet's own field colours lose to this. */
+.tw-control,
+.tw-textarea,
+.ui-select,
+.ui-select-pop,
+.ui-select-trigger,
+.tw-dash input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+.tw-dash textarea {
+  background-color: #000;
+  background-image: none;
+}
+
+.tw-control:hover,
+.tw-textarea:hover,
+.ui-select:hover {
+  background-color: #000;
+}
+
+.tw-control:focus-within,
+.tw-textarea:focus {
+  background-color: #000;
+}

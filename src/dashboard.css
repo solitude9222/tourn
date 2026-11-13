@@ -4999,3 +4999,13 @@ body:has(.dash) {
   font-size: 11px;
   line-height: 1.45;
 }
+
+/* Every text field and dropdown stays plain black, whichever sheet loaded last. */
+.tw-control,
+.tw-textarea,
+.ui-select,
+.ui-select-pop,
+.ui-select-trigger {
+  background-color: #000;
+  background-image: none;
+}

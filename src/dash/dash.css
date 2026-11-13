@@ -5456,3 +5456,44 @@
 .tw-modal-card {
   will-change: auto;
 }
+
+/* Plain black fields: no gradient, no sheen — just black with a hairline. */
+.tw-control,
+.tw-textarea,
+.ui-select,
+.ui-select-pop,
+.tw-select,
+.tw-dash input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+.tw-dash textarea {
+  background: #000;
+  background-image: none;
+  box-shadow: none;
+  border-color: #2a2a30;
+}
+
+.tw-control:hover,
+.tw-textarea:hover,
+.ui-select:hover {
+  background: #000;
+  background-image: none;
+  border-color: #3a3a42;
+}
+
+.tw-control:focus-within,
+.tw-textarea:focus,
+.ui-select.is-open,
+.ui-select:focus-visible {
+  background: #000;
+  background-image: none;
+  border-color: #4a6fd6;
+  box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
+}
+
+.ui-select-item.is-active {
+  background: rgba(74, 111, 214, 0.28);
+}
+
+.tw-dash .tw-control,
+.tw-dash .tw-textarea {
+  background: #000;
+}
