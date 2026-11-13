@@ -5944,3 +5944,23 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Location is plain text with a pin — no pill, no plate, no border. */
+.pv-location {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  max-width: 70%;
+  color: var(--pv-muted, #9aa3ae);
+}
+
+/* Badges with the shelf turned off: nothing may paint behind the art. */
+.badge-row.is-bare {
+  padding: 0;
+  border: 0;
+  background: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}

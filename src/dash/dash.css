@@ -29,7 +29,7 @@
   --r-tile: 12px;
   --r-input: 10px;
   --r-bar: 14px;
-  --font: "Segoe UI", "Lexend", system-ui, -apple-system, sans-serif;
+  --font: "Lexend", "Segoe UI", system-ui, -apple-system, sans-serif;
 
   --rail-w: 320px;
 
@@ -5079,4 +5079,101 @@
 .tw-textarea:focus {
   border-color: rgba(125, 155, 245, 0.6);
   box-shadow: 0 0 0 3px rgba(125, 155, 245, 0.14);
+}
+
+/* ── controls matching the reference: 12px radius, #131316 fill, #2a2a30
+   hairline, bold chevron, quiet focus ring ───────────────────────────────── */
+.tw-control,
+.ui-select {
+  height: 42px;
+  border: 1px solid #2a2a30;
+  border-radius: 12px;
+  background: #131316;
+  box-shadow: none;
+}
+
+.tw-control:hover,
+.ui-select:hover {
+  border-color: #3a3a42;
+  background: #16161a;
+}
+
+.tw-control:focus-within,
+.ui-select.is-open,
+.ui-select:focus-visible {
+  border-color: #4a6fd6;
+  background: #141419;
+  box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
+  outline: none;
+}
+
+.tw-control {
+  padding: 0 13px;
+}
+
+.tw-control input {
+  font-size: 13.5px;
+}
+
+.tw-control input::placeholder {
+  color: #6a6f7a;
+}
+
+.tw-select .tw-select-chevron {
+  right: 13px;
+  width: 14px;
+  height: 14px;
+  color: #c9ced8;
+}
+
+.tw-textarea {
+  border: 1px solid #2a2a30;
+  border-radius: 12px;
+  background: #131316;
+  box-shadow: none;
+  padding: 12px 13px;
+  font-size: 13.5px;
+}
+
+.tw-textarea:hover {
+  border-color: #3a3a42;
+  background: #16161a;
+}
+
+.tw-textarea:focus {
+  border-color: #4a6fd6;
+  background: #141419;
+  box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
+}
+
+/* The portal-rendered dropdown list keeps the same surface language. */
+.ui-select {
+  padding: 0 13px;
+  font-size: 13.5px;
+}
+
+.ui-select-chevron {
+  width: 14px;
+  height: 14px;
+  opacity: 1;
+  color: #c9ced8;
+}
+
+.ui-select-pop {
+  padding: 6px;
+  border: 1px solid #2a2a30;
+  border-radius: 14px;
+  background: #131316;
+  box-shadow: 0 30px 80px -30px #000;
+}
+
+.ui-select-item {
+  padding: 10px 11px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.ui-select-item.is-active {
+  background: rgba(74, 111, 214, 0.22);
+  color: #eef2ff;
 }

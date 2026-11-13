@@ -111,17 +111,20 @@ export function BadgeRow({
   const visible = badges.filter((b) => b.visible && badgeDef(b.id));
   if (!visible.length) return null;
 
+  // Shelf turned all the way down means no shelf at all: no fill, no border,
+  // no blur and no padding — otherwise a faint plate still sat behind the art.
+  const bareShelf = style.rowOpacity <= 0.005 && style.rowBorderOpacity <= 0.005;
   const rowStyle = {
-    "--badge-row-bg": hexToRgba(style.rowBackground, style.rowOpacity),
-    "--badge-row-border": hexToRgba(style.rowBorderColor, style.rowBorderOpacity),
+    "--badge-row-bg": bareShelf ? "transparent" : hexToRgba(style.rowBackground, style.rowOpacity),
+    "--badge-row-border": bareShelf ? "transparent" : hexToRgba(style.rowBorderColor, style.rowBorderOpacity),
     "--badge-row-radius": `${style.rowRadius}px`,
-    "--badge-row-blur": `${style.rowBlur}px`,
-    "--badge-row-pad": `${style.rowPadding}px`,
+    "--badge-row-blur": bareShelf ? "0px" : `${style.rowBlur}px`,
+    "--badge-row-pad": bareShelf ? "0px" : `${style.rowPadding}px`,
     "--badge-row-gap": `${style.rowGap}px`,
   } as CSSProperties;
 
   return (
-    <span className={`badge-row${className ? ` ${className}` : ""}`} style={rowStyle}>
+    <span className={`badge-row${bareShelf ? " is-bare" : ""}${className ? ` ${className}` : ""}`} style={rowStyle}>
       {visible.map((badge) => (
         <Tooltip
           key={badge.id}

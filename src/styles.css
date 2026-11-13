@@ -22,7 +22,7 @@
   --spotify: #1db954;
   --steam: #66c0f4;
   /* Lexend: geometric, round letterforms, open even spacing. */
-  --font: "Segoe UI", "Lexend", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font: "Lexend", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark;
 }
@@ -5272,4 +5272,18 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .ui-select-item.is-active {
   background: rgba(125, 155, 245, 0.16);
   color: #eef2ff;
+}
+
+/* Public-site fields share the dashboard's control surface. */
+.field input,
+.field textarea {
+  border-radius: 12px;
+  border: 1px solid #2a2a30;
+  background: #131316;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #4a6fd6;
+  box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
 }
