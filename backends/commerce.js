@@ -20,6 +20,22 @@ const LETTERS=[...'abcdefghijklmnopqrstuvwxyz'];
 const NUMBERS=[...'0123456789'];
 const SYMBOLS=[...'✦★♥✧♛✿☾'];
 /* Every handle already spoken for: profile addresses, owned inventory and issued codes. */
+// One env var per store badge keeps the dashboard readable, with the older JSON
+// map still honoured for variants it does not cover.
+const BADGE_VARIANT_ENVS=[['EASTER','easter'],['AUTUMN','autumn'],['SUMMER','summer'],['CHRISTMAS','christmas_2026'],['HALLOWEEN','halloween_2026']];
+export function badgeVariantMap(env){
+ const map={};
+ const productId=Number(env.SELLAUTH_BADGE_PRODUCT_ID)||null;
+ for(const [key,badge] of BADGE_VARIANT_ENVS){
+  const variantId=Number(env[`SELLAUTH_BADGE_VARIANT_${key}`])||null;
+  if(variantId&&productId)map[String(variantId)]={productId,badge};
+ }
+ try{
+  const legacy=JSON.parse(env.SELLAUTH_BADGE_VARIANTS||'{}');
+  for(const [variantId,entry] of Object.entries(legacy||{}))if(!map[variantId])map[variantId]=entry;
+ }catch{}
+ return map;
+}
 const CLAIMED_HANDLES="select username h from users where char_length(username)=1 union select alias h from users where char_length(alias)=1 union select alias2 h from users where char_length(alias2)=1 union select handle h from username_inventory where owner_id is not null union select handle h from commerce_codes where handle is not null";
 const fail = (status,message) => Object.assign(new Error(message),{status});
 export function verifySellAuthSignature(raw,signature,secret){
@@ -78,7 +94,7 @@ export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=proc
   let kind,handle=null;
   if(config.products.premium && Number(item.product_id)===config.products.premium)kind='premium';
   else if(config.products.badge && Number(item.product_id)===config.products.badge){
-   let badges={};try{badges=JSON.parse(env.SELLAUTH_BADGE_VARIANTS||'{}');}catch{}
+   const badges=badgeVariantMap(env);
    const badge=badges[String(item.variant_id)];
    if(!badge||Number(badge.productId)!==Number(item.product_id)||typeof badge.badge!=='string'||!/^[a-z0-9-]{1,40}$/.test(badge.badge))throw fail(400,'Unmapped badge variant.');
    if(quantity!==1)throw fail(400,'Badges must be purchased individually.');
