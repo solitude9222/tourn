@@ -5774,3 +5774,76 @@
   content: none;
   display: none;
 }
+
+/* ── slideshow: the card is the centre of the page ────────────────────────
+   Full-width scroll column, with every slide's content centred as a block of
+   its own width — including the stacked-group wrapper used by Stacked. */
+.lkr-page .lkr-flow.lkr-flow--slideshow {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide {
+  align-items: center;
+  justify-content: flex-start;
+  text-align: initial;
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .profile-preview {
+  width: min(100%, var(--pv-width, 720px));
+  max-width: min(100%, var(--pv-width, 720px));
+  margin-inline: auto;
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-stacked-group,
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide .lkr-stacked-group > .profile-preview,
+.lkr-page .lkr-flow--slideshow > .lkr-slide .lkr-stack > .profile-preview {
+  width: min(100%, var(--pv-width, 720px));
+  max-width: min(100%, var(--pv-width, 720px));
+  margin-inline: auto;
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-slide-panel,
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+}
+
+/* Left layout inside the slideshow keeps its two-column width; capping it to
+   the card width squeezed the grid and pushed everything to the left edge. */
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-primary--left {
+  width: min(100%, 1080px);
+  max-width: min(100%, 1080px);
+  margin-inline: auto;
+  justify-content: center;
+}
+
+/* In the slideshow the card is the page: even the Left layout collapses to one
+   centred column, with its side rail underneath instead of pushing the card
+   off to the left. */
+.lkr-page .lkr-flow--slideshow .lkr-primary--left {
+  display: flex;
+  grid-template-columns: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+.lkr-page .lkr-flow--slideshow .lkr-primary--left > .profile-preview {
+  width: min(100%, var(--pv-width, 720px));
+  max-width: min(100%, var(--pv-width, 720px));
+  margin-inline: auto;
+}
+.lkr-page .lkr-flow--slideshow .lkr-primary--left > .lkr-side {
+  width: min(100%, var(--pv-width, 720px));
+  max-width: min(100%, var(--pv-width, 720px));
+  margin-inline: auto;
+}
