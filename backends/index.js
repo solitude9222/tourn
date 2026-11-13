@@ -476,6 +476,20 @@ async function earnedBadges(user, profile) {
   if (user.is_owner) earned.push("owner");
   if (user.is_admin) earned.push("staff");
   if (user.premium) earned.push("premium");
+  if (user.is_admin) earned.push("administrator");
+  if (rank <= 100) earned.push("early-supporter");
+  try {
+    const handles = [user.username, user.alias, user.alias2].filter(Boolean);
+    const owned = await pool.query("select handle from username_inventory where owner_id = $1", [user.id]);
+    const all = [...handles, ...owned.rows.map((row) => row.handle)];
+    const seen = await pool.query(
+      "select coalesce(sum(views), 0)::int as n from profile_views where username = any($1::text[])",
+      [all],
+    );
+    if ((seen.rows[0]?.n ?? 0) >= 200) earned.push("trace");
+  } catch {
+    /* views are best-effort — the badge just stays locked */
+  }
   if (ageDays < 7) earned.push("newbie");
   if (ageDays >= 30 && bio.length >= 20) earned.push("user");
   if (/github/i.test(document)) earned.push("coder");
