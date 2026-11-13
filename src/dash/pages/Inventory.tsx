@@ -3,7 +3,7 @@ import { api, post } from "../../lib/backend";
 import { useAuth } from "../../lib/auth";
 import { BADGE_CATALOGUE, BUYABLE_BADGES, EARNABLE_BADGES } from "../../lib/badges";
 import { useDash } from "../context";
-import { Button, Icon } from "../ui";
+import { Button, Icon, Modal, TextInput } from "../ui";
 import { TradeDialog } from "../Trades";
 
 type InventoryTab = "usernames" | "badges" | "collectables";
@@ -32,6 +32,7 @@ export function InventoryPage() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
+  const [giftFor, setGiftFor] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const result = await api<OwnedNames>("/api/account/aliases");
@@ -194,9 +195,14 @@ export function InventoryPage() {
                     </Button>
                   )}
                   {row.account ? null : (
-                    <Button disabled={busy} icon="move" onClick={() => setTradeOpen(true)}>
-                      TRADE
-                    </Button>
+                    <>
+                      <Button disabled={busy} icon="move" onClick={() => setTradeOpen(true)}>
+                        TRADE
+                      </Button>
+                      <Button disabled={busy} icon="gift" onClick={() => setGiftFor(row.handle)}>
+                        GIFT
+                      </Button>
+                    </>
                   )}
                 </div>
               </article>
@@ -270,6 +276,102 @@ export function InventoryPage() {
       ) : null}
 
       <TradeDialog open={tradeOpen} onClose={() => setTradeOpen(false)} onSent={setMessage} />
+      <GiftDialog
+        handle={giftFor}
+        onClose={() => setGiftFor(null)}
+        onSent={async (text) => {
+          setMessage(text);
+          await Promise.all([load(), retryAuth()]);
+        }}
+      />
     </>
+  );
+}
+
+/* Gifts hand a bought username straight to another member. The server moves it
+   in one transaction, drops it from this account's profile, and records it. */
+function GiftDialog({
+  handle,
+  onClose,
+  onSent,
+}: {
+  handle: string | null;
+  onClose: () => void;
+  onSent: (message: string) => Promise<void> | void;
+}) {
+  const [recipient, setRecipient] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!handle) return;
+    setRecipient("");
+    setConfirm("");
+    setError("");
+  }, [handle]);
+
+  const send = async () => {
+    if (!handle) return;
+    setBusy(true);
+    setError("");
+    const result = await post<{ ok: boolean; recipient: string }>("/api/account/aliases/gift", {
+      handle,
+      recipient,
+      confirmRecipient: confirm,
+    });
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    await onSent(`@${handle} was gifted to @${result.data.recipient}.`);
+    onClose();
+  };
+
+  return (
+    <Modal
+      open={Boolean(handle)}
+      title={handle ? `Gift @${handle}` : "Gift"}
+      subtitle="They get the username instantly. It leaves your inventory, and gifts cannot be undone."
+      onClose={onClose}
+      width={460}
+      footer={
+        <>
+          <Button onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button variant="primary" disabled={busy || !recipient.trim() || !confirm.trim()} onClick={() => void send()}>
+            {busy ? "Gifting…" : "Gift username"}
+          </Button>
+        </>
+      }
+    >
+      <div className="gift-form">
+        <label className="tw-field">
+          Their username
+          <TextInput
+            value={recipient}
+            placeholder="@username"
+            autoComplete="off"
+            onChange={(event) => setRecipient(event.target.value)}
+          />
+        </label>
+        <label className="tw-field">
+          Type it again to confirm
+          <TextInput
+            value={confirm}
+            placeholder="@username"
+            autoComplete="off"
+            onChange={(event) => setConfirm(event.target.value)}
+          />
+        </label>
+        {error ? (
+          <p className="trade-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+    </Modal>
   );
 }

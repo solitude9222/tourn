@@ -105,6 +105,43 @@ const PAGE_GROUP: Partial<Record<Page, NavGroup["key"]>> = {
 
 const PREMIUM_ITEM: NavChild = { page: "premium", label: "Premium", icon: "star" };
 
+const READ_KEY = "tourn.lol/notes-read";
+
+function loadRead(): string[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(READ_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string").slice(0, 200) : [];
+  } catch {
+    return [];
+  }
+}
+
+/* A short two-note ping for new notifications. Synthesised, so there is no
+   audio file to load and no autoplay permission to ask for. */
+let audioContext: AudioContext | null = null;
+function ping() {
+  try {
+    audioContext ??= new AudioContext();
+    const context = audioContext;
+    if (context.state === "suspended") void context.resume();
+    const at = context.currentTime;
+    [880, 1320].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.0001, at + index * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.09, at + index * 0.09 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + index * 0.09 + 0.16);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(at + index * 0.09);
+      oscillator.stop(at + index * 0.09 + 0.18);
+    });
+  } catch {
+    // Audio is a nicety; a blocked context must never break notifications.
+  }
+}
+
 export type ShellProps = {
   page: Page;
   onNavigate: (page: Page, tab?: ProfileTab) => void;
@@ -152,7 +189,10 @@ export function Shell({
   const [threadId, setThreadId] = useState<string | null>(null);
   const [saved, setSaved] = useState<StoredAccount[]>(() => loadAccounts());
   const [switching, setSwitching] = useState<string | null>(null);
+  const [readIds, setReadIds] = useState<string[]>(() => loadRead());
   const menuRef = useRef<HTMLDivElement>(null);
+  const notesRef = useRef<HTMLDivElement>(null);
+  const seenRef = useRef<Set<string> | null>(null);
 
   const displayName = about.displayName.trim() || user.username;
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
@@ -175,11 +215,70 @@ export function Shell({
     retryAuth();
   };
 
-  useEffect(() => {
-    if (notes) void loadTrades();
-  }, [notes]);
-
   const incoming = trades.filter((trade) => trade.status === "pending" && trade.recipient_id === user.id);
+  const unread = incoming.filter((trade) => !readIds.includes(trade.id));
+
+  // Poll while the dashboard is open so a trade lands without a refresh, and
+  // ping once per genuinely new request.
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      const result = await api<{ trades: ShellTrade[] }>("/api/trades");
+      if (!alive || !result.ok) return;
+      const fresh = result.data.trades.filter((trade) => trade.status === "pending" && trade.recipient_id === user.id);
+      if (seenRef.current) {
+        const isNew = fresh.some((trade) => !seenRef.current?.has(trade.id));
+        if (isNew) ping();
+      }
+      seenRef.current = new Set(fresh.map((trade) => trade.id));
+      setTrades(result.data.trades);
+    };
+    if (notes) {
+      void tick();
+      return () => {
+        alive = false;
+      };
+    }
+    void tick();
+    const timer = window.setInterval(() => void tick(), 25_000);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, [notes, user.id]);
+
+  // Mark everything in the panel as read once it has been opened.
+  useEffect(() => {
+    if (!notes || !incoming.length) return;
+    setReadIds((current) => {
+      const next = [...new Set([...current, ...incoming.map((trade) => trade.id)])].slice(-200);
+      try {
+        localStorage.setItem(READ_KEY, JSON.stringify(next));
+      } catch {
+        // Private mode: reading state just will not survive a reload.
+      }
+      return next;
+    });
+  }, [notes, trades]);
+
+  useEffect(() => {
+    if (!notes) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (notesRef.current?.contains(event.target as Node)) return;
+      if (target?.closest?.(".tw-user-bell")) return;
+      setNotes(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNotes(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [notes]);
 
   useEffect(() => {
     if (ownGroup) setOpenGroups([ownGroup]);
@@ -487,44 +586,73 @@ export function Shell({
 
               <button
                 type="button"
-                className={`tw-user-bell${incoming.length ? " is-on" : ""}`}
-                aria-label="Notifications"
+                className={`tw-user-bell${unread.length ? " is-on" : ""}`}
+                aria-label={unread.length ? `Notifications, ${unread.length} unread` : "Notifications"}
                 aria-expanded={notes}
                 onClick={() => setNotes((open) => !open)}
               >
                 <Icon name="bell" size={15} />
-                {incoming.length ? <i className="tw-bell-dot" /> : null}
+                {unread.length ? <i className="tw-bell-dot" /> : null}
               </button>
             </div>
 
             {notes ? (
-              <div className="tw-note-pop" role="status">
-                <b>{incoming.length ? `${incoming.length} trade${incoming.length === 1 ? "" : "s"} waiting on you` : "No new notifications"}</b>
-                <div className="tw-note-list">
-                  {trades.slice(0, 5).map((trade) => (
-                    <div className={`tw-note-row${trade.status === "pending" ? " is-new" : ""}`} key={trade.id}>
-                      <span className="tw-note-copy">
-                        <b>@{trade.sender_username} wants to trade</b>
-                        <small>
-                          {trade.item_count} item{trade.item_count === 1 ? "" : "s"} · {trade.status}
-                        </small>
-                      </span>
-                      <span className="tw-note-actions">
-                        {trade.status === "pending" && trade.recipient_id === user.id ? (
-                          <>
-                            <Button variant="primary" onClick={() => void answerTrade(trade.id, true)}>
-                              Accept
-                            </Button>
-                            <Button onClick={() => void answerTrade(trade.id, false)}>Decline</Button>
-                          </>
-                        ) : null}
-                        <Button onClick={() => setThreadId(trade.id)}>Open</Button>
-                      </span>
-                    </div>
-                  ))}
-                  {!trades.length ? <small className="tw-note-empty">Nothing here yet.</small> : null}
+              <div className="tw-note-pop" role="dialog" aria-label="Notifications" ref={notesRef}>
+                <header className="tw-note-head">
+                  <b>Notifications</b>
+                  <small>{unread.length ? `${unread.length} new` : "All caught up"}</small>
+                </header>
+                <div className="tw-note-stack">
+                  {trades.slice(0, 8).map((trade) => {
+                    const waiting = trade.status === "pending" && trade.recipient_id === user.id;
+                    const isNew = waiting && !readIds.includes(trade.id);
+                    return (
+                      <div className={`tw-note-bar${isNew ? " is-new" : ""}`} key={trade.id}>
+                        <span className={`tw-note-mark${waiting ? " is-waiting" : ""}`} aria-hidden="true">
+                          <Icon name={waiting ? "bell" : "check"} size={12} />
+                        </span>
+                        <span className="tw-note-copy">
+                          <b>
+                            @{trade.sender_username} · {trade.item_count} item{trade.item_count === 1 ? "" : "s"}
+                          </b>
+                          <small>{waiting ? "wants to trade" : trade.status}</small>
+                        </span>
+                        <span className="tw-note-actions">
+                          {waiting ? (
+                            <>
+                              <button
+                                type="button"
+                                className="tw-note-act is-yes"
+                                aria-label="Accept trade"
+                                onClick={() => void answerTrade(trade.id, true)}
+                              >
+                                <Icon name="check" size={12} />
+                              </button>
+                              <button
+                                type="button"
+                                className="tw-note-act"
+                                aria-label="Decline trade"
+                                onClick={() => void answerTrade(trade.id, false)}
+                              >
+                                <Icon name="x" size={12} />
+                              </button>
+                            </>
+                          ) : null}
+                          <button type="button" className="tw-note-open" onClick={() => setThreadId(trade.id)}>
+                            Open
+                          </button>
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {!trades.length ? <p className="tw-note-empty">Nothing here yet.</p> : null}
                 </div>
-                <small>{profileViews ?? 0} profile views so far.</small>
+                <footer className="tw-note-foot">
+                  <small>{profileViews ?? 0} profile views</small>
+                  <button type="button" className="tw-note-clear" onClick={() => setNotes(false)}>
+                    Close
+                  </button>
+                </footer>
               </div>
             ) : null}
           </div>

@@ -204,7 +204,15 @@ export function registerUsernameMarket(app, { pool, stripe, requireAuth, require
     const db = await pool.connect();
     try {
       await db.query('begin');
-      const item = (await db.query('select * from username_inventory where handle=$1 for update',[req.body?.handle])).rows[0];
+      const handle = String(req.body?.handle || '').trim().toLowerCase();
+      const me = (await db.query('select username from users where id=$1 for update',[req.auth.sub])).rows[0];
+      // The account's own name is never inventory: switching back to it means
+      // clearing the alias, which is what the first row in Inventory offers.
+      if (me && handle === String(me.username).toLowerCase()) {
+        await db.query('update users set alias=null where id=$1',[req.auth.sub]);
+        await db.query('commit'); invalidate(); return res.json({ok:true});
+      }
+      const item = (await db.query('select * from username_inventory where handle=$1 for update',[handle])).rows[0];
       if (!item || item.owner_id !== req.auth.sub) throw fail(403,'You do not own this username.');
       await db.query('update users set alias=$1 where id=$2',[item.handle,req.auth.sub]);
       await db.query('commit'); invalidate(); res.json({ok:true});
@@ -220,7 +228,8 @@ export function registerUsernameMarket(app, { pool, stripe, requireAuth, require
       const target = (await db.query('select id,username from users where lower(username)=$1 or lower(alias)=$1 limit 1',[recipient])).rows[0];
       if (!target) throw fail(404,'Recipient account not found.');
       if (target.id === req.auth.sub) throw fail(400,'Choose another account.');
-      if (req.body?.confirmRecipient !== target.username) throw fail(400,'Confirm the recipient’s account username.');
+      const confirm = String(req.body?.confirmRecipient || '').trim().toLowerCase().replace(/^@/,'');
+      if (confirm !== String(target.username).toLowerCase() && confirm !== recipient) throw fail(400,'Type the recipient handle again to confirm.');
       await db.query('update users set alias=case when alias=$1 then null else alias end,alias2=case when alias2=$1 then null else alias2 end where id=$2',[item.handle,req.auth.sub]);
       await db.query('update username_inventory set owner_id=$2 where handle=$1',[item.handle,target.id]);
       await db.query('insert into username_transfers(handle,sender_id,recipient_id) values($1,$2,$3)',[item.handle,req.auth.sub,target.id]);

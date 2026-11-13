@@ -4964,3 +4964,77 @@
 .tw-template-full .tw-template-stage {
   aspect-ratio: 16 / 10;
 }
+
+/* ── dialogs animate in ──────────────────────────────────────────────────
+   Every modal (trade, gift, template publish, previews) fades its backdrop and
+   lifts its panel, so opening one never snaps. */
+@keyframes tw-layer-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tw-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tw-modal-layer {
+  animation: tw-layer-in 160ms ease-out both;
+}
+
+.tw-modal {
+  animation: tw-panel-in 230ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+.tw-modal-body > * {
+  animation: tw-layer-in 260ms ease-out both;
+}
+
+@keyframes tw-bar-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tw-note-bar {
+  animation: tw-bar-rise 180ms ease-out both;
+}
+
+.tw-note-bar:nth-child(2) {
+  animation-delay: 25ms;
+}
+.tw-note-bar:nth-child(3) {
+  animation-delay: 50ms;
+}
+.tw-note-bar:nth-child(4) {
+  animation-delay: 75ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-modal-layer,
+  .tw-modal,
+  .tw-modal-body > *,
+  .tw-note-bar {
+    animation: none;
+  }
+}
+
+.gift-form {
+  display: grid;
+  gap: 12px;
+}

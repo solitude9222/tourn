@@ -2,6 +2,7 @@ import { COMMERCE_SCHEMA, registerSellAuthDelivery, registerSellAuthRoutes } fro
 import { requestOriginAllowed, canEditMember, verifiedDiscordEmail, privilegedEmail } from "./security.js";
 import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid, startUsernameReconciliation } from "./usernames.js";
 import { TRADE_SCHEMA, registerTradeRoutes } from "./trades.js";
+import { TEMPLATE_SCHEMA, registerTemplateRoutes } from "./templates.js";
 import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
 /* ---------------------------------------------------------------------------
    tourn.lol backend — one Express app on Railway Postgres.
@@ -226,6 +227,7 @@ async function initDb() {
   await pool.query(MARKET_SCHEMA);
   await pool.query(COMMERCE_SCHEMA);
   await pool.query(TRADE_SCHEMA);
+  await pool.query(TEMPLATE_SCHEMA);
   startUsernameReconciliation(pool,stripe);
   await pool.query(AUDIO_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
@@ -965,6 +967,7 @@ registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limiter:billingLimiter
 app.all(["/api/market/usernames","/api/market/checkout","/api/admin/usernames"],(_req,res)=>res.status(410).json({error:"Products, prices and stock are managed in SellAuth."}));
 registerUsernameMarket(app, {pool, stripe, requireAuth, requireAdmin, limiter:billingLimiter, origin:CANONICAL_FRONTEND_ORIGIN, invalidate:()=>profilePageCache.clear()});
 registerTradeRoutes(app, {pool, requireAuth, limiter:billingLimiter});
+registerTemplateRoutes(app, {pool, requireAuth, limiter:billingLimiter});
 
 /* ── runtime public env (the only config the static site needs) ────────── */
 

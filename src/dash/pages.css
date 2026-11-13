@@ -2222,3 +2222,226 @@
 .tw-popup-settings { margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
 .tw-popup-settings h3 { font-size:14px; color:var(--title); margin:0 0 18px; }
 .tw-audio-live-preview:has(.ap-popup) { min-height:72px; display:flex; align-items:center; padding:14px; }
+
+/* ── notification stack: one compact bar per notification ────────────────
+   Bars instead of cards so several can stack without burying the panel, with
+   read ones quiet and unread ones marked. */
+.tw-user .tw-note-pop {
+  width: 330px;
+  max-width: calc(100vw - 26px);
+  padding: 10px;
+  border-width: 1px;
+  border-radius: 14px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
+}
+
+.tw-note-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px 8px;
+}
+
+.tw-note-head b {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-note-head small {
+  color: var(--nav);
+  font-size: 10.5px;
+}
+
+.tw-note-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 330px;
+  overflow-y: auto;
+}
+
+.tw-user .tw-note-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.tw-user .tw-note-bar.is-new {
+  border-color: rgba(251, 191, 36, 0.26);
+  background: rgba(251, 191, 36, 0.07);
+}
+
+.tw-note-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--nav);
+}
+
+.tw-note-mark.is-waiting {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+}
+
+.tw-note-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 1px;
+}
+
+.tw-note-copy b {
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-note-copy small {
+  color: var(--nav);
+  font-size: 10.5px;
+}
+
+.tw-note-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.tw-note-act {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--nav);
+  cursor: pointer;
+}
+
+.tw-note-act:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.tw-note-act.is-yes {
+  border-color: rgba(74, 222, 128, 0.3);
+  color: #4ade80;
+}
+
+.tw-note-act.is-yes:hover {
+  background: rgba(74, 222, 128, 0.12);
+  color: #86efac;
+}
+
+.tw-note-open {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+.tw-note-open:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tw-note-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 4px 0;
+  border-top: 1px solid var(--border);
+}
+
+.tw-note-foot small {
+  margin: 0;
+  color: var(--nav);
+  font-size: 10.5px;
+}
+
+.tw-note-clear {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--nav);
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+.tw-note-clear:hover {
+  color: #fff;
+}
+
+/* ── template market toolbar, empty state and publish form ─────────────── */
+.tw-tpl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.tw-tpl-toolbar .tw-foot-note {
+  margin: 0;
+}
+
+.tw-tpl-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 34px 20px;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.tw-tpl-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--nav);
+}
+
+.tw-tpl-empty b {
+  font-size: 14px;
+}
+
+.tw-tpl-empty p {
+  max-width: 420px;
+  margin: 0;
+  color: var(--nav);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.tw-tpl-form {
+  display: grid;
+  gap: 12px;
+}
+
+.tw-foot-note.is-error {
+  color: #fca5a5;
+}
