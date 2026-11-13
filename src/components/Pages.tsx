@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { api } from "../lib/backend";
 import { openSellAuthCheckout } from "../lib/sellAuth";
+import { BUYABLE_BADGES } from "../lib/badges";
 import { useAuth, type Account } from "../lib/auth";
 import { ArrowRight, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
 import "../leaderboard.css";
@@ -207,9 +208,10 @@ function CardGridDots() {
 }
 
 export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
-  const { user, isPremiumUser } = useAuth();
+  const { user } = useAuth();
   const [shopUrl, setShopUrl] = useState<string | null>(null);
   const [buying, setBuying] = useState(false);
+  const [buyingBadge, setBuyingBadge] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<CatalogTab>("tourn");
   const [picker, setPicker] = useState<CharacterClass | null>(null);
@@ -260,19 +262,19 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
     }
   };
 
-  const buyPremium = async () => {
+  const buyBadge = async (badge: string) => {
     if (!user) {
       onSignUp();
       return;
     }
-    setBuying(true);
+    setBuyingBadge(badge);
     setError(null);
     try {
-      await openSellAuthCheckout("premium");
+      await openSellAuthCheckout("badge", undefined, badge);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Checkout is unavailable right now.");
     } finally {
-      setBuying(false);
+      setBuyingBadge(null);
     }
   };
 
@@ -335,30 +337,49 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
           </section>
 
           <section className="mkt-section">
-            <h2>Misc</h2>
+            <h2>Badges</h2>
             <div className="mkt-grid">
-              <article className="mkt-card">
-                <div className="mkt-card-top">
-                  <span className="mkt-icon">❖</span>
-                  <CardGridDots />
-                </div>
-                <span className="mkt-label">BADGES</span>
-                <b className="mkt-name">Badge collection</b>
-                <span className="mkt-caption">Every badge on the shelf</span>
-                <div className="mkt-price">
-                  <span className="mkt-label">Price</span>
-                  <b>In store</b>
-                </div>
-                <div className="mkt-actions">
-                  <a className="mkt-btn" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">
-                    Browse store
-                  </a>
-                  <a className="mkt-btn mkt-btn--primary" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">
-                    Buy now
-                  </a>
-                </div>
-              </article>
+              {BUYABLE_BADGES.map((badge) => (
+                <article className="mkt-card" key={badge.id}>
+                  <div className="mkt-card-top">
+                    <span className="mkt-icon mkt-icon--art">
+                      <img src={badge.art} alt="" width={24} height={24} loading="lazy" />
+                    </span>
+                    <CardGridDots />
+                  </div>
+                  <span className="mkt-label">BADGES</span>
+                  <b className="mkt-name">{badge.name}</b>
+                  <span className="mkt-caption">{badge.description}</span>
+                  <div className="mkt-price">
+                    <span className="mkt-label">Price</span>
+                    <b>At checkout</b>
+                  </div>
+                  <div className="mkt-actions">
+                    <button
+                      type="button"
+                      className="mkt-btn"
+                      disabled={buyingBadge === badge.id}
+                      onClick={() => void buyBadge(badge.id)}
+                    >
+                      {buyingBadge === badge.id ? "Opening…" : "Add to cart"}
+                    </button>
+                    <button
+                      type="button"
+                      className="mkt-btn mkt-btn--primary"
+                      disabled={buyingBadge === badge.id}
+                      onClick={() => void buyBadge(badge.id)}
+                    >
+                      {buyingBadge === badge.id ? "Opening…" : "Buy now"}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
 
+          <section className="mkt-section">
+            <h2>Collectables</h2>
+            <div className="mkt-grid">
               <article className="mkt-card is-soon">
                 <div className="mkt-card-top">
                   <span className="mkt-icon">?</span>
@@ -375,36 +396,6 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
                   <button type="button" className="mkt-btn" disabled>
                     COMING SOON
                   </button>
-                </div>
-              </article>
-
-              <article className="mkt-card">
-                <div className="mkt-card-top">
-                  <span className="mkt-icon">★</span>
-                  <CardGridDots />
-                </div>
-                <span className="mkt-label">PREMIUM</span>
-                <b className="mkt-name">Premium</b>
-                <span className="mkt-caption">Every effect, permanently</span>
-                <div className="mkt-price">
-                  <span className="mkt-label">Price</span>
-                  <b>$9.99</b>
-                </div>
-                <div className="mkt-actions">
-                  {isPremiumUser ? (
-                    <a className="mkt-btn mkt-btn--primary" href="#/dashboard/billing">
-                      Manage
-                    </a>
-                  ) : (
-                    <>
-                      <a className="mkt-btn" href="#/premium">
-                        Details
-                      </a>
-                      <button type="button" className="mkt-btn mkt-btn--primary" disabled={buying} onClick={() => void buyPremium()}>
-                        {buying ? "Opening…" : "Buy now"}
-                      </button>
-                    </>
-                  )}
                 </div>
               </article>
             </div>

@@ -58,10 +58,14 @@ function loadEmbed(): Promise<void> {
 export async function openSellAuthCheckout(
   kind: "premium" | "oneCharacter" | "special" | "badge" = "premium",
   handle?: string,
+  badge?: string,
 ): Promise<void> {
+  const body: Record<string, string> = { kind };
+  if (handle) body.handle = handle;
+  if (badge) body.badge = badge;
   const result = await api<CheckoutPayload>("/api/commerce/checkout", {
     method: "POST",
-    body: JSON.stringify(handle ? { kind, handle } : { kind }),
+    body: JSON.stringify(body),
   });
   if (!result.ok) throw new Error(result.error || "The store is not open yet.");
 

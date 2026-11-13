@@ -159,8 +159,17 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
     }
    } finally { db.release(); }
   }
+  // A badge purchase names the badge; its variant comes from the env mapping so
+  // the buyer never has to pick a variant in the store's own UI.
+  let badgeVariantId=null;
+  if(kind==='badge'){
+   const wanted=typeof req.body?.badge==='string'?req.body.badge.trim():'';
+   const match=Object.entries(badgeVariantMap(env)).find(([, entry]) => entry.badge===wanted && Number(entry.productId)===Number(config.products.badge));
+   if(!match)throw fail(400,'That badge is not on sale yet.');
+   badgeVariantId=match[0];
+  }
   const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(handle?{handle}:{})},secret,{algorithm:'HS256',expiresIn:'2h'});
-  const variantId=config.variants?.[kind];
+  const variantId=badgeVariantId || config.variants?.[kind];
   res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],...(variantId?{variantId}:{}),quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark'});
  }));
  app.post('/api/commerce/redeem',limiter,requireAuth,wrap(async(req,res)=>{

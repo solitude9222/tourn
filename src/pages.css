@@ -878,3 +878,12 @@
     flex-wrap: wrap;
   }
 }
+
+/* Badge art inside a marketplace card icon tile */
+.mkt-icon--art {
+  background: #101319;
+}
+.mkt-icon--art img {
+  object-fit: contain;
+  border-radius: 5px;
+}
