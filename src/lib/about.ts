@@ -186,6 +186,16 @@ export type ProfileSectionKind = "project" | "interest";
 /** A named link inside a project/media section. */
 export type ProfileSectionLink = { label: string; url: string };
 
+/** One pick inside an Interests section: several animes can share a section. */
+export type SectionPick = {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  meta: string;
+  url: string;
+};
+
 export type ProfileSection = {
   id: string;
   title: string;
@@ -199,6 +209,8 @@ export type ProfileSection = {
   status: string;
   /** Tech stack ids from lib/techStack. */
   stack: string[];
+  /** Interests only: every anime picked into this section. */
+  items: SectionPick[];
   /** Extra links shown beside the main one. */
   links: ProfileSectionLink[];
   /** Year, score, genre or other short metadata. */
@@ -207,7 +219,7 @@ export type ProfileSection = {
 
 export function createProfileSection(kind: ProfileSectionKind = "project"): ProfileSection {
   const id = globalThis.crypto?.randomUUID?.() ?? `section-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  return { id, title: "", text: "", image: "", url: "", kind, subtitle: "", status: "", stack: [], links: [], meta: "" };
+  return { id, title: "", text: "", image: "", url: "", kind, subtitle: "", status: "", stack: [], links: [], meta: "", items: [] };
 }
 
 export type AboutDesign = {
@@ -694,6 +706,19 @@ function loadDesignRaw(input: unknown): AboutDesign {
           : [],
         links,
         meta: typeof item.meta === "string" ? item.meta.slice(0, 80) : "",
+        items: Array.isArray(item.items)
+          ? item.items
+              .filter((pick) => pick && typeof pick === "object")
+              .slice(0, 12)
+              .map((pick, pickIndex) => ({
+                id: typeof pick.id === "string" ? pick.id.slice(0, 80) : `pick-${index}-${pickIndex}`,
+                title: typeof pick.title === "string" ? pick.title.slice(0, 100) : "",
+                subtitle: typeof pick.subtitle === "string" ? pick.subtitle.slice(0, 180) : "",
+                image: typeof pick.image === "string" ? pick.image.slice(0, 1_000_000) : "",
+                meta: typeof pick.meta === "string" ? pick.meta.slice(0, 80) : "",
+                url: typeof pick.url === "string" && /^https?:\/\//i.test(pick.url) ? pick.url.slice(0, 1000) : "",
+              }))
+          : [],
       };
     }) : [],
     layout,

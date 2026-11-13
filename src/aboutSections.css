@@ -282,3 +282,75 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ── interests as one set ─────────────────────────────────────────────────
+   A single interest section can hold several animes, so the section reads as
+   one card with a poster grid inside instead of a stack of near-duplicates. */
+.lkr-interest-set {
+  grid-column: 1 / -1;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 18px;
+  background: var(--pv-card, #121218);
+}
+
+.lkr-interest-set h2 {
+  margin: 0 0 14px;
+  color: var(--pv-text, #f4f6fb);
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.lkr-interest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 12px;
+}
+
+.lkr-interest-tile {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.lkr-interest-art {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lkr-interest-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lkr-interest-copy b {
+  display: block;
+  overflow: hidden;
+  color: var(--pv-text, #f4f6fb);
+  font-size: 11.5px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+}
+
+.lkr-interest-copy small {
+  display: block;
+  overflow: hidden;
+  color: var(--pv-muted, #98a2b3);
+  font-size: 10px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lkr-interest-note {
+  margin: 14px 0 0;
+  color: var(--pv-muted, #98a2b3);
+  font-size: 12.5px;
+  line-height: 1.6;
+}

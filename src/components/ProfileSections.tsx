@@ -40,6 +40,43 @@ export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
     <div className="lkr-sections">
       {sections.map((section) => {
         const mainUrl = safeUrl(section.url);
+
+        // Several animes in one section: a single card holding the whole set.
+        const picks = section.items ?? [];
+        if (section.kind === "interest" && picks.length) {
+          return (
+            <article className="lkr-interest-set" key={section.id}>
+              {section.title ? <h2>{section.title}</h2> : null}
+              <div className="lkr-interest-grid">
+                {picks.map((pick) => {
+                  const href = safeUrl(pick.url);
+                  const body = (
+                    <>
+                      <span className="lkr-interest-art">
+                        {pick.image ? <img src={pick.image} alt="" loading="lazy" /> : null}
+                      </span>
+                      <span className="lkr-interest-copy">
+                        <b>{pick.title || "Untitled"}</b>
+                        <small>{pick.meta || pick.subtitle}</small>
+                      </span>
+                    </>
+                  );
+                  return href ? (
+                    <a className="lkr-interest-tile" href={href} target="_blank" rel="noreferrer" key={pick.id}>
+                      {body}
+                    </a>
+                  ) : (
+                    <span className="lkr-interest-tile" key={pick.id}>
+                      {body}
+                    </span>
+                  );
+                })}
+              </div>
+              {section.text ? <p className="lkr-interest-note">{section.text}</p> : null}
+            </article>
+          );
+        }
+
         const kinds = [section.status, section.meta].filter(Boolean);
         return (
           <article className={`lkr-showcase lkr-showcase--${section.kind}`} key={section.id}>
