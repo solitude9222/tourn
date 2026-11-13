@@ -473,6 +473,27 @@ const METADATA_POSITIONS: readonly MetadataPosition[] = [
   "below-bio",
 ];
 const VIEW_POSITIONS = METADATA_POSITIONS;
+
+/** Outside slots belong to links, not to the card's own details. Older
+ *  profiles can still hold one, so map it back inside the card. */
+export function insideMetadata(position: MetadataPosition): MetadataPosition {
+  switch (position) {
+    case "outside-top-left":
+    case "outside-left":
+      return "inside-top-left";
+    case "outside-top-right":
+    case "outside-above":
+      return "inside-top-right";
+    case "outside-bottom-left":
+      return "inside-bottom-left";
+    case "outside-bottom-right":
+    case "outside-below":
+    case "outside-right":
+      return "inside-bottom-right";
+    default:
+      return position;
+  }
+}
 const JOIN_POSITIONS = METADATA_POSITIONS;
 const LOCATION_POSITIONS = METADATA_POSITIONS;
 const BADGE_POSITIONS: readonly BadgePosition[] = [

@@ -1,4 +1,4 @@
-import type { AboutLayout, MetadataPosition } from "../lib/about";
+import { insideMetadata, type AboutLayout, type MetadataPosition } from "../lib/about";
 import { Field, Select } from "./ui";
 import "./positionStudio.css";
 
@@ -29,14 +29,6 @@ const ZONES: { id: MetadataPosition; label: string }[] = [
   { id: "inside-top-right", label: "Inside TR" },
   { id: "inside-bottom-left", label: "Inside BL" },
   { id: "inside-bottom-right", label: "Inside BR" },
-  { id: "outside-above", label: "Above" },
-  { id: "outside-below", label: "Below" },
-  { id: "outside-left", label: "Left" },
-  { id: "outside-right", label: "Right" },
-  { id: "outside-top-left", label: "Top left" },
-  { id: "outside-top-right", label: "Top right" },
-  { id: "outside-bottom-left", label: "Bottom left" },
-  { id: "outside-bottom-right", label: "Bottom right" },
   { id: "footer", label: "Footer" },
   { id: "side", label: "Side rail" },
   { id: "hidden", label: "Hidden" },
@@ -58,7 +50,7 @@ export function PositionStudio({
   // The side rail only exists on the Left layout; everywhere else that value
   // is drawn in the footer, so the dropdown must show where it really lands.
   const shown = (position: MetadataPosition): MetadataPosition =>
-    position === "side" && layout !== "left" ? "footer" : position;
+    insideMetadata(position === "side" && layout !== "left" ? "footer" : position);
 
   const positionOf = (field: FieldId): MetadataPosition =>
     shown(field === "views" ? viewPosition : field === "location" ? locationPosition : joinPosition);
@@ -86,7 +78,9 @@ export function PositionStudio({
           </Field>
         ))}
       </div>
-      <p className="tw-foot-note">Hidden takes that detail off your card.</p>
+      <p className="tw-foot-note">
+        Hidden takes that detail off your card. These details stay inside the card — the space outside it belongs to your links.
+      </p>
     </div>
   );
 }

@@ -340,6 +340,7 @@ export function LinkerPreview({
       badgeStyle={badges.style ?? DEFAULT_BADGE_STYLE}
       links={links.links}
       linkDesign={links.design ?? DEFAULT_LINK_DESIGN}
+      hideLinks={(design.slideshow === true || design.cardStyle === "slide") && Boolean(design.slideshowLinks)}
       className="profile-preview--with-widgets"
       views={views}
       joined={joined}
@@ -438,6 +439,13 @@ export function LinkerPreview({
   const showLinksSlide = slideshowActive && design.slideshowLinks && links.links.some((link) => link.visible && link.url.trim());
   const showBadgesSlide = slideshowActive && design.slideshowBadges && badges.equipped.length > 0;
   const showAboutSlide = slideshowActive && design.slideshowAbout && Boolean(about.bio.trim());
+
+  // A slideshow must open on its first page; without this a restored scroll
+  // position or a late layout shift can leave the card's top above the fold.
+  useEffect(() => {
+    if (!slideshowActive || !slidesRef.current) return;
+    slidesRef.current.scrollTop = 0;
+  }, [slideshowActive]);
   const slideshowExtras = showLinksSlide || showBadgesSlide || showAboutSlide ? (
     <>
       {showAboutSlide ? (

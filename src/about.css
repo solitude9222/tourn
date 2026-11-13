@@ -5457,3 +5457,44 @@
   position: static;
   transform: none;
 }
+
+/* ── slideshow: a plain scroll column ─────────────────────────────────────
+   The flow was centred as a flex column, so a card taller than the scroll box
+   could sit with its top above the visible area. Block layout always starts the
+   first slide at the top and lets each page own its own padding. */
+.lkr-page .lkr-flow.lkr-flow--slideshow {
+  display: block;
+  height: min(88dvh, 860px);
+  max-height: 100dvh;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 72px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+  touch-action: pan-y;
+  scroll-padding-block-start: 0;
+}
+.lkr-page:not([data-interactive]) .lkr-flow.lkr-flow--slideshow {
+  height: min(86dvh, 840px);
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 18px;
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding-block: clamp(18px, 3vh, 34px) 40px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide:first-child {
+  min-height: 100%;
+  padding-block-start: clamp(18px, 3vh, 34px);
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .profile-preview {
+  margin-block: 0;
+}

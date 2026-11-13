@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
-import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
+import { DEFAULT_ABOUT_DESIGN, hexToRgba, insideMetadata, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
@@ -45,6 +45,8 @@ export function ProfilePreview({
   hideViews = false,
   hideJoined = false,
   hideLocation = false,
+  /** The slideshow has its own Links page, so the card must not repeat them. */
+  hideLinks = false,
   /** The entry screen is still covering the page — hold the audio. */
   entryActive = false,
   /** Marketing previews (the home hero) show the card, not the player. */
@@ -68,6 +70,7 @@ export function ProfilePreview({
   hideViews?: boolean;
   hideJoined?: boolean;
   hideLocation?: boolean;
+  hideLinks?: boolean;
   /** True while the entry overlay is up, so the track starts after entering. */
   entryActive?: boolean;
   /** Hide the audio player entirely — used by the home page preview. */
@@ -94,15 +97,20 @@ export function ProfilePreview({
   const uid = accountUid(user);
   const tiltEnabled = !disableTilt && (design.tilt ?? 0) > 0;
   const tilt = useTilt<HTMLElement>(disableTilt ? 0 : design.tilt ?? 0, Boolean(design.tiltInvert));
-  const viewPosition = design.viewPosition === "side" && design.layout !== "left" ? "footer" : design.viewPosition ?? "top-right";
+  const viewPosition = insideMetadata(
+    design.viewPosition === "side" && design.layout !== "left" ? "footer" : design.viewPosition ?? "top-right",
+  );
   // The join date is part of the identity now: display name, handle, then the
   // date. "footer" is still accepted from older saved profiles but reads the
   // same as "under-name" so nobody's card silently loses the date.
-  const joinPosition =
+  const joinPosition = insideMetadata(
     design.joinPosition === "side" && design.layout !== "left"
       ? "under-name"
-      : design.joinPosition ?? "under-name";
-  const locationPosition = design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name";
+      : design.joinPosition ?? "under-name",
+  );
+  const locationPosition = insideMetadata(
+    design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name",
+  );
   const viewCount = typeof views === "number" ? views : null;
   const showViews = !hideViews && viewCount !== null && viewPosition !== "hidden";
   // The links row and the player are titled sections too, so the card reads as
@@ -380,7 +388,7 @@ export function ProfilePreview({
 
         {children}
 
-        {hasLinks ? (
+        {hasLinks && !hideLinks ? (
           <div className="pv-links-block">
             <ProfileLinks
               links={visibleLinks}
