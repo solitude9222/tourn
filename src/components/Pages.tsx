@@ -179,34 +179,66 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
   );
 }
 
+type CharacterClass = "letters" | "numbers" | "symbols";
+
+const SHOP_CHARACTERS: { id: CharacterClass; kind: "oneCharacter" | "special"; glyph: string; label: string; name: string; range: string }[] = [
+  { id: "letters", kind: "oneCharacter", glyph: "A", label: "SINGLE LETTER", name: "One letter, all yours", range: "a – z" },
+  { id: "numbers", kind: "special", glyph: "7", label: "SINGLE NUMBER", name: "One number", range: "0 – 9" },
+  { id: "symbols", kind: "special", glyph: "✦", label: "SYMBOL", name: "One symbol", range: "✦ ★ ♥ ✧" },
+];
+
+const PICKER_COPY: Record<CharacterClass, { title: string; noun: string }> = {
+  letters: { title: "Single letter", noun: "letter" },
+  numbers: { title: "Single number", noun: "number" },
+  symbols: { title: "Single symbol", noun: "symbol" },
+};
+
 export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
   const { user, isPremiumUser } = useAuth();
   const [shopUrl, setShopUrl] = useState<string | null>(null);
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [handle, setHandle] = useState("");
-  const [handleState, setHandleState] = useState<"idle" | "checking" | "free" | "taken" | "invalid">("idle");
+  const [picker, setPicker] = useState<CharacterClass | null>(null);
+  const [mode, setMode] = useState<"random" | "specific">("random");
+  const [specific, setSpecific] = useState("");
+  const [free, setFree] = useState<{ letters: string[]; numbers: string[]; symbols: string[] } | null>(null);
 
-  const checkHandle = async (value: string) => {
-    const next = Array.from(value.trim().toLowerCase())[0] ?? "";
-    setHandle(next);
-    if (!next) { setHandleState("idle"); return; }
-    setHandleState("checking");
-    const result = await api<{ available: boolean; reason?: string }>(
-      `/api/commerce/availability?handle=${encodeURIComponent(next)}`,
-    );
-    if (!result.ok) { setHandleState("idle"); return; }
-    setHandleState(result.data.available ? "free" : result.data.reason ? "invalid" : "taken");
+  useEffect(() => {
+    void api<{ shopUrl: string }>("/api/commerce/config").then((result) => {
+      if (result.ok && result.data.shopUrl) setShopUrl(result.data.shopUrl);
+    });
+  }, []);
+
+  const openPicker = (id: CharacterClass) => {
+    if (!user) {
+      onSignUp();
+      return;
+    }
+    setPicker(id);
+    setMode("random");
+    setSpecific("");
+    setError(null);
+    void api<{ letters: string[]; numbers: string[]; symbols: string[] }>("/api/commerce/available").then((result) => {
+      if (result.ok) setFree(result.data);
+    });
   };
 
-  const buyUsername = async () => {
-    if (!user) { onSignUp(); return; }
-    if (!handle || handleState !== "free") return;
+  const pool = !free || !picker ? [] : free[picker];
+
+  const closePicker = () => {
+    if (buying) return;
+    setPicker(null);
+    setError(null);
+  };
+
+  const buyCharacter = async () => {
+    if (!picker) return;
+    if (mode === "specific" && !specific) return;
     setBuying(true);
     setError(null);
     try {
-      // Letters and numbers/symbols are separate SellAuth products.
-      await openSellAuthCheckout(/^[a-z]$/.test(handle) ? "oneCharacter" : "special", handle);
+      await openSellAuthCheckout(picker === "letters" ? "oneCharacter" : "special", mode === "specific" ? specific : undefined);
+      setPicker(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Checkout is unavailable right now.");
     } finally {
@@ -214,16 +246,11 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
     }
   };
 
-  // Stock, prices and receipts all live in the SellAuth store; this page only
-  // points at it and opens the Premium checkout.
-  useEffect(() => {
-    void api<{ shopUrl: string }>("/api/commerce/config").then((result) => {
-      if (result.ok && result.data.shopUrl) setShopUrl(result.data.shopUrl);
-    });
-  }, []);
-
   const buyPremium = async () => {
-    if (!user) { onSignUp(); return; }
+    if (!user) {
+      onSignUp();
+      return;
+    }
     setBuying(true);
     setError(null);
     try {
@@ -235,51 +262,139 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
     }
   };
 
-  return <section className="page marketplace-page"><div className="wrap page-head" data-reveal>
-    <h1 className="page-title">Store<span className="market-title-dot">.</span></h1>
-    <p className="page-sub">Usernames, badges and Premium are sold through the tourn.lol store. Stock, prices and receipts are handled there, not here.</p>
-  </div>
-    <div className="wrap">
-      <div className="store-grid">
-        <article className="store-card" data-reveal>
-          <span className="eyebrow eyebrow--sm">PREMIUM</span>
-          <h2>One payment. Permanent.</h2>
-          <div className="store-price">$9.99 <small>once</small></div>
-          <p>Every effect, every audio style and a second profile address, attached to your account the moment the order is confirmed.</p>
-          {isPremiumUser ? <a className="btn btn-ghost" href="#/dashboard/billing">Manage Premium <ArrowRight size={14} /></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={() => void buyPremium()}>{buying ? "Opening checkout…" : "Buy Premium"} <ArrowRight size={14} /></button>}
-        </article>
-        <article className="store-card" data-reveal data-reveal-delay="60">
-          <span className="eyebrow eyebrow--sm">1-CHARACTER USERNAME</span>
-          <h2>Claim a single character.</h2>
-          <p>Type the letter, number or symbol you want. Letters use the 1-letter product, numbers and symbols the other. Availability is checked live, then checkout opens with that name on the order.</p>
-          <div className="store-handle">
-            <span className="store-handle-prefix">tourn.lol/</span>
-            <input
-              value={handle}
-              maxLength={1}
-              placeholder="a"
-              aria-label="Choose one character"
-              onChange={(event) => void checkHandle(event.target.value)}
-            />
-          </div>
-          <p className={`store-handle-state is-${handleState}`}>
-            {handleState === "checking" ? "Checking availability…" : null}
-            {handleState === "free" ? `@${handle} is available.` : null}
-            {handleState === "taken" ? `@${handle} is already taken.` : null}
-            {handleState === "invalid" ? "Use one letter, number or symbol." : null}
-            {handleState === "idle" ? "Price is shown at checkout." : null}
-          </p>
-          <button type="button" className="btn btn-primary" disabled={buying || handleState !== "free"} onClick={() => void buyUsername()}>
-            {buying ? "Opening checkout…" : user ? "Buy this name" : "Sign in to buy"}
-            <ArrowRight size={14} />
-          </button>
-          {shopUrl ? <a className="store-link" href={shopUrl} target="_blank" rel="noreferrer">Browse badges & everything else <ExternalIcon size={12} /></a> : null}
-        </article>
+  return (
+    <section className="page marketplace-page">
+      <div className="wrap page-head" data-reveal>
+        <h1 className="page-title">
+          Store<span className="market-title-dot">.</span>
+        </h1>
+        <p className="page-sub">Single-character usernames, badges and Premium. Pick a category, choose random or a specific character, then pay in the store.</p>
       </div>
-      {error ? <p className="premium-buy-note" role="alert">{error}</p> : null}
-      <p className="market-purchase-note">Codes from any order can be redeemed in Dashboard → Billing if Premium or a badge does not appear on its own.</p>
-    </div>
-  </section>;
+
+      <div className="wrap">
+        <div className="username-grid">
+          {SHOP_CHARACTERS.map((card) => (
+            <article className="username-card" key={card.id} data-reveal>
+              <span className="username-kind">{card.label}</span>
+              <span className="username-glyph">{card.glyph}</span>
+              <small>{card.name}</small>
+              <div className="username-buy">
+                <span>
+                  Shown at checkout
+                  <small>{card.range}</small>
+                </span>
+                <button type="button" className="btn btn-primary" onClick={() => openPicker(card.id)}>
+                  Choose
+                </button>
+              </div>
+            </article>
+          ))}
+
+          <article className="username-card" data-reveal data-reveal-delay="60">
+            <span className="username-kind">PREMIUM</span>
+            <span className="username-glyph">★</span>
+            <small>Every effect, permanently</small>
+            <div className="username-buy">
+              <span>
+                $9.99 <small>one payment</small>
+              </span>
+              {isPremiumUser ? (
+                <a className="btn btn-ghost" href="#/dashboard/billing">
+                  Manage
+                </a>
+              ) : (
+                <button type="button" className="btn btn-primary" disabled={buying} onClick={() => void buyPremium()}>
+                  {buying ? "Opening…" : "Buy"}
+                </button>
+              )}
+            </div>
+          </article>
+
+          <article className="username-card" data-reveal data-reveal-delay="90">
+            <span className="username-kind">BADGES</span>
+            <span className="username-glyph">❖</span>
+            <small>The whole collection</small>
+            <div className="username-buy">
+              <span>
+                In the store
+                <small>Stock listed there</small>
+              </span>
+              <a className="btn btn-primary" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">
+                Browse
+              </a>
+            </div>
+          </article>
+        </div>
+
+        {error && !picker ? (
+          <p className="premium-buy-note" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <p className="market-purchase-note">Codes from any order can be redeemed in Dashboard → Billing if a name or badge does not appear on its own.</p>
+      </div>
+
+      {picker ? (
+        <div className="shop-modal" role="dialog" aria-modal="true" aria-label={PICKER_COPY[picker].title} onClick={closePicker}>
+          <div className="shop-modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="shop-modal-head">
+              <span>
+                <b>{PICKER_COPY[picker].title}</b>
+                <small>Random is cheaper than hunting for a name. Specific lets you pick the exact character.</small>
+              </span>
+              <button type="button" className="shop-modal-close" aria-label="Close" onClick={closePicker}>
+                ×
+              </button>
+            </div>
+
+            <div className="shop-modal-modes" role="group" aria-label="How to choose">
+              <button type="button" className={mode === "random" ? "is-active" : ""} aria-pressed={mode === "random"} onClick={() => setMode("random")}>
+                Random
+              </button>
+              <button type="button" className={mode === "specific" ? "is-active" : ""} aria-pressed={mode === "specific"} onClick={() => setMode("specific")}>
+                Specific
+              </button>
+            </div>
+
+            {mode === "random" ? (
+              <p className="shop-modal-note">
+                We hand you a free {PICKER_COPY[picker].noun} when the order is confirmed — {pool.length || "no"} {PICKER_COPY[picker].noun}
+                {pool.length === 1 ? "" : "s"} left right now.
+              </p>
+            ) : (
+              <label className="shop-modal-field">
+                Pick your {PICKER_COPY[picker].noun}
+                <select value={specific} onChange={(event) => setSpecific(event.target.value)}>
+                  <option value="">Choose…</option>
+                  {pool.map((character) => (
+                    <option key={character} value={character}>
+                      {character}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {!pool.length && mode === "specific" ? <p className="shop-modal-note">Nothing free in this category right now.</p> : null}
+            {error ? (
+              <p className="shop-modal-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="shop-modal-actions">
+              <button type="button" className="btn btn-ghost" onClick={closePicker} disabled={buying}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" disabled={buying || (mode === "specific" && !specific)} onClick={() => void buyCharacter()}>
+                {buying ? "Opening checkout…" : "Continue to checkout"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
 }
 
 function PlanCards({onSignUp,onPremium,buying}:{onSignUp:()=>void;onPremium:()=>void;buying:boolean}) {

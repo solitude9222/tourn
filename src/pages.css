@@ -516,3 +516,113 @@
   font-size: 11.5px;
 }
 .store-link:hover { color: #c8d6f5; }
+
+/* Character picker on the store */
+.shop-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 7, 11, 0.72);
+  backdrop-filter: blur(2px);
+}
+.shop-modal-card {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #2a3040;
+  border-radius: 16px;
+  background: #10131a;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.shop-modal-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.shop-modal-head > span {
+  display: grid;
+  gap: 3px;
+}
+.shop-modal-head b {
+  color: #fff;
+  font-size: 15px;
+}
+.shop-modal-head small {
+  color: #8491a8;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.shop-modal-close {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #2a3040;
+  border-radius: 8px;
+  background: transparent;
+  color: #9aa4b5;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.shop-modal-close:hover {
+  color: #fff;
+  border-color: #3d465c;
+}
+.shop-modal-modes {
+  display: flex;
+  gap: 6px;
+  padding: 3px;
+  border: 1px solid #262c39;
+  border-radius: 10px;
+  background: #0b0d12;
+}
+.shop-modal-modes button {
+  flex: 1;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b96a9;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.shop-modal-modes button.is-active {
+  background: #1b2030;
+  color: #fff;
+}
+.shop-modal-note {
+  margin: 0;
+  color: #8491a8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.shop-modal-field {
+  display: grid;
+  gap: 6px;
+  color: #8491a8;
+  font-size: 11px;
+}
+.shop-modal-field select {
+  padding: 10px;
+  border: 1px solid #2a3040;
+  border-radius: 9px;
+  background: #0b0d12;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.shop-modal-error {
+  margin: 0;
+  color: #e09393;
+  font-size: 12px;
+}
+.shop-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

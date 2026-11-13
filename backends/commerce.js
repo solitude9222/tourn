@@ -16,6 +16,11 @@ create table if not exists commerce_deliveries(
  primary key(shop_id,item_id)
 );`;
 const digest = code => crypto.createHash('sha256').update(code.trim().toUpperCase()).digest('hex');
+const LETTERS=[...'abcdefghijklmnopqrstuvwxyz'];
+const NUMBERS=[...'0123456789'];
+const SYMBOLS=[...'✦★♥✧♛✿☾'];
+/* Every handle already spoken for: profile addresses, owned inventory and issued codes. */
+const CLAIMED_HANDLES="select username h from users where char_length(username)=1 union select alias h from users where char_length(alias)=1 union select alias2 h from users where char_length(alias2)=1 union select handle h from username_inventory where owner_id is not null union select handle h from commerce_codes where handle is not null";
 const fail = (status,message) => Object.assign(new Error(message),{status});
 export function verifySellAuthSignature(raw,signature,secret){
  if(!secret || !Buffer.isBuffer(raw) || !/^[a-f0-9]{64}$/i.test(signature||''))return false;
@@ -119,14 +124,24 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
   let handle=null;
   if(kind==='oneCharacter'||kind==='special'){
    const raw=typeof req.body?.handle==='string'?req.body.handle.trim().toLowerCase():'';
-   const valid=kind==='oneCharacter' ? /^[a-z]$/.test(raw) : [...raw].length===1&&(/^[0-9]$/.test(raw)||/^\p{S}$/u.test(raw));
-   if(!valid)throw fail(400,kind==='oneCharacter'?'Choose a single letter.':'Choose a single number or symbol.');
    const db=await pool.connect();
    try{
-    const {rows}=await db.query("select 1 from users where username=$1 or alias=$1 or alias2=$1 union all select 1 from username_inventory where handle=$1 and owner_id is not null union all select 1 from commerce_codes where handle=$1 limit 1",[raw]);
-    if(rows.length)throw fail(409,'That username is already taken.');
+    if(!raw){
+     // No specific character chosen: hand out a random free one from the class.
+     const pool_=kind==='oneCharacter'?LETTERS:[...NUMBERS,...SYMBOLS];
+     const {rows}=await db.query(`select h from (${CLAIMED_HANDLES}) claimed where h = any($1)`,[pool_]);
+     const taken=new Set(rows.map(row=>row.h));
+     const free=pool_.filter(character=>!taken.has(character));
+     if(!free.length)throw fail(409,kind==='oneCharacter'?'Every single letter is sold out.':'Every single number is sold out.');
+     handle=free[Math.floor(Math.random()*free.length)];
+    } else {
+     const valid=kind==='oneCharacter' ? /^[a-z]$/.test(raw) : [...raw].length===1&&(/^[0-9]$/.test(raw)||/^\p{S}$/u.test(raw));
+     if(!valid)throw fail(400,kind==='oneCharacter'?'Choose a single letter.':'Choose a single number or symbol.');
+     const {rows}=await db.query(`select 1 from (${CLAIMED_HANDLES}) claimed where h=$1 limit 1`,[raw]);
+     if(rows.length)throw fail(409,'That username is already taken.');
+     handle=raw;
+    }
    } finally { db.release(); }
-   handle=raw;
   }
   const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(handle?{handle}:{})},secret,{algorithm:'HS256',expiresIn:'2h'});
   const variantId=config.variants?.[kind];
@@ -135,6 +150,16 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
  app.post('/api/commerce/redeem',limiter,requireAuth,wrap(async(req,res)=>{
   const code=typeof req.body?.code==='string'?req.body.code.trim().toUpperCase():'';if(!/^TOURN-[A-F0-9]{32}$/.test(code))throw fail(400,'Enter the complete TOURN code from your purchase.');
   const db=await pool.connect();try{await db.query('begin');const reward=await redeemCommerceCode(db,code,req.auth.sub);await db.query('commit');invalidate();res.json({ok:true,reward});}catch(error){await db.query('rollback');throw error;}finally{db.release();}
+ }));
+ // Free characters per class, for the store's picker.
+ app.get('/api/commerce/available',limiter,wrap(async(_req,res)=>{
+  const {rows}=await pool.query(CLAIMED_HANDLES);
+  const taken=new Set(rows.map(row=>row.h));
+  res.set('Cache-Control','no-store').json({
+   letters:LETTERS.filter(character=>!taken.has(character)),
+   numbers:NUMBERS.filter(character=>!taken.has(character)),
+   symbols:SYMBOLS.filter(character=>!taken.has(character)),
+  });
  }));
  app.get('/api/commerce/availability',limiter,wrap(async(req,res)=>{
   const handle=String(req.query.handle||'').trim().toLowerCase();

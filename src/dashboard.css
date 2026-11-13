@@ -5123,3 +5123,84 @@ body:has(.dash) {
   color: #a9b6cc;
   font-size: 13px;
 }
+
+/* Inventory, single surface */
+.inv-note {
+  margin: 12px 0 0;
+  color: #a9b6cc;
+  font-size: 12.5px;
+}
+.inv-address {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.inv-address-item {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.inv-address-item small {
+  color: #7f8ba3;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.inv-address-item b {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.inv-address-item .tw-chip {
+  justify-self: start;
+}
+.inv-list {
+  display: grid;
+  gap: 0;
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.inv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+.inv-row:last-child {
+  border-bottom: 0;
+}
+.inv-row.is-locked {
+  opacity: 0.72;
+}
+.inv-art {
+  border-radius: 8px;
+  object-fit: contain;
+  flex: none;
+}
+.inv-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin-right: auto;
+}
+.inv-copy b {
+  color: #fff;
+  font-size: 13.5px;
+}
+.inv-copy small {
+  color: #8491a8;
+  font-size: 11.5px;
+}
+@media (max-width: 700px) {
+  .inv-address {
+    grid-template-columns: 1fr;
+  }
+}
