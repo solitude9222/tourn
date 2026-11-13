@@ -356,6 +356,19 @@ const ALL_WIDGET_PLATFORMS: WidgetPlatform[] = [
         type: "toggle",
         default: true,
       },
+      {
+        key: "clockStyle",
+        label: "Clock face",
+        hint: "The ring, the tick marks and the hand weight.",
+        type: "select",
+        default: "classic",
+        choices: [
+          { value: "classic", label: "Classic · full ticks" },
+          { value: "minimal", label: "Minimal · four ticks" },
+          { value: "neon", label: "Neon · glow ring" },
+          { value: "ring", label: "Thin ring · two hands" },
+        ],
+      },
     ],
   },
   {

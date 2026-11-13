@@ -174,11 +174,20 @@ export function ProfilePreview({
           {pin.node}
         </span>
       ));
-  const pinnedLayer = absolutePins.length ? (
+  // Pins that share a slot sit side by side (location | views) instead of
+  // stacking on the same coordinates.
+  const pinSlots = [...new Set(absolutePins.map((pin) => pin.position))];
+  const pinnedLayer = pinSlots.length ? (
     <>
-      {absolutePins.map((pin) => (
-        <span key={pin.kind} className={`pv-pin pv-pin--${pin.position} pv-pin--${pin.kind}`}>
-          {pin.node}
+      {pinSlots.map((position) => (
+        <span key={position} className={`pv-pin-group pv-pin-group--${position}`}>
+          {absolutePins
+            .filter((pin) => pin.position === position)
+            .map((pin) => (
+              <span key={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.position} pv-pin--${pin.kind}`}>
+                {pin.node}
+              </span>
+            ))}
         </span>
       ))}
     </>

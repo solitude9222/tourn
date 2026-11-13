@@ -407,9 +407,18 @@ export function LinkerPreview({
   const skills=(design.skills||[]).flatMap(id=>{const item=TECH_BY_ID.get(id);return item?[item]:[];});
   const skillPills=skills.length?<section className="lkr-skills-section"><h2>Skills</h2><div className="lkr-tech-row">{skills.map(item=><span key={item.id} className="lkr-tech"><img src={techIconUrl(item)} alt=""/>{item.name}</span>)}</div></section>:null;
   const firstText = groupedSections.findIndex((group) => group[0].kind === "text");
-  const sectionsVisible = design.sectionsEnabled === true;
+  const sectionsVisible = design.sectionsEnabled === true || design.cardStyle === "slide";
   const hasSkills = skills.length > 0;
-  const slideshowActive = Boolean(design.slideshow && (hasSkills || (sectionsVisible && groupedSections.length > 0)));
+  // Sections only ever appear as slideshow pages; the plain stack is gone.
+  const slideshowLayout = design.slideshow === true || design.cardStyle === "slide";
+  const slideshowActive = Boolean(
+    slideshowLayout &&
+      (hasSkills ||
+        (sectionsVisible && groupedSections.length > 0) ||
+        design.slideshowLinks ||
+        design.slideshowBadges ||
+        design.slideshowAbout),
+  );
   const skillWrap = skillPills ? <div className={`lkr-skills-wrap${slideshowActive ? " lkr-slide" : ""}`}>{skillPills}</div> : null;
   const sectionContent = sectionsVisible || skillPills ? (
     <>
@@ -522,7 +531,7 @@ export function LinkerPreview({
       <div className={`${slideshowActive?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}${design.layout==="left"&&!hasSide?" lkr-primary--left--empty":""}`}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
       </div>
-      {sectionContent}
+      {slideshowActive ? sectionContent : null}
       {slideshowExtras}
     </div>
   );

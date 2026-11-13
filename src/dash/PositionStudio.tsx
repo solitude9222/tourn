@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { AboutLayout, MetadataPosition } from "../lib/about";
 import { Field, Select } from "./ui";
 import "./positionStudio.css";
@@ -90,12 +90,15 @@ export function PositionStudio({
   locationPosition,
   joinPosition,
   layout,
+  preview,
   onChange,
 }: {
   viewPosition: MetadataPosition;
   locationPosition: MetadataPosition;
   joinPosition: MetadataPosition;
   layout: AboutLayout;
+  /** The owner's real card, so slots are placed against what visitors see. */
+  preview: ReactNode;
   onChange: (patch: PositionPatch) => void;
 }) {
   const [mode, setMode] = useState<"preview" | "dropdowns">("preview");
@@ -237,21 +240,7 @@ export function PositionStudio({
             <div className="pos-outside-layer">{OUTSIDE_ZONES.map(zone)}</div>
 
             <div className="pos-studio-card">
-              <div className="pos-scaffold" aria-hidden="true">
-                <div className="pos-scaffold-head">
-                  <span className="pos-scaffold-avatar" />
-                  <span className="pos-scaffold-ident">
-                    <b>your name</b>
-                    <i>@handle</i>
-                  </span>
-                </div>
-                <span className="pos-scaffold-line" />
-                <span className="pos-scaffold-line pos-scaffold-line--short" />
-                <div className="pos-scaffold-widgets">
-                  <span />
-                  <span />
-                </div>
-              </div>
+              <div className="pos-real-card" aria-hidden="true">{preview}</div>
 
               <div className="pos-corner-layer">{CORNER_ZONES.map(zone)}</div>
               <div className="pos-slot-grid">{CARD_ZONES.map(zone)}</div>

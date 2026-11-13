@@ -17,6 +17,7 @@ import {
   type WidgetLive,
 } from "../lib/widgetLive";
 import { STATUS_COLORS } from "../lib/hooks";
+import { ClockWidget } from "./ClockWidget";
 import { discordProfileBadges, discordBadges, isDiscordUserId, type DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
 import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
@@ -152,6 +153,22 @@ function WidgetCardSurface({
     "--wg-edge": design.outlineColor,
     "--wg-edge-speed": `${design.outlineSpeed || 4}s`,
   } as CSSProperties;
+
+  if (platform.id === "timezone") {
+    return (
+      <article
+        className={`widget-card widget-card--clock${preview ? " widget-card--preview" : ""}${design.hoverLift === false ? " no-lift" : ""}${className ? ` ${className}` : ""}`}
+        style={style}
+        data-platform={platform.id}
+      >
+        <ClockWidget
+          timeZone={content}
+          face={typeof widget.options.clockStyle === "string" ? widget.options.clockStyle : "classic"}
+          analog={widget.options.analog !== false}
+        />
+      </article>
+    );
+  }
 
   return (
     <article

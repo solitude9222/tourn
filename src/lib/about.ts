@@ -9,7 +9,7 @@ export type AboutLayout = "stacked" | "left" | "centered";
 
 /** The public "linker" page layout. Each one only changes spacing and how
  *  large the widgets sit — never the card's colour, background or blur. */
-export type CardStyle = "default" | "compact" | "minimal";
+export type CardStyle = "default" | "compact" | "minimal" | "slide";
 
 /** Where the avatar sits in the card's top row. */
 export type PfpPosition = "default" | "center" | "top-right" | "left" | "right" | "above";
@@ -400,6 +400,7 @@ export const CARD_STYLES: { id: CardStyle; name: string; description: string }[]
   { id: "default", name: "Default", description: "Full-size card with roomy spacing." },
   { id: "compact", name: "Compact", description: "Half-width card; widgets sit two across, with every detail kept." },
   { id: "minimal", name: "Minimal", description: "Smallest widgets, no extra chrome." },
+  { id: "slide", name: "Slideshow", description: "Card first, then one snapped screen per section." },
 ];
 
 export const ENTRY_ANIMATIONS: { id: EntryAnimation; name: string }[] = [

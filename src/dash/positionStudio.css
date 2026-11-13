@@ -398,3 +398,17 @@
     display: none;
   }
 }
+
+/* The owner's real card stands in for the old skeleton. */
+.pos-real-card {
+  position: relative;
+  width: 100%;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 18px;
+  pointer-events: none;
+}
+.pos-real-card .profile-preview {
+  max-width: 100%;
+  margin-inline: auto;
+}

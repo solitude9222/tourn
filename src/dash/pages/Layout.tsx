@@ -11,6 +11,7 @@ import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
 import { PositionStudio } from "../PositionStudio";
+import { ProfilePreview } from "../../components/ProfilePreview";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
 
@@ -56,7 +57,7 @@ const PAGE_LAYOUTS: {
 
 export function LayoutPage() {
   const [dragSection,setDragSection]=useState<number|null>(null);
-  const { about, setAbout, notify } = useDash();
+  const { about, setAbout, notify, user, badges, links } = useDash();
   const design = about.design;
   const [tab, setTab] = useState("layout");
 
@@ -144,7 +145,7 @@ export function LayoutPage() {
 
       {tab === "layout" ? <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card> : null}
       {tab === "layout" ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout compact, transparent, centred or portrait-led." />
-        <div className="tw-form-grid">            <Field label="Card style" hint="Compact halves the card; widgets always stay two across."><Select value={design.cardStyle} options={[{ value: "default", label: "Full card" }, { value: "compact", label: "Compact · half width, widgets side by side" }, { value: "minimal", label: "Minimal / transparent" }]} onChange={(cardStyle) => updateDesign({ cardStyle: cardStyle as typeof design.cardStyle, cardWidth: cardStyle === "compact" ? 480 : design.layout === "centered" ? 540 : 720 })} /></Field>
+        <div className="tw-form-grid">            <Field label="Card style" hint="Compact halves the card; widgets always stay two across."><Select value={design.cardStyle} options={[{ value: "default", label: "Full card" }, { value: "compact", label: "Compact · half width, widgets side by side" }, { value: "minimal", label: "Minimal / transparent" }, { value: "slide", label: "Slideshow · card, then one screen per section" }]} onChange={(cardStyle) => updateDesign({ cardStyle: cardStyle as typeof design.cardStyle, cardWidth: cardStyle === "compact" ? 480 : design.layout === "centered" ? 540 : 720, ...(cardStyle === "slide" ? { slideshow: true, sectionsEnabled: true } : {}) })} /></Field>
           <Field label="Avatar placement"><Select value={design.pfpPosition} options={["default", "left", "right", "above", "center", "top-right"].map((value) => ({ value, label: value }))} onChange={(pfpPosition) => updateDesign({ pfpPosition: pfpPosition as typeof design.pfpPosition })} /></Field>
           <Field label="Badge placement"><Select value={design.badgePosition} options={["default", "above-name", "top-right", "bottom", "beside-avatar", "hidden"].map((value) => ({ value, label: value }))} onChange={(badgePosition) => updateDesign({ badgePosition: badgePosition as typeof design.badgePosition })} /></Field>
           <Field label="Name alignment"><Select value={design.namePosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(namePosition) => updateDesign({ namePosition: namePosition as typeof design.namePosition })} /></Field>
@@ -171,6 +172,18 @@ export function LayoutPage() {
           joinPosition={design.joinPosition}
           layout={design.layout}
           onChange={updateDesign}
+          preview={
+            <ProfilePreview
+              user={user}
+              about={about}
+              badges={badges.equipped}
+              badgeStyle={badges.style}
+              links={links.links}
+              linkDesign={links.design}
+              hideAudio
+              disableTilt
+            />
+          }
         />
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
