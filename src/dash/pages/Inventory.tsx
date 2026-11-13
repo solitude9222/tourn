@@ -261,6 +261,7 @@ export function InventoryPage() {
             { id: "earnable", label: "Earnable", hint: "Unlocked by activity, dates or staff", items: EARNABLE_BADGES },
             { id: "buyable", label: "Buyable", hint: "Bought from the store and granted on delivery", items: BUYABLE_BADGES },
           ].map((list) => {
+            if (!list.items.length) return null;
             const unlocked = list.items.filter((badge) => owned.has(badge.id)).length;
             return (
               <section className="invt-block" key={list.id}>

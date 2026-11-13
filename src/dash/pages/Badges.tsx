@@ -265,6 +265,7 @@ export function BadgesPage() {
         />
 
         {LISTS.map((group) => {
+          if (!group.items.length) return null;
           const items = group.items.filter(visible);
           const unlocked = group.items.filter((badge) => earnedSet.has(badge.id)).length;
           return (
