@@ -35,6 +35,7 @@ export type MetadataPosition =
   | "outside-below"
   | "outside-left"
   | "outside-right"
+  | "outside-below-left"
   | "inside-top-left"
   | "inside-top-right"
   | "inside-bottom-left"
@@ -219,6 +220,10 @@ export type AboutDesign = {
   /** Glow around the location, view and join details. */
   metaGlowColor?: string;
   metaGlowStrength?: number;
+  /** Off keeps each layout's own detail positions and hides position controls. */
+  advancedLayout?: boolean;
+  /** How the view counter reads. */
+  viewStyle?: "icon" | "text" | "number";
   skills?: string[];
   audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "fixed-bottom" | "hidden";
   widgetsPosition: WidgetsPosition;
@@ -378,9 +383,11 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   namePosition: "center",
   bioPosition: "center",
   avatarShape: "circle",
-  viewPosition: "top-right",
+  advancedLayout: false,
+  viewStyle: "icon",
+  viewPosition: "outside-below-left",
   joinPosition: "under-name",
-  locationPosition: "under-name",
+  locationPosition: "outside-below-left",
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
   pills: DEFAULT_PILL_STYLE,
@@ -462,6 +469,7 @@ const METADATA_POSITIONS: readonly MetadataPosition[] = [
   "outside-below",
   "outside-left",
   "outside-right",
+  "outside-below-left",
   "inside-top-left",
   "inside-top-right",
   "inside-bottom-left",
@@ -477,6 +485,8 @@ const VIEW_POSITIONS = METADATA_POSITIONS;
 /** Outside slots belong to links, not to the card's own details. Older
  *  profiles can still hold one, so map it back inside the card. */
 export function insideMetadata(position: MetadataPosition): MetadataPosition {
+  // The one outside slot that is still used sits below the card, not on its edge.
+  if (position === "outside-below-left") return position;
   switch (position) {
     case "outside-top-left":
     case "outside-left":
@@ -493,6 +503,26 @@ export function insideMetadata(position: MetadataPosition): MetadataPosition {
     default:
       return position;
   }
+}
+
+/** The detail positions every layout uses until advanced positioning is on. */
+export function defaultMetadata(layout: AboutLayout): {
+  locationPosition: MetadataPosition;
+  viewPosition: MetadataPosition;
+  joinPosition: MetadataPosition;
+} {
+  if (layout === "centered") {
+    return {
+      locationPosition: "inside-bottom-left",
+      viewPosition: "inside-bottom-right",
+      joinPosition: "under-name",
+    };
+  }
+  return {
+    locationPosition: "outside-below-left",
+    viewPosition: "outside-below-left",
+    joinPosition: "under-name",
+  };
 }
 const JOIN_POSITIONS = METADATA_POSITIONS;
 const LOCATION_POSITIONS = METADATA_POSITIONS;
@@ -692,6 +722,8 @@ function loadDesign(input: unknown): AboutDesign {
       LOCATION_POSITIONS,
       DEFAULT_ABOUT_DESIGN.locationPosition,
     ),
+    advancedLayout: boolIn(raw.advancedLayout, false),
+    viewStyle: oneOf(raw.viewStyle, ["icon", "text", "number"] as const, "icon"),
     entry: loadEntry(raw.entry),
     colors: {
       accent: validColor(rawColors.accent, DEFAULT_PROFILE_COLORS.accent),

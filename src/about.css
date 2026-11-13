@@ -5498,3 +5498,48 @@
 .lkr-page .lkr-flow--slideshow > .lkr-slide > .profile-preview {
   margin-block: 0;
 }
+
+/* ── details under the card ───────────────────────────────────────────────
+   The basic layouts put location and views in one row below the card. It is a
+   real row (one | two), never two pins stacked on the same spot. */
+.profile-preview .pv-pin-group--outside-below-left {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: auto;
+  bottom: auto;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 13px;
+  max-width: 100%;
+  padding: 0;
+  white-space: nowrap;
+}
+.profile-preview .pv-pin-group--outside-below-left > .pv-pin {
+  position: static;
+}
+.profile-preview:has(.pv-pin-group--outside-below-left) {
+  margin-bottom: 34px;
+}
+/* A shared slot always reads left to right, never on top of each other. */
+.profile-preview .pv-pin-group {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 4px;
+}
+
+/* ── centred bio in the Left layout ───────────────────────────────────────
+   The bio sat in a 220px column, so "centre" was centred in that column, not
+   in the card. Centred bios now span the card and centre on its axis. */
+.profile-preview[data-bio="center"] .pv-layout-left .pv-topline {
+  grid-column: 1 / -1;
+}
+.profile-preview[data-bio="center"] .pv-layout-left .pv-topline .pv-bio {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  text-align: center !important;
+}

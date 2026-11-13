@@ -29,6 +29,7 @@ const ZONES: { id: MetadataPosition; label: string }[] = [
   { id: "inside-top-right", label: "Inside TR" },
   { id: "inside-bottom-left", label: "Inside BL" },
   { id: "inside-bottom-right", label: "Inside BR" },
+  { id: "outside-below-left", label: "Below card" },
   { id: "footer", label: "Footer" },
   { id: "side", label: "Side rail" },
   { id: "hidden", label: "Hidden" },

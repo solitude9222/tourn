@@ -6,7 +6,7 @@ import { useState } from "react";
    its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { createProfileSection, type AboutLayout, type JoinPosition, type ProfileSection, type ProfileSectionKind, type ViewPosition } from "../../lib/about";
+import { createProfileSection, defaultMetadata, type AboutLayout, type JoinPosition, type ProfileSection, type ProfileSectionKind, type ViewPosition } from "../../lib/about";
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
@@ -103,10 +103,8 @@ export function LayoutPage() {
               onClick={() =>
                 updateDesign({
                   layout: preset.id,
-                  viewPosition: preset.viewPosition,
-                  joinPosition: preset.joinPosition,
+                  ...defaultMetadata(preset.id),
                   badgePosition: "default",
-                  locationPosition: "footer",
                   cardPadding: 32,
                   cardWidth: 720,
                   widgetsPosition: preset.id === "stacked" ? "below" : "inside",
@@ -143,8 +141,23 @@ export function LayoutPage() {
       </Card> : null}
 
       {tab === "layout" ? <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card> : null}
-      {tab === "layout" ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout compact, transparent, centred or portrait-led." />
-        <div className="tw-form-grid">            <Field label="Card style" hint="Compact halves the card; widgets always stay two across."><Select value={design.cardStyle} options={[{ value: "default", label: "Full card" }, { value: "compact", label: "Compact · half width, widgets side by side" }, { value: "minimal", label: "Minimal / transparent" }, { value: "slide", label: "Slideshow · card, then one screen per section" }]} onChange={(cardStyle) => updateDesign({ cardStyle: cardStyle as typeof design.cardStyle, cardWidth: cardStyle === "compact" ? 480 : design.layout === "centered" ? 540 : 720, ...(cardStyle === "slide" ? { slideshow: true, sectionsEnabled: true } : {}) })} /></Field>
+      {tab === "layout" ? <Card>
+        <div className="tw-inline-toggle">
+          <span>
+            <b>Advanced positioning</b>
+            <small>Off keeps the defaults: details under the card, or in the card's corners when centred.</small>
+          </span>
+          <Toggle
+            label="Advanced positioning"
+            checked={design.advancedLayout === true}
+            onChange={(advancedLayout) =>
+              updateDesign(advancedLayout ? { advancedLayout } : { advancedLayout, ...defaultMetadata(design.layout) })
+            }
+          />
+        </div>
+      </Card> : null}
+      {tab === "layout" && design.advancedLayout === true ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout centred or portrait-led." />
+        <div className="tw-form-grid">            
           <Field label="Avatar placement"><Select value={design.pfpPosition} options={["default", "left", "right", "above", "center", "top-right"].map((value) => ({ value, label: value }))} onChange={(pfpPosition) => updateDesign({ pfpPosition: pfpPosition as typeof design.pfpPosition })} /></Field>
           <Field label="Badge placement"><Select value={design.badgePosition} options={["default", "above-name", "top-right", "bottom", "beside-avatar", "hidden"].map((value) => ({ value, label: value }))} onChange={(badgePosition) => updateDesign({ badgePosition: badgePosition as typeof design.badgePosition })} /></Field>
           <Field label="Name alignment"><Select value={design.namePosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(namePosition) => updateDesign({ namePosition: namePosition as typeof design.namePosition })} /></Field>
@@ -158,7 +171,7 @@ export function LayoutPage() {
           <Slider label="Card padding" value={design.cardPadding} min={0} max={64} suffix="px" onChange={(cardPadding) => updateDesign({ cardPadding })} />
         </div>
       </Card> : null}
-      {tab === "layout" ? <Card>
+      {tab === "layout" && design.advancedLayout === true ? <Card>
         <CardHead
           icon="grid"
           title="Details & music"
@@ -174,6 +187,17 @@ export function LayoutPage() {
         />
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
+          <Field label="Views" hint="How the view count reads next to the icon.">
+            <Select
+              value={design.viewStyle ?? "icon"}
+              options={[
+                { value: "icon", label: "Icon: number" },
+                { value: "text", label: "Text: 1,234 views" },
+                { value: "number", label: "Number only" },
+              ]}
+              onChange={(viewStyle) => updateDesign({ viewStyle: viewStyle as typeof design.viewStyle })}
+            />
+          </Field>
           <Field label="Detail glow" hint="Glow behind the location, view and join icons.">
             <ColorField
               value={design.metaGlowColor ?? "#b4bffa"}
@@ -206,9 +230,7 @@ export function LayoutPage() {
             icon="refresh"
             onClick={() => {
               updateDesign({
-                viewPosition: "footer",
-                locationPosition: "under-name",
-                joinPosition: "under-name",
+                ...defaultMetadata(design.layout),
                 widgetsPosition: "auto",
                 audioPosition: "auto",
               });

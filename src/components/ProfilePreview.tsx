@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
-import { DEFAULT_ABOUT_DESIGN, hexToRgba, insideMetadata, type About } from "../lib/about";
+import { DEFAULT_ABOUT_DESIGN, defaultMetadata, hexToRgba, insideMetadata, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
@@ -97,20 +97,21 @@ export function ProfilePreview({
   const uid = accountUid(user);
   const tiltEnabled = !disableTilt && (design.tilt ?? 0) > 0;
   const tilt = useTilt<HTMLElement>(disableTilt ? 0 : design.tilt ?? 0, Boolean(design.tiltInvert));
-  const viewPosition = insideMetadata(
-    design.viewPosition === "side" && design.layout !== "left" ? "footer" : design.viewPosition ?? "top-right",
-  );
+  // Basic mode ignores saved slots entirely: each layout has one calm default.
+  const basic = defaultMetadata(design.layout);
+  const custom = design.advancedLayout === true;
+  const viewPosition = custom
+    ? insideMetadata(design.viewPosition === "side" && design.layout !== "left" ? "footer" : design.viewPosition ?? "top-right")
+    : basic.viewPosition;
   // The join date is part of the identity now: display name, handle, then the
   // date. "footer" is still accepted from older saved profiles but reads the
   // same as "under-name" so nobody's card silently loses the date.
-  const joinPosition = insideMetadata(
-    design.joinPosition === "side" && design.layout !== "left"
-      ? "under-name"
-      : design.joinPosition ?? "under-name",
-  );
-  const locationPosition = insideMetadata(
-    design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name",
-  );
+  const joinPosition = custom
+    ? insideMetadata(design.joinPosition === "side" && design.layout !== "left" ? "under-name" : design.joinPosition ?? "under-name")
+    : basic.joinPosition;
+  const locationPosition = custom
+    ? insideMetadata(design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name")
+    : basic.locationPosition;
   const viewCount = typeof views === "number" ? views : null;
   const showViews = !hideViews && viewCount !== null && viewPosition !== "hidden";
   // The links row and the player are titled sections too, so the card reads as
@@ -156,10 +157,12 @@ export function ProfilePreview({
     </span>
   );
 
+  const viewNumber = viewCount === null ? "—" : viewCount.toLocaleString("en-US");
+  const viewStyle = design.viewStyle ?? "icon";
   const viewsNode = (
-    <span className="pv-foot-item" title={viewCount === null ? undefined : `${viewCount} views`}>
-      <EyeIcon size={10} />
-      {viewCount === null ? "—" : viewCount.toLocaleString("en-US")}
+    <span className="pv-foot-item" data-view-style={viewStyle} title={viewCount === null ? undefined : `${viewCount} views`}>
+      {viewStyle === "icon" ? <EyeIcon size={10} /> : null}
+      {viewStyle === "text" ? `${viewNumber} views` : viewNumber}
     </span>
   );
 
