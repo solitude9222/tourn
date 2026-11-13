@@ -181,9 +181,13 @@ export function ProfileCard() {
         linkDesign={live?.linkDesign ?? FALLBACK_LINK_DESIGN}
         views={views}
         joined={live?.joined}
-        // The hero is a preview: no music and no player chrome, but the widget
-        // block stays so the card reads like a real profile.
+        // The hero is a preview: no music, no player chrome, and no footer
+        // stats — location, join date and view counts belong to the real
+        // profile page, not to the landing page card.
         hideAudio
+        hideViews
+        hideJoined
+        hideLocation
       >
         {heroCards.length ? (
           <div className="lkr-widgets-block">

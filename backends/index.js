@@ -1566,7 +1566,9 @@ app.get("/api/auth/discord/callback", async (req, res) => {
         [email],
       );
       const existing = byEmail.rows[0];
-      if (existing?.discord_id) return res.redirect(`${returnOrigin}/#/?error=discord_taken`);
+      // The Discord ID is not attached to any account (checked above), so any
+      // link already sitting on the email account is stale — replace it rather
+      // than dead-ending the person who just proved they own the mailbox.
       if (existing) {
         const adopted = await pool.query(
           "update users set discord_id = $1, avatar_url = coalesce($2, avatar_url) where id = $3 returning *",
