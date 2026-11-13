@@ -234,7 +234,7 @@ export type AboutDesign = {
   metaGlowColor?: string;
   metaGlowStrength?: number;
   /** The "About me" slideshow page: its own copy and speciality tags. */
-  aboutSlide: { title: string; subtitle: string; text: string; tags: string[] };
+  aboutSlide: { title: string; subtitle: string; text: string; tags: string[]; showProjects?: boolean };
   /** Off keeps each layout's own detail positions and hides position controls. */
   advancedLayout?: boolean;
   /** How the view counter reads. */
@@ -366,7 +366,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
 
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   sections: [],
-  aboutSlide: { title: "About me", subtitle: "", text: "", tags: [] },
+  aboutSlide: { title: "About me", subtitle: "", text: "", tags: [], showProjects: false },
   audioPosition: "auto",
   widgetsPosition: "auto",
   customFontUrl: "",
@@ -685,6 +685,8 @@ function loadDesignRaw(input: unknown): AboutDesign {
       tags: Array.isArray(raw.aboutSlide?.tags)
         ? [...new Set(raw.aboutSlide.tags.filter((tag): tag is string => typeof tag === "string"))].slice(0, 40)
         : [],
+      // Optional: repeat the project cards on the About page as well.
+      showProjects: raw.aboutSlide?.showProjects === true,
     },
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "side", "popup", "fixed-bottom", "hidden"] as const, "auto"),

@@ -5964,3 +5964,91 @@
   backdrop-filter: none;
   box-shadow: none;
 }
+
+/* ── slides and cards animate in ───────────────────────────────────────── */
+@keyframes lkrCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lkr-slide,
+.lkr-sections > *,
+.lkr-about-slide > *,
+.lkr-widgets-block > * {
+  animation: lkrCardIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lkr-sections > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.lkr-sections > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+.lkr-sections > *:nth-child(n + 4) {
+  animation-delay: 0.14s;
+}
+
+/* ── projects repeated on the About page ──────────────────────────────── */
+.lkr-about-projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.lkr-about-project {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.16s ease, transform 0.16s ease, background 0.16s ease;
+}
+
+.lkr-about-project:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--pv-accent, #b4bffa) 36%, transparent);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lkr-about-project img {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 9px;
+  object-fit: cover;
+}
+
+.lkr-about-project-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.lkr-about-project-copy b {
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lkr-about-project-copy small {
+  color: var(--pv-muted, #9aa3ae);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

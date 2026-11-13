@@ -85,7 +85,7 @@ export function LayoutPage() {
   return (
     <div className="tw-card-page">
       <div className="tw-layout-toolbar"><nav className="tw-workspace-tabs" aria-label="Card settings">{[["layout", "Layout"], ["style", "Appearance"], ["sections", "Sections"]].map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav></div>
-      <div className="tw-card-main">
+      <div className="tw-card-main" key={tab}>
       {tab === "layout" ? <Card>
         <CardHead
           icon="layout"
@@ -413,6 +413,8 @@ export function LayoutPage() {
                 />
               </Field>
             </div>
+
+            <div className="tw-inline-toggle tw-about-projects-toggle"><span><b>Show projects on this page</b><small>Repeat your project cards under the writing.</small></span><Toggle label="Show projects on the About slide" checked={design.aboutSlide.showProjects === true} onChange={showProjects => updateDesign({ aboutSlide: { ...design.aboutSlide, showProjects } })} /></div>
 
             <details className="tw-tag-drawer">
               <summary>

@@ -5287,3 +5287,34 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   border-color: #4a6fd6;
   box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
 }
+
+/* Buttons and dialogs share one motion language with the dashboard. */
+button,
+.btn {
+  transition:
+    transform 0.12s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+button:active,
+.btn:active {
+  transform: scale(0.98);
+}
+
+.dialog,
+.dialog--auth {
+  animation: dialogIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .btn,
+  .dialog,
+  .dialog--auth {
+    animation: none;
+    transition: none;
+  }
+}

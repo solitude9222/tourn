@@ -29,6 +29,7 @@ export function SectionEditor({
 }) {
   const { notify } = useDash();
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryKind, setLibraryKind] = useState<"anime" | "game">("anime");
   const project = section.kind === "project";
   const picks = Array.isArray(section.items) ? section.items : [];
 
@@ -203,10 +204,13 @@ export function SectionEditor({
               onChange={(event) => onChange({ title: event.target.value })}
             />
           </Field>
-          <Field label="Library" hint="Add as many animes as you like to this one section.">
+          <Field label="Library" hint="Add animes or games to this one section.">
             <div className="tw-section-library">
-              <Button icon="plus" onClick={() => setLibraryOpen(true)}>
+              <Button icon="plus" onClick={() => { setLibraryKind("anime"); setLibraryOpen(true); }}>
                 Add anime
+              </Button>
+              <Button icon="plus" onClick={() => { setLibraryKind("game"); setLibraryOpen(true); }}>
+                Add game
               </Button>
               <span className="tw-section-library-meta">
                 {picks.length} / {PICK_LIMIT} picked
@@ -253,7 +257,7 @@ export function SectionEditor({
               ))}
             </div>
           ) : (
-            <p className="tw-empty-note tw-span-2">Nothing picked yet — “Add anime” opens the library.</p>
+            <p className="tw-empty-note tw-span-2">Nothing picked yet — “Add anime” or “Add game” opens the library.</p>
           )}
 
           <Field label="Note" hint="Optional line under the picks." className="tw-span-2">
@@ -270,7 +274,7 @@ export function SectionEditor({
 
       <MediaLibrary
         open={libraryOpen}
-        kind="anime"
+        kind={libraryKind}
         onClose={() => setLibraryOpen(false)}
         onPick={(item) =>
           addPick({

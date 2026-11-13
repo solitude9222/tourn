@@ -5177,3 +5177,118 @@
   background: rgba(74, 111, 214, 0.22);
   color: #eef2ff;
 }
+
+/* ═══ motion ═══════════════════════════════════════════════════════════════
+   Subtabs, cards, rows and buttons all move. Everything is short (under
+   0.4s), uses one shared easing, and respects reduced-motion at the end. */
+@keyframes twTabIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.996);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes twRise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tw-card-main {
+  animation: twTabIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tw-card,
+.tw-stat,
+.tw-panel,
+.tw-tile,
+.tw-modal-card {
+  animation: twRise 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tw-card-main > *:nth-child(2),
+.tw-dash-grid > *:nth-child(2) {
+  animation-delay: 0.04s;
+}
+
+.tw-card-main > *:nth-child(3),
+.tw-dash-grid > *:nth-child(3) {
+  animation-delay: 0.08s;
+}
+
+.tw-card-main > *:nth-child(4),
+.tw-dash-grid > *:nth-child(4) {
+  animation-delay: 0.12s;
+}
+
+.tw-dash-grid > *:nth-child(n + 5) {
+  animation-delay: 0.16s;
+}
+
+/* Rows, options and tabs lift a hair on hover and press in on click. */
+.tw-dash :is(button, [role="tab"], .tw-row, .tw-option, .tw-layout-card, .tw-widget-card, .tw-section-add-btn) {
+  transition:
+    transform 0.14s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.tw-dash :is(button, .tw-option, .tw-layout-card):active {
+  transform: scale(0.975);
+}
+
+.tw-dash :is(.tw-row, .tw-option, .tw-widget-card, .tw-layout-card, .tw-section-add-btn):hover {
+  transform: translateY(-1px);
+}
+
+/* Subtabs get a sliding underline instead of a hard swap. */
+.tw-workspace-tabs button {
+  position: relative;
+  transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+.tw-workspace-tabs button::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tw-workspace-tabs button[aria-pressed="true"]::after {
+  opacity: 0.9;
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-card-main,
+  .tw-card,
+  .tw-stat,
+  .tw-panel,
+  .tw-tile,
+  .tw-modal-card {
+    animation: none;
+  }
+
+  .tw-dash :is(button, .tw-row, .tw-option, .tw-layout-card, .tw-widget-card) {
+    transition: none;
+    transform: none;
+  }
+}

@@ -440,6 +440,9 @@ export function LinkerPreview({
   const showLinksSlide = slideshowActive && design.slideshowLinks && links.links.some((link) => link.visible && link.url.trim());
   const showBadgesSlide = slideshowActive && design.slideshowBadges && badges.equipped.length > 0;
   const aboutSlide = design.aboutSlide ?? { title: "About me", subtitle: "", text: "", tags: [] };
+  const aboutProjects = (design.sections ?? []).filter(
+    (section) => section.kind === "project" && ((section.title ?? "").trim() || section.image),
+  );
   // The About page is authored entirely in the editor now: its own title,
   // subtitle, writing and tags. The profile bio no longer leaks in here, so
   // leaving the slide empty really does leave the page blank.
@@ -467,6 +470,30 @@ export function LinkerPreview({
               <h2 className="lkr-about-title">{aboutSlide.title || "About me"}</h2>
             {aboutSlide.subtitle ? <p className="lkr-about-sub">{aboutSlide.subtitle}</p> : null}
             {aboutSlide.text.trim() ? <p className="lkr-about-text">{aboutSlide.text}</p> : null}
+            {aboutSlide.showProjects && aboutProjects.length ? (
+              <div className="lkr-about-projects">
+                {aboutProjects.map((project) => {
+                  const body = (
+                    <>
+                      {project.image ? <img src={project.image} alt="" loading="lazy" /> : null}
+                      <span className="lkr-about-project-copy">
+                        <b>{project.title || "Untitled project"}</b>
+                        {project.subtitle ? <small>{project.subtitle}</small> : null}
+                      </span>
+                    </>
+                  );
+                  return (project.url ?? "").trim() ? (
+                    <a className="lkr-about-project" key={project.id} href={project.url} target="_blank" rel="noreferrer">
+                      {body}
+                    </a>
+                  ) : (
+                    <div className="lkr-about-project" key={project.id}>
+                      {body}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
             {aboutSlide.tags.length ? (
               <div className="lkr-about-tags">
                 {aboutSlide.tags.map((id) => {
