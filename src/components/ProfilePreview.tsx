@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
 import { DEFAULT_ABOUT_DESIGN, defaultMetadata, hexToRgba, insideMetadata, type About } from "../lib/about";
@@ -174,8 +175,13 @@ export function ProfilePreview({
     { kind: "views" as const, position: viewPosition, node: showViews ? viewsNode : null },
     { kind: "joined" as const, position: joinPosition, node: showJoined ? joinedNode : null },
   ].filter((pin) => Boolean(pin.node) && pin.position !== "hidden");
+  // Page-level details leave the card entirely: a fixed child of a tilted card
+  // would position itself against the card's transform, not the screen.
+  const pagePins = metaPins.filter((pin) => pin.position === "outside-below-left");
   const absolutePins = metaPins.filter(
-    (pin) => pin.position.startsWith("inside-") || pin.position.startsWith("outside-"),
+    (pin) =>
+      pin.position !== "outside-below-left" &&
+      (pin.position.startsWith("inside-") || pin.position.startsWith("outside-")),
   );
   const inlinePins = (position: string) =>
     metaPins
@@ -203,6 +209,19 @@ export function ProfilePreview({
       ))}
     </>
   ) : null;
+  const pagePinnedLayer =
+    pagePins.length && typeof document !== "undefined"
+      ? createPortal(
+          <span className="pv-page-meta">
+            {pagePins.map((pin) => (
+              <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
+                {pin.node}
+              </span>
+            ))}
+          </span>,
+          document.body,
+        )
+      : null;
 
   // Every size in the card is expressed against a 726px reference card, so a
   // narrower card shrinks its type, avatar and spacing with it instead of
@@ -294,6 +313,7 @@ export function ProfilePreview({
         />
       ) : null}
       {pinnedLayer}
+      {pagePinnedLayer}
       <div className="pv-body">
         {(showViews && (viewPosition === "top" || viewPosition === "top-right")) ||
         (location && (locationPosition === "top" || locationPosition === "top-right")) ||
