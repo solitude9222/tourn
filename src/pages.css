@@ -412,3 +412,60 @@
     transition: none;
   }
 }
+
+/* Store — SellAuth owns stock, prices and receipts. */
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.store-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px;
+  border: 1px solid #23242b;
+  border-radius: 18px;
+  background: #111114;
+}
+.store-card h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+.store-card p {
+  margin: 0;
+  color: #99a2b1;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.store-card .btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+.store-price {
+  color: #fff;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+.store-price small {
+  color: #8f99ab;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.store-note {
+  color: #7d8797;
+  font-size: 11.5px;
+}
+@media (max-width: 720px) {
+  .store-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .store-card {
+    padding: 20px;
+  }
+}

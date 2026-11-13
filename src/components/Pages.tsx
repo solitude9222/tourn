@@ -1,9 +1,8 @@
-import { UsernameMarket } from "./UsernameMarket";
 import { useEffect, useState, type ReactNode } from "react";
 import { api } from "../lib/backend";
 import { openSellAuthCheckout } from "../lib/sellAuth";
 import { useAuth, type Account } from "../lib/auth";
-import { ArrowRight, CheckIcon, ChevronIcon, TrophyIcon } from "./Icons";
+import { ArrowRight, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
 import "../leaderboard.css";
 import "../pages.css";
 
@@ -181,10 +180,57 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
 }
 
 export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
+  const { user, isPremiumUser } = useAuth();
+  const [shopUrl, setShopUrl] = useState<string | null>(null);
+  const [buying, setBuying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Stock, prices and receipts all live in the SellAuth store; this page only
+  // points at it and opens the Premium checkout.
+  useEffect(() => {
+    void api<{ shopUrl: string }>("/api/commerce/config").then((result) => {
+      if (result.ok && result.data.shopUrl) setShopUrl(result.data.shopUrl);
+    });
+  }, []);
+
+  const buyPremium = async () => {
+    if (!user) { onSignUp(); return; }
+    setBuying(true);
+    setError(null);
+    try {
+      await openSellAuthCheckout("premium");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Checkout is unavailable right now.");
+    } finally {
+      setBuying(false);
+    }
+  };
+
   return <section className="page marketplace-page"><div className="wrap page-head" data-reveal>
-    <h1 className="page-title">Marketplace<span className="market-title-dot">.</span></h1>
-    <p className="page-sub">A new username for your profile.</p>
-  </div><div className="wrap"><UsernameMarket onSignUp={onSignUp}/></div></section>;
+    <h1 className="page-title">Store<span className="market-title-dot">.</span></h1>
+    <p className="page-sub">Usernames, badges and Premium are sold through the tourn.lol store. Stock, prices and receipts are handled there, not here.</p>
+  </div>
+    <div className="wrap">
+      <div className="store-grid">
+        <article className="store-card" data-reveal>
+          <span className="eyebrow eyebrow--sm">PREMIUM</span>
+          <h2>One payment. Permanent.</h2>
+          <div className="store-price">$9.99 <small>once</small></div>
+          <p>Every effect, every audio style and a second profile address, attached to your account the moment the order is confirmed.</p>
+          {isPremiumUser ? <a className="btn btn-ghost" href="#/dashboard/billing">Manage Premium <ArrowRight size={14} /></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={() => void buyPremium()}>{buying ? "Opening checkout…" : "Buy Premium"} <ArrowRight size={14} /></button>}
+        </article>
+        <article className="store-card" data-reveal data-reveal-delay="60">
+          <span className="eyebrow eyebrow--sm">USERNAMES & BADGES</span>
+          <h2>Pick your name, wear your badge.</h2>
+          <p>Single-letter and special-character usernames and the badge collection are listed in the store with live stock. Checkout there and the order is tied to your tourn.lol account.</p>
+          <a className="btn btn-ghost" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">Open the store <ExternalIcon size={14} /></a>
+          {!shopUrl ? <p className="store-note">The store link appears once the shop URL is configured on the backend.</p> : null}
+        </article>
+      </div>
+      {error ? <p className="premium-buy-note" role="alert">{error}</p> : null}
+      <p className="market-purchase-note">Codes from any order can be redeemed in Dashboard → Billing if Premium or a badge does not appear on its own.</p>
+    </div>
+  </section>;
 }
 
 function PlanCards({onSignUp,onPremium,buying}:{onSignUp:()=>void;onPremium:()=>void;buying:boolean}) {

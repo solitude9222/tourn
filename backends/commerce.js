@@ -9,6 +9,8 @@ create table if not exists commerce_codes(
  created_at timestamptz not null default now()
 );
 create unique index if not exists commerce_unique_handle on commerce_codes(handle) where handle is not null;
+alter table commerce_codes drop constraint if exists commerce_codes_kind_check;
+alter table commerce_codes add constraint commerce_codes_kind_check check(kind in ('premium','username','badge'));
 create table if not exists commerce_deliveries(
  shop_id text not null, invoice_id text not null, item_id text not null, digests jsonb not null,
  primary key(shop_id,item_id)
@@ -26,7 +28,7 @@ function unseal(value,secret){const data=Buffer.from(value,'base64'),cipher=cryp
 export function commerceConfig(env=process.env){
  const id=value=>/^\d+$/.test(value||'') && Number.isSafeInteger(Number(value)) && Number(value)>0 ? Number(value) : null;
  let shopUrl='';try{const url=new URL(env.SELLAUTH_SHOP_URL);if(url.protocol==='https:'&&!url.username&&!url.password)shopUrl=url.origin;}catch{}
- return {shopId:id(env.SELLAUTH_SHOP_ID),shopUrl,products:{premium:id(env.SELLAUTH_PREMIUM_PRODUCT_ID),oneCharacter:id(env.SELLAUTH_1C_PRODUCT_ID),special:id(env.SELLAUTH_SPECIAL_PRODUCT_ID)}};
+ return {shopId:id(env.SELLAUTH_SHOP_ID),shopUrl,products:{premium:id(env.SELLAUTH_PREMIUM_PRODUCT_ID),oneCharacter:id(env.SELLAUTH_1C_PRODUCT_ID),special:id(env.SELLAUTH_SPECIAL_PRODUCT_ID),badge:id(env.SELLAUTH_BADGE_PRODUCT_ID)}};
 }
 export async function issueCommerceCode(db,kind,handle,secret){
  const code='TOURN-'+crypto.randomBytes(16).toString('hex').toUpperCase(),hash=digest(code);
@@ -38,6 +40,9 @@ export async function redeemCommerceCode(db,code,userId){
  if(item.redeemed_at){if(item.redeemed_by===userId)return {kind:item.kind,handle:item.handle};throw fail(409,'This code has already been redeemed.');}
  const user=(await db.query('select id from users where id=$1 for update',[userId])).rows[0];if(!user)throw fail(401,'Sign in again.');
  if(item.kind==='premium')await db.query('update users set premium=true,premium_lifetime=true where id=$1',[userId]);
+ else if(item.kind==='badge'){
+  await db.query("update users set badges = case when coalesce(badges,'[]'::jsonb) ? $2::text then badges else coalesce(badges,'[]'::jsonb) || to_jsonb($2::text) end where id=$1",[userId,item.handle]);
+ }
  else {
   const taken=(await db.query('select id from users where (username=$1 or alias=$1 or alias2=$1) and id<>$2 limit 1',[item.handle,userId])).rows;
   if(taken.length)throw fail(409,'This username is already claimed. Contact support with your receipt.');
@@ -59,6 +64,13 @@ export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=proc
   if(!item?.id||!payload.id||!Number.isInteger(quantity)||quantity<1||quantity>20)throw fail(400,'Invalid invoice item.');
   let kind,handle=null;
   if(config.products.premium && Number(item.product_id)===config.products.premium)kind='premium';
+  else if(config.products.badge && Number(item.product_id)===config.products.badge){
+   let badges={};try{badges=JSON.parse(env.SELLAUTH_BADGE_VARIANTS||'{}');}catch{}
+   const badge=badges[String(item.variant_id)];
+   if(!badge||Number(badge.productId)!==Number(item.product_id)||typeof badge.badge!=='string'||!/^[a-z0-9-]{1,40}$/.test(badge.badge))throw fail(400,'Unmapped badge variant.');
+   if(quantity!==1)throw fail(400,'Badges must be purchased individually.');
+   kind='badge';handle=badge.badge;
+  }
   else{let variants={};try{variants=JSON.parse(env.SELLAUTH_USERNAME_VARIANTS||'{}');}catch{}const mapping=variants[String(item.variant_id)];
    if(![config.products.oneCharacter,config.products.special].filter(Boolean).includes(Number(item.product_id))||!mapping||mapping.productId!==Number(item.product_id)||typeof mapping.handle!=='string'||[...mapping.handle].length!==1||!/^([a-z0-9]|\p{S})$/u.test(mapping.handle)||/[<>]/.test(mapping.handle))throw fail(400,'Unmapped product variant.');
    if(quantity!==1)throw fail(400,'Unique usernames must be purchased individually.');kind='username';handle=mapping.handle;
@@ -81,7 +93,7 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
  app.get('/api/commerce/config',(_req,res)=>res.set('Cache-Control','no-store').json(commerceConfig(env)));
  app.post('/api/commerce/checkout',limiter,requireAuth,wrap(async(req,res)=>{
   const config=commerceConfig(env);const kind=req.body?.kind;
-  if(!['premium','oneCharacter','special'].includes(kind))throw fail(400,'Choose a product.');
+  if(!['premium','oneCharacter','special','badge'].includes(kind))throw fail(400,'Choose a product.');
   if(!config.shopId||!config.shopUrl||!config.products[kind])throw fail(503,'The store is not open yet.');
   const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce'},secret,{algorithm:'HS256',expiresIn:'2h'});
   res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark',returnUrl:config.shopUrl?String(env.FRONTEND_URL||'https://tourn.lol').split(',')[0]+'/#/dashboard/billing':undefined});
@@ -93,8 +105,9 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
  app.get('/api/commerce/purchases',requireAuth,wrap(async(req,res)=>{const {rows}=await pool.query('select kind,handle,redeemed_at from commerce_codes where redeemed_by=$1 order by redeemed_at desc',[req.auth.sub]);res.json({purchases:rows});}));
  app.post('/api/admin/commerce/codes',limiter,requireAdmin,wrap(async(req,res)=>{
   const {kind,handle}=req.body||{};const count=Number(req.body?.count||1);
-  if(!['premium','username'].includes(kind)||!Number.isInteger(count)||count<1||count>50)throw fail(400,'Choose a reward and a count from 1 to 50.');
+  if(!['premium','username','badge'].includes(kind)||!Number.isInteger(count)||count<1||count>50)throw fail(400,'Choose a reward and a count from 1 to 50.');
+  if(kind==='badge'&&(count!==1||typeof handle!=='string'||!/^[a-z0-9-]{1,40}$/.test(handle)))throw fail(400,'Use a badge id such as founder or early-supporter.');
   if(kind==='username'&&(count!==1||typeof handle!=='string'||[...handle].length!==1||!/^([a-z0-9]|\p{S})$/u.test(handle)||/[<>]/.test(handle)))throw fail(400,'Use one letter, number or symbol per username code.');
-  const db=await pool.connect();try{await db.query('begin');if(kind==='username'){const taken=(await db.query('select id from users where username=$1 or alias=$1 or alias2=$1 limit 1',[handle])).rows;if(taken.length)throw fail(409,'This username is already claimed.');const owned=(await db.query('select owner_id from username_inventory where handle=$1',[handle])).rows[0];if(owned?.owner_id)throw fail(409,'This username is already owned.');const existing=(await db.query('select digest from commerce_codes where handle=$1',[handle])).rows;if(existing.length)throw fail(409,'A code already exists for this username.');}const codes=[];for(let n=0;n<count;n++)codes.push((await issueCommerceCode(db,kind,kind==='username'?handle:null,secret)).code);await db.query('commit');res.json({codes});}catch(error){await db.query('rollback');throw error;}finally{db.release();}
+  const db=await pool.connect();try{await db.query('begin');if(kind==='username'){const taken=(await db.query('select id from users where username=$1 or alias=$1 or alias2=$1 limit 1',[handle])).rows;if(taken.length)throw fail(409,'This username is already claimed.');const owned=(await db.query('select owner_id from username_inventory where handle=$1',[handle])).rows[0];if(owned?.owner_id)throw fail(409,'This username is already owned.');const existing=(await db.query('select digest from commerce_codes where handle=$1',[handle])).rows;if(existing.length)throw fail(409,'A code already exists for this username.');}const codes=[];for(let n=0;n<count;n++)codes.push((await issueCommerceCode(db,kind,kind==='username'||kind==='badge'?handle:null,secret)).code);await db.query('commit');res.json({codes});}catch(error){await db.query('rollback');throw error;}finally{db.release();}
  }));
 }
