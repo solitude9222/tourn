@@ -326,7 +326,11 @@ export function LinkerPreview({
   );
 
   const requestedAudioPosition = design.audioPosition === "hidden" ? "hidden" : assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
-  const audioPosition = design.layout === "stacked" && requestedAudioPosition === "inside" ? "below" : design.layout !== "left" && requestedAudioPosition === "side" ? "below" : requestedAudioPosition;
+  // A slideshow replaces the card body on every slide, so a player living
+  // inside the card would only exist on the first one. Lift it under the card
+  // instead and it stays on screen across slides.
+  const slideshowCards = design.slideshow === true || design.cardStyle === "slide";
+  const audioPosition = (design.layout === "stacked" || slideshowCards) && requestedAudioPosition === "inside" ? "below" : design.layout !== "left" && requestedAudioPosition === "side" ? "below" : requestedAudioPosition;
   const requestedWidgetsPosition = design.widgetsPosition ?? "auto";
   const widgetsPosition = requestedWidgetsPosition === "auto" ? (design.layout === "stacked" ? "below" : "inside") : requestedWidgetsPosition;
   // Stacked has always kept widgets under the card; preserve that even when a
@@ -436,10 +440,18 @@ export function LinkerPreview({
   const showLinksSlide = slideshowActive && design.slideshowLinks && links.links.some((link) => link.visible && link.url.trim());
   const showBadgesSlide = slideshowActive && design.slideshowBadges && badges.equipped.length > 0;
   const aboutSlide = design.aboutSlide ?? { title: "About me", subtitle: "", text: "", tags: [] };
+  // The About page is authored entirely in the editor now: its own title,
+  // subtitle, writing and tags. The profile bio no longer leaks in here, so
+  // leaving the slide empty really does leave the page blank.
   const showAboutSlide =
     slideshowActive &&
     design.slideshowAbout &&
-    Boolean(about.bio.trim() || aboutSlide.text.trim() || aboutSlide.tags.length);
+    Boolean(
+      aboutSlide.title.trim() ||
+        aboutSlide.subtitle.trim() ||
+        aboutSlide.text.trim() ||
+        aboutSlide.tags.length,
+    );
 
   // A slideshow must open on its first page; without this a restored scroll
   // position or a late layout shift can leave the card's top above the fold.
@@ -452,12 +464,9 @@ export function LinkerPreview({
       {showAboutSlide ? (
         <div className="lkr-slide">
           <section className="lkr-slide-panel lkr-about-slide">
-            <span className="lkr-slide-label">About me</span>
-            <h2 className="lkr-about-title">{aboutSlide.title || "About me"}</h2>
+              <h2 className="lkr-about-title">{aboutSlide.title || "About me"}</h2>
             {aboutSlide.subtitle ? <p className="lkr-about-sub">{aboutSlide.subtitle}</p> : null}
-            {about.bio.trim() || aboutSlide.text.trim() ? (
-              <p className="lkr-about-text">{aboutSlide.text.trim() || about.bio}</p>
-            ) : null}
+            {aboutSlide.text.trim() ? <p className="lkr-about-text">{aboutSlide.text}</p> : null}
             {aboutSlide.tags.length ? (
               <div className="lkr-about-tags">
                 {aboutSlide.tags.map((id) => {

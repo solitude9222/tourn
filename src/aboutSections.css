@@ -28,7 +28,8 @@
 }
 
 .lkr-showcase--project {
-  grid-column: 1 / -1;
+  /* Projects share the grid so several sit side by side. */
+  grid-column: auto;
 }
 
 .lkr-showcase:hover {
@@ -253,7 +254,8 @@
 }
 
 .lkr-sections:has(.lkr-showcase--interest) .lkr-showcase--project {
-  grid-column: 1 / -1;
+  /* Projects share the grid so several sit side by side. */
+  grid-column: auto;
 }
 
 @media (max-width: 700px) {
@@ -607,4 +609,28 @@
 .lkr-interest-copy b,
 .lkr-interest-copy small {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 4px 14px rgba(0, 0, 0, 0.55);
+}
+
+/* Projects sit side by side, like the reference — two per row at card width,
+   three when the page is wide. A lone project keeps its centred 540px card. */
+.lkr-sections {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.lkr-sections--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lkr-sections:has(.lkr-showcase--interest) {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+/* Minimal tooltips are text only: nothing is allowed to paint a shelf, panel
+   or shadow behind the bubble. */
+.tt--minimal,
+.tt--minimal .tt-in {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
