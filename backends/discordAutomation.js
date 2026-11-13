@@ -185,7 +185,14 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   add('gateway','Gateway socket connected',Boolean(client?.isReady()),client?.isReady()?'Connected.':'Not connected — posts and DMs still go over REST, but role sync waits for it.',true);
   return {ok:report.every(item=>item.ok||item.optional),report};
  }
- return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose};
+ /* Who a snowflake actually is, so a reset can say the exact handle it sent to
+     (or that the ID is not linked to anything). */
+ async function discordUser(id){
+  if(!snowflake(String(id||'')))return null;
+  const data=await rawRest('GET',`/users/${id}`);
+  return data?{id:String(data.id),username:data.username,globalName:data.global_name||null}:null;
+ }
+ return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser};
 }
 export function registerDiscordAutomation(app,service,requireAdmin){
  app.get('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{res.json({...(await service.inspect(req.query.guildId)),config:await service.config()});}catch(error){res.status(503).json({error:error.message});}});

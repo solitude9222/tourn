@@ -1148,8 +1148,19 @@ app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
     const user = rows[0];
     // Be explicit about why nothing arrived — silently answering "ok" left
     // people with no idea whether the email, the link or the bot was at fault.
-    if (!user)
-      return res.json({ ok: true, delivered: false, reason: "No account uses that email or Discord ID. Check the spelling, or create an account." });
+    if (!user) {
+      // Name the account behind the ID so a typo (or a stranger's ID) is obvious
+      // instead of looking like the bot messaged somebody at random.
+      let stranger = null;
+      if (isDiscordId) stranger = await discordAutomation.discordUser(identifier).catch(() => null);
+      return res.json({
+        ok: true,
+        delivered: false,
+        reason: stranger
+          ? `That ID belongs to @${stranger.username} on Discord, but no tourn.lol account is linked to it. Sign in with Discord once, then try again.`
+          : "No account uses that email or Discord ID. Check the spelling, or create an account.",
+      });
+    }
     if (!user.discord_id)
       return res.json({
         ok: true,
@@ -1176,7 +1187,17 @@ app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
       `tourn.lol — your password reset code is ${code}. It expires in 15 minutes. If you didn't ask for this, ignore this message; your password stays the same.`,
     );
     if (!sent) console.warn(`[tourn] password reset DM failed for user ${user.id}: ${sendDiscordDm.lastError}`);
-    res.json({ ok: true, delivered: Boolean(sent), reason: sent ? "" : sendDiscordDm.lastError });
+    // Only claim it was sent when the DM actually went through, and name the
+    // handle it reached so there is no doubt about the recipient.
+    if (!sent) {
+      return res.json({
+        ok: true,
+        delivered: false,
+        reason: sendDiscordDm.lastError || "Discord did not accept the DM.",
+      });
+    }
+    const target = await discordAutomation.discordUser(user.discord_id).catch(() => null);
+    res.json({ ok: true, delivered: true, discordUsername: target?.username || null });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
