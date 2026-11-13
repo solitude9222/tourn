@@ -587,3 +587,24 @@
   height: 13px;
   object-fit: contain;
 }
+
+/* ── interests: no chrome over the artwork ────────────────────────────────
+   No "Interest" badge top-left, no meta pills, and no black gradient at the
+   bottom — the title and its line sit straight on the poster. */
+.lkr-showcase--interest .lkr-showcase-kind,
+.lkr-showcase--interest .lkr-showcase-meta-row {
+  display: none;
+}
+
+.lkr-interest-art::after {
+  background: none;
+}
+
+.lkr-interest-tile {
+  background: transparent;
+}
+
+.lkr-interest-copy b,
+.lkr-interest-copy small {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 4px 14px rgba(0, 0, 0, 0.55);
+}
