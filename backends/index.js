@@ -961,7 +961,8 @@ app.post("/api/billing/portal", billingLimiter, requireAuth, async (req, res) =>
 app.use(express.json({ limit: "256kb" }));
 
 registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limiter:billingLimiter,jwt,secret:JWT_SECRET,invalidate:()=>profilePageCache.clear()});
-app.use(["/api/market/usernames","/api/market/checkout","/api/admin/usernames"],(_req,res)=>res.status(410).json({error:"Products, prices and stock are managed in SellAuth."}));
+// Exact paths only: app.use() would also swallow /api/admin/usernames/claim.
+app.all(["/api/market/usernames","/api/market/checkout","/api/admin/usernames"],(_req,res)=>res.status(410).json({error:"Products, prices and stock are managed in SellAuth."}));
 registerUsernameMarket(app, {pool, stripe, requireAuth, requireAdmin, limiter:billingLimiter, origin:CANONICAL_FRONTEND_ORIGIN, invalidate:()=>profilePageCache.clear()});
 registerTradeRoutes(app, {pool, requireAuth, limiter:billingLimiter});
 

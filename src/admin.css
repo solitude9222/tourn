@@ -2335,3 +2335,145 @@
   text-align: center;
   text-transform: lowercase;
 }
+
+/* ── admin spacing pass ───────────────────────────────────────────────────
+   Brought onto the 4/8/12/16/24/32 scale used by the profile reference:
+   roomier panels, 12–14px type, 34px controls and real section blocks,
+   instead of the old 9.5px mono hints crammed edge to edge. */
+.adm-panel {
+  padding: 20px;
+  border-radius: 18px;
+}
+
+.adm-panel-head {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  gap: 8px;
+}
+
+.adm-panel-head h2 {
+  font-size: 14px;
+  letter-spacing: -0.015em;
+}
+
+.adm-hint {
+  color: #8f97a6;
+  font-family: inherit;
+  font-size: 11.5px;
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+.adm-panel-copy {
+  margin-bottom: 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.adm-action {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.adm-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.adm-action--primary {
+  border-color: #eef1ff;
+  background: #eef1ff;
+  color: #10131c;
+}
+
+.adm-action--primary:hover:not(:disabled) {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #10131c;
+}
+
+.adm-field {
+  gap: 6px;
+  font-size: 12px;
+}
+
+/* sections inside one panel */
+.adm-block + .adm-block {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--adm-line-soft);
+}
+
+.adm-block-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.adm-block-head b {
+  color: #f5f7fa;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.adm-block-head small {
+  color: #8f97a6;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.adm-claim-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.adm-claim-input {
+  width: 48px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--adm-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: lowercase;
+}
+
+.adm-claim-input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.adm-claim-input:focus-visible {
+  outline: none;
+  border-color: rgba(180, 191, 250, 0.6);
+  box-shadow: 0 0 0 3px rgba(180, 191, 250, 0.12);
+}
+
+.adm-note {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #9aa3b2;
+}
+
+.adm-note.is-ok {
+  color: #86efac;
+}
+
+.adm-note.is-error {
+  color: #fca5a5;
+}
+
+.adm-serial-row {
+  gap: 8px;
+  flex-wrap: wrap;
+}
