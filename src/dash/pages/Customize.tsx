@@ -281,7 +281,7 @@ function AudioSettingsCard() {
 </div></div>
 
       {audio.style === "popup" || about.design.audioPosition === "popup" ? <div className="tw-popup-settings"><h3>Popup appearance</h3><div className="tw-audio-settings-grid"><div className="tw-stack">
-        <Field label="Popup corner"><Select value={audio.popupSide} options={[{value:"left",label:"Top left"},{value:"right",label:"Top right"}]} onChange={(popupSide) => updateAudio({ popupSide: popupSide as "left" | "right" })} /></Field>
+        <Field label="Popup corner" hint="Where the player sits on the page."><Select value={audio.popupSide} options={[{value:"left",label:"Top left"},{value:"right",label:"Top right"},{value:"bottom-left",label:"Bottom left"},{value:"bottom-right",label:"Bottom right"}]} onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })} /></Field>
         <Slider label="Music icon size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
 
 

@@ -5,6 +5,10 @@ import type { TooltipAnimation, TooltipStyle } from "../lib/links";
 /** How long the pointer has to rest on the element before the bubble opens. */
 const OPEN_DELAY = 220;
 
+/* Only one bubble may be open at a time. Moving from an avatar straight onto a
+   badge could otherwise leave the first shelf on screen beside the second. */
+let activeHide: (() => void) | null = null;
+
 /**
  * A hover tooltip. It sits centred directly above the element it belongs to
  * (with a small gap), and flips below the element when there is no room above,
@@ -47,6 +51,7 @@ export function Tooltip({
     clearTimeout(frame.current);
     setOpen(false);
     setMounted(false);
+    if (activeHide === hide) activeHide = null;
   }, []);
 
   // Measure after the bubble is in the DOM but before the browser paints, so
@@ -128,8 +133,9 @@ export function Tooltip({
     () => () => {
       clearTimeout(openTimer.current);
       if (frame.current !== undefined) clearTimeout(frame.current);
+      if (activeHide === hide) activeHide = null;
     },
-    [],
+    [hide],
   );
 
   if (!text) return <>{children}</>;
@@ -137,6 +143,9 @@ export function Tooltip({
   const enter = () => {
     clearTimeout(openTimer.current);
     clearTimeout(frame.current);
+    // Close whatever else was open before this bubble takes over.
+    if (activeHide && activeHide !== hide) activeHide();
+    activeHide = hide;
     openTimer.current = setTimeout(() => {
       if (!wrapRef.current?.matches(":hover") || document.hidden) return;
       setMounted(true);

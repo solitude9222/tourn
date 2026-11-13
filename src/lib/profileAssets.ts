@@ -171,7 +171,7 @@ export type AudioSettings = {
   startMuted: boolean;
   loop: boolean;
   playbackRate: number;
-  popupSide: "left" | "right";
+  popupSide: "left" | "right" | "bottom-left" | "bottom-right";
   popupSize: number;
   popupColor: string;
   popupBackground: string;
@@ -568,7 +568,7 @@ function loadAudio(value: unknown): AudioSettings {
       DEFAULT_PROFILE_ASSETS.audio.style,
     ),
     volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
-    popupSide: choiceIn(raw.popupSide, ["left", "right"], "left"), popupSize: numberIn(raw.popupSize, 42, 28, 64), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
+    popupSide: choiceIn(raw.popupSide, ["left", "right", "bottom-left", "bottom-right"], "left"), popupSize: numberIn(raw.popupSize, 42, 28, 64), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
     fileUrl: textIn(raw.fileUrl, DEFAULT_PROFILE_ASSETS.audio.fileUrl, 8_500_000),
     coverUrl: textIn(raw.coverUrl, "", 2_500_000),
     title: textIn(raw.title, DEFAULT_PROFILE_ASSETS.audio.title, 80),

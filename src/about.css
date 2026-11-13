@@ -4974,6 +4974,8 @@
 .lkr-stacked-group--tilt { transform:perspective(1400px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); transition:transform var(--tilt-ease,0ms) cubic-bezier(.22,1,.36,1); transform-style:preserve-3d; }
 .lkr-popup-audio { position:absolute; top:var(--popup-offset,20px); left:var(--popup-offset,20px); right:auto; z-index:20; width:auto; max-width:calc(100% - 16px); padding:0; border:0; border-radius:0; background:transparent; backdrop-filter:none; box-shadow:none; }
 .lkr-popup-audio--right { right:var(--popup-offset,20px); left:auto; }
+.lkr-popup-audio--bottom-left { top:auto; bottom:var(--popup-offset,20px); left:var(--popup-offset,20px); right:auto; }
+.lkr-popup-audio--bottom-right { top:auto; bottom:var(--popup-offset,20px); right:var(--popup-offset,20px); left:auto; }
 .profile-overlay--dotted { background-image:radial-gradient(circle,var(--overlay-color,#fff) .65px,transparent .9px); background-size:6px 6px; }
 
 

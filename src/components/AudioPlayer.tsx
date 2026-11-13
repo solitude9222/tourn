@@ -334,6 +334,10 @@ export function AudioPlayer({
     );
   }
 
+  // 0% player opacity means off. Rendering nothing is the only way a fully
+  // transparent player cannot leave a ghost frame, border or icon behind.
+  if (settings.cardOpacity <= 0.005) return null;
+
   if (settings.style === "popup") {
     return       <div
         ref={musicTilt.ref}

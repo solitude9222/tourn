@@ -2445,3 +2445,42 @@
 .tw-foot-note.is-error {
   color: #fca5a5;
 }
+
+/* Popup appearance sits in the right column, directly under Colours &
+   transparency, instead of stretching across the page below both columns. */
+.tw-popup-settings {
+  margin-top: 22px;
+  margin-left: calc(50% + 16px);
+  padding-top: 18px;
+  padding-left: 24px;
+  border-top: 0;
+  border-left: 1px solid var(--border);
+}
+
+.tw-popup-settings h3 {
+  margin: 0 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--nav);
+}
+
+.tw-popup-settings .tw-audio-settings-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.tw-popup-settings .tw-audio-colors {
+  padding-left: 0;
+  border-left: 0;
+}
+
+@media (max-width: 700px) {
+  .tw-popup-settings {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
