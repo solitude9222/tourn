@@ -90,7 +90,9 @@ export function faviconUrlFor(input: string): string {
   try {
     const host = new URL(href).hostname.replace(/^www\./i, "");
     if (!host || !host.includes(".")) return "";
-    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+    // DuckDuckGo serves the site's own icon directly; Google's service 404s
+    // for small shops and then redirects to a gstatic URL that also 404s.
+    return `https://icons.duckduckgo.com/ip3/${host}.ico`;
   } catch {
     return "";
   }

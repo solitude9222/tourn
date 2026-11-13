@@ -517,3 +517,23 @@
 .ap-popup-glyph svg { width: 48%; height: 48%; }
 .ap-popup-state { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(6, 8, 12, 0.42); color: #fff; }
 .ap-popup-state svg { width: 46%; height: 46%; }
+
+/* A failed track says so instead of showing a dead play button. */
+.ap-load-error {
+  display: block;
+  margin: 8px 12px 0;
+  color: #f0a2a2;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.ap-load-error--popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  margin: 0;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: rgba(20, 12, 14, 0.9);
+  white-space: nowrap;
+}

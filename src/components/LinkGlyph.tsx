@@ -26,15 +26,24 @@ export function LinkGlyph({
     setSrc(iconUrl ?? "");
   }, [iconUrl]);
 
-  // Google's favicon service occasionally has no icon for a domain. When that
-  // happens, try the site's own icon through DuckDuckGo before falling back to
-  // the generic platform mark.
-  const fallback =
-    iconUrl && iconUrl.includes("google.com/s2/favicons")
-      ? iconUrl
-          .replace("https://www.google.com/s2/favicons?domain=", "https://icons.duckduckgo.com/ip3/")
-          .replace(/&sz=\d+/, ".ico")
-      : "";
+  // Old saves still point at Google/gstatic favicon URLs, and those 404 for a
+  // lot of small shops. Rewrite them to the site's own icon on DuckDuckGo, then
+  // fall back to the platform mark if even that fails.
+  const toSiteIcon = (url: string): string => {
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.endsWith("gstatic.com") || parsed.hostname.includes("google.")
+        ? parsed.searchParams.get("url")
+          ? new URL(parsed.searchParams.get("url") as string).hostname
+          : parsed.searchParams.get("domain")
+        : null;
+      return host ? `https://icons.duckduckgo.com/ip3/${host}.ico` : url;
+    } catch {
+      return url;
+    }
+  };
+
+  const fallback = iconUrl ? toSiteIcon(iconUrl) : "";
 
   if (src) {
     return (

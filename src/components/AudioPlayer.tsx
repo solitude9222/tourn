@@ -87,6 +87,9 @@ export function AudioPlayer({
   const artist = settings.artist.trim();
   const cover = settings.coverUrl.trim() || null;
   const hasTrack = Boolean(settings.fileUrl);
+  // A track can outlive its upload (re-deploy, deleted row). Say so instead of
+  // presenting a play button that silently does nothing.
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const cardStyle = {
     "--ap-opacity": settings.cardOpacity,
@@ -263,7 +266,12 @@ export function AudioPlayer({
     <audio
       ref={audioRef}
       src={settings.fileUrl}
-      preload="metadata"
+      preload="auto"
+      onError={() => {
+        setLoadFailed(true);
+        console.warn("[tourn] audio failed to load", settings.fileUrl);
+      }}
+      onCanPlay={() => setLoadFailed(false)}
       loop={settings.loop}
       onPlay={() => setPlaying(true)}
       onPause={() => setPlaying(false)}
@@ -345,6 +353,7 @@ export function AudioPlayer({
         onPointerLeave={tilt > 0 ? musicTilt.onPointerLeave : undefined}
         className={`ap-popup${tilt > 0 ? " has-tilt" : ""} ap-edge-${settings.edgeEffect}`} style={{ "--ap-edge-color":settings.edgeColor,"--ap-edge-speed":`${settings.edgeSpeed}s`, "--popup-size": `${settings.popupSize}px`, "--popup-color": settings.popupColor, "--popup-background": settings.popupBackground, "--popup-opacity": settings.cardOpacity, "--popup-bar-width": `${settings.popupBarWidth}px`, "--popup-duration": `${settings.popupDuration}ms`, "--popup-volume": `${volume * 100}%` } as CSSProperties}>
       {audioEl}
+      {loadFailed ? <span className="ap-load-error ap-load-error--popup" role="status">Track unavailable</span> : null}
       <button className={`ap-popup-icon${settings.coverUrl ? " has-cover" : ""}`} type="button" aria-label={!playing ? "Play music" : muted ? "Unmute music" : "Mute music"} onClick={() => { if (!playing) togglePlay(); else setMuted(!muted); }}>
         {settings.coverUrl ? <img className="ap-popup-cover" src={settings.coverUrl} alt="" /> : null}
         <span className={settings.coverUrl ? "ap-popup-state" : "ap-popup-glyph"}>
@@ -371,6 +380,7 @@ export function AudioPlayer({
         style={cardStyle}
       >
         {audioEl}
+        {loadFailed ? <span className="ap-load-error" role="status">Track unavailable — re-upload it in Customise</span> : null}
         <div className="ap-pill">
           <span className="ap-cover ap-pill-cover">{coverNode}</span>
           <span className="ap-pill-viewport" ref={pillViewport}>
@@ -420,6 +430,7 @@ export function AudioPlayer({
       style={cardStyle}
     >
       {audioEl}
+      {loadFailed ? <span className="ap-load-error" role="status">Track unavailable — re-upload it in Customise</span> : null}
       <div className="ap-row">
         <span className="ap-cover">{coverNode}</span>
         <div className="ap-meta">
