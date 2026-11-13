@@ -170,7 +170,7 @@ export function ProfilePreview({
     metaPins
       .filter((pin) => pin.position === position)
       .map((pin) => (
-        <span key={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
+        <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
           {pin.node}
         </span>
       ));
@@ -184,7 +184,7 @@ export function ProfilePreview({
           {absolutePins
             .filter((pin) => pin.position === position)
             .map((pin) => (
-              <span key={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.position} pv-pin--${pin.kind}`}>
+              <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.position} pv-pin--${pin.kind}`}>
                 {pin.node}
               </span>
             ))}
@@ -313,6 +313,7 @@ export function ProfilePreview({
             ) : null}
           </span>
           {inlinePins("beside-avatar")}
+
           {/* The reference header: picture on the left, and everything that
               identifies the person (name, handle, badges, bio) stacked in the
               column beside it. */}
@@ -345,9 +346,17 @@ export function ProfilePreview({
               {inlinePins("next-to-handle")}
             </div>
 
-            {showJoined && joinPosition === "under-name" ? <span className="pv-joined-inline">{joinedNode}</span> : null}
-            {locationPosition === "under-name" ? locationPill : null}
-            {viewPosition === "under-name" ? viewsNode : null}
+            {(showJoined && joinPosition === "under-name") ||
+            (location && locationPosition === "under-name") ||
+            (showViews && viewPosition === "under-name") ? (
+              <div className="pv-under-name">
+                {showJoined && joinPosition === "under-name" ? (
+                  <span className="pv-joined-inline" data-meta="joined">{joinedNode}</span>
+                ) : null}
+                {location && locationPosition === "under-name" ? <span data-meta="location">{locationPill}</span> : null}
+                {showViews && viewPosition === "under-name" ? <span data-meta="views">{viewsNode}</span> : null}
+              </div>
+            ) : null}
 
             <div
               className={`pv-bio${bio ? "" : " is-empty"}${

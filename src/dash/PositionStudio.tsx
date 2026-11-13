@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import type { AboutLayout, MetadataPosition } from "../lib/about";
 import { Field, Select } from "./ui";
 import "./positionStudio.css";
@@ -104,6 +104,71 @@ export function PositionStudio({
   const [mode, setMode] = useState<"preview" | "dropdowns">("preview");
   const [active, setActive] = useState<FieldId | null>(null);
   const [dragging, setDragging] = useState<FieldId | null>(null);
+
+  /* The real details on the card become handles you can drag into a slot. */
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [handles, setHandles] = useState<{ field: FieldId; label: string; left: number; top: number; width: number; height: number }[]>([]);
+  const [draggingMeta, setDraggingMeta] = useState<FieldId | null>(null);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const measure = () => {
+      const host = stage.querySelector(".pos-real-card");
+      if (!host) return;
+      const stageBox = stage.getBoundingClientRect();
+      const next: typeof handles = [];
+      ([
+        { field: "views" as const, label: "Views" },
+        { field: "location" as const, label: "Location" },
+        { field: "join" as const, label: "Joined" },
+      ]).forEach((entry) => {
+        const element = host.querySelector<HTMLElement>(`[data-meta="${entry.field}"]`);
+        if (!element) return;
+        const box = element.getBoundingClientRect();
+        if (!box.width || !box.height) return;
+        next.push({
+          field: entry.field,
+          label: entry.label,
+          left: box.left - stageBox.left,
+          top: box.top - stageBox.top,
+          width: box.width,
+          height: box.height,
+        });
+      });
+      setHandles((previous) =>
+        previous.length === next.length &&
+        previous.every((handle, index) =>
+          handle.field === next[index].field &&
+          Math.abs(handle.left - next[index].left) < 0.5 &&
+          Math.abs(handle.top - next[index].top) < 0.5 &&
+          Math.abs(handle.width - next[index].width) < 0.5 &&
+          Math.abs(handle.height - next[index].height) < 0.5,
+        )
+          ? previous
+          : next,
+      );
+    };
+    measure();
+    const timer = window.setTimeout(measure, 350);
+    window.addEventListener("resize", measure);
+    const observer = new MutationObserver(measure);
+    observer.observe(stage, { subtree: true, childList: true, characterData: true });
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-measure on every card change
+  }, [viewPosition, locationPosition, joinPosition]);
+
+  const dropMeta = (field: FieldId, event: ReactPointerEvent) => {
+    setDraggingMeta(null);
+    const target = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+    const zoneElement = target?.closest<HTMLElement>(".pos-zone[data-position]");
+    const position = zoneElement?.dataset.position as MetadataPosition | undefined;
+    if (position && ZONES.some((entry) => entry.id === position)) place(field, position);
+  };
 
   // The side rail only exists on the Left layout; everywhere else that value
   // is drawn in the footer, so the dropdown must show where it really lands.
@@ -236,11 +301,31 @@ export function PositionStudio({
           </div>
 
           <div className={`pos-studio-canvas${dragging ? " is-dragging" : ""}`}>
-            <div className="pos-studio-stage">
+            <div className="pos-studio-stage" ref={stageRef}>
             <div className="pos-outside-layer">{OUTSIDE_ZONES.map(zone)}</div>
 
             <div className="pos-studio-card">
               <div className="pos-real-card" aria-hidden="true">{preview}</div>
+              {mode === "preview" && handles.map((handle) => (
+                <div
+                  key={handle.field}
+                  className={`pos-drag${draggingMeta === handle.field ? " is-dragging" : ""}`}
+                  style={{ left: handle.left, top: handle.top, width: handle.width, height: handle.height }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Drag ${handle.label} to another slot`}
+                  title={`Drag ${handle.label}`}
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setDraggingMeta(handle.field);
+                    setActive(handle.field);
+                  }}
+                  onPointerUp={(event) => dropMeta(handle.field, event)}
+                  onPointerCancel={() => setDraggingMeta(null)}
+                >
+                  <span>{handle.label}</span>
+                </div>
+              ))}
 
               <div className="pos-corner-layer">{CORNER_ZONES.map(zone)}</div>
               <div className="pos-slot-grid">{CARD_ZONES.map(zone)}</div>

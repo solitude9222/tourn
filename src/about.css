@@ -5382,3 +5382,29 @@
   gap: 8px;
   z-index: 4;
 }
+
+/* Joined, location and views share one row under the name, aligned to the name. */
+.pv-under-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+  margin-top: calc(9px * var(--pv-scale, 1));
+}
+.pv-under-name > span {
+  display: inline-flex;
+  align-items: center;
+}
+.profile-preview[data-name="left"] .pv-under-name { justify-content: flex-start; }
+.profile-preview[data-name="right"] .pv-under-name { justify-content: flex-end; }
+
+/* Inside slots use the card's own padding so they line up with the content. */
+.pv-pin--inside-top-left,
+.pv-pin-group--inside-top-left { top: calc(var(--pv-pad, 32px) * 0.5); left: calc(var(--pv-pad, 32px) * 0.6); }
+.pv-pin--inside-top-right,
+.pv-pin-group--inside-top-right { top: calc(var(--pv-pad, 32px) * 0.5); right: calc(var(--pv-pad, 32px) * 0.6); }
+.pv-pin--inside-bottom-left,
+.pv-pin-group--inside-bottom-left { bottom: calc(var(--pv-pad, 32px) * 0.5); left: calc(var(--pv-pad, 32px) * 0.6); }
+.pv-pin--inside-bottom-right,
+.pv-pin-group--inside-bottom-right { bottom: calc(var(--pv-pad, 32px) * 0.5); right: calc(var(--pv-pad, 32px) * 0.6); }

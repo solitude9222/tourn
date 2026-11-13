@@ -412,3 +412,33 @@
   max-width: 100%;
   margin-inline: auto;
 }
+
+/* Draggable handles sitting exactly on the card's real details. */
+.pos-drag {
+  position: absolute;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(168, 224, 255, 0.75);
+  border-radius: 8px;
+  background: rgba(14, 22, 32, 0.55);
+  color: #d7ecff;
+  font-size: 8.5px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.pos-drag:hover {
+  border-color: rgba(168, 224, 255, 0.95);
+  background: rgba(24, 40, 58, 0.7);
+}
+.pos-drag.is-dragging {
+  cursor: grabbing;
+  opacity: 0.45;
+}
+.pos-corner-layer,
+.pos-slot-grid {
+  z-index: 25;
+}
