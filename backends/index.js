@@ -2241,14 +2241,22 @@ if (hasStaticBuild) {
       index: false,
       maxAge: "1h",
       setHeaders: (res, filePath) => {
-        if (filePath.endsWith(".html")) res.set("Cache-Control", "no-cache");
+        // HTML must never be cached: a deploy renames every hashed chunk, and a
+        // cached page would keep asking for chunks that no longer exist.
+        if (filePath.endsWith(".html")) res.set("Cache-Control", "no-store, max-age=0");
+        else if (filePath.includes(`${path.sep}assets${path.sep}`)) res.set("Cache-Control", "public, max-age=31536000, immutable");
       },
     }),
   );
 }
 
 app.use((req, res) => {
-  if (hasStaticBuild && req.method === "GET" && !req.path.startsWith("/api/")) {
+  // Only real page navigations fall back to the SPA. Answering a missing
+  // /assets/*.js with index.html is what made dynamic imports fail with
+  // "Failed to fetch dynamically imported module" after a deploy.
+  const isPage = req.method === "GET" && req.accepts("html") && !req.path.startsWith("/api/") && !path.extname(req.path);
+  if (hasStaticBuild && isPage) {
+    res.set("Cache-Control", "no-store, max-age=0");
     return res.sendFile(path.join(distDir, "index.html"));
   }
   res.status(404).json({ error: "Not found." });
