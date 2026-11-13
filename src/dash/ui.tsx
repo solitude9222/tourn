@@ -808,6 +808,35 @@ export function ColorField({
     rgbToHsv(hexToRgb(value) ?? { r: 0, g: 0, b: 0 }),
   );
   const rootRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const [placement, setPlacement] = useState({ top: 0, left: 0, up: false, ready: false });
+
+  // Cards and panels scroll, so an absolutely positioned popup gets clipped at
+  // their edges. Measure the field and pin the popup to the viewport instead,
+  // flipping above the field when there is no room below.
+  useEffect(() => {
+    if (!open) return;
+    let frame = 0;
+    const place = () => {
+      const anchor = rootRef.current;
+      if (!anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      const width = popRef.current?.offsetWidth || 184;
+      const height = popRef.current?.offsetHeight || 208;
+      const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - width - 8));
+      const up = rect.bottom + height + 12 > window.innerHeight && rect.top - height - 12 > 8;
+      setPlacement({ top: up ? rect.top - height - 8 : rect.bottom + 8, left, up, ready: true });
+    };
+    place();
+    frame = window.requestAnimationFrame(place);
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [open]);
 
   useEffect(() => {
     const rgb = hexToRgb(value);
@@ -885,7 +914,11 @@ export function ColorField({
       </span>
 
       {open ? (
-        <div className="tw-color-pop">
+        <div
+          className={`tw-color-pop${placement.up ? " is-up" : ""}`}
+          ref={popRef}
+          style={{ top: placement.top, left: placement.left, visibility: placement.ready ? "visible" : "hidden" }}
+        >
           <div
             className="tw-color-square"
             onPointerDown={(event) => {

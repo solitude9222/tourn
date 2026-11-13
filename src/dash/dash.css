@@ -5497,3 +5497,69 @@
 .tw-dash .tw-textarea {
   background: #000;
 }
+
+/* ── floating menus ──────────────────────────────────────────────────────
+   Colour pickers and dropdown panels are lifted surfaces, not black holes:
+   one step above the page so they read as "on top" instead of punched out. */
+.tw-color-pop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 140;
+  border-color: #303038;
+  background: #191920;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.62), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+
+.tw-color-pop.is-up {
+  animation-name: tw-pop-up;
+}
+
+@keyframes tw-pop-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ui-select-pop {
+  border-color: #303038;
+  background: #191920;
+}
+
+.ui-select-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ui-select-item.is-active {
+  background: rgba(74, 111, 214, 0.32);
+}
+
+/* The sidebar search was a black input inside a lighter label — the seam
+   between the two looked broken. One surface instead. */
+.tw-search {
+  height: 40px;
+  border: 1px solid #2c2c34;
+  border-radius: 12px;
+  background: #191920;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.tw-search:focus-within {
+  border-color: #4a6fd6;
+  background: #1d1d25;
+}
+
+.tw-dash .tw-search input {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.tw-dash .tw-search input::placeholder {
+  color: #7b8390;
+}
