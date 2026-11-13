@@ -24,6 +24,10 @@ import {
 import { fetchLanyard } from "./lib/api";
 import { usePolled } from "./lib/hooks";
 import { useHashRoute, profileHandleFromLocation } from "./lib/router";
+import { bridgeSwatsUrl } from "./lib/swats";
+
+// swats.bio/<name> opens the same profile page as tourn.lol/<name>.
+bridgeSwatsUrl();
 import { formatJoinDate } from "./lib/format";
 import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";

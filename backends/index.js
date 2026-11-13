@@ -1789,6 +1789,11 @@ app.get("/api/profile/:handle", async (req, res) => {
   try {
     const user = await userByHandle(req.params.handle);
     if (!user) return res.status(404).json({ error: "No profile with that handle." });
+    // swats.bio only serves Premium accounts, and then every address on the
+    // account works there — the original name as well as the second claim.
+    if (req.query.site === "swats" && !user.premium && !user.premium_lifetime && !user.is_owner) {
+      return res.status(404).json({ error: "This address is only live on swats.bio with Premium." });
+    }
     const profile = await profileRow(user.id);
     const body = {
       account: publicAccountOf(user),

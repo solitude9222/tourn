@@ -5204,3 +5204,222 @@ body:has(.dash) {
     grid-template-columns: 1fr;
   }
 }
+
+/* Inventory header */
+.inv-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(124, 140, 220, 0.13), rgba(255, 255, 255, 0.015) 55%);
+}
+.inv-avatar {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #171c28;
+  color: #dfe6f6;
+  font-size: 24px;
+  font-weight: 600;
+  flex: none;
+}
+.inv-hero-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.inv-hero-copy small {
+  color: #8090ab;
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.inv-hero-copy > b {
+  color: #fff;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.inv-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+.inv-hero-count {
+  color: #8491a8;
+  font-size: 11.5px;
+}
+.inv-hero-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.inv-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+.inv-stat {
+  display: grid;
+  gap: 2px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.inv-stat b {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+.inv-stat small {
+  color: #7f8ba3;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Inventory name rows */
+.inv-name {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+.inv-name:last-child {
+  border-bottom: 0;
+}
+.inv-name.is-active {
+  background: linear-gradient(90deg, rgba(124, 140, 220, 0.12), rgba(255, 255, 255, 0.02));
+}
+.inv-name-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #171c28;
+  color: #d6e0f4;
+  font-size: 17px;
+  font-weight: 600;
+  flex: none;
+}
+.inv-name-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.inv-name-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.inv-name-line b {
+  color: #fff;
+  font-size: 15px;
+}
+.inv-name-copy small {
+  color: #8491a8;
+  font-size: 11.5px;
+}
+.inv-name-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* Inventory badge grid */
+.inv-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.inv-badge {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.inv-badge.is-owned {
+  border-color: rgba(124, 140, 220, 0.3);
+  background: rgba(124, 140, 220, 0.08);
+}
+.inv-badge-art {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: #141822;
+  flex: none;
+}
+.inv-badge-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin-right: auto;
+}
+.inv-badge-copy b {
+  color: #fff;
+  font-size: 13px;
+}
+.inv-badge-copy small {
+  color: #8491a8;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.inv-collect {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.13);
+  border-radius: 14px;
+}
+.inv-collect-tile {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: #141822;
+  color: #6f7c94;
+  font-size: 20px;
+  font-weight: 600;
+  flex: none;
+}
+.inv-collect-copy {
+  display: grid;
+  gap: 3px;
+}
+.inv-collect-copy b {
+  color: #e6ecf8;
+  font-size: 13.5px;
+}
+.inv-collect-copy small {
+  color: #8491a8;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
