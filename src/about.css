@@ -5543,3 +5543,37 @@
   margin-inline: 0;
   text-align: center !important;
 }
+
+/* ── default details: bottom-left of the page ─────────────────────────────
+   "Out of the card" means the page's own bottom-left corner, not a row tucked
+   under the card. The pins leave the card entirely and sit on the page, in one
+   line (location | views), and stay there while the page scrolls. */
+.profile-preview .pv-pin-group--outside-below-left {
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: clamp(14px, 3vh, 24px);
+  left: clamp(16px, 3vw, 30px);
+  z-index: 20;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100vw - 40px);
+  margin: 0;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--pv-text, #fff) 12%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pv-card, #0b0f17) 78%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  white-space: nowrap;
+}
+.profile-preview .pv-pin-group--outside-below-left > .pv-pin {
+  position: static;
+  margin: 0;
+}
+.profile-preview:has(.pv-pin-group--outside-below-left) {
+  margin-bottom: 0;
+}
