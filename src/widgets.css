@@ -1931,3 +1931,31 @@
 .profile-preview .widget-card-name b {
   display: none;
 }
+
+/* Widget text is content, not decoration: the name is back, and every line gets
+   real contrast over art, gradients and light widget styles. */
+.profile-preview .widget-card-name b {
+  display: block;
+  color: #f7fafc;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.profile-preview .widget-card-handle {
+  color: #eef2f7;
+  opacity: 0.94;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.profile-preview .widget-card-chip {
+  color: #e7edf4;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.profile-preview .widget-card-copy {
+  position: relative;
+  z-index: 3;
+}
+/* A little more shade on the left, where the text lives, so a bright artwork
+   can never swallow it. */
+.profile-preview .widget-card.has-art .widget-card-scrim {
+  background:
+    linear-gradient(90deg, rgba(4, 6, 9, 0.94) 0%, rgba(4, 6, 9, 0.72) 58%, rgba(4, 6, 9, 0.32) 100%),
+    linear-gradient(180deg, rgba(4, 6, 9, 0.22), rgba(4, 6, 9, 0.46));
+}
