@@ -10,7 +10,7 @@ export const ROLE_BADGE_IDS=['owner','staff','verified','partner','donator','cod
 const snowflake=id=>typeof id==='string' && /^\d{16,20}$/.test(id);
 export function normalizeAutomation(raw={}){
  const board=raw.leaderboard && typeof raw.leaderboard==='object'?raw.leaderboard:{};
- return {enabled:raw.enabled!==false,guildId:snowflake(raw.guildId)?raw.guildId:'',rules:Array.isArray(raw.rules)?raw.rules.slice(0,50).map((rule,index)=>({id:String(rule.id||`rule-${index}`).slice(0,80),roleId:String(rule.roleId||''),badgeId:String(rule.badgeId||''),enabled:rule.enabled!==false,autoEquip:rule.autoEquip!==false})):[],leaderboard:{enabled:board.enabled===true,channelId:snowflake(board.channelId)?board.channelId:'',intervalMinutes:Math.min(1440,Math.max(15,Number(board.intervalMinutes)||60))}};
+   return {enabled:raw.enabled!==false,guildId:snowflake(raw.guildId)?raw.guildId:'',rules:Array.isArray(raw.rules)?raw.rules.slice(0,50).map((rule,index)=>({id:String(rule.id||`rule-${index}`).slice(0,80),roleId:String(rule.roleId||''),badgeId:String(rule.badgeId||''),enabled:rule.enabled!==false,autoEquip:rule.autoEquip!==false})):[],leaderboard:{enabled:board.enabled===true,channelId:snowflake(board.channelId)?board.channelId:'',messageId:snowflake(board.messageId)?board.messageId:'',intervalMinutes:Math.min(1440,Math.max(15,Number(board.intervalMinutes)||60))}};
 }
 export function matchedRoleBadges(config,member,guildId){
  if(!config.enabled || !member?.present)return {eligible:[],equip:[]};
@@ -55,20 +55,45 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   try{({rows}=await pool.query(`select u.username,u.alias,coalesce(v.views,0)::int as views from users u left join profile_views v on v.username=u.username order by views desc, u.created_at asc limit 10`));}
   catch(error){throw new Error(`Leaderboard query failed: ${error.message}`);}
   if(!rows.length) return {posted:false,reason:'There is nobody on the leaderboard yet.'};
+  // A leaderboard is only useful when it is the current one: remove the last
+  // message this bot posted in that channel before adding the new board.
+  if(snowflake(saved.leaderboard.messageId)){
+    try{await rawRest('DELETE',`/channels/${channelId}/messages/${saved.leaderboard.messageId}`);}
+    catch(error){if(error?.status!==404)console.warn('[discord] could not delete the old leaderboard',error?.status,error?.message);}
+  }
   const medals=['🥇','🥈','🥉'];
-  const description=rows.map((row,index)=>`${medals[index] || `\`${String(index+1).padStart(2,'0')}\``}  [${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)})  ·  **${Number(row.views).toLocaleString('en-US')}** views`).join('\n');
-  const embed={title:'🏆 tourn.lol leaderboard',description,url:'https://tourn.lol/leaderboard',color:0x7d9bf5,thumbnail:{url:'https://tourn.lol/logo.png'},footer:{text:'Ranked by profile views'},timestamp:new Date().toISOString()};
+  const link=row=>`[${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)})`;
+  const podium=rows.slice(0,3).map((row,index)=>({
+    name:`${medals[index]} ${row.alias || row.username}`.slice(0,256),
+    value:`**${Number(row.views).toLocaleString('en-US')}** views`.slice(0,1024),
+    inline:true,
+  }));
+  const rest=rows.slice(3).map((row,index)=>`\`${String(index+4).padStart(2,'0')}\`  ${link(row)}  ·  **${Number(row.views).toLocaleString('en-US')}** views`).join('\n');
+  const totalViews=rows.reduce((sum,row)=>sum+Number(row.views||0),0);
+  const embed={
+    title:'🏆 tourn.lol leaderboard',
+    description:rest ? `**The rest of the board**\n${rest}` : 'Top three take the board.',
+    url:'https://tourn.lol/leaderboard',
+    color:0x7d9bf5,
+    fields:podium,
+    thumbnail:{url:'https://tourn.lol/logo.png'},
+    footer:{text:`Ranked by profile views · ${rows.length} profiles · ${totalViews.toLocaleString('en-US')} views`},
+    timestamp:new Date().toISOString(),
+  };
+  let messageId='';
   try{
     // Post over REST directly: this works whether or not the gateway socket is
     // currently up, which is the usual reason a scheduled post looked dead.
-    await rawRest('POST',`/channels/${channelId}/messages`,{embeds:[embed]});
+    const created=await rawRest('POST',`/channels/${channelId}/messages`,{embeds:[embed]});
+    messageId=created?.id ? String(created.id) : '';
   }catch(error){
     console.error('[discord] leaderboard post failed',error?.status,error?.message);
     try{
       if(!client?.isReady())throw error;
       const channel=await client.channels.fetch(channelId);
       if(!channel?.isTextBased())throw error;
-      await channel.send({embeds:[embed]});
+      const sent=await channel.send({embeds:[embed]});
+      messageId=sent?.id ? String(sent.id) : '';
     }catch(fallbackError){
       const status=error?.status ?? fallbackError?.status;
       if(status===403||status===401||status===50001)throw new Error('The bot cannot post in that channel. Give it Send Messages and Embed Links, and make sure it can see the channel.');
@@ -77,7 +102,12 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
     }
   }
   lastLeaderboardAt=Date.now();
-  return {posted:true,count:rows.length};
+  // Remember the message so the next post can replace it.
+  if(messageId){
+    const next={...saved,leaderboard:{...saved.leaderboard,messageId}};
+    await writeSetting('discord_automation',JSON.stringify(next));configCache=next;configAt=Date.now();
+  }
+  return {posted:true,count:rows.length,messageId};
  }
  async function config(){if(configCache && Date.now()-configAt<15000)return configCache;let raw={};try{raw=JSON.parse(await readSetting('discord_automation','{}'));}catch{}configCache=normalizeAutomation(raw);configAt=Date.now();return configCache;}
  async function guildId(){return TOURN_GUILD_ID;}

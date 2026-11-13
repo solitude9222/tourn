@@ -5375,3 +5375,84 @@
 .tw-workspace-tabs button::after {
   transition: opacity 0.24s ease, transform 0.32s cubic-bezier(0.22, 0.72, 0.2, 1);
 }
+
+/* ── dropdown + dialog motion, disabled states ─────────────────────────── */
+@keyframes uiPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ui-select-pop {
+  transform-origin: top center;
+  animation: uiPopIn 0.16s cubic-bezier(0.22, 0.72, 0.2, 1) both;
+}
+
+.ui-select-item {
+  transition: background-color 0.14s ease, color 0.14s ease, transform 0.14s ease;
+}
+
+.ui-select-item:active {
+  transform: scale(0.985);
+}
+
+/* Disabled controls: legible, obviously inert, no hover lift. */
+.tw-dash :is(button, select, input, textarea, .tw-control):disabled,
+.tw-dash :is(button, select, input, textarea, .tw-control)[aria-disabled="true"],
+.tw-control.is-disabled,
+.ui-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: saturate(0.6);
+  transform: none !important;
+}
+
+.tw-dash :is(button, .tw-control, .ui-select):disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Modals: the body scrolls instead of clipping tall content (decorations). */
+.tw-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 16vh);
+  border-width: 1px;
+  border-color: #2a2a30;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, 0.05), transparent 46%),
+    #0f0f13;
+}
+
+.tw-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.tw-modal-head,
+.tw-modal-foot {
+  flex: none;
+}
+
+.tw-deco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* Compositor hints only where they help: a handful of cards, not every row. */
+.tw-card,
+.tw-stat,
+.tw-panel,
+.tw-tile,
+.tw-modal-card {
+  will-change: auto;
+}

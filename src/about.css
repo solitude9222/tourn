@@ -6062,3 +6062,51 @@
   animation-timing-function: cubic-bezier(0.22, 0.72, 0.2, 1);
   will-change: opacity, transform;
 }
+
+/* Badges beside the name used to get their own pill behind them — a second
+   shelf that the shelf settings never touched. */
+.profile-preview .pv-id .pv-badges {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* ── sections read as one block, not floating transparent cards ────────── */
+.lkr-sections {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 18px;
+  background: var(--pv-card, #121218);
+}
+
+.lkr-sections > * {
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.1));
+  background: transparent;
+}
+
+.lkr-sections > *:first-child {
+  border-top: 0;
+}
+
+.lkr-sections:has(.lkr-showcase--interest) {
+  padding: 0;
+}
+
+/* Long profiles: skip layout work for sections below the fold. */
+.lkr-sections > * {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px;
+}
+
+.lkr-interest-set {
+  padding: 18px 18px 20px;
+  margin: 0;
+}
