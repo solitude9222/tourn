@@ -2274,3 +2274,48 @@
 @media(max-width:600px) { .adm-automation-settings,.adm-discord-rule { grid-template-columns:1fr; }.adm-rule-arrow { display:none; } }
 
 .adm-member-tools {display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:20px;}.adm-member-tools label{display:grid;gap:6px;font-size:12px;color:#aaa;}.adm-member-tools select{background:#151515;color:#eee;border:1px solid #ffffff20;border-radius:8px;padding:9px 12px;}.adm-member-tools>span{margin-left:auto;color:#999;font-size:12px;}
+
+/* Bulk username serial generation. */
+.adm-serial-box {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: #0c0e12;
+  color: #e7ecf5;
+  font-family: var(--adm-mono, ui-monospace, monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.adm-serial-box:focus-visible {
+  outline: 2px solid rgba(180, 191, 250, 0.5);
+  outline-offset: 2px;
+}
+.adm-serial-box--out {
+  min-height: 160px;
+}
+.adm-serial-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.adm-serial-result {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.adm-serial-error {
+  margin: 10px 0 0;
+  color: #e09393;
+  font-size: 12px;
+}
+.adm-serial-skipped {
+  margin: 0;
+  padding-left: 18px;
+  color: #9aa4b5;
+  font-size: 11.5px;
+  line-height: 1.7;
+}

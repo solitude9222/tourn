@@ -1,4 +1,5 @@
 import { DiscordAutomationPanel } from "./DiscordAutomationPanel";
+import { UsernameSerialsPanel } from "./UsernameSerialsPanel";
 import { DataTransferPanel } from "./DataTransferPanel";
 import { HOME_PREVIEW_MODE_KEY, type HomePreviewMode } from "../lib/homePreview";
 import {
@@ -40,7 +41,7 @@ import {
 import { Select } from "./Select";
 import "../admin.css";
 
-type Tab = "overview" | "members" | "invites" | "settings" | "data" | "bot";
+type Tab = "overview" | "members" | "invites" | "serials" | "settings" | "data" | "bot";
 
 type RegistrationMode = "open" | "invite" | "closed";
 
@@ -97,6 +98,7 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: "overview", label: "Overview", icon: <EyeIcon size={13} /> },
   { id: "members", label: "Members", icon: <UsersIcon size={13} /> },
   { id: "invites", label: "Invites", icon: <KeyIcon size={13} /> },
+  { id: "serials", label: "Username serials", icon: <KeyIcon size={13} /> },
   { id: "settings", label: "Site settings", icon: <SettingsIcon size={13} /> },
   { id: "data", label: "Data transfer", icon: <SaveIcon size={13} /> },
   { id: "bot", label: "Discord bot", icon: <DiscordIcon size={13} /> },
@@ -1039,6 +1041,8 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
           ) : null}
         </section>
       ) : null}
+
+      {tab === "serials" ? <UsernameSerialsPanel /> : null}
 
       {tab === "invites" ? (
         <>

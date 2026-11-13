@@ -28,7 +28,13 @@ function unseal(value,secret){const data=Buffer.from(value,'base64'),cipher=cryp
 export function commerceConfig(env=process.env){
  const id=value=>/^\d+$/.test(value||'') && Number.isSafeInteger(Number(value)) && Number(value)>0 ? Number(value) : null;
  let shopUrl='';try{const url=new URL(env.SELLAUTH_SHOP_URL);if(url.protocol==='https:'&&!url.username&&!url.password)shopUrl=url.origin;}catch{}
- return {shopId:id(env.SELLAUTH_SHOP_ID),shopUrl,products:{premium:id(env.SELLAUTH_PREMIUM_PRODUCT_ID),oneCharacter:id(env.SELLAUTH_1C_PRODUCT_ID),special:id(env.SELLAUTH_SPECIAL_PRODUCT_ID),badge:id(env.SELLAUTH_BADGE_PRODUCT_ID)}};
+ return {
+  shopId:id(env.SELLAUTH_SHOP_ID),
+  shopUrl,
+  products:{premium:id(env.SELLAUTH_PREMIUM_PRODUCT_ID),oneCharacter:id(env.SELLAUTH_1C_PRODUCT_ID),special:id(env.SELLAUTH_SPECIAL_PRODUCT_ID),badge:id(env.SELLAUTH_BADGE_PRODUCT_ID)},
+  // A product with a single variant still needs that variant named in the cart.
+  variants:{premium:id(env.SELLAUTH_PREMIUM_VARIANT_ID),oneCharacter:id(env.SELLAUTH_1C_VARIANT_ID),special:id(env.SELLAUTH_SPECIAL_VARIANT_ID),badge:id(env.SELLAUTH_BADGE_VARIANT_ID)},
+ };
 }
 export async function issueCommerceCode(db,kind,handle,secret){
  const code='TOURN-'+crypto.randomBytes(16).toString('hex').toUpperCase(),hash=digest(code);
@@ -75,6 +81,7 @@ export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=proc
   }
   else{let variants={};try{variants=JSON.parse(env.SELLAUTH_USERNAME_VARIANTS||'{}');}catch{}const mapping=variants[String(item.variant_id)];
    const isUsernameProduct=[config.products.oneCharacter,config.products.special].filter(Boolean).includes(Number(item.product_id));
+   if(!isUsernameProduct && !mapping)throw fail(400,'Unmapped product variant.');
    // The buyer picks the handle on tourn.lol; the signed checkout ticket carries
    // it, so one SellAuth product covers every letter and number without a
    // variant per character.
@@ -112,7 +119,8 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
   let handle=null;
   if(kind==='oneCharacter'||kind==='special'){
    const raw=typeof req.body?.handle==='string'?req.body.handle.trim().toLowerCase():'';
-   if([...raw].length!==1||!(/^[a-z0-9]$/.test(raw)||/^\p{S}$/u.test(raw)))throw fail(400,'Choose one letter, number or symbol.');
+   const valid=kind==='oneCharacter' ? /^[a-z]$/.test(raw) : [...raw].length===1&&(/^[0-9]$/.test(raw)||/^\p{S}$/u.test(raw));
+   if(!valid)throw fail(400,kind==='oneCharacter'?'Choose a single letter.':'Choose a single number or symbol.');
    const db=await pool.connect();
    try{
     const {rows}=await db.query("select 1 from users where username=$1 or alias=$1 or alias2=$1 union all select 1 from username_inventory where handle=$1 and owner_id is not null union all select 1 from commerce_codes where handle=$1 limit 1",[raw]);
@@ -121,7 +129,8 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
    handle=raw;
   }
   const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(handle?{handle}:{})},secret,{algorithm:'HS256',expiresIn:'2h'});
-  res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark',returnUrl:config.shopUrl?String(env.FRONTEND_URL||'https://tourn.lol').split(',')[0]+'/#/dashboard/billing':undefined});
+  const variantId=config.variants?.[kind];
+  res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],...(variantId?{variantId}:{}),quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark',returnUrl:config.shopUrl?String(env.FRONTEND_URL||'https://tourn.lol').split(',')[0]+'/#/dashboard/billing':undefined});
  }));
  app.post('/api/commerce/redeem',limiter,requireAuth,wrap(async(req,res)=>{
   const code=typeof req.body?.code==='string'?req.body.code.trim().toUpperCase():'';if(!/^TOURN-[A-F0-9]{32}$/.test(code))throw fail(400,'Enter the complete TOURN code from your purchase.');
@@ -134,6 +143,27 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
   res.set('Cache-Control','no-store').json({available:rows.length===0});
  }));
  app.get('/api/commerce/purchases',requireAuth,wrap(async(req,res)=>{const {rows}=await pool.query('select kind,handle,redeemed_at from commerce_codes where redeemed_by=$1 order by redeemed_at desc',[req.auth.sub]);res.json({purchases:rows});}));
+ // Bulk-generate one redeem code per character, so a SellAuth serial product can
+ // hand names out without a variant per letter.
+ app.post('/api/admin/commerce/serials',limiter,requireAdmin,wrap(async(req,res)=>{
+  const raw=Array.isArray(req.body?.handles)?req.body.handles:[];
+  if(!raw.length||raw.length>300)throw fail(400,'Send between 1 and 300 characters.');
+  const handles=[...new Set(raw.map(value=>typeof value==='string'?value.trim().toLowerCase():'').filter(value=>[...value].length===1&&(/^[a-z0-9]$/.test(value)||/^\p{S}$/u.test(value))))];
+  if(!handles.length)throw fail(400,'No single characters found in that list.');
+  const serials=[],skipped=[];const db=await pool.connect();
+  try{
+   await db.query('begin');
+   for(const handle of handles){
+    const taken=(await db.query('select 1 from users where username=$1 or alias=$1 or alias2=$1 union all select 1 from username_inventory where handle=$1 and owner_id is not null limit 1',[handle])).rows;
+    if(taken.length){skipped.push({handle,reason:'Already claimed'});continue;}
+    const existing=(await db.query('select 1 from commerce_codes where handle=$1 limit 1',[handle])).rows;
+    if(existing.length){skipped.push({handle,reason:'A code already exists'});continue;}
+    serials.push({handle,code:(await issueCommerceCode(db,'username',handle,secret)).code});
+   }
+   await db.query('commit');
+  }catch(error){await db.query('rollback');throw error;}finally{db.release();}
+  res.json({serials,skipped});
+ }));
  app.post('/api/admin/commerce/codes',limiter,requireAdmin,wrap(async(req,res)=>{
   const {kind,handle}=req.body||{};const count=Number(req.body?.count||1);
   if(!['premium','username','badge'].includes(kind)||!Number.isInteger(count)||count<1||count>50)throw fail(400,'Choose a reward and a count from 1 to 50.');

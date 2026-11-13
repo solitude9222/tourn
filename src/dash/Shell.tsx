@@ -25,7 +25,7 @@ const GROUPS: NavGroup[] = [
     children: [
       { page: "account-profile", label: "Profile", icon: "user" },
       { page: "badges", label: "Badges", icon: "shield" },
-      { page: "aliases", label: "Aliases", icon: "link" },
+      { page: "aliases", label: "Inventory", icon: "layers" },
       { page: "affiliates", label: "Affiliates", icon: "link" },
       { page: "analytics", label: "Analytics", icon: "chart" },
     ],

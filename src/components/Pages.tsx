@@ -205,7 +205,8 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
     setBuying(true);
     setError(null);
     try {
-      await openSellAuthCheckout("oneCharacter", handle);
+      // Letters and numbers/symbols are separate SellAuth products.
+      await openSellAuthCheckout(/^[a-z]$/.test(handle) ? "oneCharacter" : "special", handle);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Checkout is unavailable right now.");
     } finally {
@@ -250,7 +251,7 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
         <article className="store-card" data-reveal data-reveal-delay="60">
           <span className="eyebrow eyebrow--sm">1-CHARACTER USERNAME</span>
           <h2>Claim a single character.</h2>
-          <p>Type the letter, number or symbol you want. Availability is checked live on your account, then checkout opens with that name attached to the order.</p>
+          <p>Type the letter, number or symbol you want. Letters use the 1-letter product, numbers and symbols the other. Availability is checked live, then checkout opens with that name on the order.</p>
           <div className="store-handle">
             <span className="store-handle-prefix">tourn.lol/</span>
             <input
