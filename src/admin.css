@@ -2763,3 +2763,16 @@
 .adm .adm-bot-report li.is-skip b {
   color: #8b8f98;
 }
+
+/* DM delivery test row */
+.adm .adm-dm-test {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.adm .adm-dm-test .adm-field {
+  flex: 1;
+  min-width: 0;
+}

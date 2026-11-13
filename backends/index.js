@@ -1145,8 +1145,17 @@ app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
       [email],
     );
     const user = rows[0];
-    // Same answer either way: no account enumeration from this endpoint.
-    if (!user || !user.discord_id) return res.json({ ok: true, delivered: false });
+    // Be explicit about why nothing arrived — silently answering "ok" left
+    // people with no idea whether the email, the link or the bot was at fault.
+    if (!user)
+      return res.json({ ok: true, delivered: false, reason: "No account uses that email. Check the spelling, or create an account." });
+    if (!user.discord_id)
+      return res.json({
+        ok: true,
+        delivered: false,
+        reason:
+          "That account has no Discord linked, so the bot has nowhere to send the code. Sign in with Discord, then reset from Settings → Security.",
+      });
     const recent = await pool.query(
       `select count(*)::int as count from verification_codes
        where user_id = $1 and action = 'password-reset' and created_at > now() - interval '1 hour'`,
@@ -1165,6 +1174,7 @@ app.post("/api/auth/password-reset/start", authLimiter, async (req, res) => {
       user.discord_id,
       `tourn.lol — your password reset code is ${code}. It expires in 15 minutes. If you didn't ask for this, ignore this message; your password stays the same.`,
     );
+    if (!sent) console.warn(`[tourn] password reset DM failed for user ${user.id}: ${sendDiscordDm.lastError}`);
     res.json({ ok: true, delivered: Boolean(sent), reason: sent ? "" : sendDiscordDm.lastError });
   } catch (error) {
     res.status(500).json({ error: error.message });
