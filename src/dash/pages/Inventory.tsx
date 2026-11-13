@@ -4,7 +4,7 @@ import { api, post } from "../../lib/backend";
 import { useAuth } from "../../lib/auth";
 import { BADGE_CATALOGUE } from "../../lib/badges";
 import { useDash } from "../context";
-import { Button, Card, CardHead, Chip, EmptyState, Segmented } from "../ui";
+import { Button, Icon } from "../ui";
 
 type InventoryTab = "usernames" | "badges" | "collectables";
 
@@ -15,10 +15,10 @@ type OwnedNames = {
   alias2: string | null;
 };
 
-const TABS: { value: InventoryTab; label: string }[] = [
-  { value: "usernames", label: "Usernames" },
-  { value: "badges", label: "Badges" },
-  { value: "collectables", label: "Collectables" },
+const TABS: { id: InventoryTab; label: string }[] = [
+  { id: "usernames", label: "Usernames" },
+  { id: "badges", label: "Badges" },
+  { id: "collectables", label: "Collectables" },
 ];
 
 const day = (value: string) =>
@@ -54,7 +54,7 @@ export function InventoryPage() {
       setMessage(result.error);
       return;
     }
-    setMessage(path.endsWith("gift") ? "Transfer complete. The name is in their inventory now." : "That name is now on your profile.");
+    setMessage(path.endsWith("gift") ? "Gift sent. The name is in their inventory now." : "That name is now on your profile.");
     setGift("");
     setRecipient("");
     setConfirm("");
@@ -62,12 +62,11 @@ export function InventoryPage() {
   };
 
   const owned = new Set([...earned, ...badges.equipped.map((badge) => badge.id)]);
+  const ownedBadges = BADGE_CATALOGUE.filter((badge) => owned.has(badge.id));
   const active = names?.primary || "";
   const original = names?.username || "";
-  const nameCount = names?.items.length ?? 0;
   const shown = active || original;
 
-  // The account's own name always belongs on the list, even before any purchase.
   const rows: { handle: string; account: boolean; acquired: string | null }[] = names
     ? [
         { handle: original, account: true, acquired: null },
@@ -77,182 +76,215 @@ export function InventoryPage() {
       ]
     : [];
 
+  const counts: Record<InventoryTab, number> = {
+    usernames: rows.length,
+    badges: ownedBadges.length,
+    collectables: 0,
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://tourn.lol/${shown}`);
+      setMessage("Link copied.");
+    } catch {
+      setMessage(`tourn.lol/${shown}`);
+    }
+  };
+
   return (
-    <Card>
-      <div className="inv-hero">
-        <span className="inv-avatar" aria-hidden="true">
-          {(shown || "?").slice(0, 1).toUpperCase()}
-        </span>
-        <div className="inv-hero-copy">
+    <>
+      <section className="invt-hero">
+        <div className="invt-addr">
           <small>Profile address</small>
-          <b>tourn.lol/{shown || "…"}</b>
-          <span className="inv-hero-meta">
-            <Chip tone={isPremiumUser ? "accent" : "muted"}>{isPremiumUser ? "Premium" : "Free"}</Chip>
-            {isPremiumUser ? <Chip tone="muted">swats.bio works too</Chip> : null}
-            <span className="inv-hero-count">
-              {nameCount} name{nameCount === 1 ? "" : "s"} · {owned.size} badge{owned.size === 1 ? "" : "s"}
-            </span>
-          </span>
+          <div className="invt-url">
+            <h2>
+              <span>tourn.lol/</span>
+              <b>{shown || "…"}</b>
+            </h2>
+            <button type="button" className="invt-copy" aria-label="Copy profile link" onClick={() => void copyLink()}>
+              <Icon name="copy" size={14} />
+            </button>
+            <span className={`invt-chip${isPremiumUser ? " is-prem" : ""}`}>{isPremiumUser ? "✦ Premium" : "Free"}</span>
+            {isPremiumUser && (names?.alias2 || shown) ? <span className="invt-chip">swats.bio works too</span> : null}
+          </div>
         </div>
-        <div className="inv-hero-actions">
-          <a className="tw-btn tw-btn--ghost" href={shown ? `#/profile/${encodeURIComponent(shown)}` : "#/dashboard/profile"}>
+        <div className="invt-cta">
+          <a className="invt-btn" href={shown ? `#/profile/${encodeURIComponent(shown)}` : "#/dashboard/profile"}>
             View profile
           </a>
-          <a className="tw-btn tw-btn--primary" href="#/shop">
+          <a className="invt-btn is-pri" href="#/shop">
             Get a name
           </a>
         </div>
-      </div>
-
-      <div className="inv-stats">
-        <div className="inv-stat">
-          <b>{nameCount}</b>
-          <small>Usernames</small>
+        <div className="invt-stats">
+          <div className="invt-stat">
+            <span className="invt-stat-icon">
+              <Icon name="layers" size={16} />
+            </span>
+            <div>
+              <b>{rows.length}</b>
+              <small>Usernames</small>
+            </div>
+          </div>
+          <div className="invt-stat">
+            <span className="invt-stat-icon">
+              <Icon name="shield" size={16} />
+            </span>
+            <div>
+              <b>{ownedBadges.length}</b>
+              <small>Badges</small>
+            </div>
+          </div>
+          <div className={`invt-stat${isPremiumUser ? " is-ok" : ""}`}>
+            <span className="invt-stat-icon">
+              <Icon name="crown" size={16} />
+            </span>
+            <div>
+              <b>{isPremiumUser ? "Active" : "Inactive"}</b>
+              <small>Premium</small>
+            </div>
+          </div>
         </div>
-        <div className="inv-stat">
-          <b>{owned.size}</b>
-          <small>Badges</small>
-        </div>
-        <div className="inv-stat">
-          <b>{isPremiumUser ? "Active" : "None"}</b>
-          <small>Premium</small>
-        </div>
-      </div>
-
-      <Segmented value={tab} options={TABS} onChange={(value) => setTab(value as InventoryTab)} />
+      </section>
 
       {message ? (
-        <p className="inv-note" role="status">
+        <p className="invt-note" role="status">
           {message}
         </p>
       ) : null}
 
-      {tab === "usernames" ? (
-        <>
-          {names && nameCount === 0 ? (
-            <EmptyState
-              icon="link"
-              title="No bought names yet"
-              message="Your account name is below. Single-character names you buy land here too, ready to put on your profile."
-              action={
-                <a className="tw-btn tw-btn--primary" href="#/shop">
-                  Browse names
-                </a>
-              }
-            />
-          ) : null}
+      <div className="invt-tabs" role="tablist" aria-label="Inventory sections">
+        {TABS.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === entry.id}
+            className={tab === entry.id ? "is-on" : ""}
+            onClick={() => setTab(entry.id)}
+          >
+            {entry.label}
+            <em>{counts[entry.id]}</em>
+          </button>
+        ))}
+      </div>
 
-          <div className="inv-list">
-            {rows.map((row) => {
-              const inUse = active === row.handle;
-              return (
-                <div className={`inv-name${inUse ? " is-active" : ""}`} key={`${row.handle}-${row.account ? "account" : "owned"}`}>
-                  <span className="inv-name-mark" aria-hidden="true">
-                    {row.handle.slice(0, 1)}
-                  </span>
-                  <span className="inv-name-copy">
-                    <span className="inv-name-line">
-                      <b>@{row.handle}</b>
-                      {row.account ? <Chip tone="muted">Account</Chip> : null}
-                      {inUse ? <Chip tone="success">In use</Chip> : null}
-                    </span>
-                    <small>
-                      {row.account ? "Your original account name — always yours." : `Bought · added ${row.acquired ? day(row.acquired) : "recently"}`}
-                    </small>
-                  </span>
-                  <span className="inv-name-actions">
-                    {inUse ? null : (
-                      <Button variant="primary" disabled={busy} onClick={() => void action("/api/account/aliases/activate", { handle: row.handle })}>
-                        Use on profile
-                      </Button>
-                    )}
-                    {row.account ? null : (
-                      <Button
-                        disabled={busy}
-                        onClick={() => {
-                          setGift(row.handle === gift ? "" : row.handle);
-                          setRecipient("");
-                          setConfirm("");
-                        }}
-                      >
-                        Gift
-                      </Button>
-                    )}
-                  </span>
-                  {gift === row.handle ? (
-                    <form
-                      className="owned-gift"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        void action("/api/account/aliases/gift", { handle: gift, recipient, confirmRecipient: confirm });
+      {tab === "usernames" ? (
+        <div className="invt-grid">
+          {rows.map((row) => {
+            const inUse = active === row.handle;
+            return (
+              <article className={`invt-name${inUse ? " is-active" : ""}`} key={`${row.handle}-${row.account ? "account" : "owned"}`}>
+                <div className="invt-name-row">
+                  <div className="invt-name-copy">
+                    <div className="invt-handle">
+                      <span>@</span>
+                      {row.handle}
+                    </div>
+                    <p>{row.account ? "Your original account name — always yours." : `Bought · added ${row.acquired ? day(row.acquired) : "recently"}`}</p>
+                  </div>
+                  <div className="invt-chips">
+                    {row.account ? <span className="invt-chip">Account</span> : null}
+                    {inUse ? <span className="invt-chip is-use">● In use</span> : null}
+                  </div>
+                </div>
+                <div className="invt-name-actions">
+                  {inUse ? (
+                    <button type="button" className="invt-btn" disabled>
+                      Currently on profile
+                    </button>
+                  ) : (
+                    <Button variant="primary" disabled={busy} onClick={() => void action("/api/account/aliases/activate", { handle: row.handle })}>
+                      Use on profile
+                    </Button>
+                  )}
+                  {row.account ? null : (
+                    <Button
+                      disabled={busy}
+                      onClick={() => {
+                        setGift(row.handle === gift ? "" : row.handle);
+                        setRecipient("");
+                        setConfirm("");
                       }}
                     >
-                      <span>
-                        <b>Give @{gift} to another member</b>
-                        <small>Ownership transfers and the name leaves your account.</small>
-                      </span>
-                      <label>
-                        Their original username
-                        <input required value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="username" autoComplete="off" />
-                      </label>
-                      <label>
-                        Type it again to confirm
-                        <input required value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder="username" autoComplete="off" />
-                      </label>
-                      <div className="tw-row">
-                        <Button type="submit" variant="primary" disabled={busy || !recipient || recipient !== confirm}>
-                          Transfer ownership
-                        </Button>
-                        <Button type="button" disabled={busy} onClick={() => setGift("")}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </form>
-                  ) : null}
+                      Gift
+                    </Button>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        </>
+                {gift === row.handle ? (
+                  <form
+                    className="owned-gift"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void action("/api/account/aliases/gift", { handle: gift, recipient, confirmRecipient: confirm });
+                    }}
+                  >
+                    <span>
+                      <b>Give @{gift} to another member</b>
+                      <small>Ownership transfers and the name leaves your account.</small>
+                    </span>
+                    <label>
+                      Their original username
+                      <input required value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="username" autoComplete="off" />
+                    </label>
+                    <label>
+                      Type it again to confirm
+                      <input required value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder="username" autoComplete="off" />
+                    </label>
+                    <div className="tw-row">
+                      <Button type="submit" variant="primary" disabled={busy || !recipient || recipient !== confirm}>
+                        Send gift
+                      </Button>
+                      <Button type="button" disabled={busy} onClick={() => setGift("")}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                ) : null}
+              </article>
+            );
+          })}
+
+          <a className="invt-ghost" href="#/shop">
+            <span className="invt-ghost-icon">
+              <Icon name="plus" size={16} />
+            </span>
+            <b>Get a name</b>
+            <small>Claim another short username</small>
+          </a>
+        </div>
       ) : null}
 
       {tab === "badges" ? (
-        <>
-          <CardHead icon="star" title="Badges" subtitle="Everything in the catalogue — owned ones first." />
-          <div className="inv-badge-grid">
-            {[...BADGE_CATALOGUE].sort((a, b) => Number(owned.has(b.id)) - Number(owned.has(a.id))).map((badge) => {
+        <div className="invt-badges">
+          {[...BADGE_CATALOGUE]
+            .sort((a, b) => Number(owned.has(b.id)) - Number(owned.has(a.id)))
+            .map((badge) => {
               const has = owned.has(badge.id);
               return (
-                <div className={`inv-badge${has ? " is-owned" : ""}`} key={badge.id}>
-                  <span className="inv-badge-art">
-                    <img src={badge.art} alt="" width={32} height={32} loading="lazy" />
+                <article className={`invt-badge${has ? " is-owned" : ""}`} key={badge.id} style={{ ["--c" as string]: badge.color }}>
+                  <span className="invt-badge-icon">
+                    <img src={badge.art} alt="" width={30} height={30} loading="lazy" />
                   </span>
-                  <span className="inv-badge-copy">
-                    <b>{badge.name}</b>
-                    <small>{has ? badge.description : badge.requirement}</small>
-                  </span>
-                  <Chip tone={has ? "success" : "muted"}>{has ? "Owned" : "Locked"}</Chip>
-                </div>
+                  <b>{badge.name}</b>
+                  <small>{has ? badge.description : badge.requirement}</small>
+                  <span className="invt-badge-dot" aria-hidden="true" />
+                </article>
               );
             })}
-          </div>
-        </>
+        </div>
       ) : null}
 
       {tab === "collectables" ? (
-        <>
-          <CardHead icon="layers" title="Collectables" subtitle="Trading cards, animated items and numbered drops." actions={<Chip tone="amber">COMING SOON</Chip>} />
-          <div className="inv-collect">
-            <span className="inv-collect-tile">
-              <b>?</b>
-            </span>
-            <div className="inv-collect-copy">
-              <b>Nothing to collect yet</b>
-              <small>A shelf for limited items is being built. Seasonal drops will show up here when they go live.</small>
-            </div>
-          </div>
-        </>
+        <div className="invt-empty">
+          <span className="invt-empty-icon">
+            <Icon name="layers" size={22} />
+          </span>
+          <b>No collectables yet</b>
+          <p>Limited drops will show up here when they release. Trading cards and animated items are on the way.</p>
+          <span className="invt-chip is-soon">COMING SOON</span>
+        </div>
       ) : null}
-    </Card>
+    </>
   );
 }
