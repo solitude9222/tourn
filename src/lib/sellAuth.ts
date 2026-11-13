@@ -69,6 +69,22 @@ export async function openSellAuthCheckout(
   });
   if (!result.ok) throw new Error(result.error || "The store is not open yet.");
 
+  await openPayload(result.data);
+}
+
+/** Checks out a whole marketplace cart in one SellAuth order. */
+export async function openSellAuthCart(
+  items: { type: string; handle?: string; badge?: string }[],
+): Promise<void> {
+  const result = await api<CheckoutPayload>("/api/commerce/checkout", {
+    method: "POST",
+    body: JSON.stringify({ items }),
+  });
+  if (!result.ok) throw new Error(result.error || "The store is not open yet.");
+  await openPayload(result.data);
+}
+
+async function openPayload(payload: CheckoutPayload): Promise<void> {
   await loadEmbed();
   if (!window.sellAuth) throw new Error("The checkout didn't open. Try again in a moment.");
 
@@ -80,7 +96,7 @@ export async function openSellAuthCheckout(
     if (window.location.hash !== next) window.location.hash = next;
   };
   window.sellAuth.open({
-    ...result.data,
+    ...payload,
     onSuccess: () => {
       paid = true;
     },

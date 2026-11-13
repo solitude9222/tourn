@@ -61,6 +61,7 @@ const LeaderboardPage = lazy(() =>
   import("./components/Pages").then((m) => ({ default: m.LeaderboardPage })),
 );
 const ShopPage = lazy(() => import("./components/Pages").then((m) => ({ default: m.ShopPage })));
+const CartPage = lazy(() => import("./components/CartPage").then((m) => ({ default: m.CartPage })));
 const PremiumPage = lazy(() =>
   import("./components/Pages").then((m) => ({ default: m.PremiumPage })),
 );
@@ -1031,6 +1032,8 @@ function Site() {
               <LeaderboardPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "shop" ? (
               <ShopPage onSignUp={() => setAuthMode("signup")} />
+            ) : route === "cart" ? (
+              <CartPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "premium" ? (
               <PremiumPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "legal" ? (

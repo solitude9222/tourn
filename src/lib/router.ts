@@ -4,6 +4,7 @@ export type Route =
   | ""
   | "leaderboard"
   | "shop"
+  | "cart"
   | "premium"
   | "legal"
   | "dashboard"
@@ -59,6 +60,7 @@ const PATH_ROUTES: Record<string, Route> = {
   admin: "dashboard",
   leaderboard: "leaderboard",
   shop: "shop",
+  cart: "cart",
   premium: "premium",
   legal: "legal",
 };
@@ -77,7 +79,7 @@ function readRoute(): Route {
   if (hash === "demo") return "demo";
   // The admin console lives inside the dashboard — old #/admin links land there.
   if (hash === "admin" || hash === "dashboard/admin") return "dashboard";
-  if (hash === "leaderboard" || hash === "shop" || hash === "premium" || hash === "legal") {
+  if (hash === "leaderboard" || hash === "shop" || hash === "cart" || hash === "premium" || hash === "legal") {
     return hash;
   }
   // `#/legal/terms` is a section of the legal page, not a different route.

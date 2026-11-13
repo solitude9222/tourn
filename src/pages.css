@@ -887,3 +887,115 @@
   object-fit: contain;
   border-radius: 5px;
 }
+
+/* Cart page */
+.cart-list {
+  display: grid;
+  gap: 8px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.cart-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line, #23262d);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.cart-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 11px;
+  border: 1px solid var(--line, #23262d);
+  background: #101319;
+  font-size: 18px;
+  font-weight: 700;
+}
+.cart-mark--art img {
+  object-fit: contain;
+}
+.cart-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cart-copy b {
+  font-size: 15px;
+}
+.cart-copy small {
+  color: var(--muted, #8d92a0);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cart-price {
+  margin-left: auto;
+  color: var(--muted, #8d92a0);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.cart-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 8px;
+  border: 1px solid var(--line, #23262d);
+  background: transparent;
+  color: var(--muted, #8d92a0);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cart-remove:hover {
+  color: #ff8080;
+  border-color: rgba(255, 128, 128, 0.4);
+}
+.cart-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 720px;
+  margin: 18px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line, #23262d);
+}
+.cart-total {
+  display: grid;
+  gap: 2px;
+}
+.cart-total small {
+  color: var(--muted, #8d92a0);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cart-actions {
+  display: flex;
+  gap: 8px;
+}
+.mkt-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 64px 20px;
+  border: 1px dashed var(--line, #23262d);
+  border-radius: 16px;
+  text-align: center;
+}
+.mkt-empty p {
+  max-width: 320px;
+  color: var(--muted, #8d92a0);
+  font-size: 13px;
+}

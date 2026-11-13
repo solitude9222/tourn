@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { api } from "../lib/backend";
 import { openSellAuthCheckout } from "../lib/sellAuth";
 import { BUYABLE_BADGES } from "../lib/badges";
+import { addToCart } from "../lib/cart";
 import { useAuth, type Account } from "../lib/auth";
 import { ArrowRight, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
 import "../leaderboard.css";
@@ -358,10 +359,19 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
                     <button
                       type="button"
                       className="mkt-btn"
-                      disabled={buyingBadge === badge.id}
-                      onClick={() => void buyBadge(badge.id)}
+                      onClick={() => {
+                        const result = addToCart({
+                          key: `badge:${badge.id}`,
+                          type: "badge",
+                          badge: badge.id,
+                          title: badge.name,
+                          subtitle: badge.description,
+                          art: badge.art,
+                        });
+                        if (!result.ok) setError(result.reason);
+                      }}
                     >
-                      {buyingBadge === badge.id ? "Opening…" : "Add to cart"}
+                      Add to cart
                     </button>
                     <button
                       type="button"
@@ -487,6 +497,25 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
               <button type="button" className="btn btn-ghost" onClick={closePicker} disabled={buying}>
                 Cancel
               </button>
+              {mode === "specific" && specific ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  disabled={buying}
+                  onClick={() => {
+                    addToCart({
+                      key: `handle:${specific}`,
+                      type: /^[0-9]$/.test(specific) ? "number" : /^[a-z]$/.test(specific) ? "letter" : "symbol",
+                      handle: specific,
+                      title: `@${specific}`,
+                      subtitle: "Username",
+                    });
+                    setPicker(null);
+                  }}
+                >
+                  Add to cart
+                </button>
+              ) : null}
               <button type="button" className="btn btn-primary" disabled={buying || (mode === "specific" && !specific)} onClick={() => void buyCharacter()}>
                 {buying ? "Opening checkout…" : "Continue to checkout"}
               </button>

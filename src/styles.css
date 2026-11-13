@@ -5066,3 +5066,40 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   background: #1d2743;
   color: #fff;
 }
+
+/* ---------------------------------------------------------------------------
+   Header cart
+   --------------------------------------------------------------------------- */
+.head-cart {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--line, #23262d);
+  color: var(--text, #e8eaf0);
+  background: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.head-cart:hover,
+.head-cart.is-active {
+  border-color: var(--line-strong, #3a3f4a);
+  background: rgba(255, 255, 255, 0.04);
+}
+.head-cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--accent, #4c7cf3);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
