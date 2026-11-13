@@ -181,10 +181,12 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
 
 type CharacterClass = "letters" | "numbers" | "symbols";
 
-const SHOP_CHARACTERS: { id: CharacterClass; kind: "oneCharacter" | "special"; glyph: string; label: string; name: string; range: string }[] = [
-  { id: "letters", kind: "oneCharacter", glyph: "A", label: "SINGLE LETTER", name: "One letter, all yours", range: "a – z" },
-  { id: "numbers", kind: "special", glyph: "7", label: "SINGLE NUMBER", name: "One number", range: "0 – 9" },
-  { id: "symbols", kind: "special", glyph: "✦", label: "SYMBOL", name: "One symbol", range: "✦ ★ ♥ ✧" },
+type CatalogTab = "tourn" | "external";
+
+const SHOP_CHARACTERS: { id: CharacterClass; kind: "oneCharacter" | "special"; glyph: string; preview: string; label: string; caption: string }[] = [
+  { id: "letters", kind: "oneCharacter", glyph: "@", preview: "@a", label: "USERNAMES", caption: "One letter" },
+  { id: "numbers", kind: "special", glyph: "@", preview: "@7", label: "USERNAMES", caption: "One number" },
+  { id: "symbols", kind: "special", glyph: "@", preview: "@✦", label: "USERNAMES", caption: "One symbol" },
 ];
 
 const PICKER_COPY: Record<CharacterClass, { title: string; noun: string }> = {
@@ -193,11 +195,23 @@ const PICKER_COPY: Record<CharacterClass, { title: string; noun: string }> = {
   symbols: { title: "Single symbol", noun: "symbol" },
 };
 
+function CardGridDots() {
+  return (
+    <span className="mkt-dots" aria-hidden="true">
+      <i />
+      <i />
+      <i />
+      <i />
+    </span>
+  );
+}
+
 export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
   const { user, isPremiumUser } = useAuth();
   const [shopUrl, setShopUrl] = useState<string | null>(null);
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<CatalogTab>("tourn");
   const [picker, setPicker] = useState<CharacterClass | null>(null);
   const [mode, setMode] = useState<"random" | "specific">("random");
   const [specific, setSpecific] = useState("");
@@ -209,13 +223,13 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
     });
   }, []);
 
-  const openPicker = (id: CharacterClass) => {
+  const openPicker = (id: CharacterClass, nextMode: "random" | "specific") => {
     if (!user) {
       onSignUp();
       return;
     }
     setPicker(id);
-    setMode("random");
+    setMode(nextMode);
     setSpecific("");
     setError(null);
     void api<{ letters: string[]; numbers: string[]; symbols: string[] }>("/api/commerce/available").then((result) => {
@@ -264,75 +278,161 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
 
   return (
     <section className="page marketplace-page">
-      <div className="wrap page-head" data-reveal>
-        <h1 className="page-title">
-          Store<span className="market-title-dot">.</span>
-        </h1>
-        <p className="page-sub">Single-character usernames, badges and Premium. Pick a category, choose random or a specific character, then pay in the store.</p>
-      </div>
-
-      <div className="wrap">
-        <div className="username-grid">
-          {SHOP_CHARACTERS.map((card) => (
-            <article className="username-card" key={card.id} data-reveal>
-              <span className="username-kind">{card.label}</span>
-              <span className="username-glyph">{card.glyph}</span>
-              <small>{card.name}</small>
-              <div className="username-buy">
-                <span>
-                  Shown at checkout
-                  <small>{card.range}</small>
-                </span>
-                <button type="button" className="btn btn-primary" onClick={() => openPicker(card.id)}>
-                  Choose
-                </button>
-              </div>
-            </article>
-          ))}
-
-          <article className="username-card" data-reveal data-reveal-delay="60">
-            <span className="username-kind">PREMIUM</span>
-            <span className="username-glyph">★</span>
-            <small>Every effect, permanently</small>
-            <div className="username-buy">
-              <span>
-                $9.99 <small>one payment</small>
-              </span>
-              {isPremiumUser ? (
-                <a className="btn btn-ghost" href="#/dashboard/billing">
-                  Manage
-                </a>
-              ) : (
-                <button type="button" className="btn btn-primary" disabled={buying} onClick={() => void buyPremium()}>
-                  {buying ? "Opening…" : "Buy"}
-                </button>
-              )}
-            </div>
-          </article>
-
-          <article className="username-card" data-reveal data-reveal-delay="90">
-            <span className="username-kind">BADGES</span>
-            <span className="username-glyph">❖</span>
-            <small>The whole collection</small>
-            <div className="username-buy">
-              <span>
-                In the store
-                <small>Stock listed there</small>
-              </span>
-              <a className="btn btn-primary" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">
-                Browse
-              </a>
-            </div>
-          </article>
+      <div className="wrap mkt-head" data-reveal>
+        <h1 className="mkt-title">Marketplace</h1>
+        <p className="mkt-sub">A small selection of usernames and seasonal badges.</p>
+        <div className="mkt-tabs" role="tablist" aria-label="Marketplace catalog">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={catalog === "tourn"}
+            className={catalog === "tourn" ? "is-active" : ""}
+            onClick={() => setCatalog("tourn")}
+          >
+            Tourn products
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={catalog === "external"}
+            className={catalog === "external" ? "is-active" : ""}
+            onClick={() => setCatalog("external")}
+          >
+            External products
+          </button>
         </div>
-
-        {error && !picker ? (
-          <p className="premium-buy-note" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <p className="market-purchase-note">Codes from any order can be redeemed in Dashboard → Billing if a name or badge does not appear on its own.</p>
       </div>
+
+      {catalog === "tourn" ? (
+        <div className="wrap">
+          <section className="mkt-section">
+            <h2>Usernames</h2>
+            <div className="mkt-grid">
+              {SHOP_CHARACTERS.map((card) => (
+                <article className="mkt-card" key={card.id}>
+                  <div className="mkt-card-top">
+                    <span className="mkt-icon">{card.glyph}</span>
+                    <CardGridDots />
+                  </div>
+                  <span className="mkt-label">{card.label}</span>
+                  <b className="mkt-name">{card.preview}</b>
+                  <span className="mkt-caption">{card.caption}</span>
+                  <div className="mkt-price">
+                    <span className="mkt-label">Price</span>
+                    <b>At checkout</b>
+                  </div>
+                  <div className="mkt-actions">
+                    <button type="button" className="mkt-btn" onClick={() => openPicker(card.id, "specific")}>
+                      Add to cart
+                    </button>
+                    <button type="button" className="mkt-btn mkt-btn--primary" onClick={() => openPicker(card.id, "random")}>
+                      Buy now
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="mkt-section">
+            <h2>Misc</h2>
+            <div className="mkt-grid">
+              <article className="mkt-card">
+                <div className="mkt-card-top">
+                  <span className="mkt-icon">❖</span>
+                  <CardGridDots />
+                </div>
+                <span className="mkt-label">BADGES</span>
+                <b className="mkt-name">Badge collection</b>
+                <span className="mkt-caption">Every badge on the shelf</span>
+                <div className="mkt-price">
+                  <span className="mkt-label">Price</span>
+                  <b>In store</b>
+                </div>
+                <div className="mkt-actions">
+                  <a className="mkt-btn" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">
+                    Browse store
+                  </a>
+                  <a className="mkt-btn mkt-btn--primary" href={shopUrl ?? "https://sellauth.com"} target="_blank" rel="noreferrer">
+                    Buy now
+                  </a>
+                </div>
+              </article>
+
+              <article className="mkt-card is-soon">
+                <div className="mkt-card-top">
+                  <span className="mkt-icon">?</span>
+                  <CardGridDots />
+                </div>
+                <span className="mkt-label">COLLECTABLES</span>
+                <b className="mkt-name">Coming soon</b>
+                <span className="mkt-caption">Trading cards, animated drops</span>
+                <div className="mkt-price">
+                  <span className="mkt-label">Status</span>
+                  <b>Not released</b>
+                </div>
+                <div className="mkt-actions">
+                  <button type="button" className="mkt-btn" disabled>
+                    COMING SOON
+                  </button>
+                </div>
+              </article>
+
+              <article className="mkt-card">
+                <div className="mkt-card-top">
+                  <span className="mkt-icon">★</span>
+                  <CardGridDots />
+                </div>
+                <span className="mkt-label">PREMIUM</span>
+                <b className="mkt-name">Premium</b>
+                <span className="mkt-caption">Every effect, permanently</span>
+                <div className="mkt-price">
+                  <span className="mkt-label">Price</span>
+                  <b>$9.99</b>
+                </div>
+                <div className="mkt-actions">
+                  {isPremiumUser ? (
+                    <a className="mkt-btn mkt-btn--primary" href="#/dashboard/billing">
+                      Manage
+                    </a>
+                  ) : (
+                    <>
+                      <a className="mkt-btn" href="#/premium">
+                        Details
+                      </a>
+                      <button type="button" className="mkt-btn mkt-btn--primary" disabled={buying} onClick={() => void buyPremium()}>
+                        {buying ? "Opening…" : "Buy now"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </article>
+            </div>
+          </section>
+
+          {error && !picker ? (
+            <p className="premium-buy-note" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <p className="market-purchase-note">Codes from any order can be redeemed in Dashboard → Billing if a name or badge does not appear on its own.</p>
+        </div>
+      ) : (
+        <div className="wrap">
+          <section className="mkt-section">
+            <h2>External products</h2>
+            <div className="mkt-empty">
+              <b>Nothing listed yet</b>
+              <p>Partner products and outside drops will show up here with their own prices and links.</p>
+              {shopUrl ? (
+                <a className="mkt-btn mkt-btn--primary" href={shopUrl} target="_blank" rel="noreferrer">
+                  Open the store
+                </a>
+              ) : null}
+            </div>
+          </section>
+        </div>
+      )}
 
       {picker ? (
         <div className="shop-modal" role="dialog" aria-modal="true" aria-label={PICKER_COPY[picker].title} onClick={closePicker}>
@@ -385,6 +485,7 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
                 <small className="shop-pick-count">{pool.length} available — taken characters are hidden.</small>
               </div>
             )}
+
             {error ? (
               <p className="shop-modal-error" role="alert">
                 {error}
