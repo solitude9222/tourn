@@ -10,6 +10,8 @@ import { useDash, type Page, type ProfileTab, type TabDef } from "./context";
 import { Button, Icon, IconButton, type IconName } from "./ui";
 import { api, post } from "../lib/backend";
 import { TradeThread } from "./Trades";
+import { useDashTheme } from "./theme";
+import { NAV, navHome } from "./nav";
 
 type ShellTrade = {
   id: string;
@@ -21,108 +23,7 @@ type ShellTrade = {
   item_count: number;
 };
 
-type NavChild = { page: Page; tab?: ProfileTab; label: string; icon: IconName };
-type NavGroup = {
-  key: "portfolio" | "profile" | "account" | "customize" | "links" | "community" | "settings";
-  label: string;
-  icon: IconName;
-  children: NavChild[];
-};
-
-const GROUPS: NavGroup[] = [
-  {
-    key: "portfolio",
-    label: "Portfolio",
-    icon: "layers",
-    children: [
-      { page: "portfolio-general", label: "General", icon: "home" },
-      { page: "portfolio-about", label: "About", icon: "user" },
-      { page: "portfolio-projects", label: "Projects", icon: "layers" },
-      { page: "portfolio-gallery", label: "Gallery", icon: "image" },
-      { page: "portfolio-audio", label: "Audio player", icon: "music" },
-      { page: "portfolio-games", label: "Games", icon: "gamepad" },
-      { page: "portfolio-design", label: "Design", icon: "palette" },
-    ],
-  },
-  {
-    key: "profile",
-    label: "Profile",
-    icon: "users",
-    children: [
-      { page: "profile-main", label: "Profile", icon: "user" },
-      { page: "profile-appearance", label: "Appearance", icon: "palette" },
-      { page: "profile-experience", label: "Experience", icon: "sparkles" },
-      { page: "profile-integrations", label: "Integrations", icon: "link" },
-      { page: "profile-switches", label: "Switches", icon: "sliders" },
-    ],
-  },
-  {
-    key: "links",
-    label: "Links",
-    icon: "link",
-    children: [
-      { page: "links", label: "Social Links", icon: "link" },
-      { page: "widgets", label: "Widgets", icon: "grid" },
-    ],
-  },
-  {
-    key: "community",
-    label: "Assets",
-    icon: "image",
-    children: [
-      { page: "assets", label: "Asset Browser", icon: "image" },
-      { page: "templates", label: "Templates", icon: "grid" },
-      { page: "badges", label: "Badges", icon: "shield" },
-      { page: "aliases", label: "Inventory", icon: "layers" },
-      { page: "affiliates", label: "Affiliates", icon: "link" },
-      { page: "analytics", label: "Analytics", icon: "chart" },
-      { page: "leaderboard", label: "Leaderboard", icon: "chart" },
-    ],
-  },
-  {
-    key: "settings",
-    label: "Settings",
-    icon: "settings",
-    children: [
-      { page: "billing", label: "Billing", icon: "crown" },
-      { page: "settings", label: "Account Settings", icon: "settings" },
-    ],
-  },
-];
-
-const PAGE_GROUP: Partial<Record<Page, NavGroup["key"]>> = {
-  "portfolio-general": "portfolio",
-  "portfolio-about": "portfolio",
-  "portfolio-projects": "portfolio",
-  "portfolio-gallery": "portfolio",
-  "portfolio-audio": "portfolio",
-  "portfolio-games": "portfolio",
-  "portfolio-design": "portfolio",
-  "profile-main": "profile",
-  "profile-appearance": "profile",
-  "profile-experience": "profile",
-  "profile-integrations": "profile",
-  "profile-switches": "profile",
-  "account-profile": "account",
-  badges: "community",
-  affiliates: "community",
-  aliases: "community",
-  analytics: "community",
-  "customize-profile": "customize",
-  layout: "customize",
-  effects: "customize",
-  music: "customize",
-  links: "links",
-  widgets: "links",
-  assets: "community",
-  leaderboard: "community",
-  templates: "community",
-  billing: "settings",
-  settings: "settings",
-  admin: "settings",
-};
-
-const PREMIUM_ITEM: NavChild = { page: "premium", label: "Premium", icon: "star" };
+/* Navigation lives in ./nav so the sidebar and the page tabs agree. */
 
 const READ_KEY = "tourn.lol/notes-read";
 
@@ -197,9 +98,7 @@ export function Shell({
   const { user, about, settings, dirty, save, discard, isPremium, isAdmin, profileViews, go, notify } =
     useDash();
   const { accounts, retryAuth } = useAuth();
-  const [openGroups, setOpenGroups] = useState<NavGroup["key"][]>(() => [
-    PAGE_GROUP[page] ?? "account",
-  ]);
+  useDashTheme();
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -215,7 +114,6 @@ export function Shell({
 
   const displayName = about.displayName.trim() || user.username;
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
-  const ownGroup = PAGE_GROUP[page];
 
   const loadTrades = async () => {
     const result = await api<{ trades: ShellTrade[] }>("/api/trades");
@@ -300,10 +198,6 @@ export function Shell({
   }, [notes]);
 
   useEffect(() => {
-    if (ownGroup) setOpenGroups([ownGroup]);
-  }, [ownGroup]);
-
-  useEffect(() => {
     window.scrollTo({ top: 0 });
     setMobileOpen(false);
   }, [page]);
@@ -347,22 +241,11 @@ export function Shell({
     };
   }, [menuOpen]);
 
-  const toggleGroup = (key: NavGroup["key"]) => {
-    setOpenGroups((current) =>
-      current.includes(key) ? current.filter((item) => item !== key) : [key],
-    );
-  };
-
   const searching = query.trim().length > 0;
 
   const matches = (label: string) => label.toLowerCase().includes(query.trim().toLowerCase());
 
-  const isChildActive = (child: NavChild) =>
-    child.page === page && (child.tab ? child.tab === activeTab : true);
-
   const showSectionCrumb = crumb !== (breadcrumbLabel ?? title);
-
-  const groups = useMemo(() => GROUPS, []);
 
   return (
     <div className={`tw-dash${mobileOpen ? " is-menu-open" : ""}`}>
@@ -387,78 +270,41 @@ export function Shell({
 
         <div className="tw-rail-scroll">
           <nav className="tw-nav" aria-label="Dashboard">
-            <button
-              type="button"
-              className={`tw-nav-item${page === "home" ? " is-active" : ""}`}
-              onClick={() => onNavigate("home")}
-              aria-current={page === "home" ? "page" : undefined}
-            >
-              <Icon name="home" size={18} />
-              Home
-            </button>
-
-            {groups.map((group) => {
-              const children = group.children.filter((child) => !searching || matches(child.label));
-              if (searching && !children.length) return null;
-              const open = searching || openGroups.includes(group.key);
+            {NAV.map((item) => {
+              const active = item.tabs.some((tab) => tab.page === page);
+              const tabs = item.tabs.filter(
+                (tab) => !searching || matches(item.label) || matches(tab.label),
+              );
+              if (searching && !tabs.length) return null;
               return (
-                <div key={group.key}>
+                <div className="tw-nav-block" key={item.key}>
                   <button
                     type="button"
-                    className="tw-group-head"
-                    onClick={() => toggleGroup(group.key)}
-                    aria-expanded={open}
+                    className={`tw-nav-item${active ? " is-active" : ""}`}
+                    onClick={() => onNavigate(navHome(item))}
+                    aria-current={active ? "page" : undefined}
                   >
-                    <Icon name={group.icon} size={18} />
-                    {group.label}
-                    <Icon name="chevron-down" size={14} className="tw-chevron" />
+                    <Icon name={item.icon} size={18} />
+                    {item.label}
                   </button>
-                  <div
-                    className={`tw-group-body${open ? " is-open" : ""}`}
-                    role="group"
-                    aria-label={group.label}
-                    inert={!open}
-                  >
-                    <div className="tw-group-inner">
-                      {children.map((child) => (
+                  {tabs.length > 1 && (active || searching) ? (
+                    <div className="tw-nav-tabs" role="group" aria-label={`${item.label} sections`}>
+                      {tabs.map((tab) => (
                         <button
-                          key={`${child.page}-${child.tab ?? child.label}`}
+                          key={tab.page}
                           type="button"
-                          className={`tw-subnav${isChildActive(child) ? " is-active" : ""}`}
-                          onClick={() => onNavigate(child.page, child.tab)}
+                          className={`tw-subnav${tab.page === page ? " is-active" : ""}`}
+                          onClick={() => onNavigate(tab.page)}
+                          aria-current={tab.page === page ? "page" : undefined}
                         >
-                          <Icon name={child.icon} size={16} />
-                          {child.label}
+                          {tab.label}
                         </button>
                       ))}
                     </div>
-                  </div>
+                  ) : null}
                 </div>
               );
             })}
-
-            {isAdmin && (!searching || matches("Admin")) ? (
-              <button
-                type="button"
-                className={`tw-nav-item${page === "admin" ? " is-active" : ""}`}
-                onClick={() => onNavigate("admin")}
-              >
-                <Icon name="shield" size={18} />
-                Admin
-              </button>
-            ) : null}
-
-            {!searching || matches(PREMIUM_ITEM.label) ? (
-              <button
-                type="button"
-                className={`tw-nav-item${page === "premium" ? " is-active" : ""}`}
-                onClick={() => onNavigate("premium")}
-              >
-                <Icon name="star" size={18} />
-                Premium
-              </button>
-            ) : null}
-
           </nav>
         </div>
 

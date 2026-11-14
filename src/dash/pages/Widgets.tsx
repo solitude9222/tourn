@@ -3,9 +3,11 @@ import { useAuth } from "../../lib/auth";
 import "../widgetBadges.css";
 import "../widgetIcons.css";
 /* ---------------------------------------------------------------------------
-   Links > Widgets — the real widget stack: add, configure, reorder, hide and
-   the shared widget-card design. Every preview on this page is a real
-   widget-card render; connected widgets read their live data.
+   Widgets — the widget workspace.
+
+   One screen: a stack you can drag, open and configure in place, a searchable
+   platform list, and one shared appearance panel with a live preview beside it.
+   Every preview is a real widget-card render.
    --------------------------------------------------------------------------- */
 
 import { useState } from "react";
@@ -196,11 +198,25 @@ function WidgetInspector({
 export function WidgetsPage() {
   const { widgets, setWidgets, save, notify } = useDash();
   const [configuring, setConfiguring] = useState<WidgetPlatform | null>(null);
-  const [editing, setEditing] = useState<WidgetInstance | null>(null);
-  const [inspecting, setInspecting] = useState<WidgetInstance | null>(null);
   const [content, setContent] = useState("");
   const [addOptions, setAddOptions] = useState<Record<string, boolean | string>>({});
+  const [inspecting, setInspecting] = useState<WidgetInstance | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const design = widgets.design;
+  const active = widgets.widgets.filter((widget) => widget.visible !== false);
+  const used = new Map<string, number>();
+  for (const widget of widgets.widgets) used.set(widget.platform, (used.get(widget.platform) ?? 0) + 1);
+
+  const search = query.trim().toLowerCase();
+  const platforms = WIDGET_PLATFORMS.filter(
+    (platform) =>
+      !search ||
+      platform.name.toLowerCase().includes(search) ||
+      platform.description.toLowerCase().includes(search),
+  );
 
   const platformFor = (instance: WidgetInstance) => WIDGET_PLATFORM_BY_ID.get(instance.platform);
 
@@ -215,35 +231,26 @@ export function WidgetsPage() {
     setAddOptions(defaults);
   };
 
-  const openEdit = (instance: WidgetInstance) => {
-    setEditing(instance);
-    setContent(instance.content);
-  };
-
   const commitAdd = () => {
     if (!configuring) return;
-    const instance = createWidgetInstance(configuring);
-    instance.content = content.trim();
-    instance.options = { ...instance.options, ...addOptions };
-    if (!instance.content) {
+    if (!content.trim()) {
       notify("Widget", `Add your ${configuring.name} handle first.`);
       return;
     }
+    const instance = createWidgetInstance(configuring);
+    instance.content = content.trim();
+    instance.options = { ...instance.options, ...addOptions };
     setWidgets((current) => ({ ...current, widgets: [...current.widgets, instance] }));
     setConfiguring(null);
-    notify("Widget added", `${configuring.name} added. Changes save automatically.`);
+    setOpenId(instance.id);
+    notify("Widget added", `${configuring.name} added. Save to publish it.`);
   };
 
-  const commitEdit = () => {
-    if (!editing) return;
+  const patchWidget = (id: string, patch: Partial<WidgetInstance>) =>
     setWidgets((current) => ({
       ...current,
-      widgets: current.widgets.map((entry) =>
-        entry.id === editing.id ? { ...entry, content: content.trim() } : entry,
-      ),
+      widgets: current.widgets.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry)),
     }));
-    setEditing(null);
-  };
 
   const updateOption = (id: string, key: string, value: boolean | string) =>
     setWidgets((current) => ({
@@ -253,128 +260,192 @@ export function WidgetsPage() {
       ),
     }));
 
-  const design = widgets.design;
-  // "Real preview" scrolls the widgets that are actually on the profile, with
-  // their live data — the samples are only a stand-in for a brand-new account.
-  const active = widgets.widgets.filter((widget) => widget.visible !== false);
+  const remove = (instance: WidgetInstance) => {
+    setWidgets((current) => ({
+      ...current,
+      widgets: current.widgets.filter((entry) => entry.id !== instance.id),
+    }));
+    if (openId === instance.id) setOpenId(null);
+  };
+
+  const move = (from: number, to: number) => {
+    if (from === to) return;
+    setWidgets((current) => {
+      const next = [...current.widgets];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return { ...current, widgets: next };
+    });
+  };
 
   const setDesign = (patch: Partial<typeof design>) =>
     setWidgets((current) => ({ ...current, design: { ...current.design, ...patch } }));
 
   return (
     <>
-      <Card>
-        <CardHead
-          icon="grid"
-          title="Available widgets"
-          subtitle="Pick a platform to add it to your stack."
-        />
-
-        <div className="tw-widget-gallery">
-          {WIDGET_PLATFORMS.map((platform) => (
-            <button
-              key={platform.id}
-              type="button"
-              className="tw-widget-pick"
-              style={{ ["--widget-color" as string]: platform.color }}
-              onClick={() => openAdd(platform)}
+      <Card className="tw-wstudio-hero">
+        <div className="tw-wstudio-summary">
+          <div>
+            <span className="tw-wstudio-eyebrow">Widget stack</span>
+            <h2>
+              {widgets.widgets.length
+                ? `${active.length} live widget${active.length === 1 ? "" : "s"}`
+                : "No widgets yet"}
+            </h2>
+            <p>
+              {widgets.widgets.length
+                ? `${widgets.widgets.length - active.length} hidden · drag a row to change the order they appear in.`
+                : "Add a platform below and it shows on your profile as soon as you save."}
+            </p>
+          </div>
+          <div className="tw-row">
+            <Button
+              icon="plus"
+              onClick={() => document.getElementById("dash-widget-add")?.scrollIntoView({ block: "start" })}
             >
-              <span className="tw-widget-pick-icon" aria-hidden="true">
-                <WidgetPlatformIcon id={platform.id} size={19} />
-              </span>
-              <span className="tw-widget-pick-copy">
-                <b>{platform.name}</b>
-                <small>{platform.description}</small>
-              </span>
-              <span className="tw-widget-pick-add">
-                <Icon name="plus" size={13} />
-                Add
-              </span>
-            </button>
-          ))}
+              Add widget
+            </Button>
+            <Button variant="primary" icon="save" onClick={save}>
+              Save changes
+            </Button>
+          </div>
         </div>
       </Card>
 
-      <Card>
+      <Card id="dash-widget-stack">
         <CardHead
           icon="layers"
-          title="Connected widgets"
-          subtitle="Click a widget to preview it and its live data."
-          actions={
-            <Button icon="save" onClick={save}>
-              Save changes
-            </Button>
-          }
+          title="Your stack"
+          subtitle="Open a row to change its handle and options. The toggle hides it without deleting it."
         />
 
         {widgets.widgets.length ? (
-          <div className="tw-widget-list" style={{ gap: design.gap }}>
+          <div className="tw-wstack" style={{ gap: design.gap }}>
             {widgets.widgets.map((instance, index) => {
               const platform = platformFor(instance);
+              const open = openId === instance.id;
+              const visible = instance.visible !== false;
               return (
                 <div
                   key={instance.id}
-                  className="tw-widget-row"
+                  className={`tw-wstack-row${open ? " is-open" : ""}${visible ? "" : " is-hidden"}`}
                   draggable
-                  onClick={() => setInspecting(instance)}
                   onDragStart={() => setDragIndex(index)}
                   onDragOver={(event) => event.preventDefault()}
                   onDrop={() => {
-                    if (dragIndex !== null && dragIndex !== index) {
-                      setWidgets((current) => {
-                        const next = [...current.widgets];
-                        const [moved] = next.splice(dragIndex, 1);
-                        next.splice(index, 0, moved);
-                        return { ...current, widgets: next };
-                      });
-                    }
+                    if (dragIndex !== null) move(dragIndex, index);
                     setDragIndex(null);
                   }}
                 >
-                  <span className="tw-drag">
-                    <Icon name="drag" size={14} />
-                  </span>
-                  <span className="tw-widget-icon">
-                    <WidgetPlatformIcon id={instance.platform} size={16} />
-                  </span>
-                  <span className="tw-widget-row-copy">
-                    <b>{platform?.name ?? instance.platform}</b>
-                    <small>{instance.content || "Not configured"}</small>
-                  </span>
-                  <span
-                    className="tw-widget-row-actions"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Toggle
-                      checked={instance.visible !== false}
-                      onChange={(checked) =>
-                        setWidgets((current) => ({
-                          ...current,
-                          widgets: current.widgets.map((entry) =>
-                            entry.id === instance.id ? { ...entry, visible: checked } : entry,
-                          ),
-                        }))
-                      }
-                      label={`Show ${platform?.name ?? "widget"}`}
-                    />
-                    <IconButton
-                      label={`Edit ${platform?.name ?? "widget"}`}
-                      icon="edit"
-                      variant="primary"
-                      onClick={() => openEdit(instance)}
-                    />
-                    <IconButton
-                      label={`Delete ${platform?.name ?? "widget"}`}
-                      icon="trash"
-                      variant="danger"
-                      onClick={() =>
-                        setWidgets((current) => ({
-                          ...current,
-                          widgets: current.widgets.filter((entry) => entry.id !== instance.id),
-                        }))
-                      }
-                    />
-                  </span>
+                  <div className="tw-wstack-head">
+                    <span className="tw-drag" aria-hidden="true">
+                      <Icon name="drag" size={15} />
+                    </span>
+                    <span className="tw-wstack-icon" style={{ ["--widget-color" as string]: platform?.color }}>
+                      <WidgetPlatformIcon id={instance.platform} size={17} />
+                    </span>
+                    <button
+                      type="button"
+                      className="tw-wstack-title"
+                      onClick={() => setOpenId(open ? null : instance.id)}
+                      aria-expanded={open}
+                    >
+                      <b>{platform?.name ?? instance.platform}</b>
+                      <small>{instance.content || "Not configured yet"}</small>
+                    </button>
+                    <span className="tw-wstack-chips">
+                      <span className={`tw-wstack-chip${visible ? " is-live" : ""}`}>
+                        {visible ? "Live" : "Hidden"}
+                      </span>
+                      <span className="tw-wstack-index">#{index + 1}</span>
+                    </span>
+                    <span className="tw-wstack-actions" onClick={(event) => event.stopPropagation()}>
+                      <Toggle
+                        checked={visible}
+                        onChange={(checked) => patchWidget(instance.id, { visible: checked })}
+                        label={`Show ${platform?.name ?? "widget"}`}
+                      />
+                      <IconButton
+                        label={`Preview ${platform?.name ?? "widget"}`}
+                        icon="eye"
+                        onClick={() => setInspecting(instance)}
+                      />
+                      <IconButton
+                        label={open ? "Close settings" : "Edit widget"}
+                        icon={open ? "chevron-down" : "edit"}
+                        variant={open ? "primary" : undefined}
+                        onClick={() => setOpenId(open ? null : instance.id)}
+                      />
+                      <IconButton
+                        label={`Delete ${platform?.name ?? "widget"}`}
+                        icon="trash"
+                        variant="danger"
+                        onClick={() => remove(instance)}
+                      />
+                    </span>
+                  </div>
+
+                  {open ? (
+                    <div className="tw-wstack-body">
+                      <div className="tw-wstack-body-grid">
+                        <div className="tw-stack">
+                          <Field label={platform?.contentLabel ?? "Content"}>
+                            <TextInput
+                              icon="at"
+                              value={instance.content}
+                              placeholder={platform?.contentPlaceholder}
+                              onChange={(event) => patchWidget(instance.id, { content: event.target.value })}
+                            />
+                          </Field>
+
+                          {instance.platform === "discord" ? (
+                            <DiscordBadgeChoices
+                              value={instance.options.profile_badges}
+                              content={instance.content}
+                              onChange={(profile_badges) => updateOption(instance.id, "profile_badges", profile_badges)}
+                            />
+                          ) : null}
+
+                          <div className="tw-option-grid">
+                            {(platform?.options ?? []).map((option) =>
+                              option.type === "toggle" ? (
+                                <div className="tw-inline-toggle" key={option.key}>
+                                  <span>
+                                    <b>{option.label}</b>
+                                    <small>{option.hint}</small>
+                                  </span>
+                                  <Toggle
+                                    checked={instance.options[option.key] === true}
+                                    onChange={(checked) => updateOption(instance.id, option.key, checked)}
+                                    label={option.label}
+                                  />
+                                </div>
+                              ) : (
+                                <Field key={option.key} label={option.label}>
+                                  <Select
+                                    value={String(instance.options[option.key] ?? option.default ?? "")}
+                                    options={(option.choices ?? []).map((choice) => ({
+                                      value: choice.value,
+                                      label: choice.label,
+                                    }))}
+                                    onChange={(value) => updateOption(instance.id, option.key, value)}
+                                  />
+                                </Field>
+                              ),
+                            )}
+                          </div>
+                        </div>
+
+                        <aside className="tw-wstack-side">
+                          <small className="tw-wstack-side-label">Preview</small>
+                          <WidgetCard widget={instance} design={design} />
+                          <Button icon="external" onClick={() => setInspecting(instance)}>
+                            Open live data
+                          </Button>
+                        </aside>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
@@ -382,17 +453,72 @@ export function WidgetsPage() {
         ) : (
           <EmptyState
             icon="grid"
-            title="No widgets connected"
-            message="Pick a platform above to build the stack visitors see."
+            title="Nothing in the stack"
+            message="Pick a platform from the list below to build the stack visitors see."
           />
         )}
+      </Card>
+
+      <Card id="dash-widget-add">
+        <CardHead
+          icon="plus"
+          title="Add a widget"
+          subtitle={
+            search
+              ? `${platforms.length} match${platforms.length === 1 ? "" : "es"} for “${query.trim()}”`
+              : `${WIDGET_PLATFORMS.length} platforms · ${widgets.widgets.length} in your stack`
+          }
+          actions={
+            <label className="tw-mini-search">
+              <Icon name="search" size={14} />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Filter platforms"
+                aria-label="Filter widget platforms"
+              />
+            </label>
+          }
+        />
+
+        <div className="tw-wpick-grid">
+          {platforms.map((platform) => {
+            const count = used.get(platform.id) ?? 0;
+            return (
+              <button
+                key={platform.id}
+                type="button"
+                className={`tw-wpick${count ? " is-added" : ""}`}
+                style={{ ["--widget-color" as string]: platform.color }}
+                onClick={() => openAdd(platform)}
+              >
+                <span className="tw-wpick-icon" aria-hidden="true">
+                  <WidgetPlatformIcon id={platform.id} size={20} />
+                </span>
+                <span className="tw-wpick-copy">
+                  <b>
+                    {platform.name}
+                    {count ? <em>{count}</em> : null}
+                  </b>
+                  <small>{platform.description}</small>
+                </span>
+                <span className="tw-wpick-action">
+                  <Icon name="plus" size={13} />
+                  Add
+                </span>
+              </button>
+            );
+          })}
+          {!platforms.length ? <p className="tw-foot-note">Nothing matches that search.</p> : null}
+        </div>
       </Card>
 
       <Card>
         <CardHead
           icon="palette"
-          title="Widget appearance"
-          subtitle="Applies to every widget on your profile."
+          title="Stack appearance"
+          subtitle="One shared look for every widget on your profile."
           actions={
             <Button
               icon="refresh"
@@ -401,7 +527,7 @@ export function WidgetsPage() {
                 notify("Widget design", "Defaults restored — save to publish.");
               }}
             >
-              Reset to defaults
+              Reset
             </Button>
           }
         />
@@ -409,7 +535,7 @@ export function WidgetsPage() {
         <div className="tw-widget-design">
           <div className="tw-stack">
             <div className="tw-subhead">Surface</div>
-            <Field label="Background">
+            <Field label="Background style">
               <Select
                 value={design.backgroundStyle}
                 options={[
@@ -419,9 +545,7 @@ export function WidgetsPage() {
                   { value: "rgb", label: "RGB" },
                   { value: "art", label: "Artwork" },
                 ]}
-                onChange={(value) =>
-                  setDesign({ backgroundStyle: value as typeof design.backgroundStyle })
-                }
+                onChange={(value) => setDesign({ backgroundStyle: value as typeof design.backgroundStyle })}
               />
             </Field>
 
@@ -461,8 +585,25 @@ export function WidgetsPage() {
               />
             </div>
 
-            <Slider label="Artwork opacity" value={Math.round(design.artOpacity*100)} min={0} max={100} suffix="%" onChange={value=>setDesign({artOpacity:value/100})}/>
-            <Slider label="Shading opacity" value={Math.round(design.scrimOpacity*100)} min={0} max={100} suffix="%" onChange={value=>setDesign({scrimOpacity:value/100})}/>
+            <div className="tw-form-grid">
+              <Slider
+                label="Artwork opacity"
+                value={Math.round(design.artOpacity * 100)}
+                min={0}
+                max={100}
+                suffix="%"
+                onChange={(value) => setDesign({ artOpacity: value / 100 })}
+              />
+              <Slider
+                label="Shading opacity"
+                value={Math.round(design.scrimOpacity * 100)}
+                min={0}
+                max={100}
+                suffix="%"
+                onChange={(value) => setDesign({ scrimOpacity: value / 100 })}
+              />
+            </div>
+
             <div className="tw-subhead">Border</div>
             <div className="tw-form-grid">
               <ColorField
@@ -501,9 +642,7 @@ export function WidgetsPage() {
                   { value: "pulse", label: "Pulse · the ring breathes" },
                   { value: "glow", label: "Glow · halo around the card" },
                 ]}
-                onChange={(value) =>
-                  setDesign({ outlineEffect: value as WidgetDesign["outlineEffect"] })
-                }
+                onChange={(value) => setDesign({ outlineEffect: value as WidgetDesign["outlineEffect"] })}
               />
             </Field>
 
@@ -537,16 +676,14 @@ export function WidgetsPage() {
             </div>
 
             <div className="tw-subhead">Stack</div>
-            <div className="tw-form-grid">
-              <Slider
-                label="Spacing"
-                value={design.gap}
-                min={0}
-                max={28}
-                suffix="px"
-                onChange={(value) => setDesign({ gap: value })}
-              />
-            </div>
+            <Slider
+              label="Spacing"
+              value={design.gap}
+              min={0}
+              max={28}
+              suffix="px"
+              onChange={(value) => setDesign({ gap: value })}
+            />
 
             <div className="tw-subhead">Content</div>
             <div className="tw-inline-toggle">
@@ -564,7 +701,7 @@ export function WidgetsPage() {
             <div className="tw-inline-toggle">
               <span>
                 <b>Show badges</b>
-                <small>Public flags only: Staff, Partner, HypeSquad, Bug Hunter, Early Supporter and Active Developer. Game Time, Variety, Nitro, Booster and Quests aren't exposed by Discord's API.</small>
+                <small>Public flags only: Staff, Partner, HypeSquad, Bug Hunter, Early Supporter and Active Developer.</small>
               </span>
               <Toggle
                 checked={design.showBadges}
@@ -574,8 +711,6 @@ export function WidgetsPage() {
             </div>
           </div>
 
-          {/* Live reel: the cards exactly as they will render, scrolling
-              past so every change above is visible while you make it. */}
           <aside className="tw-widget-preview" aria-label="Widget preview">
             <div className="tw-widget-preview-head">
               <small>Real preview</small>
@@ -588,11 +723,7 @@ export function WidgetsPage() {
             <div className="tw-widget-scroll">
               <div className="tw-widget-scroll-track">
                 {[0, 1].map((pass) => (
-                  <div
-                    className="tw-widget-scroll-pass"
-                    key={pass}
-                    aria-hidden={pass === 1 ? "true" : undefined}
-                  >
+                  <div className="tw-widget-scroll-pass" key={pass} aria-hidden={pass === 1 ? "true" : undefined}>
                     {active.length
                       ? active.map((widget) => (
                           <WidgetCard
@@ -650,7 +781,15 @@ export function WidgetsPage() {
                 onChange={(event) => setContent(event.target.value)}
               />
             </Field>
-            {configuring.id === "discord" ? <DiscordBadgeChoices value={addOptions.profile_badges} content={content} onChange={(profile_badges) => setAddOptions((current) => ({ ...current, profile_badges }))} /> : null}
+
+            {configuring.id === "discord" ? (
+              <DiscordBadgeChoices
+                value={addOptions.profile_badges}
+                content={content}
+                onChange={(profile_badges) => setAddOptions((current) => ({ ...current, profile_badges }))}
+              />
+            ) : null}
+
             <div className="tw-option-grid">
               {configuring.options.map((option) =>
                 option.type === "toggle" ? (
@@ -661,9 +800,7 @@ export function WidgetsPage() {
                     </span>
                     <Toggle
                       checked={addOptions[option.key] === true}
-                      onChange={(checked) =>
-                        setAddOptions((current) => ({ ...current, [option.key]: checked }))
-                      }
+                      onChange={(checked) => setAddOptions((current) => ({ ...current, [option.key]: checked }))}
                       label={option.label}
                     />
                   </div>
@@ -675,92 +812,12 @@ export function WidgetsPage() {
                         value: choice.value,
                         label: choice.label,
                       }))}
-                      onChange={(value) =>
-                        setAddOptions((current) => ({ ...current, [option.key]: value }))
-                      }
+                      onChange={(value) => setAddOptions((current) => ({ ...current, [option.key]: value }))}
                     />
                   </Field>
                 ),
               )}
             </div>
-          </div>
-        ) : null}
-      </Modal>
-
-      <Modal
-        open={Boolean(editing)}
-        title={`Edit ${editing ? WIDGET_PLATFORM_BY_ID.get(editing.platform)?.name ?? "widget" : "widget"}`}
-        onClose={() => setEditing(null)}
-        footer={
-          <>
-            <Button onClick={() => setEditing(null)}>Cancel</Button>
-            <Button variant="primary" onClick={commitEdit}>
-              Save widget
-            </Button>
-          </>
-        }
-      >
-        {editing ? (
-          <div className="tw-stack">
-            <div className="tw-widget-inspect">
-              {/* The sample render keeps typing from firing a live request per
-                  keystroke; the click-through inspector has the real data. */}
-              <WidgetCardPreview
-                design={design}
-                platformId={editing.platform}
-                content={content.trim() || undefined}
-              />
-            </div>
-            <Field
-              label={WIDGET_PLATFORM_BY_ID.get(editing.platform)?.contentLabel ?? "Content"}
-            >
-              <TextInput
-                icon="at"
-                value={content}
-                placeholder={WIDGET_PLATFORM_BY_ID.get(editing.platform)?.contentPlaceholder}
-                onChange={(event) => {const value=event.target.value;setContent(value);setWidgets(current=>({...current,widgets:current.widgets.map(item=>item.id===editing.id?{...item,content:value}:item)}));}}
-              />
-            </Field>
-
-            {editing.platform === "discord" ? <DiscordBadgeChoices value={editing.options.profile_badges} content={content} onChange={(profile_badges) => { updateOption(editing.id, "profile_badges", profile_badges); setEditing({ ...editing, options: { ...editing.options, profile_badges } }); }} /> : null}
-            {(WIDGET_PLATFORM_BY_ID.get(editing.platform)?.options ?? []).map((option) =>
-              option.type === "toggle" ? (
-                <div className="tw-inline-toggle" key={option.key}>
-                  <span>
-                    <b>{option.label}</b>
-                    <small>{option.hint}</small>
-                  </span>
-                  <Toggle
-                    checked={editing.options[option.key] === true}
-                    onChange={(checked) => {
-                      updateOption(editing.id, option.key, checked);
-                      setEditing({
-                        ...editing,
-                        options: { ...editing.options, [option.key]: checked },
-                      });
-                    }}
-                    label={option.label}
-                  />
-                </div>
-              ) : (
-                <Field key={option.key} label={option.label}>
-                  <Select
-                    value={String(editing.options[option.key] ?? option.default)}
-                    options={(option.choices ?? []).map((choice) => ({
-                      value: choice.value,
-                      label: choice.label,
-                    }))}
-                    onChange={(value) => {
-                      updateOption(editing.id, option.key, value);
-                      setEditing({
-                        ...editing,
-                        options: { ...editing.options, [option.key]: value },
-                      });
-                    }}
-                  />
-                </Field>
-              ),
-            )}
           </div>
         ) : null}
       </Modal>
@@ -772,7 +829,8 @@ export function WidgetsPage() {
           onEdit={() => {
             const target = inspecting;
             setInspecting(null);
-            openEdit(target);
+            setOpenId(target.id);
+            document.getElementById("dash-widget-stack")?.scrollIntoView({ block: "start" });
           }}
         />
       ) : null}

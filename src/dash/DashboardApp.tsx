@@ -33,6 +33,8 @@ import { AssetBrowserPage, LeaderboardPage } from "./pages/Community";
 import { TemplatesPage } from "./pages/Templates";
 import { BillingPage, PremiumPage } from "./pages/Plan";
 import { PortfolioPage, ProfileWorkspacePage } from "./pages/Workspaces";
+import { ThemePage } from "./pages/Theme";
+import { navTabsForPage } from "./nav";
 
 const AccountSettingsPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AccountSettingsPage })),
@@ -68,12 +70,6 @@ export type DashboardProps = {
   onSignOut: () => void;
   onAddAccount: () => void;
 };
-
-const PROFILE_TABS: TabDef[] = [
-  { id: "profile", label: "Profile", icon: "user" },
-  { id: "experience", label: "Entry screen", icon: "sparkles" },
-  { id: "switches", label: "Extra", icon: "sliders" },
-];
 
 const META: Record<Page, { title: string; subtitle: string; icon: IconName; crumb: string }> = {
   aliases: {title:"Inventory",subtitle:"Your usernames, badges and collectables.",icon:"layers",crumb:"Account"},
@@ -154,9 +150,15 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Settings",
   },
   settings: {
-    title: "Account Settings",
+    title: "Account",
     subtitle: "Your claims, account security and plan.",
     icon: "settings",
+    crumb: "Settings",
+  },
+  theme: {
+    title: "Theme",
+    subtitle: "Pick the palette the console itself is drawn in.",
+    icon: "palette",
     crumb: "Settings",
   },
   "portfolio-general": {
@@ -585,6 +587,9 @@ export function Dashboard(props: DashboardProps) {
     case "settings":
       content = <AccountSettingsPage />;
       break;
+    case "theme":
+      content = <ThemePage />;
+      break;
     case "portfolio-general":
       content = <PortfolioPage tab="general" />;
       break;
@@ -637,9 +642,9 @@ export function Dashboard(props: DashboardProps) {
         subtitle={meta.subtitle}
         icon={meta.icon}
         crumb={meta.crumb}
-        tabs={page === "customize-profile" ? PROFILE_TABS : undefined}
-        activeTab={profileTab}
-        onTab={(id) => changeProfileTab(id as ProfileTab)}
+        tabs={navTabsForPage(page, isAdmin).map((tab) => ({ id: tab.page, label: tab.label, icon: tab.icon }))}
+        activeTab={page}
+        onTab={(id) => go(id as Page)}
         onAddAccount={onAddAccount}
         onSignOut={onSignOut}
       >

@@ -32,6 +32,7 @@ export type Page =
   | "leaderboard"
   | "billing"
   | "settings"
+  | "theme"
   | "portfolio-general"
   | "portfolio-about"
   | "portfolio-projects"
