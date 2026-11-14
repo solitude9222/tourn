@@ -184,14 +184,14 @@ function LayoutPreview() {
 }
 
 export function LayoutPage({
-  initialTab = "layout",
+  section = "layout",
 }: {
-  initialTab?: "layout" | "style" | "sections";
+  /** Which slice of the card editor this route is. The sidebar owns the switch. */
+  section?: "layout" | "style" | "sections";
 } = {}) {
   const [dragSection,setDragSection]=useState<number|null>(null);
   const { about, setAbout, notify, user, badges, links } = useDash();
   const design = about.design;
-  const [tab, setTab] = useState<"layout" | "style" | "sections">(initialTab);
 
   const updateDesign = (patch: Partial<typeof design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
@@ -218,9 +218,8 @@ export function LayoutPage({
 
   return (
     <div className="tw-card-page">
-      <div className="tw-layout-toolbar"><nav className="tw-workspace-tabs" aria-label="Card settings">{[["layout", "Layout"], ["style", "Appearance"], ["sections", "Sections"]].map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id as "layout" | "style" | "sections")}>{label}</button>)}</nav></div>
-      <div className="tw-card-main" key={tab}>
-      {tab === "layout" ? <Card>
+      <div className="tw-card-main" key={section}>
+      {section === "layout" ? <Card>
         <CardHead
           icon="layout"
           title="Page layout"
@@ -273,9 +272,9 @@ export function LayoutPage({
         </div>
       </Card> : null}
 
-      {tab === "layout" ? <LayoutPreview /> : null}
-      {tab === "layout" ? <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card> : null}
-      {tab === "layout" ? <Card>
+      {section === "layout" ? <LayoutPreview /> : null}
+      {section === "layout" ? <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card> : null}
+      {section === "layout" ? <Card>
         <div className="tw-inline-toggle">
           <span>
             <b>Advanced positioning</b>
@@ -290,7 +289,7 @@ export function LayoutPage({
           />
         </div>
       </Card> : null}
-      {tab === "layout" && design.advancedLayout === true ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout centred or portrait-led." />
+      {section === "layout" && design.advancedLayout === true ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout centred or portrait-led." />
         <div className="tw-form-grid">            
           <Field label="Avatar placement"><Select value={design.pfpPosition} options={["default", "left", "right", "above", "center", "top-right"].map((value) => ({ value, label: value }))} onChange={(pfpPosition) => updateDesign({ pfpPosition: pfpPosition as typeof design.pfpPosition })} /></Field>
           <Field label="Badge placement"><Select value={design.badgePosition} options={["default", "above-name", "top-right", "bottom", "beside-avatar", "hidden"].map((value) => ({ value, label: value }))} onChange={(badgePosition) => updateDesign({ badgePosition: badgePosition as typeof design.badgePosition })} /></Field>
@@ -305,7 +304,7 @@ export function LayoutPage({
           <Slider label="Card padding" value={design.cardPadding} min={0} max={64} suffix="px" onChange={(cardPadding) => updateDesign({ cardPadding })} />
         </div>
       </Card> : null}
-      {tab === "layout" && design.advancedLayout === true ? <Card>
+      {section === "layout" && design.advancedLayout === true ? <Card>
         <CardHead
           icon="grid"
           title="Details & music"
@@ -386,7 +385,7 @@ export function LayoutPage({
         </div>
       </Card> : null}
 
-      {tab === "style" ? <Card>
+      {section === "style" ? <Card>
         <CardHead
           icon="palette"
           title="Card style"
@@ -481,7 +480,7 @@ export function LayoutPage({
         </div>
       </Card> : null}
 
-      {tab === "style" ? <Card>
+      {section === "style" ? <Card>
         <CardHead
           icon="user"
           title="Profile picture"
@@ -511,7 +510,7 @@ export function LayoutPage({
           </Field>
         </div>
       </Card> : null}
-      {tab === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Two kinds only: the projects you built, and the animes you like. Both render as real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
+      {section === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Two kinds only: the projects you built, and the animes you like. Both render as real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
         <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime library.</p>
         <div className="tw-toggle-grid">
           <div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div>

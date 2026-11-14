@@ -113,8 +113,8 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Customize",
   },
   layout: {
-    title: "Card",
-    subtitle: "Card layout, widget positions and styling in one place.",
+    title: "Layout",
+    subtitle: "Page layout, live preview and where every detail sits.",
     icon: "layout",
     crumb: "Customize",
   },
@@ -223,8 +223,8 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Profile",
   },
   "profile-appearance": {
-    title: "Appearance",
-    subtitle: "Card look, media and decorations.",
+    title: "Card",
+    subtitle: "Card surface, colours, borders and decoration.",
     icon: "palette",
     crumb: "Profile",
   },
@@ -607,7 +607,7 @@ export function Dashboard(props: DashboardProps) {
       content = <PortfolioPage tab="general" />;
       break;
     case "portfolio-projects":
-      content = <LayoutPage initialTab="sections" />;
+      content = <LayoutPage section="sections" />;
       break;
     case "portfolio-gallery":
       content = <PortfolioPage tab="gallery" />;
@@ -622,7 +622,7 @@ export function Dashboard(props: DashboardProps) {
       content = <ProfileWorkspacePage tab="profile" />;
       break;
     case "profile-appearance":
-      content = <LayoutPage initialTab="style" />;
+      content = <LayoutPage section="style" />;
       break;
     case "profile-experience":
       content = <ProfileWorkspacePage tab="experience" />;

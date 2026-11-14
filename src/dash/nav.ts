@@ -56,7 +56,7 @@ export const NAV: NavItem[] = [
     key: "layout",
     label: "Layout",
     icon: "layout",
-    tabs: [{ page: "layout", label: "Card layout", icon: "layout" }],
+    tabs: [{ page: "layout", label: "Layout", icon: "layout" }],
   },
   {
     key: "portfolio",
