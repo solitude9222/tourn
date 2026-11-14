@@ -491,7 +491,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(140deg, #5c6df0, #a78bfa);
+  background: linear-gradient(140deg, #f05c61, #fa8b8f);
 }
 
 .tw-style-widget {
@@ -875,7 +875,7 @@
   gap: 6px;
   padding: 7px;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72));
-  color: #eef3f7;
+  color: #f7eeee;
   font-size: 11px;
   font-weight: 600;
   opacity: 0;
@@ -1134,7 +1134,7 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), #8fd8ff);
+  background: linear-gradient(90deg, var(--accent), #ff8f93);
 }
 
 .tw-lb-views {
@@ -1293,7 +1293,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   background: rgba(16, 17, 21, 0.86);
-  color: #eef3f7;
+  color: #f7eeee;
 }
 
 .tw-effect-stage-avatar {
@@ -1808,7 +1808,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #0a0a0c;
-  color: #b9c6e4;
+  color: #e4b9ba;
   font-size: 12px;
   letter-spacing: 0.08em;
   word-break: break-all;
@@ -1863,7 +1863,7 @@
 }
 
 .tw-set-plan li.is-on {
-  color: #dbe2ee;
+  color: #eedbdc;
 }
 
 .tw-set-plan li.is-on svg {
@@ -1910,7 +1910,7 @@
 }
 
 .tw-prefix:focus-within {
-  border-color: #3a4a72;
+  border-color: #4a2f34;
 }
 
 /* ── avatar decoration carousel (lives by the profile picture upload) ─── */
@@ -1939,8 +1939,8 @@
   place-items: center;
   overflow: hidden;
   border-radius: 50%;
-  background: linear-gradient(145deg, #1b2b3a, #0b1118);
-  color: #e8f4ff;
+  background: linear-gradient(145deg, #3a1b1c, #180b0b);
+  color: #ffe8e9;
   font-size: 44px;
   font-weight: 760;
 }
@@ -1972,7 +1972,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
-  color: #e8f4ff;
+  color: #ffe8e9;
   font-family: inherit;
   font-size: 20px;
   line-height: 1;
@@ -1981,8 +1981,8 @@
 }
 
 .tw-deco-arrow:hover {
-  border-color: rgba(168, 224, 255, 0.4);
-  background: rgba(168, 224, 255, 0.14);
+  border-color: rgba(255, 168, 171, 0.4);
+  background: rgba(255, 168, 171, 0.14);
 }
 
 .tw-deco-caption {
@@ -2002,7 +2002,7 @@
 }
 
 .tw-deco-side b {
-  color: #f1f5f9;
+  color: #f9f1f1;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -2578,7 +2578,7 @@
   gap: 6px;
   max-width: 420px;
   padding: 10px 12px 9px;
-  border-left: 4px solid #587fee;
+  border-left: 4px solid #ee585d;
   border-radius: 4px;
   background: #17181d;
 }
@@ -2651,9 +2651,9 @@
 }
 
 .tw-var:hover {
-  border-color: #3a4a68;
+  border-color: #4a2f30;
   background: #2b2223;
-  color: #e6ecf6;
+  color: #f6e6e7;
 }
 
 .tw-var.is-copied,
@@ -2953,7 +2953,7 @@
 }
 
 .tw-drag-chip:hover {
-  border-color: #3a4a68;
+  border-color: #4a2f30;
   background: #2b2223;
 }
 
@@ -2973,7 +2973,7 @@
 }
 
 .tw-layout-stage.is-dragging {
-  border-color: #3a4a68;
+  border-color: #4a2f30;
 }
 
 .tw-layout-stage-scaler {

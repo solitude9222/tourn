@@ -40,7 +40,7 @@ const RESPONSE_KEY = "tourn.uploadResponse";
 const DEFAULT_EMBED: EmbedSettings = {
   rich: true,
   title: "{file.name} by {user.username}",
-  accent: "#587fee",
+  accent: "#ee585d",
   description: "{file.size} / {upload.views} views",
   siteName: "tourn.lol",
   siteLink: "https://tourn.lol",

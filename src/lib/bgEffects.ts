@@ -360,7 +360,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         const g = ctx.createLinearGradient(star.x, star.y, tx, ty);
         g.addColorStop(0, tint(q));
         g.addColorStop(0.3, tint(q * 0.5));
-        g.addColorStop(1, "rgba(150,170,255,0)");
+        g.addColorStop(1, "rgba(255, 150, 153,0)");
         ctx.strokeStyle = g;
         ctx.lineWidth = 2;
         ctx.lineCap = "round";

@@ -14,8 +14,8 @@
   --hm-line: #1f1f1f;
   --hm-line-strong: #2e2e2e;
   --hm-blue: #e0453f;
-  --hm-blue-text: #4a73ee;
-  --hm-blue-light: #74a0f8;
+  --hm-blue-text: #ee4a4f;
+  --hm-blue-light: #f87478;
   --hm-text: #ffffff;
   --hm-muted: #9fa2af;
   --hm-caption: #5e7191;
@@ -83,7 +83,7 @@
 }
 
 .app--home .brand-dot {
-  color: #5381f2;
+  color: #f25358;
 }
 
 /* ── shared shell ─────────────────────────────────────────────────── */
@@ -141,7 +141,7 @@
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: conic-gradient(from var(--hm-beam, 0deg), transparent 72%, #74a0f8 88%, transparent 100%);
+  background: conic-gradient(from var(--hm-beam, 0deg), transparent 72%, #f87478 88%, transparent 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -223,7 +223,7 @@
 }
 
 .hm-btn--blue:hover {
-  background: #4470f0;
+  background: #f0444a;
 }
 
 .hm-btn--dark {
@@ -307,8 +307,8 @@
 
 .hm-hero-title span {
   background: none;
-  color: #5381f2;
-  -webkit-text-fill-color: #5381f2;
+  color: #f25358;
+  -webkit-text-fill-color: #f25358;
 }
 
 .hm-hero-sub {
@@ -677,7 +677,7 @@
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: 50%;
-  background: linear-gradient(150deg, #8fb0ff, #3a4a86);
+  background: linear-gradient(150deg, #ff8f93, #863a3d);
   color: #0b0c10;
   font-size: 24px;
   font-weight: 800;
@@ -867,7 +867,7 @@ button.hm-metric:focus-visible {
 }
 
 .hm-metric.is-active b {
-  color: var(--hm-blue-light, #74a0f8);
+  color: var(--hm-blue-light, #f87478);
 }
 
 .hm-chart-panel {
@@ -962,7 +962,7 @@ button.hm-metric:focus-visible {
   overflow: hidden;
   border-radius: 50%;
   background: #1b1d24;
-  color: #cbd3e6;
+  color: #e6cbcc;
   font-size: 13px;
   font-weight: 700;
 }
@@ -1152,8 +1152,8 @@ button.hm-metric:focus-visible {
 .hm-btn--claim {
   height: 48px;
   flex: none;
-  background: #264297;
-  color: #dfe6ff;
+  background: #97262a;
+  color: #ffdfe0;
 }
 
 .hm-btn--claim:hover {
@@ -1184,7 +1184,7 @@ button.hm-metric:focus-visible {
 }
 
 .hm-footer-logo span {
-  color: #5381f2;
+  color: #f25358;
 }
 
 .hm-footer-brand p {
@@ -1262,7 +1262,7 @@ button.hm-metric:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #a9b6ff;
+  color: #ffa9ac;
   font-size: 12.5px;
   font-weight: 600;
 }
@@ -1416,11 +1416,11 @@ button.hm-metric:focus-visible {
 .hm-pages-grid--live .hm-page-preview:nth-child(2) { z-index:2; transform:translateY(-12px); }
 .hm-live-profile { width:500px; flex:none; zoom:.56; pointer-events:none; }
 .hm-live-profile .about-preview { max-width:100%; }
-.hm-pages-grid--live .hm-page-caption { z-index:3; position:absolute; inset:auto 0 0; display:flex; gap:10px; align-items:center; justify-content:center; padding:20px; background:linear-gradient(transparent,#080a12 35%); color:#dce4ff; }
-.hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #38486b; border-radius:16px; background:#101521; box-shadow:0 12px 45px #0005; }
+.hm-pages-grid--live .hm-page-caption { z-index:3; position:absolute; inset:auto 0 0; display:flex; gap:10px; align-items:center; justify-content:center; padding:20px; background:linear-gradient(transparent,#120808 35%); color:#ffdcdd; }
+.hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #4a2b2d; border-radius:16px; background:#17100f; box-shadow:0 12px 45px #0005; }
 .hm-claim--cta .hm-claim-field { display:flex; flex:1; min-width:0; align-items:center; gap:2px; padding:0 10px; border:0; background:transparent; color:#8090af; font-family:inherit; font-size:15px; }
 .hm-claim--cta input { width:100%; min-width:0; padding:0; border:0; outline:0; background:transparent; color:#fff; font:inherit; box-shadow:none; }
-.hm-claim--cta:focus-within { outline:2px solid #6490ff; outline-offset:3px; }
+.hm-claim--cta:focus-within { outline:2px solid #ff6469; outline-offset:3px; }
 .hm-claim--cta input::placeholder { color:#78849d; }
-.hm-btn--claim { border-radius:10px; padding:0 20px; background:#5078ed; color:white; }
+.hm-btn--claim { border-radius:10px; padding:0 20px; background:#ed5055; color:white; }
 @media(max-width:800px){ .hm-pages-grid--live { grid-template-columns:1fr; max-width:480px; margin-inline:auto; } .hm-pages-grid--live .hm-page-preview:first-child,.hm-pages-grid--live .hm-page-preview:last-child,.hm-pages-grid--live .hm-page-preview:nth-child(2){transform:none;} }

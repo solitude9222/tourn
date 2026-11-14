@@ -189,7 +189,7 @@
 .tw-badge-row-preset:hover {
   border-color: color-mix(in srgb, var(--accent, #ffb3ae) 42%, transparent);
   background: color-mix(in srgb, var(--accent, #ffb3ae) 12%, #101116);
-  color: #eaf6ff;
+  color: #ffeaeb;
 }
 
 @media (max-width: 700px) {

@@ -252,7 +252,7 @@
 
 .tw-subnav.is-active {
   border-left-color: var(--accent);
-  background: rgba(27, 35, 59, 0.55);
+  background: rgba(59, 27, 28, 0.55);
   color: #ffd6d3;
 }
 
@@ -325,7 +325,7 @@
 }
 
 .tw-premium-card.is-active b {
-  color: #dfe8ff;
+  color: #ffdfe0;
 }
 
 .tw-premium-card small {
@@ -555,16 +555,18 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  border: 2px solid var(--border);
+  border: 1px solid #23232a;
   border-radius: 10px;
-  background: #0f0f10;
-  color: #7b808c;
+  background: #141418;
+  color: var(--sub, #9fa2af);
   cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 
 .tw-eye-btn:hover {
-  color: var(--title);
-  border-color: #2c2c2c;
+  border-color: #d93c36;
+  background: #1c1c21;
+  color: #ffffff;
 }
 
 /* -------------------------------------------------------------------- tabs */
@@ -642,7 +644,8 @@
   height: 22px;
   margin-top: 1px;
   flex: none;
-  color: var(--accent-text);
+  /* Neutral chrome: the red is for actions and active state, not every icon. */
+  color: var(--sub, #9fa2af);
 }
 
 .tw-card-copy {
@@ -1125,7 +1128,7 @@
 }
 
 .tw-btn--primary:hover {
-  background: #4a74ef;
+  background: #ef4a4f;
 }
 
 .tw-btn--ghost {
@@ -1141,7 +1144,7 @@
 
 .tw-btn--soft {
   background: rgba(224, 69, 63, 0.14);
-  color: #a8c1ff;
+  color: #ffa8ab;
 }
 
 .tw-btn--danger {
@@ -1192,7 +1195,7 @@
 }
 
 .tw-icon-btn--primary:hover {
-  background: #4a74ef;
+  background: #ef4a4f;
 }
 
 .tw-icon-btn--danger {
@@ -1213,7 +1216,7 @@
 
 .tw-icon-btn.is-active {
   border-color: var(--accent);
-  color: #a9c2ff;
+  color: #ffa9ac;
 }
 
 /* ------------------------------------------------------------------ chips */
@@ -1243,7 +1246,7 @@
 
 .tw-chip--accent {
   background: rgba(224, 69, 63, 0.16);
-  color: #9db9ff;
+  color: #ff9da0;
 }
 
 .tw-chip--amber {
@@ -1810,7 +1813,7 @@
 
 .tw-badge-tile.is-equipped {
   border-color: rgba(224, 69, 63, 0.5);
-  background: rgba(32, 44, 82, 0.32);
+  background: rgba(82, 32, 34, 0.32);
 }
 
 .tw-badge-tile.is-locked .tw-badge-art {
@@ -3495,27 +3498,27 @@
 }
 
 .tw-effect-dot--beam {
-  background: conic-gradient(from 200deg, #ffffff, #7aa2ff 40%, transparent 62%);
+  background: conic-gradient(from 200deg, #ffffff, #ff7a7e 40%, transparent 62%);
 }
 
 .tw-effect-dot--aurora {
-  background: linear-gradient(140deg, #7aa2ff, #c58bff 55%, #6ee7ff);
+  background: linear-gradient(140deg, #ff7a7e, #ff8b8f 55%, #ff6e73);
 }
 
 .tw-effect-dot--shimmer {
-  background: linear-gradient(100deg, #2a2f3a, #eef3fb 45%, #2a2f3a);
+  background: linear-gradient(100deg, #2a2f3a, #fbeeee 45%, #2a2f3a);
 }
 
 .tw-effect-dot--sheen {
-  background: linear-gradient(180deg, #eef3fb, #3a3f4a 62%);
+  background: linear-gradient(180deg, #fbeeee, #3a3f4a 62%);
 }
 
 .tw-effect-dot--hologram {
-  background: conic-gradient(from 0deg, #ff9de2, #9df2ff, #fff6a8, #b39dff, #ff9de2);
+  background: conic-gradient(from 0deg, #ff9de2, #ff9da0, #fff6a8, #ff9da0, #ff9de2);
 }
 
 .tw-effect-dot--edgeGlow {
-  background: radial-gradient(circle at 50% 50%, #141821 38%, #7aa2ff 100%);
+  background: radial-gradient(circle at 50% 50%, #141821 38%, #ff7a7e 100%);
 }
 
 .tw-effect-dot--frost {
@@ -3749,7 +3752,7 @@
   height: 38px;
   border-radius: 11px;
   background: #171b25;
-  color: #c9d4ea;
+  color: #eac9ca;
   font-size: 16px;
   font-weight: 600;
 }
@@ -3903,7 +3906,7 @@
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(124, 140, 220, 0.13), rgba(255, 255, 255, 0.015) 55%);
+  background: linear-gradient(135deg, rgba(220, 124, 127, 0.13), rgba(255, 255, 255, 0.015) 55%);
 }
 .inv-avatar {
   display: grid;
@@ -3913,7 +3916,7 @@
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: #171c28;
-  color: #dfe6f6;
+  color: #f6dfe0;
   font-size: 24px;
   font-weight: 600;
   flex: none;
@@ -3992,7 +3995,7 @@
   border-bottom: 0;
 }
 .inv-name.is-active {
-  background: linear-gradient(90deg, rgba(124, 140, 220, 0.12), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(90deg, rgba(220, 124, 127, 0.12), rgba(255, 255, 255, 0.02));
 }
 .inv-name-mark {
   display: grid;
@@ -4002,7 +4005,7 @@
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #171c28;
-  color: #d6e0f4;
+  color: #f4d6d7;
   font-size: 17px;
   font-weight: 600;
   flex: none;
@@ -4050,8 +4053,8 @@
   background: rgba(255, 255, 255, 0.02);
 }
 .inv-badge.is-owned {
-  border-color: rgba(124, 140, 220, 0.3);
-  background: rgba(124, 140, 220, 0.08);
+  border-color: rgba(220, 124, 127, 0.3);
+  background: rgba(220, 124, 127, 0.08);
 }
 .inv-badge-art {
   display: grid;
@@ -4103,7 +4106,7 @@
   gap: 3px;
 }
 .inv-collect-copy b {
-  color: #e6ecf8;
+  color: #f8e6e7;
   font-size: 13.5px;
 }
 .inv-collect-copy small {
@@ -4123,9 +4126,9 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid rgba(124, 140, 220, 0.28);
+  border: 1px solid rgba(220, 124, 127, 0.28);
   border-radius: 13px;
-  background: rgba(124, 140, 220, 0.08);
+  background: rgba(220, 124, 127, 0.08);
 }
 .bill-granted-mark {
   display: grid;
@@ -4207,7 +4210,7 @@
 }
 .invt-copy:hover {
   color: #fff;
-  border-color: #3d63f2;
+  border-color: #f23d43;
 }
 .invt-chip {
   display: inline-flex;
@@ -4224,8 +4227,8 @@
 }
 .invt-chip.is-prem {
   border-color: transparent;
-  background: rgba(61, 99, 242, 0.14);
-  color: #5a7bff;
+  background: rgba(242, 61, 67, 0.14);
+  color: #ff5a5f;
 }
 .invt-chip.is-use {
   border-color: transparent;
@@ -4266,13 +4269,13 @@
   transform: scale(0.98);
 }
 .invt-btn.is-pri {
-  border-color: #3d63f2;
-  background: #3d63f2;
+  border-color: #f23d43;
+  background: #f23d43;
   color: #fff;
 }
 .invt-btn.is-pri:hover:not(:disabled) {
-  background: #5a7bff;
-  border-color: #5a7bff;
+  background: #ff5a5f;
+  border-color: #ff5a5f;
 }
 .invt-btn:disabled {
   opacity: 0.5;
@@ -4300,7 +4303,7 @@
   height: 36px;
   border-radius: 11px;
   background: #101015;
-  color: #5a7bff;
+  color: #ff5a5f;
   flex: none;
 }
 .invt-stat b {
@@ -4352,7 +4355,7 @@
   color: #f2f2f5;
 }
 .invt-tabs button.is-on {
-  background: #3d63f2;
+  background: #f23d43;
   color: #fff;
 }
 .invt-tabs em {
@@ -4386,7 +4389,7 @@
   border-color: #26262f;
 }
 .invt-name.is-active {
-  border-color: rgba(61, 99, 242, 0.55);
+  border-color: rgba(242, 61, 67, 0.55);
 }
 .invt-name-row {
   display: flex;
@@ -4402,7 +4405,7 @@
   line-height: 1;
 }
 .invt-handle span {
-  color: #5a7bff;
+  color: #ff5a5f;
 }
 .invt-name-copy p {
   margin: 8px 0 0;
@@ -4439,7 +4442,7 @@
   text-decoration: none;
 }
 .invt-ghost:hover {
-  border-color: #3d63f2;
+  border-color: #f23d43;
   color: #fff;
 }
 .invt-ghost-icon {
@@ -4471,7 +4474,7 @@
   text-align: center;
 }
 .invt-badge.is-owned {
-  border-color: rgba(61, 99, 242, 0.32);
+  border-color: rgba(242, 61, 67, 0.32);
 }
 .invt-badge-icon {
   display: grid;
@@ -4480,7 +4483,7 @@
   height: 54px;
   margin: 0 auto 12px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--c, #5a7bff) 14%, transparent);
+  background: color-mix(in srgb, var(--c, #ff5a5f) 14%, transparent);
 }
 .invt-badge b {
   display: block;
@@ -4501,7 +4504,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--c, #5a7bff);
+  background: var(--c, #ff5a5f);
   opacity: 0.7;
 }
 .invt-empty {
@@ -4521,7 +4524,7 @@
   margin-bottom: 6px;
   border-radius: 15px;
   background: #101015;
-  color: #5a7bff;
+  color: #ff5a5f;
 }
 .invt-empty b {
   color: #f2f2f5;
@@ -4580,16 +4583,16 @@
   margin-top: 10px;
   height: 28px;
   padding: 0 12px;
-  border: 1px solid rgba(61, 99, 242, 0.5);
+  border: 1px solid rgba(242, 61, 67, 0.5);
   border-radius: 8px;
-  background: rgba(61, 99, 242, 0.14);
-  color: #8ba4ff;
+  background: rgba(242, 61, 67, 0.14);
+  color: #ff8b8f;
   font-size: 11.5px;
   font-weight: 600;
   text-decoration: none;
 }
 .invt-badge-buy:hover {
-  background: #3d63f2;
+  background: #f23d43;
   color: #fff;
 }
 
@@ -4702,8 +4705,8 @@
   border-color: rgba(255, 255, 255, 0.22);
 }
 .trade-chip.is-on {
-  border-color: var(--accent, #4c7cf3);
-  background: rgba(76, 124, 243, 0.14);
+  border-color: var(--accent, #f34c52);
+  background: rgba(243, 76, 82, 0.14);
 }
 .trade-chip--badge img {
   border-radius: 4px;
@@ -4812,8 +4815,8 @@
 }
 .trade-msg.is-mine {
   justify-self: end;
-  background: rgba(76, 124, 243, 0.12);
-  border-color: rgba(76, 124, 243, 0.3);
+  background: rgba(243, 76, 82, 0.12);
+  border-color: rgba(243, 76, 82, 0.3);
 }
 .trade-msg small {
   color: var(--nav);
@@ -4941,7 +4944,7 @@
   min-width: 0;
 }
 .tw-tpl-copy b {
-  color: #f4f6fb;
+  color: #fbf4f4;
   font-size: 12.5px;
   font-weight: 650;
 }
@@ -5057,8 +5060,8 @@
 }
 
 .tw-control:focus-within {
-  border-color: rgba(125, 155, 245, 0.6);
-  box-shadow: 0 0 0 3px rgba(125, 155, 245, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-color: rgba(245, 125, 129, 0.6);
+  box-shadow: 0 0 0 3px rgba(245, 125, 129, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .tw-textarea {
@@ -5077,8 +5080,8 @@
 }
 
 .tw-textarea:focus {
-  border-color: rgba(125, 155, 245, 0.6);
-  box-shadow: 0 0 0 3px rgba(125, 155, 245, 0.14);
+  border-color: rgba(245, 125, 129, 0.6);
+  box-shadow: 0 0 0 3px rgba(245, 125, 129, 0.14);
 }
 
 /* ── controls matching the reference: 12px radius, #131316 fill, #2a2a30
@@ -5175,7 +5178,7 @@
 
 .ui-select-item.is-active {
   background: rgba(224, 69, 63, 0.22);
-  color: #eef2ff;
+  color: #ffeeef;
 }
 
 /* ═══ motion ═══════════════════════════════════════════════════════════════
@@ -5637,4 +5640,24 @@
 .tw-rail-foot .tw-note-pop {
   top: calc(100% + 8px);
   bottom: auto;
+}
+
+/* The plan chip and account row are the rail's header now: one padded block
+   with a single divider under it, instead of two stacked borders. */
+.tw-rail > .tw-rail-foot {
+  padding: 0 16px 12px;
+  border-bottom: 1px solid #1d1d22;
+}
+
+.tw-rail-foot .tw-premium-card {
+  margin-bottom: 8px;
+}
+
+.tw-rail-foot .tw-user-foot,
+.tw-rail-foot .tw-user-row {
+  border-top: 0;
+}
+
+.tw-rail-foot .tw-user-row {
+  padding: 8px 2px;
 }

@@ -109,8 +109,8 @@
 }
 
 .adm-btn:hover {
-  border-color: rgba(180, 191, 250, 0.35);
-  background: rgba(180, 191, 250, 0.1);
+  border-color: rgba(250, 180, 182, 0.35);
+  background: rgba(250, 180, 182, 0.1);
   color: #fff;
 }
 
@@ -125,14 +125,14 @@
 
 .adm-btn--primary {
   border-color: transparent;
-  background: linear-gradient(135deg, #d9f4ff 0%, #ffb3ae 55%, #8fd8ff 100%);
+  background: linear-gradient(135deg, #ffd9da 0%, #ffb3ae 55%, #ff8f93 100%);
   color: #0b0b0d;
-  box-shadow: 0 14px 30px -16px rgba(180, 191, 250, 0.9);
+  box-shadow: 0 14px 30px -16px rgba(250, 180, 182, 0.9);
 }
 
 .adm-btn--primary:hover {
   border-color: transparent;
-  background: linear-gradient(135deg, #ded3ff 0%, #c2ccff 55%, #a3b0f7 100%);
+  background: linear-gradient(135deg, #ffd3d4 0%, #ffc2c4 55%, #f7a3a6 100%);
   color: #0b0b0d;
 }
 
@@ -171,9 +171,9 @@
 }
 
 .adm-tab.is-active {
-  background: linear-gradient(135deg, #d9f4ff 0%, #ffb3ae 55%, #8fd8ff 100%);
+  background: linear-gradient(135deg, #ffd9da 0%, #ffb3ae 55%, #ff8f93 100%);
   color: var(--adm-ink);
-  box-shadow: 0 12px 26px -14px rgba(180, 191, 250, 0.9);
+  box-shadow: 0 12px 26px -14px rgba(250, 180, 182, 0.9);
 }
 
 .adm-tab.is-active svg {
@@ -224,7 +224,7 @@
   height: 42px;
   flex: none;
   place-items: center;
-  border: 1px solid rgba(180, 191, 250, 0.22);
+  border: 1px solid rgba(250, 180, 182, 0.22);
   border-radius: 13px;
   background: var(--adm-brand-soft);
   color: var(--adm-brand);
@@ -448,7 +448,7 @@
 }
 
 .adm-link:hover {
-  color: #dfe4ff;
+  color: #ffdfe0;
 }
 
 .adm-empty {
@@ -531,10 +531,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px solid rgba(180, 191, 250, 0.22);
+  border: 1px solid rgba(250, 180, 182, 0.22);
   border-radius: 11px;
-  background: rgba(180, 191, 250, 0.07);
-  color: #cfd6ff;
+  background: rgba(250, 180, 182, 0.07);
+  color: #ffcfd1;
   font: inherit;
   font-size: 10.5px;
   font-weight: 600;
@@ -543,8 +543,8 @@
 }
 
 .adm-action:hover {
-  border-color: rgba(180, 191, 250, 0.42);
-  background: rgba(180, 191, 250, 0.15);
+  border-color: rgba(250, 180, 182, 0.42);
+  background: rgba(250, 180, 182, 0.15);
   color: #fff;
 }
 
@@ -579,14 +579,14 @@
   position: absolute;
   inset: 0 0 auto;
   height: 86px;
-  background: linear-gradient(180deg, rgba(180, 191, 250, 0.1), transparent);
+  background: linear-gradient(180deg, rgba(250, 180, 182, 0.1), transparent);
   opacity: 0;
   transition: opacity 0.25s ease;
   pointer-events: none;
 }
 
 .adm-card:hover {
-  border-color: rgba(180, 191, 250, 0.3);
+  border-color: rgba(250, 180, 182, 0.3);
   transform: translateY(-1px);
 }
 
@@ -720,7 +720,7 @@
 }
 
 .adm-search:focus-within {
-  border-color: rgba(180, 191, 250, 0.45);
+  border-color: rgba(250, 180, 182, 0.45);
 }
 
 .adm-search input {
@@ -877,9 +877,9 @@
 }
 
 .adm-flag.is-on {
-  border-color: rgba(180, 191, 250, 0.34);
-  background: rgba(180, 191, 250, 0.14);
-  color: #cfd6ff;
+  border-color: rgba(250, 180, 182, 0.34);
+  background: rgba(250, 180, 182, 0.14);
+  color: #ffcfd1;
 }
 
 .adm-flag--admin.is-on {
@@ -912,7 +912,7 @@
 }
 
 .adm-mini:hover {
-  border-color: rgba(180, 191, 250, 0.35);
+  border-color: rgba(250, 180, 182, 0.35);
   color: #fff;
 }
 
@@ -922,9 +922,9 @@
 }
 
 .adm-mini--edit {
-  border-color: rgba(180, 191, 250, 0.34);
-  background: rgba(180, 191, 250, 0.12);
-  color: #cfd6ff;
+  border-color: rgba(250, 180, 182, 0.34);
+  background: rgba(250, 180, 182, 0.12);
+  color: #ffcfd1;
 }
 
 .adm-mini--danger {
@@ -948,7 +948,7 @@
 }
 
 .adm-open:hover {
-  color: #dfe4ff;
+  color: #ffdfe0;
 }
 
 /* ── member modal ───────────────────────────────────────────────────────── */
@@ -960,7 +960,7 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(3, 4, 8, 0.8);
+  background: rgba(8, 3, 3, 0.8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   animation: admFade 0.18s ease both;
@@ -972,11 +972,11 @@
   max-height: min(86vh, 780px);
   margin: auto;
   overflow: auto;
-  border: 1px solid rgba(180, 191, 250, 0.28);
+  border: 1px solid rgba(250, 180, 182, 0.28);
   border-radius: 24px;
   background-image: linear-gradient(180deg, rgba(26, 27, 35, 0.98), rgba(11, 11, 13, 0.99));
   background-color: #121219;
-  box-shadow: 0 40px 90px -40px #000, 0 0 70px -34px rgba(180, 191, 250, 0.6),
+  box-shadow: 0 40px 90px -40px #000, 0 0 70px -34px rgba(250, 180, 182, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
   animation: admRise 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.05) both;
 }
@@ -1015,7 +1015,7 @@
   height: 40px;
   flex: none;
   place-items: center;
-  border: 1px solid rgba(180, 191, 250, 0.24);
+  border: 1px solid rgba(250, 180, 182, 0.24);
   border-radius: 12px;
   background: var(--adm-brand-soft);
   overflow: hidden;
@@ -1141,7 +1141,7 @@
 }
 
 .adm-modal-link:hover {
-  color: #dfe4ff;
+  color: #ffdfe0;
 }
 
 /* ── fields ─────────────────────────────────────────────────────────────── */
@@ -1178,8 +1178,8 @@
 
 .adm-field input:focus,
 .adm-field textarea:focus {
-  border-color: rgba(180, 191, 250, 0.5);
-  background: rgba(180, 191, 250, 0.06);
+  border-color: rgba(250, 180, 182, 0.5);
+  background: rgba(250, 180, 182, 0.06);
 }
 
 .adm-field input::placeholder,
@@ -1269,12 +1269,12 @@
 }
 
 .adm-switch.is-on {
-  border-color: rgba(180, 191, 250, 0.42);
-  background: rgba(180, 191, 250, 0.2);
+  border-color: rgba(250, 180, 182, 0.42);
+  background: rgba(250, 180, 182, 0.2);
 }
 
 .adm-switch.is-on span {
-  background: #eef1ff;
+  background: #ffeeef;
   transform: translateX(16px);
 }
 
@@ -1367,9 +1367,9 @@
 }
 
 .adm-badge--premium {
-  border-color: rgba(180, 191, 250, 0.32);
-  background: rgba(180, 191, 250, 0.14);
-  color: #cfd6ff;
+  border-color: rgba(250, 180, 182, 0.32);
+  background: rgba(250, 180, 182, 0.14);
+  color: #ffcfd1;
 }
 
 .adm-badge--live {
@@ -1402,12 +1402,12 @@
 }
 
 .adm-mode:hover {
-  border-color: rgba(180, 191, 250, 0.28);
+  border-color: rgba(250, 180, 182, 0.28);
 }
 
 .adm-mode.is-active {
-  border-color: rgba(180, 191, 250, 0.45);
-  background: rgba(180, 191, 250, 0.08);
+  border-color: rgba(250, 180, 182, 0.45);
+  background: rgba(250, 180, 182, 0.08);
 }
 
 .adm-mode-head {
@@ -1521,7 +1521,7 @@
 }
 
 .adm-rule input:focus {
-  border-color: rgba(180, 191, 250, 0.42);
+  border-color: rgba(250, 180, 182, 0.42);
 }
 
 .adm-rule input::placeholder {
@@ -1578,7 +1578,7 @@
   width: 52px;
   height: 52px;
   place-items: center;
-  border: 1px solid rgba(180, 191, 250, 0.24);
+  border: 1px solid rgba(250, 180, 182, 0.24);
   border-radius: 15px;
   background: var(--adm-brand-soft);
   color: var(--adm-brand);
@@ -1729,7 +1729,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
-  color: #e8ebf7;
+  color: #f7e8e9;
   font: inherit;
   font-size: 11px;
   font-weight: 600;
@@ -1738,13 +1738,13 @@
 }
 
 .adm-copy-link:hover {
-  border-color: rgba(180, 191, 250, 0.42);
-  background: rgba(180, 191, 250, 0.14);
+  border-color: rgba(250, 180, 182, 0.42);
+  background: rgba(250, 180, 182, 0.14);
   color: #fff;
 }
 
 .adm-copy-link.is-done {
-  border-color: rgba(180, 191, 250, 0.55);
+  border-color: rgba(250, 180, 182, 0.55);
   color: var(--adm-brand);
 }
 
@@ -1768,7 +1768,7 @@
   margin-left: auto;
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(180, 191, 250, 0.12);
+  background: rgba(250, 180, 182, 0.12);
   color: var(--adm-brand);
   font-size: 9.5px;
   letter-spacing: 0.04em;
@@ -1795,7 +1795,7 @@
 
 .adm-role-row b {
   display: block;
-  color: #f2f4fb;
+  color: #fbf2f2;
   font-size: 12.5px;
 }
 
@@ -1840,7 +1840,7 @@
 }
 
 .adm-mini:hover {
-  border-color: rgba(180, 191, 250, 0.4);
+  border-color: rgba(250, 180, 182, 0.4);
   color: #fff;
 }
 
@@ -1880,13 +1880,13 @@
 }
 
 .adm-badge-pick:hover {
-  border-color: rgba(180, 191, 250, 0.35);
+  border-color: rgba(250, 180, 182, 0.35);
   color: #fff;
 }
 
 .adm-badge-pick.is-on {
-  border-color: rgba(180, 191, 250, 0.55);
-  background: rgba(180, 191, 250, 0.14);
+  border-color: rgba(250, 180, 182, 0.55);
+  background: rgba(250, 180, 182, 0.14);
   color: #fff;
 }
 
@@ -1996,9 +1996,9 @@
 }
 
 .adm-role-btn.is-active {
-  border-color: rgba(180, 191, 250, 0.55);
-  background: rgba(180, 191, 250, 0.09);
-  color: #dfe4ff;
+  border-color: rgba(250, 180, 182, 0.55);
+  background: rgba(250, 180, 182, 0.09);
+  color: #ffdfe0;
 }
 
 .adm-role-btn.is-active b {
@@ -2030,8 +2030,8 @@
 }
 
 .adm-badge-pick.is-on {
-  border-color: rgba(180, 191, 250, 0.5);
-  background: rgba(180, 191, 250, 0.1);
+  border-color: rgba(250, 180, 182, 0.5);
+  background: rgba(250, 180, 182, 0.1);
 }
 
 .adm-badge-initial {
@@ -2039,7 +2039,7 @@
   width: 18px;
   height: 18px;
   place-items: center;
-  border: 1px solid rgba(180, 191, 250, 0.35);
+  border: 1px solid rgba(250, 180, 182, 0.35);
   border-radius: 5px;
   color: var(--adm-brand);
   font-size: 9px;
@@ -2218,7 +2218,7 @@
 
 .adm.adm--embedded .adm-btn--primary:hover {
   border-color: transparent;
-  background: #4a74ef;
+  background: #ef4a4f;
   color: #fff;
 }
 
@@ -2282,14 +2282,14 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   background: #0c0e12;
-  color: #e7ecf5;
+  color: #f5e7e7;
   font-family: var(--adm-mono, ui-monospace, monospace);
   font-size: 12px;
   line-height: 1.6;
   resize: vertical;
 }
 .adm-serial-box:focus-visible {
-  outline: 2px solid rgba(180, 191, 250, 0.5);
+  outline: 2px solid rgba(250, 180, 182, 0.5);
   outline-offset: 2px;
 }
 .adm-serial-box--out {
@@ -2383,8 +2383,8 @@
 }
 
 .adm-action--primary {
-  border-color: #eef1ff;
-  background: #eef1ff;
+  border-color: #ffeeef;
+  background: #ffeeef;
   color: #10131c;
 }
 
@@ -2454,8 +2454,8 @@
 
 .adm-claim-input:focus-visible {
   outline: none;
-  border-color: rgba(180, 191, 250, 0.6);
-  box-shadow: 0 0 0 3px rgba(180, 191, 250, 0.12);
+  border-color: rgba(250, 180, 182, 0.6);
+  box-shadow: 0 0 0 3px rgba(250, 180, 182, 0.12);
 }
 
 .adm-note {
@@ -2574,8 +2574,8 @@
 .adm input:focus-visible,
 .adm textarea:focus-visible {
   outline: none;
-  border-color: rgba(125, 155, 245, 0.6);
-  box-shadow: 0 0 0 3px rgba(125, 155, 245, 0.14);
+  border-color: rgba(245, 125, 129, 0.6);
+  box-shadow: 0 0 0 3px rgba(245, 125, 129, 0.14);
 }
 
 .adm .adm-field {
@@ -2624,8 +2624,8 @@
 
 .adm .adm-check input[type="checkbox"]:checked,
 .adm .adm-rule-options input[type="checkbox"]:checked {
-  border-color: rgba(125, 155, 245, 0.9);
-  background: #7d9bf5;
+  border-color: rgba(245, 125, 129, 0.9);
+  background: #f57d81;
 }
 
 .adm .adm-check input[type="checkbox"]:checked::after,
@@ -2636,7 +2636,7 @@
 
 .adm .adm-check input[type="checkbox"]:focus-visible,
 .adm .adm-rule-options input[type="checkbox"]:focus-visible {
-  outline: 2px solid rgba(125, 155, 245, 0.6);
+  outline: 2px solid rgba(245, 125, 129, 0.6);
   outline-offset: 2px;
 }
 
@@ -2671,8 +2671,8 @@
 
 .adm .adm-btn--primary,
 .adm .adm-action--primary {
-  border-color: #eef1ff;
-  background: #eef1ff;
+  border-color: #ffeeef;
+  background: #ffeeef;
   color: #10131c;
 }
 

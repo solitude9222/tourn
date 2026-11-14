@@ -128,7 +128,7 @@
   border: 1px solid rgba(255, 154, 149, 0.14);
   border-radius: 8px;
   background: rgba(255, 154, 149, 0.06);
-  color: #9fc8dd;
+  color: #dd9fa1;
   font-size: 10.5px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -147,7 +147,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, rgba(255, 154, 149, 0.7), rgba(180, 191, 250, 0.55));
+  background: linear-gradient(90deg, rgba(255, 154, 149, 0.7), rgba(250, 180, 182, 0.55));
 }
 
 /* Dashboard podium. */
@@ -206,7 +206,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), #8fd8ff);
+  background: linear-gradient(90deg, var(--accent), #ff8f93);
 }
 
 .tw-lb-podium-card.is-1 .tw-lb-podium-bar > span {

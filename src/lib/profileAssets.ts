@@ -345,7 +345,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     style: "solid",
     color: "#0b0d10",
     from: "#0b0d10",
-    to: "#16233a",
+    to: "#3a1617",
     imageUrl: "",
     videoUrl: "",
     videoAudio: false,

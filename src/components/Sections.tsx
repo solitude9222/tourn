@@ -487,14 +487,14 @@ function TrendChart({ points, label }: { points: ChartPoint[]; label: string }) 
       <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} role="img" aria-label={label}>
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5381f2" stopOpacity="0.42" />
-            <stop offset="100%" stopColor="#5381f2" stopOpacity="0" />
+            <stop offset="0%" stopColor="#f25358" stopOpacity="0.42" />
+            <stop offset="100%" stopColor="#f25358" stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={area} fill={`url(#${gradientId})`} />
-        <path d={line} fill="none" stroke="#7d9bf5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={line} fill="none" stroke="#f57d81" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         {coords.map((point, index) => (
-          <circle key={index} cx={point.x} cy={point.y} r="3.5" fill="#0b0b0d" stroke="#7d9bf5" strokeWidth="2" />
+          <circle key={index} cx={point.x} cy={point.y} r="3.5" fill="#0b0b0d" stroke="#f57d81" strokeWidth="2" />
         ))}
       </svg>
       <div className="hm-chart-axis">

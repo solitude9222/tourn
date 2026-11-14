@@ -365,7 +365,7 @@ export const MAX_BIO_LENGTH = 800;
 
 export const DEFAULT_PROFILE_COLORS: ProfileColors = {
   accent: "#ff9d98",
-  text: "#f4f6fb",
+  text: "#fbf4f4",
   muted: "#98a2b3",
   background: "#07070a",
   card: "#14141e",
@@ -393,7 +393,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
   hint: "",
   align: "center",
   oncePerSession: false,
-  titleColor: "#f4f6fb",
+  titleColor: "#fbf4f4",
   subtitleColor: "#98a2b3",
   hintColor: "#8b93a1",
   letterSpacing: -0.04,
