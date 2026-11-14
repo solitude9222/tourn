@@ -1,5 +1,5 @@
 import {ProfileHistory} from "../ProfileHistory";
-import { useState } from "react";
+import { useRef, useState } from "react";
 /* ---------------------------------------------------------------------------
    Customize > Card — the card layout, the widget positions and the card's
    colours in one place. The layout only decides how much room the card and
@@ -12,8 +12,9 @@ import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
 import { TECH_STACK, techCategory, techIconUrl } from "../../lib/techStack";
 import { PositionStudio } from "../PositionStudio";
+import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
-import { FileUpload, Button, Card, CardHead, ColorField, Field, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
+import { FileUpload, Button, Card, CardHead, ColorField, Field, Icon, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
 
 const SECTION_KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
   { id: "project", label: "Projects", hint: "Artwork, stack and links" },
@@ -52,6 +53,135 @@ const PAGE_LAYOUTS: {
     joinPosition: "under-name",
   },
 ];
+
+/* One draggable detail. Dropping it on a corner of the preview writes the
+   matching design position, so the preview and the saved page never drift. */
+type DropId = "views" | "location" | "join" | "audio" | "likes";
+
+const DROPPABLE: { id: DropId; label: string; hint: string }[] = [
+  { id: "views", label: "Profile Views", hint: "where the eye count sits" },
+  { id: "location", label: "Location", hint: "your place on the card" },
+  { id: "join", label: "Join Date", hint: "when the account started" },
+  { id: "audio", label: "Audio Player", hint: "inside or under the card" },
+  { id: "likes", label: "Likes", hint: "fixed reaction dock" },
+];
+
+const ZONES: { id: string; position: "inside-top-left" | "inside-top-right" | "inside-bottom-left" | "inside-bottom-right" | "footer" }[] = [
+  { id: "top-left", position: "inside-top-left" },
+  { id: "top-right", position: "inside-top-right" },
+  { id: "bottom-left", position: "inside-bottom-left" },
+  { id: "bottom-right", position: "inside-bottom-right" },
+  { id: "footer", position: "footer" },
+];
+
+function LayoutPreview() {
+  const { user, about, widgets, badges, links, setAbout, notify } = useDash();
+  const [dragging, setDragging] = useState<DropId | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  const stageZone = (event: { clientX: number; clientY: number }) => {
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    if (y > 0.8) return "footer";
+    return `${y < 0.5 ? "top" : "bottom"}-${x < 0.5 ? "left" : "right"}`;
+  };
+
+  const drop = (zone: string | null) => {
+    const widget = dragging;
+    setDragging(null);
+    setHovered(null);
+    if (!widget || !zone) return;
+    const target = ZONES.find((entry) => entry.id === zone);
+    if (!target) return;
+    if (widget === "likes") {
+      notify("Likes", "The reaction dock always sits at the screen bottom, so it stays reachable.");
+      return;
+    }
+    if (widget === "audio") {
+      const audioPosition = zone === "footer" ? "below" : "inside";
+      setAbout((current) => ({ ...current, design: { ...current.design, audioPosition } }));
+      notify("Audio player", `Moved ${audioPosition === "below" ? "under the card" : "inside the card"}.`);
+      return;
+    }
+    const field = widget === "views" ? "viewPosition" : widget === "location" ? "locationPosition" : "joinPosition";
+    setAbout((current) => ({
+      ...current,
+      design: { ...current.design, advancedLayout: true, [field]: target.position },
+    }));
+    notify("Position updated", `${widget === "views" ? "Views" : widget === "location" ? "Location" : "Join date"} now sits ${zone.replace("-", " ")}.`);
+  };
+
+  return (
+    <Card>
+      <CardHead
+        icon="move"
+        title="Layout Preview"
+        subtitle="Drag the profile widgets inside the preview. This is your real card, not a mock."
+      />
+
+      <div className="tw-drag-row">
+        {DROPPABLE.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`tw-drag-chip${dragging === item.id ? " is-dragging" : ""}`}
+            title={item.hint}
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setDragging(item.id);
+            }}
+            onPointerMove={(event) => {
+              if (dragging !== item.id) return;
+              setHovered(stageZone(event));
+            }}
+            onPointerUp={(event) => {
+              if (dragging !== item.id) return;
+              drop(stageZone(event));
+            }}
+            onPointerCancel={() => {
+              setDragging(null);
+              setHovered(null);
+            }}
+          >
+            <Icon name="drag" size={13} />
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={`tw-layout-stage${dragging ? " is-dragging" : ""}`} ref={stageRef}>
+        <div className="tw-layout-stage-scaler">
+          <LinkerPreview
+            user={user}
+            about={about}
+            widgets={widgets}
+            badges={badges}
+            links={links}
+            interactive={false}
+          />
+        </div>
+        <div className="tw-layout-zones" aria-hidden={dragging ? undefined : true}>
+          {ZONES.map((zone) => (
+            <span
+              key={zone.id}
+              className={`tw-layout-zone tw-layout-zone--${zone.id}${hovered === zone.id ? " is-hot" : ""}`}
+            >
+              {hovered === zone.id ? "drop here" : ""}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <p className="tw-foot-note">
+        Visible widget means it is on. Anything switched off in Profile → Switches keeps its place but
+        stops drawing on the page.
+      </p>
+    </Card>
+  );
+}
 
 export function LayoutPage() {
   const [dragSection,setDragSection]=useState<number|null>(null);
@@ -139,6 +269,7 @@ export function LayoutPage() {
         </div>
       </Card> : null}
 
+      {tab === "layout" ? <LayoutPreview /> : null}
       {tab === "layout" ? <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card> : null}
       {tab === "layout" ? <Card>
         <div className="tw-inline-toggle">

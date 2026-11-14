@@ -4505,6 +4505,70 @@
 
 /* ── titled sections ──────────────────────────────────────── */
 
+/* ── reactions: a small floating dock on public profiles ─────────────────── */
+.pv-react {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.12));
+  border-radius: 999px;
+  background: var(--pv-card, rgba(20, 20, 30, 0.86));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.9);
+}
+
+.pv-react--dock {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 45;
+}
+
+.pv-react-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  color: var(--pv-muted, #98a2b3);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.pv-react-btn:hover:not(:disabled) {
+  border-color: var(--pv-border-color, rgba(255, 255, 255, 0.14));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--pv-text, #f4f6fb);
+}
+
+.pv-react-btn.is-on {
+  border-color: var(--pv-accent, #b4bffa);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--pv-accent, #b4bffa);
+}
+
+.pv-react-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.pv-react-btn b {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 700px) {
+  .pv-react--dock {
+    right: 12px;
+    bottom: 12px;
+  }
+}
+
 /* ── surfaces set in Portfolio → Design ────────────────────────────────────
    Vars come from the saved design document; the fallbacks match the defaults
    so pages without them render exactly as before. */

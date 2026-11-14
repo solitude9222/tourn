@@ -89,6 +89,54 @@ export const FONT_CATEGORIES: FontCategory[] = [
       { family: "Black Ops One", weights: "400" },
     ],
   },
+  {
+    id: "rounded",
+    name: "Rounded",
+    fonts: [
+      { family: "Nunito", weights: "400;600;700;800" },
+      { family: "Rubik", weights: "400;600;700" },
+      { family: "Quicksand", weights: "400;600;700" },
+      { family: "Baloo 2", weights: "400;600;700" },
+      { family: "Comfortaa", weights: "400;600;700" },
+      { family: "Varela Round", weights: "400" },
+    ],
+  },
+  {
+    id: "condensed",
+    name: "Condensed / Editorial",
+    fonts: [
+      { family: "Barlow Condensed", weights: "400;600;700" },
+      { family: "Archivo Narrow", weights: "400;600;700" },
+      { family: "Roboto Condensed", weights: "400;600;700" },
+      { family: "Teko", weights: "400;600;700" },
+      { family: "Saira Condensed", weights: "400;600;700" },
+      { family: "Antonio", weights: "400;600;700" },
+    ],
+  },
+  {
+    id: "retro",
+    name: "Retro / Pixel",
+    fonts: [
+      { family: "VT323", weights: "400" },
+      { family: "Silkscreen", weights: "400;700" },
+      { family: "Pixelify Sans", weights: "400;600;700" },
+      { family: "Micro 5", weights: "400" },
+      { family: "Jersey 10", weights: "400" },
+      { family: "Handjet", weights: "400;600;700" },
+    ],
+  },
+  {
+    id: "elegant",
+    name: "Elegant",
+    fonts: [
+      { family: "Cinzel", weights: "400;600;700" },
+      { family: "Italiana", weights: "400" },
+      { family: "Prata", weights: "400" },
+      { family: "Gilda Display", weights: "400" },
+      { family: "Marcellus", weights: "400" },
+      { family: "Tenor Sans", weights: "400" },
+    ],
+  },
 ];
 
 export const FONT_MAP = new Map(

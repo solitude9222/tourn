@@ -177,6 +177,16 @@ create table if not exists profile_view_events (
 );
 create index if not exists profile_view_events_user_date on profile_view_events (username, day);
 
+-- One reaction per visitor per profile. The visitor is a hashed IP, so a
+-- refresh (or a second tab) cannot stack likes on the same page.
+create table if not exists profile_reactions (
+  username text not null,
+  visitor_hash text not null,
+  kind text not null check (kind in ('like', 'dislike')),
+  created_at timestamptz not null default now(),
+  primary key (username, visitor_hash)
+);
+
 create table if not exists verification_codes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references users on delete cascade,
@@ -2115,6 +2125,66 @@ app.post("/api/views/:username", async (req, res) => {
     });
     res.json({ views });
   } catch { res.status(503).json({ error: "This visit could not be recorded. Please retry." }); }
+});
+
+/* Likes and dislikes. The visitor key is a hashed IP (no day in it), so the
+   same person counts once per profile for good — and posting the same kind
+   again removes the vote. */
+function reactionVisitor(req, handle) {
+  return visitorHash(req.ip || "unknown", handle, JWT_SECRET, "reactions");
+}
+
+async function reactionSummary(handle, visitor) {
+  const [counts, mine] = await Promise.all([
+    pool.query(
+      `select count(*) filter (where kind = 'like')::int as likes,
+              count(*) filter (where kind = 'dislike')::int as dislikes
+         from profile_reactions where username = $1`,
+      [handle],
+    ),
+    pool.query("select kind from profile_reactions where username = $1 and visitor_hash = $2", [handle, visitor]),
+  ]);
+  return {
+    likes: Number(counts.rows[0]?.likes) || 0,
+    dislikes: Number(counts.rows[0]?.dislikes) || 0,
+    mine: mine.rows[0]?.kind ?? null,
+  };
+}
+
+app.get("/api/reactions/:username", async (req, res) => {
+  try {
+    const handle = await canonicalViewHandle(req.params.username);
+    if (!handle) return res.status(404).json({ error: "Unknown handle." });
+    res.set("Cache-Control", "no-store");
+    res.json(await reactionSummary(handle, reactionVisitor(req, handle)));
+  } catch { res.status(503).json({ error: "Reactions could not be loaded." }); }
+});
+
+app.post("/api/reactions/:username", async (req, res) => {
+  try {
+    const handle = await canonicalViewHandle(req.params.username);
+    if (!handle) return res.status(404).json({ error: "Unknown handle." });
+    const kind = req.body?.kind;
+    if (kind !== "like" && kind !== "dislike") {
+      return res.status(400).json({ error: "Choose like or dislike." });
+    }
+    const visitor = reactionVisitor(req, handle);
+    const existing = await pool.query(
+      "select kind from profile_reactions where username = $1 and visitor_hash = $2",
+      [handle, visitor],
+    );
+    if (existing.rows[0]?.kind === kind) {
+      await pool.query("delete from profile_reactions where username = $1 and visitor_hash = $2", [handle, visitor]);
+    } else {
+      await pool.query(
+        `insert into profile_reactions (username, visitor_hash, kind) values ($1, $2, $3)
+         on conflict (username, visitor_hash) do update set kind = excluded.kind`,
+        [handle, visitor, kind],
+      );
+    }
+    res.set("Cache-Control", "no-store");
+    res.json(await reactionSummary(handle, visitor));
+  } catch { res.status(503).json({ error: "That reaction could not be saved." }); }
 });
 
 const ADMIN_PROFILE_SELECT = `select u.id, u.username, u.alias, u.alias2, u.avatar_url,

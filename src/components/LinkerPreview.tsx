@@ -17,6 +17,7 @@ import { AudioPlayer } from "./AudioPlayer";
 import { ProfileSections } from "./ProfileSections";
 import { BadgeRow } from "./BadgeRow";
 import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
+import { ReactionBar } from "./Reactions";
 import "../about.css";
 
 export function EntryOverlay({
@@ -671,6 +672,7 @@ export function LinkerPreview({
       {hasTrack && audioPosition === "popup" ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Popup audio player"><AudioPlayer settings={{ ...assets.audio, style: "popup" }} enabled={!entryOpen} /></aside> : null}
       {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
+      {interactive ? <ReactionBar handle={user.username} /> : null}
       <ProfileCursor settings={assets.cursor} />
       {entryOpen ? (
         <EntryOverlay

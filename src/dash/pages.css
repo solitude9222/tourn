@@ -2789,3 +2789,235 @@
   border-color: #3a3a42;
   background: #232329;
 }
+
+/* --------------------------------------------------------------- home page */
+
+.tw-overview {
+  display: grid;
+  gap: 2px;
+  margin-top: 14px;
+  border: 1px solid #23232a;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.tw-overview-row {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  background: #191920;
+}
+
+.tw-overview-row + .tw-overview-row {
+  border-top: 1px solid #23232a;
+}
+
+.tw-overview-row > span {
+  color: #8a91a0;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.tw-overview-row > b {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-overview-row > small {
+  color: #6f7684;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.tw-home-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .tw-home-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tw-feedback-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid #2a2a30;
+  border-radius: 9px;
+  background: #141418;
+}
+
+.tw-feedback-tabs button {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: #8a91a0;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tw-feedback-tabs button.is-active {
+  background: #1b233b;
+  color: #cfdcff;
+}
+
+.tw-feedback-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tw-feedback-counts > div {
+  padding: 12px 14px;
+  border: 1px solid #23232a;
+  border-radius: 12px;
+  background: #191920;
+}
+
+.tw-feedback-counts b {
+  display: block;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tw-feedback-counts small {
+  color: #8a91a0;
+  font-size: 11.5px;
+}
+
+.tw-feedback-empty {
+  margin-top: 10px;
+  padding: 18px;
+  border: 1px dashed #2a2a30;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.tw-feedback-empty b {
+  display: block;
+  color: #e7e9ee;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tw-feedback-empty p {
+  margin: 4px 0 10px;
+  color: #7b808c;
+  font-size: 12px;
+}
+
+.tw-docs-list {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+/* ------------------------------------------------------- layout drag stage */
+
+.tw-drag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 12px;
+}
+
+.tw-drag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid #2a2a30;
+  border-radius: 10px;
+  background: #1b1b21;
+  color: #d6dae2;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: grab;
+  touch-action: none;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.tw-drag-chip:hover {
+  border-color: #3a4a68;
+  background: #20242c;
+}
+
+.tw-drag-chip.is-dragging {
+  border-color: #4a6fd6;
+  background: #1e2740;
+  cursor: grabbing;
+}
+
+.tw-layout-stage {
+  position: relative;
+  height: 430px;
+  overflow: hidden;
+  border: 1px solid #23232a;
+  border-radius: 16px;
+  background: #0b0b0e;
+}
+
+.tw-layout-stage.is-dragging {
+  border-color: #3a4a68;
+}
+
+.tw-layout-stage-scaler {
+  position: absolute;
+  inset: 0;
+  width: 192%;
+  height: 192%;
+  transform: scale(0.52);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.tw-layout-zones {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 0.4fr;
+  gap: 6px;
+  padding: 8px;
+  pointer-events: none;
+}
+
+.tw-layout-zone {
+  display: grid;
+  place-items: center;
+  border: 1px dashed transparent;
+  border-radius: 10px;
+  color: #cfdcff;
+  font-size: 11px;
+  font-weight: 600;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.tw-layout-zone--footer {
+  grid-column: 1 / -1;
+}
+
+.tw-layout-stage.is-dragging .tw-layout-zone {
+  border-color: #2f3a55;
+  background: rgba(57, 101, 230, 0.06);
+}
+
+.tw-layout-zone.is-hot {
+  border-color: #4a6fd6;
+  background: rgba(74, 111, 214, 0.2);
+}
