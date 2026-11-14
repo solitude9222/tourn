@@ -322,7 +322,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   card: {
     // Two beams chase each other around the card's edge — the default look.
     id: "beam",
-    color: "#ff9d98",
+    color: "#ff8f92",
     intensity: 70,
     speed: 6,
   },

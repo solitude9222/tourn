@@ -5,9 +5,9 @@
    --------------------------------------------------------------------------- */
 
 .adm {
-  --adm-brand: var(--accent-text, #ff9a95);
-  --adm-brand-strong: var(--accent, #e0453f);
-  --adm-brand-soft: rgba(224, 69, 63, 0.16);
+  --adm-brand: var(--accent-text, #ff8f92);
+  --adm-brand-strong: var(--accent, #e00a0e);
+  --adm-brand-soft: rgba(224, 10, 14, 0.16);
   --adm-ink: var(--page, #0b0b0d);
   --adm-glass: rgba(255, 255, 255, 0.03);
   --adm-line: rgba(255, 255, 255, 0.1);
@@ -2071,9 +2071,9 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 .adm.adm--embedded {
-  --adm-brand: var(--accent-text, #ff9a95);
-  --adm-brand-strong: var(--accent, #e0453f);
-  --adm-brand-soft: rgba(224, 69, 63, 0.14);
+  --adm-brand: var(--accent-text, #ff8f92);
+  --adm-brand-strong: var(--accent, #e00a0e);
+  --adm-brand-soft: rgba(224, 10, 14, 0.14);
   --adm-line: var(--border, #1f1f1f);
   --adm-line-soft: #1b1b1f;
   --adm-muted: #9d8a8b;
@@ -2117,7 +2117,7 @@
 }
 
 .adm.adm--embedded .adm-tab.is-active {
-  background: rgba(224, 69, 63, 0.16);
+  background: rgba(224, 10, 14, 0.16);
   color: #ffd6d3;
   box-shadow: none;
 }
@@ -2218,7 +2218,7 @@
 
 .adm.adm--embedded .adm-btn--primary:hover {
   border-color: transparent;
-  background: #ef4a4f;
+  background: #f2161c;
   color: #fff;
 }
 
@@ -2844,7 +2844,7 @@
 
 .adm .adm-tab.is-active {
   border-color: #5a2b2d;
-  background: #3a1a1d;
+  background: #3a0609;
   color: #ffd6d3;
 }
 

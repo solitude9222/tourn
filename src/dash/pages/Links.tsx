@@ -173,7 +173,7 @@ export function LinksPage() {
             </span>
             <Toggle
               checked={!links.design.iconColor}
-              onChange={(checked) => updateDesign({ iconColor: checked ? "" : "#ff9d98" })}
+              onChange={(checked) => updateDesign({ iconColor: checked ? "" : "#ff8f92" })}
               label="Use brand colours"
             />
           </div>
@@ -196,7 +196,7 @@ export function LinksPage() {
             <span className="tw-split-label">Colours</span>
             <ColorField
               label="Icon colour"
-              value={links.design.iconColor || "#ff9d98"}
+              value={links.design.iconColor || "#ff8f92"}
               onChange={(value) => updateDesign({ iconColor: value })}
             />
             {links.design.glow ? (

@@ -20,7 +20,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(140px 90px at 15% 0%, rgba(255, 154, 149, 0.18), transparent 70%);
+  background: radial-gradient(140px 90px at 15% 0%, rgba(255, 143, 146, 0.18), transparent 70%);
   pointer-events: none;
 }
 
@@ -97,7 +97,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #ff9a95, #ff9d98);
+  background: linear-gradient(90deg, #ff8f92, #ff8f92);
 }
 
 .board-podium-card.is-1 .board-podium-bar > i {
@@ -125,9 +125,9 @@
   height: 26px;
   flex: none;
   place-items: center;
-  border: 1px solid rgba(255, 154, 149, 0.14);
+  border: 1px solid rgba(255, 143, 146, 0.14);
   border-radius: 8px;
-  background: rgba(255, 154, 149, 0.06);
+  background: rgba(255, 143, 146, 0.06);
   color: #dd9fa1;
   font-size: 10.5px;
   font-weight: 700;
@@ -147,7 +147,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, rgba(255, 154, 149, 0.7), rgba(250, 180, 182, 0.55));
+  background: linear-gradient(90deg, rgba(255, 143, 146, 0.7), rgba(250, 180, 182, 0.55));
 }
 
 /* Dashboard podium. */

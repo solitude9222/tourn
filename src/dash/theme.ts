@@ -23,13 +23,13 @@ export const DASH_THEMES: DashThemeDef[] = [
     id: "default",
     label: "Default",
     description: "Near-black console with the tourn red accent.",
-    swatch: ["#000000", "#16161b", "#e0453f"],
+    swatch: ["#000000", "#16161b", "#e00a0e"],
   },
   {
     id: "black",
     label: "Full black",
     description: "Every surface is pure black, separated by hairlines only.",
-    swatch: ["#000000", "#000000", "#e0453f"],
+    swatch: ["#000000", "#000000", "#e00a0e"],
   },
   {
     id: "mono",

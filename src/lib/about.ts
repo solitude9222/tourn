@@ -364,7 +364,7 @@ export const DEFAULT_METADATA: AboutMetadata = {
 export const MAX_BIO_LENGTH = 800;
 
 export const DEFAULT_PROFILE_COLORS: ProfileColors = {
-  accent: "#ff9d98",
+  accent: "#ff8f92",
   text: "#fbf4f4",
   muted: "#98a2b3",
   background: "#07070a",
@@ -748,7 +748,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     slideshowLinks: raw.slideshowLinks === true,
     slideshowBadges: raw.slideshowBadges === true,
     slideshowAbout: raw.slideshowAbout === true,
-    metaGlowColor: validColor(raw.metaGlowColor, "#ff9d98"),
+    metaGlowColor: validColor(raw.metaGlowColor, "#ff8f92"),
     metaGlowStrength: numberIn(raw.metaGlowStrength, 0, 0, 1),
     aboutSlide: {
       title: typeof raw.aboutSlide?.title === "string" ? raw.aboutSlide.title.slice(0, 100) : "About me",

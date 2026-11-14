@@ -343,7 +343,7 @@ export function LayoutPage({
           </Field>
           <Field label="Detail glow" hint="Glow behind the location, view and join icons.">
             <ColorField
-              value={design.metaGlowColor ?? "#ff9d98"}
+              value={design.metaGlowColor ?? "#ff8f92"}
               onChange={(metaGlowColor) => updateDesign({ metaGlowColor })}
             />
           </Field>

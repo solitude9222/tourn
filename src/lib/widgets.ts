@@ -166,7 +166,7 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   borderOpacity: 0.08,
   borderColor: "#ffffff",
   backgroundColor: "#0b0c10",
-  gradientFrom: "#ff5f6d",
+  gradientFrom: "#e00a0e",
   gradientTo: "#ff8a85",
   backgroundOpacity: 0.94,
   artOpacity: 0.9,
@@ -177,7 +177,7 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   showMeta: true,
   showBadges: true,
   outlineEffect: "none",
-  outlineColor: "#ff9d98",
+  outlineColor: "#ff8f92",
   outlineSpeed: 4,
   hoverLift: true,
 };

@@ -565,11 +565,11 @@
 }
 
 .wg-background-swatch.is-gradient {
-  background: linear-gradient(135deg, #ff5f6d, #ff8a85);
+  background: linear-gradient(135deg, #e00a0e, #ff8a85);
 }
 
 .wg-background-swatch.is-rgb {
-  background: conic-gradient(from 20deg, #ff5f6d, #fbbf24, #34d399, #fa6065, #fa8b8f, #ff5f6d);
+  background: conic-gradient(from 20deg, #e00a0e, #fbbf24, #34d399, #fa6065, #fa8b8f, #e00a0e);
 }
 
 .wg-background-swatch.is-solid {
@@ -710,8 +710,8 @@
   background: conic-gradient(
     from var(--wg-edge-angle),
     transparent 0 58%,
-    color-mix(in srgb, var(--wg-edge, #ff9d98) 70%, transparent) 74%,
-    var(--wg-edge, #ff9d98) 86%,
+    color-mix(in srgb, var(--wg-edge, #ff8f92) 70%, transparent) 74%,
+    var(--wg-edge, #ff8f92) 86%,
     #fff 92%,
     transparent 100%
   );
@@ -730,16 +730,16 @@
   background: conic-gradient(
     from var(--wg-edge-angle),
     transparent 0 33%,
-    var(--wg-edge, #ff9d98) 35% 41%,
+    var(--wg-edge, #ff8f92) 35% 41%,
     transparent 43% 83%,
-    var(--wg-edge, #ff9d98) 85% 91%,
+    var(--wg-edge, #ff8f92) 85% 91%,
     transparent 93%
   );
 }
 
 /* The ring breathes in place. */
 .widget-card.has-edge-pulse::after {
-  box-shadow: inset 0 0 0 1.5px var(--wg-edge, #ff9d98);
+  box-shadow: inset 0 0 0 1.5px var(--wg-edge, #ff8f92);
   opacity: 0.45;
   animation-name: wgEdgePulse;
   animation-duration: var(--wg-edge-speed, 4s);
@@ -751,8 +751,8 @@
    because the card clips its children to the rounded corner. */
 .widget-card.has-edge-glow::after {
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--wg-edge, #ff9d98) 60%, transparent),
-    inset 0 0 18px color-mix(in srgb, var(--wg-edge, #ff9d98) 35%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--wg-edge, #ff8f92) 60%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--wg-edge, #ff8f92) 35%, transparent);
   opacity: 0.5;
   animation-name: wgEdgeShimmer;
   animation-duration: var(--wg-edge-speed, 4s);
@@ -770,11 +770,11 @@
   0%,
   100% {
     opacity: 0.25;
-    box-shadow: inset 0 0 0 1px var(--wg-edge, #ff9d98);
+    box-shadow: inset 0 0 0 1px var(--wg-edge, #ff8f92);
   }
   50% {
     opacity: 0.9;
-    box-shadow: inset 0 0 0 2px var(--wg-edge, #ff9d98);
+    box-shadow: inset 0 0 0 2px var(--wg-edge, #ff8f92);
   }
 }
 
@@ -1501,7 +1501,7 @@
 
 .switch.is-on {
   border-color: rgba(255, 143, 147, 0.38);
-  background: rgba(248, 56, 62, 0.24);
+  background: rgba(224, 10, 14, 0.24);
 }
 
 .switch.is-on span {
