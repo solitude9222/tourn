@@ -5776,45 +5776,6 @@
   background: color-mix(in srgb, var(--accent) 84%, #000);
 }
 
-/* ------------------------------------------------------------ rail subnav */
-
-.tw-nav-block {
-  display: grid;
-  gap: 2px;
-}
-
-.tw-nav-tabs {
-  display: grid;
-  gap: 2px;
-  margin: 2px 0 10px 24px;
-  padding-left: 12px;
-  border-left: 1px solid #232329;
-}
-
-.tw-nav-tabs .tw-subnav {
-  display: flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 9px;
-  background: none;
-  color: var(--subnav);
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.tw-nav-tabs .tw-subnav:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.tw-nav-tabs .tw-subnav.is-active {
-  color: var(--accent-text);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-}
-
 /* ------------------------------------------------------------- page tabs */
 
 .tw-tabs {
@@ -6297,4 +6258,206 @@
   .tw-wstack-body-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Text fit
+
+   Long handles, URLs and Unicode labels were pushing past their control's
+   padding. Every control now truncates instead of spilling, and grid children
+   are allowed to shrink.
+   --------------------------------------------------------------------------- */
+
+.tw-dash :is(input, select, textarea) {
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.tw-dash .tw-control,
+.tw-dash .tw-field,
+.tw-dash .tw-form-grid > *,
+.tw-dash .tw-split-col,
+.tw-dash .tw-option-grid > * {
+  min-width: 0;
+}
+
+.tw-dash :is(
+  .tw-select-btn > span,
+  .tw-select-btn,
+  .tw-chip,
+  .tw-row-title,
+  .tw-link-copy b,
+  .tw-link-copy small,
+  .tw-badge-group-head b,
+  .tw-file-name,
+  .tw-account-copy b,
+  .tw-account-copy small,
+  .tw-wstack-title b,
+  .tw-wstack-title small,
+  .tw-pick-copy b
+) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-dash .tw-select-btn > span {
+  flex: 1;
+}
+
+.tw-legacy-embed :is(input, select, textarea) {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------------
+   Depth and gradient
+
+   Flat black rows read as unfinished. These rules add one vertical highlight
+   per surface, a gradient primary button and tinted hover states — all derived
+   from the active theme's accent so every palette keeps them.
+   --------------------------------------------------------------------------- */
+
+.tw-dash .tw-card {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 120px);
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+.tw-dash .tw-btn--primary {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 88%, #ffffff) 0%,
+    var(--accent) 58%,
+    color-mix(in srgb, var(--accent) 84%, #000000) 100%
+  );
+  box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--accent) 90%, transparent);
+}
+
+.tw-dash .tw-nav-item.is-active {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 26%, transparent),
+    transparent 78%
+  );
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.tw-dash .tw-tab.is-active {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 86%, #ffffff) 0%,
+    var(--accent) 100%
+  );
+}
+
+/* Links */
+.tw-dash .tw-link-row {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 80%);
+  transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.tw-dash .tw-link-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: 0 14px 30px -22px rgba(0, 0, 0, 0.9);
+  transform: translateY(-1px);
+}
+
+.tw-dash .tw-link-platform {
+  box-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.9);
+}
+
+/* Badges */
+.tw-dash .tw-badge-group {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--tile);
+}
+
+.tw-dash .tw-badge-group-head {
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.045), transparent 70%);
+}
+
+.tw-dash .tw-drop-badge {
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.tw-dash .tw-drop-badge:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  box-shadow: 0 16px 34px -24px rgba(0, 0, 0, 0.95);
+}
+
+/* Widgets */
+.tw-dash .tw-wpick {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 90%);
+}
+
+.tw-dash .tw-wpick:hover {
+  background-image: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--widget-color, var(--accent)) 16%, transparent),
+    transparent 70%
+  );
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px -28px rgba(0, 0, 0, 0.95);
+}
+
+.tw-dash .tw-wstack-row {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 64px);
+}
+
+.tw-dash .tw-chip--accent,
+.tw-dash .tw-active-count {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent) 10%, transparent)
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   Header rows and tab labels
+
+   Between 760 and 1280 the card header used to break the action button onto its
+   own full-width row, which read as an unfinished block. Actions stay on the
+   title line there and only stack on a genuinely narrow screen.
+   --------------------------------------------------------------------------- */
+
+.tw-dash .tw-card-head {
+  align-items: flex-start;
+}
+
+.tw-dash .tw-card-head:has(.tw-card-actions) {
+  align-items: center;
+}
+
+@media (min-width: 761px) {
+  .tw-dash .tw-card-actions {
+    flex: 0 1 auto;
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+}
+
+.tw-dash .tw-tab {
+  min-width: 0;
+  padding: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-dash .tw-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tw-dash .tw-tabs::-webkit-scrollbar {
+  display: none;
 }

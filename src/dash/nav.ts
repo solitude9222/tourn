@@ -48,7 +48,6 @@ export const NAV: NavItem[] = [
     tabs: [
       { page: "profile-main", label: "Profile", icon: "user" },
       { page: "profile-experience", label: "Entry screen", icon: "sparkles" },
-      { page: "profile-integrations", label: "Integrations", icon: "link" },
       { page: "profile-switches", label: "Switches", icon: "sliders" },
       { page: "aliases", label: "Inventory", icon: "layers" },
     ],
@@ -65,10 +64,8 @@ export const NAV: NavItem[] = [
     icon: "layers",
     tabs: [
       { page: "portfolio-general", label: "General", icon: "home" },
-      { page: "portfolio-about", label: "About", icon: "user" },
       { page: "portfolio-projects", label: "Projects", icon: "layers" },
       { page: "portfolio-gallery", label: "Gallery", icon: "image" },
-      { page: "portfolio-audio", label: "Audio", icon: "music" },
       { page: "portfolio-games", label: "Games", icon: "gamepad" },
       { page: "portfolio-design", label: "Design", icon: "palette" },
     ],

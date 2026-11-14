@@ -183,11 +183,15 @@ function LayoutPreview() {
   );
 }
 
-export function LayoutPage() {
+export function LayoutPage({
+  initialTab = "layout",
+}: {
+  initialTab?: "layout" | "style" | "sections";
+} = {}) {
   const [dragSection,setDragSection]=useState<number|null>(null);
   const { about, setAbout, notify, user, badges, links } = useDash();
   const design = about.design;
-  const [tab, setTab] = useState("layout");
+  const [tab, setTab] = useState<"layout" | "style" | "sections">(initialTab);
 
   const updateDesign = (patch: Partial<typeof design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
@@ -214,7 +218,7 @@ export function LayoutPage() {
 
   return (
     <div className="tw-card-page">
-      <div className="tw-layout-toolbar"><nav className="tw-workspace-tabs" aria-label="Card settings">{[["layout", "Layout"], ["style", "Appearance"], ["sections", "Sections"]].map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav></div>
+      <div className="tw-layout-toolbar"><nav className="tw-workspace-tabs" aria-label="Card settings">{[["layout", "Layout"], ["style", "Appearance"], ["sections", "Sections"]].map(([id, label]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id as "layout" | "style" | "sections")}>{label}</button>)}</nav></div>
       <div className="tw-card-main" key={tab}>
       {tab === "layout" ? <Card>
         <CardHead

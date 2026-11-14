@@ -287,21 +287,6 @@ export function Shell({
                     <Icon name={item.icon} size={18} />
                     {item.label}
                   </button>
-                  {tabs.length > 1 && (active || searching) ? (
-                    <div className="tw-nav-tabs" role="group" aria-label={`${item.label} sections`}>
-                      {tabs.map((tab) => (
-                        <button
-                          key={tab.page}
-                          type="button"
-                          className={`tw-subnav${tab.page === page ? " is-active" : ""}`}
-                          onClick={() => onNavigate(tab.page)}
-                          aria-current={tab.page === page ? "page" : undefined}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
                 </div>
               );
             })}

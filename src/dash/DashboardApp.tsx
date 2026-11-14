@@ -1,4 +1,3 @@
-import { InventoryPage } from "./pages/Inventory";
 import type { ProfileDocument } from "../lib/serverProfile";
 /* ---------------------------------------------------------------------------
    tourn.lol dashboard root.
@@ -21,24 +20,38 @@ import { getViewCount } from "../lib/views";
 import { DashContext, type Page, type ProfileTab, type TabDef } from "./context";
 import { Shell } from "./Shell";
 import { Button, Icon, type IconName } from "./ui";
-import { HomePage } from "./pages/Home";
-import { AccountProfilePage, AffiliatesPage, AnalyticsPage } from "./pages/Account";
-import { CustomizeProfilePage } from "./pages/Customize";
-import { LayoutPage } from "./pages/Layout";
-import { EffectsPage } from "./pages/Effects";
-import { BadgesPage } from "./pages/Badges";
-import { LinksPage } from "./pages/Links";
-import { WidgetsPage } from "./pages/Widgets";
-import { AssetBrowserPage, LeaderboardPage } from "./pages/Community";
-import { TemplatesPage } from "./pages/Templates";
-import { BillingPage, PremiumPage } from "./pages/Plan";
-import { PortfolioPage, ProfileWorkspacePage } from "./pages/Workspaces";
-import { ThemePage } from "./pages/Theme";
 import { navTabsForPage } from "./nav";
+
+/* Each console page is its own chunk: the dashboard shell and Home paint first,
+   and a heavy editor (widgets, layout, appearance) is fetched only when opened. */
+const lazyPage = <T extends Record<string, unknown>, K extends keyof T>(
+  loader: () => Promise<T>,
+  name: K,
+) => lazy(async () => ({ default: (await loader())[name] as unknown as React.ComponentType<any> }));
+
+const HomePage = lazyPage(() => import("./pages/Home"), "HomePage");
+const AccountProfilePage = lazyPage(() => import("./pages/Account"), "AccountProfilePage");
+const AffiliatesPage = lazyPage(() => import("./pages/Account"), "AffiliatesPage");
+const AnalyticsPage = lazyPage(() => import("./pages/Account"), "AnalyticsPage");
+const CustomizeProfilePage = lazyPage(() => import("./pages/Customize"), "CustomizeProfilePage");
+const LayoutPage = lazyPage(() => import("./pages/Layout"), "LayoutPage");
+const EffectsPage = lazyPage(() => import("./pages/Effects"), "EffectsPage");
+const BadgesPage = lazyPage(() => import("./pages/Badges"), "BadgesPage");
+const LinksPage = lazyPage(() => import("./pages/Links"), "LinksPage");
+const WidgetsPage = lazyPage(() => import("./pages/Widgets"), "WidgetsPage");
+const AssetBrowserPage = lazyPage(() => import("./pages/Community"), "AssetBrowserPage");
+const LeaderboardPage = lazyPage(() => import("./pages/Community"), "LeaderboardPage");
+const TemplatesPage = lazyPage(() => import("./pages/Templates"), "TemplatesPage");
+const BillingPage = lazyPage(() => import("./pages/Plan"), "BillingPage");
+const PremiumPage = lazyPage(() => import("./pages/Plan"), "PremiumPage");
+const PortfolioPage = lazyPage(() => import("./pages/Workspaces"), "PortfolioPage");
+const ProfileWorkspacePage = lazyPage(() => import("./pages/Workspaces"), "ProfileWorkspacePage");
+const ThemePage = lazyPage(() => import("./pages/Theme"), "ThemePage");
 
 const AccountSettingsPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AccountSettingsPage })),
 );
+const InventoryPage = lazyPage(() => import("./pages/Inventory"), "InventoryPage");
 const AdminPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AdminPage })),
 );
@@ -593,17 +606,11 @@ export function Dashboard(props: DashboardProps) {
     case "portfolio-general":
       content = <PortfolioPage tab="general" />;
       break;
-    case "portfolio-about":
-      content = <PortfolioPage tab="about" />;
-      break;
     case "portfolio-projects":
-      content = <PortfolioPage tab="projects" />;
+      content = <LayoutPage initialTab="sections" />;
       break;
     case "portfolio-gallery":
       content = <PortfolioPage tab="gallery" />;
-      break;
-    case "portfolio-audio":
-      content = <PortfolioPage tab="audio" />;
       break;
     case "portfolio-games":
       content = <PortfolioPage tab="games" />;
@@ -615,13 +622,10 @@ export function Dashboard(props: DashboardProps) {
       content = <ProfileWorkspacePage tab="profile" />;
       break;
     case "profile-appearance":
-      content = <ProfileWorkspacePage tab="appearance" />;
+      content = <LayoutPage initialTab="style" />;
       break;
     case "profile-experience":
       content = <ProfileWorkspacePage tab="experience" />;
-      break;
-    case "profile-integrations":
-      content = <ProfileWorkspacePage tab="integrations" />;
       break;
     case "profile-switches":
       content = <ProfileWorkspacePage tab="switches" />;
