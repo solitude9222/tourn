@@ -583,6 +583,7 @@ export function Shell({
                 className={`tw-tab${tab.id === activeTab ? " is-active" : ""}`}
                 onClick={() => onTab(tab.id)}
               >
+                {tab.icon ? <Icon name={tab.icon} size={15} /> : null}
                 {tab.label}
               </button>
             ))}
