@@ -32,6 +32,18 @@ export type Page =
   | "leaderboard"
   | "billing"
   | "settings"
+  | "portfolio-general"
+  | "portfolio-about"
+  | "portfolio-projects"
+  | "portfolio-gallery"
+  | "portfolio-audio"
+  | "portfolio-games"
+  | "portfolio-design"
+  | "profile-main"
+  | "profile-appearance"
+  | "profile-experience"
+  | "profile-integrations"
+  | "profile-switches"
   | "admin";
 
 export type ProfileTab = "profile" | "experience" | "integrations" | "switches";

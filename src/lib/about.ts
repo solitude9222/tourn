@@ -164,6 +164,51 @@ export type PillStyle = {
   blur: number;
 };
 
+/** One styled surface: a container or a pill inside a profile section. */
+export type ContainerStyle = {
+  background: string;
+  border: string;
+  backgroundOpacity: number;
+  borderOpacity: number;
+  borderWidth: number;
+  blur: number;
+  radius: number;
+};
+
+export type SurfacePill = ContainerStyle & { text: string };
+
+/** Per-surface design for the About block and the project cards. */
+export type SurfaceStyles = {
+  about: { container: ContainerStyle; pill: SurfacePill };
+  project: { container: ContainerStyle; pill: SurfacePill };
+};
+
+export const DEFAULT_CONTAINER_STYLE: ContainerStyle = {
+  background: "#111111",
+  border: "#ffffff",
+  backgroundOpacity: 0.72,
+  borderOpacity: 0.12,
+  borderWidth: 2,
+  blur: 14,
+  radius: 24,
+};
+
+export const DEFAULT_SURFACE_PILL: SurfacePill = {
+  background: "#ffffff",
+  border: "#ffffff",
+  text: "#ffffff",
+  backgroundOpacity: 0.08,
+  borderOpacity: 0.12,
+  borderWidth: 2,
+  blur: 14,
+  radius: 999,
+};
+
+export const DEFAULT_SURFACES: SurfaceStyles = {
+  about: { container: DEFAULT_CONTAINER_STYLE, pill: DEFAULT_SURFACE_PILL },
+  project: { container: DEFAULT_CONTAINER_STYLE, pill: DEFAULT_SURFACE_PILL },
+};
+
 /** Hover tooltip shown on the avatar and badges (links never show one). */
 export type TooltipSettings = {
   enabled: boolean;
@@ -295,6 +340,8 @@ export type AboutDesign = {
   entry: EntrySettings;
   colors: ProfileColors;
   pills: PillStyle;
+  /** About block and project card surfaces, each with its own pill style. */
+  surfaces: SurfaceStyles;
 };
 
 export type About = {
@@ -410,6 +457,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
   pills: DEFAULT_PILL_STYLE,
+  surfaces: DEFAULT_SURFACES,
   tooltips: { enabled: true, style: "default", animation: "slide" },
 };
 
@@ -651,10 +699,31 @@ function loadDesign(input: unknown): AboutDesign {
   return design;
 }
 
+// Saved surfaces are merged field by field, so a document from before this
+// setting existed still gets the defaults without losing anything it has.
+function loadContainer(input: unknown, fallback: ContainerStyle): ContainerStyle {
+  const raw = (input ?? {}) as Partial<ContainerStyle>;
+  return {
+    background: validColor(raw.background, fallback.background),
+    border: validColor(raw.border, fallback.border),
+    backgroundOpacity: numberIn(raw.backgroundOpacity, fallback.backgroundOpacity, 0, 1),
+    borderOpacity: numberIn(raw.borderOpacity, fallback.borderOpacity, 0, 1),
+    borderWidth: numberIn(raw.borderWidth, fallback.borderWidth, 0, 12),
+    blur: numberIn(raw.blur, fallback.blur, 0, 40),
+    radius: numberIn(raw.radius, fallback.radius, 0, 999),
+  };
+}
+
+function loadSurfacePill(input: unknown, fallback: SurfacePill): SurfacePill {
+  const raw = (input ?? {}) as Partial<SurfacePill>;
+  return { ...loadContainer(raw, fallback), text: validColor(raw.text, fallback.text) };
+}
+
 function loadDesignRaw(input: unknown): AboutDesign {
   const raw = (input ?? {}) as Partial<AboutDesign>;
   const rawColors = (raw.colors ?? {}) as Partial<ProfileColors>;
   const rawPills = (raw.pills ?? {}) as Partial<PillStyle>;
+  const rawSurfaces = (raw.surfaces ?? {}) as Partial<SurfaceStyles>;
   const rawTooltips = (raw.tooltips ?? {}) as Partial<TooltipSettings>;
   const theme = raw.theme === "modern" || raw.theme === "portfolio" ? raw.theme : "default";
   // Older documents only had classic/modern; both map onto the new names.
@@ -806,6 +875,16 @@ function loadDesignRaw(input: unknown): AboutDesign {
       borderOpacity: numberIn(rawPills.borderOpacity, DEFAULT_PILL_STYLE.borderOpacity, 0, 1),
       radius: numberIn(rawPills.radius, DEFAULT_PILL_STYLE.radius, 0, 999),
       blur: numberIn(rawPills.blur, DEFAULT_PILL_STYLE.blur, 0, 30),
+    },
+    surfaces: {
+      about: {
+        container: loadContainer(rawSurfaces.about?.container, DEFAULT_SURFACES.about.container),
+        pill: loadSurfacePill(rawSurfaces.about?.pill, DEFAULT_SURFACES.about.pill),
+      },
+      project: {
+        container: loadContainer(rawSurfaces.project?.container, DEFAULT_SURFACES.project.container),
+        pill: loadSurfacePill(rawSurfaces.project?.pill, DEFAULT_SURFACES.project.pill),
+      },
     },
   };
 }

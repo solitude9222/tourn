@@ -23,7 +23,7 @@ type ShellTrade = {
 
 type NavChild = { page: Page; tab?: ProfileTab; label: string; icon: IconName };
 type NavGroup = {
-  key: "account" | "customize" | "links" | "community" | "settings";
+  key: "portfolio" | "profile" | "account" | "customize" | "links" | "community" | "settings";
   label: string;
   icon: IconName;
   children: NavChild[];
@@ -31,26 +31,29 @@ type NavGroup = {
 
 const GROUPS: NavGroup[] = [
   {
-    key: "account",
-    label: "Account",
-    icon: "users",
+    key: "portfolio",
+    label: "Portfolio",
+    icon: "layers",
     children: [
-      { page: "account-profile", label: "Profile", icon: "user" },
-      { page: "badges", label: "Badges", icon: "shield" },
-      { page: "aliases", label: "Inventory", icon: "layers" },
-      { page: "affiliates", label: "Affiliates", icon: "link" },
-      { page: "analytics", label: "Analytics", icon: "chart" },
+      { page: "portfolio-general", label: "General", icon: "home" },
+      { page: "portfolio-about", label: "About", icon: "user" },
+      { page: "portfolio-projects", label: "Projects", icon: "layers" },
+      { page: "portfolio-gallery", label: "Gallery", icon: "image" },
+      { page: "portfolio-audio", label: "Audio player", icon: "music" },
+      { page: "portfolio-games", label: "Games", icon: "gamepad" },
+      { page: "portfolio-design", label: "Design", icon: "palette" },
     ],
   },
   {
-    key: "customize",
-    label: "Customize",
-    icon: "palette",
+    key: "profile",
+    label: "Profile",
+    icon: "users",
     children: [
-      { page: "customize-profile", tab: "profile", label: "Profile", icon: "user" },
-      { page: "layout", label: "Card", icon: "layout" },
-      { page: "effects", label: "Effects", icon: "sparkles" },
-      { page: "music", label: "Music", icon: "music" },
+      { page: "profile-main", label: "Profile", icon: "user" },
+      { page: "profile-appearance", label: "Appearance", icon: "palette" },
+      { page: "profile-experience", label: "Experience", icon: "sparkles" },
+      { page: "profile-integrations", label: "Integrations", icon: "link" },
+      { page: "profile-switches", label: "Switches", icon: "sliders" },
     ],
   },
   {
@@ -64,12 +67,16 @@ const GROUPS: NavGroup[] = [
   },
   {
     key: "community",
-    label: "Community",
-    icon: "users",
+    label: "Assets",
+    icon: "image",
     children: [
-      { page: "assets", label: "Assets", icon: "image" },
-      { page: "leaderboard", label: "Leaderboard", icon: "chart" },
+      { page: "assets", label: "Asset Browser", icon: "image" },
       { page: "templates", label: "Templates", icon: "grid" },
+      { page: "badges", label: "Badges", icon: "shield" },
+      { page: "aliases", label: "Inventory", icon: "layers" },
+      { page: "affiliates", label: "Affiliates", icon: "link" },
+      { page: "analytics", label: "Analytics", icon: "chart" },
+      { page: "leaderboard", label: "Leaderboard", icon: "chart" },
     ],
   },
   {
@@ -84,11 +91,23 @@ const GROUPS: NavGroup[] = [
 ];
 
 const PAGE_GROUP: Partial<Record<Page, NavGroup["key"]>> = {
+  "portfolio-general": "portfolio",
+  "portfolio-about": "portfolio",
+  "portfolio-projects": "portfolio",
+  "portfolio-gallery": "portfolio",
+  "portfolio-audio": "portfolio",
+  "portfolio-games": "portfolio",
+  "portfolio-design": "portfolio",
+  "profile-main": "profile",
+  "profile-appearance": "profile",
+  "profile-experience": "profile",
+  "profile-integrations": "profile",
+  "profile-switches": "profile",
   "account-profile": "account",
-  badges: "account",
-  affiliates: "account",
-  aliases: "account",
-  analytics: "account",
+  badges: "community",
+  affiliates: "community",
+  aliases: "community",
+  analytics: "community",
   "customize-profile": "customize",
   layout: "customize",
   effects: "customize",

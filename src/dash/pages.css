@@ -2687,3 +2687,105 @@
   flex: none;
   font-family: inherit;
 }
+
+/* ------------------------------------------------------- design + portfolio */
+
+.tw-design-divider {
+  height: 1px;
+  margin: 18px 0;
+  background: #23232a;
+}
+
+.tw-design-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.tw-design-preview-card {
+  padding: 16px;
+  border-width: var(--pv-project-bw, 2px);
+  border-style: solid;
+  border-color: var(--pv-project-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-project-radius, 24px);
+  background: var(--pv-project-bg, rgba(17, 17, 17, 0.72));
+}
+
+.tw-design-preview-card > b {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tw-design-preview-card > p {
+  margin: 4px 0 12px;
+  color: #9fa2af;
+  font-size: 12.5px;
+}
+
+.tw-design-preview-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tw-design-preview-pills > span {
+  padding: 3px 10px;
+  border-width: var(--pv-project-pill-bw, 2px);
+  border-style: solid;
+  border-color: var(--pv-project-pill-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-project-pill-radius, 999px);
+  background: var(--pv-project-pill-bg, rgba(255, 255, 255, 0.08));
+  color: var(--pv-project-pill-text, #ffffff);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tw-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tw-portfolio-stat {
+  padding: 14px 16px;
+  border: 1px solid #23232a;
+  border-radius: 14px;
+  background: #191920;
+}
+
+.tw-portfolio-stat b {
+  display: block;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tw-portfolio-stat small {
+  color: #8a91a0;
+  font-size: 12px;
+}
+
+.tw-quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid #2a2a30;
+  border-radius: 10px;
+  background: #1b1b21;
+  color: #d6dae2;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.tw-quick-link:hover {
+  border-color: #3a3a42;
+  background: #232329;
+}

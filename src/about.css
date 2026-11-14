@@ -4505,6 +4505,53 @@
 
 /* ── titled sections ──────────────────────────────────────── */
 
+/* ── surfaces set in Portfolio → Design ────────────────────────────────────
+   Vars come from the saved design document; the fallbacks match the defaults
+   so pages without them render exactly as before. */
+.lkr-showcase {
+  border-width: var(--pv-project-bw, 2px);
+  border-style: solid;
+  border-color: var(--pv-project-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-project-radius, 24px);
+  background: var(--pv-project-bg, rgba(17, 17, 17, 0.72));
+  backdrop-filter: blur(var(--pv-project-blur, 14px));
+}
+
+.lkr-showcase .lkr-tech,
+.lkr-showcase .lkr-showcase-meta-row > span,
+.lkr-showcase .lkr-showcase-sub {
+  border-width: var(--pv-project-pill-bw, 2px);
+  border-style: solid;
+  border-color: var(--pv-project-pill-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-project-pill-radius, 999px);
+  background: var(--pv-project-pill-bg, rgba(255, 255, 255, 0.08));
+  color: var(--pv-project-pill-text, #ffffff);
+  backdrop-filter: blur(var(--pv-project-pill-blur, 14px));
+}
+
+.lkr-about,
+.lkr-about-card,
+.pv-about {
+  border-width: var(--pv-about-bw, 2px);
+  border-style: solid;
+  border-color: var(--pv-about-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-about-radius, 24px);
+  background: var(--pv-about-bg, rgba(17, 17, 17, 0.72));
+  backdrop-filter: blur(var(--pv-about-blur, 14px));
+}
+
+.lkr-about .lkr-tag,
+.lkr-about .lkr-tech,
+.pv-about .pv-badge-pill {
+  border-width: var(--pv-about-pill-bw, 2px);
+  border-style: solid;
+  border-color: var(--pv-about-pill-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-about-pill-radius, 999px);
+  background: var(--pv-about-pill-bg, rgba(255, 255, 255, 0.08));
+  color: var(--pv-about-pill-text, #ffffff);
+  backdrop-filter: blur(var(--pv-about-pill-blur, 14px));
+}
+
 .pv-section-title,
 .lkr-widgets-title {
   display: block;

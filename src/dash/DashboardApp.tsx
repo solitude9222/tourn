@@ -32,6 +32,7 @@ import { WidgetsPage } from "./pages/Widgets";
 import { AssetBrowserPage, LeaderboardPage } from "./pages/Community";
 import { TemplatesPage } from "./pages/Templates";
 import { BillingPage, PremiumPage } from "./pages/Plan";
+import { PortfolioPage, ProfileWorkspacePage } from "./pages/Workspaces";
 
 const AccountSettingsPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AccountSettingsPage })),
@@ -157,6 +158,78 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     subtitle: "Your claims, account security and plan.",
     icon: "settings",
     crumb: "Settings",
+  },
+  "portfolio-general": {
+    title: "General",
+    subtitle: "Everything your page shows, at a glance.",
+    icon: "home",
+    crumb: "Portfolio",
+  },
+  "portfolio-about": {
+    title: "About",
+    subtitle: "The writing block and the tags inside it.",
+    icon: "user",
+    crumb: "Portfolio",
+  },
+  "portfolio-projects": {
+    title: "Projects",
+    subtitle: "Cards, sections and the order they appear in.",
+    icon: "layers",
+    crumb: "Portfolio",
+  },
+  "portfolio-gallery": {
+    title: "Gallery",
+    subtitle: "Your uploads, ready to place on the page.",
+    icon: "image",
+    crumb: "Portfolio",
+  },
+  "portfolio-audio": {
+    title: "Audio player",
+    subtitle: "The track, its playback and the player's look.",
+    icon: "music",
+    crumb: "Portfolio",
+  },
+  "portfolio-games": {
+    title: "Games",
+    subtitle: "The games you play, shown as their own cards.",
+    icon: "gamepad",
+    crumb: "Portfolio",
+  },
+  "portfolio-design": {
+    title: "Design",
+    subtitle: "Colors, borders and roundness for every surface.",
+    icon: "palette",
+    crumb: "Portfolio",
+  },
+  "profile-main": {
+    title: "Profile",
+    subtitle: "Your name, picture and description.",
+    icon: "user",
+    crumb: "Profile",
+  },
+  "profile-appearance": {
+    title: "Appearance",
+    subtitle: "Card look, media and decorations.",
+    icon: "palette",
+    crumb: "Profile",
+  },
+  "profile-experience": {
+    title: "Experience",
+    subtitle: "The entry screen and the motion of the page.",
+    icon: "sparkles",
+    crumb: "Profile",
+  },
+  "profile-integrations": {
+    title: "Integrations",
+    subtitle: "Discord, Spotify, Steam and the rest.",
+    icon: "link",
+    crumb: "Profile",
+  },
+  "profile-switches": {
+    title: "Switches",
+    subtitle: "Visibility and behaviour toggles.",
+    icon: "sliders",
+    crumb: "Profile",
   },
   admin: {
     title: "Admin",
@@ -511,6 +584,42 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "settings":
       content = <AccountSettingsPage />;
+      break;
+    case "portfolio-general":
+      content = <PortfolioPage tab="general" />;
+      break;
+    case "portfolio-about":
+      content = <PortfolioPage tab="about" />;
+      break;
+    case "portfolio-projects":
+      content = <PortfolioPage tab="projects" />;
+      break;
+    case "portfolio-gallery":
+      content = <PortfolioPage tab="gallery" />;
+      break;
+    case "portfolio-audio":
+      content = <PortfolioPage tab="audio" />;
+      break;
+    case "portfolio-games":
+      content = <PortfolioPage tab="games" />;
+      break;
+    case "portfolio-design":
+      content = <PortfolioPage tab="design" />;
+      break;
+    case "profile-main":
+      content = <ProfileWorkspacePage tab="profile" />;
+      break;
+    case "profile-appearance":
+      content = <ProfileWorkspacePage tab="appearance" />;
+      break;
+    case "profile-experience":
+      content = <ProfileWorkspacePage tab="experience" />;
+      break;
+    case "profile-integrations":
+      content = <ProfileWorkspacePage tab="integrations" />;
+      break;
+    case "profile-switches":
+      content = <ProfileWorkspacePage tab="switches" />;
       break;
     case "admin":
       content = isAdmin ? <AdminPage /> : <HomePage />;
