@@ -403,9 +403,9 @@
 
 .tw-media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-  gap: 8px;
-  max-height: min(52vh, 430px);
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 10px;
+  max-height: min(56vh, 470px);
   padding-right: 4px;
   overflow-y: auto;
 }
@@ -558,10 +558,10 @@
 
 .tw-section-pick-art {
   flex: none;
-  width: 34px;
-  height: 44px;
+  width: 44px;
+  height: 58px;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: 7px;
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -580,7 +580,7 @@
 
 .tw-section-pick-copy b {
   overflow: hidden;
-  font-size: 12px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

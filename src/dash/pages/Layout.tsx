@@ -386,27 +386,6 @@ export function LayoutPage({
         />
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
-          <Field label="Views" hint="How the view count reads next to the icon.">
-            <Select
-              value={design.viewStyle ?? "icon"}
-              options={[
-                { value: "icon", label: "Icon: number" },
-                { value: "text", label: "Text: 1,234 views" },
-                { value: "number", label: "Number only" },
-              ]}
-              onChange={(viewStyle) => updateDesign({ viewStyle: viewStyle as typeof design.viewStyle })}
-            />
-          </Field>
-          <Field label="Detail style" hint="Plain is quiet text with a divider. Pills put each detail in its own chip.">
-            <Select
-              value={design.metaStyle ?? "plain"}
-              options={[
-                { value: "plain", label: "Plain (icon + text, divider)" },
-                { value: "pill", label: "Pills (boxed chips)" },
-              ]}
-              onChange={(metaStyle) => updateDesign({ metaStyle: metaStyle as typeof design.metaStyle })}
-            />
-          </Field>
           <Field label="Detail glow" hint="Glow behind the location, view and join icons.">
             <ColorField
               value={design.metaGlowColor ?? "#ff8f92"}
@@ -581,6 +560,7 @@ export function LayoutPage({
         <div className="tw-toggle-grid">
           <div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div>
           <div className="tw-inline-toggle"><b>Vertical slideshow</b><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div>
+          <div className="tw-inline-toggle"><b>One Interests list</b><small>Animes and games share a single section kind.</small><Toggle label="Group games with interests" checked={design.groupInterests===true} onChange={groupInterests=>updateDesign({groupInterests})}/></div>
           {design.slideshow === true ? <>
             <div className="tw-inline-toggle"><b>About slide</b><Toggle label="About me slide" checked={design.slideshowAbout===true} onChange={slideshowAbout=>updateDesign({slideshowAbout})}/></div>
             <div className="tw-inline-toggle"><b>Links slide</b><Toggle label="Links slide" checked={design.slideshowLinks===true} onChange={slideshowLinks=>updateDesign({slideshowLinks})}/></div>
@@ -724,16 +704,18 @@ export function LayoutPage({
                 <small>{kind.hint}</small>
               </button>
             ))}
-            <button
-              type="button"
-              className="tw-section-add-btn tw-section-add-btn--interest"
-              disabled={design.sections.length >= 24}
-              onClick={addGamesSection}
-            >
-              <span className="tw-section-kind-dot" aria-hidden="true" />
-              <b>Games</b>
-              <small>Pick games from the library</small>
-            </button>
+            {design.groupInterests === true ? null : (
+              <button
+                type="button"
+                className="tw-section-add-btn tw-section-add-btn--interest"
+                disabled={design.sections.length >= 24}
+                onClick={addGamesSection}
+              >
+                <span className="tw-section-kind-dot" aria-hidden="true" />
+                <b>Games</b>
+                <small>Pick games from the library</small>
+              </button>
+            )}
           </div>
         </div>
       </Card> : null}

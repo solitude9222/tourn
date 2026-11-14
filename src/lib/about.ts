@@ -284,8 +284,10 @@ export type AboutDesign = {
   advancedLayout?: boolean;
   /** How the view counter reads. */
   viewStyle?: "icon" | "text" | "number";
-  /** Location / views / joined: quiet text with a divider (plain) or boxed chips (pill). */
-  metaStyle?: "plain" | "pill";
+  /** Location / views / joined: quiet text with a divider (plain), boxed chips (pill) or icons only. */
+  metaStyle?: "plain" | "pill" | "icons";
+  /** One Interests list for animes and games instead of two separate kinds. */
+  groupInterests?: boolean;
   skills?: string[];
   audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "fixed-bottom" | "hidden";
   widgetsPosition: WidgetsPosition;
@@ -451,6 +453,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   advancedLayout: false,
   viewStyle: "icon",
   metaStyle: "plain",
+  groupInterests: false,
   viewPosition: "outside-below-left",
   joinPosition: "under-name",
   locationPosition: "outside-below-left",
@@ -859,7 +862,8 @@ function loadDesignRaw(input: unknown): AboutDesign {
     ),
     advancedLayout: boolIn(raw.advancedLayout, false),
     viewStyle: oneOf(raw.viewStyle, ["icon", "text", "number"] as const, "icon"),
-    metaStyle: oneOf(raw.metaStyle, ["plain", "pill"] as const, "plain"),
+    metaStyle: oneOf(raw.metaStyle, ["plain", "pill", "icons"] as const, "plain"),
+    groupInterests: boolIn(raw.groupInterests, false),
     entry: loadEntry(raw.entry),
     colors: {
       accent: validColor(rawColors.accent, DEFAULT_PROFILE_COLORS.accent),

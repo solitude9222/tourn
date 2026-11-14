@@ -6445,3 +6445,66 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   background: rgba(167, 167, 171, 0.42);
   opacity: 1;
 }
+
+/* ── Portfolio → Design, applied to the classes the page actually renders ──
+   The earlier block targeted .lkr-about / .lkr-showcase, which the current
+   markup no longer uses, so every control there wrote values nothing read. */
+
+.lkr-about-slide,
+.pv-about {
+  border-width: var(--pv-about-bw, 2px);
+  border-style: solid;
+  border-color: var(--pv-about-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-about-radius, 24px);
+  background: var(--pv-about-bg, rgba(17, 17, 17, 0.72));
+  backdrop-filter: blur(var(--pv-about-blur, 14px));
+}
+
+.lkr-about-tag,
+.lkr-about-tags > *,
+.lkr-about-slide .lkr-tech,
+.pv-about .pv-badge-pill {
+  border-width: var(--pv-about-pill-bw, 1px);
+  border-style: solid;
+  border-color: var(--pv-about-pill-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-about-pill-radius, 999px);
+  background: var(--pv-about-pill-bg, rgba(255, 255, 255, 0.08));
+  color: var(--pv-about-pill-text, inherit);
+  backdrop-filter: blur(var(--pv-about-pill-blur, 14px));
+}
+
+.lkr-about-project {
+  border-width: var(--pv-project-bw, 1px);
+  border-style: solid;
+  border-color: var(--pv-project-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-project-radius, 12px);
+  background: var(--pv-project-bg, rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(var(--pv-project-blur, 14px));
+}
+
+.lkr-about-project .lkr-tech,
+.lkr-showcase .lkr-tech {
+  border-width: var(--pv-project-pill-bw, 1px);
+  border-style: solid;
+  border-color: var(--pv-project-pill-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--pv-project-pill-radius, 999px);
+  background: var(--pv-project-pill-bg, rgba(255, 255, 255, 0.08));
+  color: var(--pv-project-pill-text, #ffffff);
+  backdrop-filter: blur(var(--pv-project-pill-blur, 14px));
+}
+
+/* Icons-only detail style: the label collapses, the glyph gets a chip. */
+.profile-preview[data-meta-style="icons"] :is(.pv-location, .pv-views, .pv-foot-item) {
+  gap: 0;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--pv-text, #fff) 14%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pv-text, #fff) 6%, transparent);
+  font-size: 0;
+  line-height: 0;
+}
+
+.profile-preview[data-meta-style="icons"] :is(.pv-location, .pv-views, .pv-foot-item) svg {
+  width: 13px;
+  height: 13px;
+}
