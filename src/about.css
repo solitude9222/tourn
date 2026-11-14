@@ -5927,10 +5927,10 @@
 .pv-views svg {
   width: 12px;
   height: 12px;
-  padding: 3px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
   box-sizing: content-box;
   flex: none;
   opacity: 0.9;
@@ -6167,6 +6167,10 @@
 .profile-preview.profile-preview[data-meta-style="plain"] :is(.pv-location, .pv-views, .pv-foot-item) svg {
   width: calc(13px * var(--pv-scale, 1));
   height: calc(13px * var(--pv-scale, 1));
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
   color: inherit;
   opacity: 0.85;
 }
@@ -6238,4 +6242,95 @@
 /* Isolate the fixed background so card/tilt repaints never invalidate it. */
 .lkr-page > .lkr-bg {
   contain: layout paint style;
+}
+
+/* ═══ Page-level details (bottom-left) — the reference look ═══════════════
+   This row is portalled into <body>, so none of the `.profile-preview …`
+   rules (plain/pill, pill chrome, --pv-scale sizing) ever reached it, and the
+   old pill styles on .pv-location / .pv-foot-item leaked in. It now has its own
+   self-contained rules: fixed pixel sizes, no chrome, muted text, a hairline
+   divider between items — exactly the "📍 Berlin | 👁 1,698" line. */
+html body .pv-page-meta.pv-page-meta {
+  position: fixed;
+  left: 19px;
+  bottom: 20px;
+  z-index: 60;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0;
+  max-width: calc(100vw - 38px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #a7a7ab;
+  font-family: "Lexend", "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  text-shadow: none;
+  white-space: nowrap;
+  pointer-events: none;
+}
+html body .pv-page-meta.pv-page-meta .pv-pin {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  transform: none;
+}
+html body .pv-page-meta.pv-page-meta :is(.pv-location, .pv-views, .pv-foot-item) {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #a7a7ab;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  text-overflow: clip;
+  font-variant-numeric: tabular-nums;
+}
+html body .pv-page-meta.pv-page-meta :is(.pv-location, .pv-views, .pv-foot-item) svg {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  box-sizing: content-box;
+  color: inherit;
+  opacity: 0.85;
+  filter: none;
+}
+html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
+  content: "";
+  display: inline-block;
+  flex: none;
+  width: 1px;
+  height: 11px;
+  margin: 0 10px;
+  background: rgba(167, 167, 171, 0.42);
+  opacity: 1;
 }

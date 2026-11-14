@@ -5000,17 +5000,133 @@ body:has(.dash) {
   line-height: 1.45;
 }
 
-/* Fields stay a lifted surface, whichever sheet loaded last. */
-.tw-control,
-.tw-textarea,
-.ui-select,
-.ui-select-trigger {
-  background-color: var(--field-bg, #1c1c22);
+/* ── fields: soft elevated grey instead of pure black ─────────────────────
+   Pure #000 inputs looked like holes punched in the cards. One shared set of
+   tokens now drives every text box, search bar, dropdown, textarea and the
+   colour picker, scoped under .tw-dash so no later sheet can flip them back. */
+.tw-dash {
+  --field-bg: #1a1a1f;
+  --field-bg-hover: #1e1e24;
+  --field-bg-focus: #1c1c23;
+  --field-border: #2e2e36;
+  --field-border-hover: #3c3c46;
+  --field-focus: #5b7be0;
+  --pop-bg: #1b1b21;
+}
+.tw-dash .tw-control:not(#_),
+.tw-dash .tw-textarea:not(#_),
+.tw-dash .ui-select:not(#_),
+.tw-dash .ui-select-trigger:not(#_),
+.tw-dash .tw-search:not(#_) {
+  background: var(--field-bg);
   background-image: none;
+  border: 1px solid var(--field-border);
+  box-shadow: none;
+}
+.tw-dash .tw-control:hover:not(#_),
+.tw-dash .tw-textarea:hover:not(#_),
+.tw-dash .ui-select:hover:not(#_),
+.tw-dash .tw-search:hover:not(#_) {
+  background: var(--field-bg-hover);
+  border-color: var(--field-border-hover);
+}
+.tw-dash .tw-control:focus-within:not(#_),
+.tw-dash .tw-textarea:focus:not(#_),
+.tw-dash .tw-search:focus-within:not(#_),
+.tw-dash .ui-select.is-open:not(#_),
+.tw-dash .ui-select:focus-visible:not(#_) {
+  background: var(--field-bg-focus);
+  border-color: var(--field-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-focus) 22%, transparent);
+}
+.tw-dash .tw-control input:not(#_),
+.tw-dash .tw-search input:not(#_),
+.tw-dash .tw-textarea:not(#_) {
+  color: #f2f3f7;
+}
+.tw-dash .tw-control input:not(#_)::placeholder,
+.tw-dash .tw-search input:not(#_)::placeholder,
+.tw-dash .tw-textarea:not(#_)::placeholder {
+  color: #7d8190;
+}
+.tw-dash .tw-search:not(#_) {
+  border-radius: 12px;
+  color: #8a8f9d;
+}
+/* dropdown menus float above cards, so they sit one step lighter */
+.tw-dash .ui-select-pop:not(#_) {
+  background: var(--pop-bg);
+  background-image: none;
+  border: 1px solid var(--field-border);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
-.ui-select-pop {
-  background-color: var(--menu-bg, #26262e);
+/* colour fields: swatch + hex box that reads as a real input. The wrapper is
+   also a .tw-control, so it must not draw its own box around the two. */
+.tw-dash .tw-control.tw-color:not(#_),
+.tw-dash .tw-control.tw-color:hover:not(#_),
+.tw-dash .tw-control.tw-color:focus-within:not(#_) {
+  width: fit-content;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.tw-dash .tw-color:not(#_) { gap: 10px; height: auto; align-items: center; }
+.tw-dash .tw-color .tw-swatch:not(#_),
+.tw-dash .tw-swatch:not(#_) {
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.tw-dash .tw-color-hex:not(#_) {
+  width: 92px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--field-border);
+  border-radius: 9px;
+  background: var(--field-bg);
+  color: #f2f3f7;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tw-dash .tw-color-hex:hover:not(#_) { border-color: var(--field-border-hover); }
+.tw-dash .tw-color-hex:focus:not(#_) {
+  border-color: var(--field-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-focus) 22%, transparent);
+}
+.tw-dash .tw-color-pop:not(#_) {
+  width: 200px;
+  padding: 14px;
+  border: 1px solid var(--field-border);
+  border-radius: 16px;
+  background: var(--pop-bg);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5);
+}
+.tw-dash .tw-color-square:not(#_) { width: 172px; height: 172px; border-radius: 14px; }
+
+
+
+/* the inner <input> of a field is transparent; the wrapper draws the box */
+.tw-dash :is(.tw-control, .tw-search) input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not(#_),
+.tw-dash .tw-control textarea:not(#_) {
+  background: transparent;
+  background-image: none;
+  border: 0;
+  box-shadow: none;
+}
+/* any other bare dashboard field (not inside a wrapper) gets the grey fill */
+.tw-dash .tw-control.tw-color input.tw-color-hex:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not(#_) {
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+}
+.tw-dash textarea:not(#_) {
+  background: var(--field-bg);
   background-image: none;
 }
 

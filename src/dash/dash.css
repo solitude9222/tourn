@@ -7,12 +7,12 @@
    --------------------------------------------------------------------------- */
 
 .tw-dash {
-  --page: #09080b;
-  --rail: #0d0d0d;
-  --card: #111111;
-  --bar: #0c0c0c;
-  --tile: #18171a;
-  --border: #1f1f1f;
+  --page: #000000;
+  --rail: #000000;
+  --card: #141418;
+  --bar: #000000;
+  --tile: #17171b;
+  --border: #26262c;
   --input-border: #333333;
   --accent: #3965e6;
   --accent-soft: #1b233b;
@@ -92,8 +92,8 @@
   width: var(--rail-w);
   height: 100vh;
   min-height: 0;
-  border-right: 2px solid var(--border);
-  border-top-right-radius: 40px;
+  border-right: 1px solid #1d1d22;
+  border-top-right-radius: 0;
   background: var(--rail);
 }
 
@@ -5464,25 +5464,25 @@
 .tw-select,
 .tw-dash input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
 .tw-dash textarea {
-  background: var(--field-bg, #1c1c22);
+  background: var(--field-bg, #1a1a1f);
   background-image: none;
   box-shadow: none;
-  border-color: var(--field-border, #34343e);
+  border-color: var(--field-border, #2a2a30);
 }
 
 .tw-control:hover,
 .tw-textarea:hover,
 .ui-select:hover {
-  background: var(--field-bg-hover, #24242b);
+  background: var(--field-bg-hover, #1c1c23);
   background-image: none;
-  border-color: var(--menu-border, #3c3c46);
+  border-color: var(--menu-border, #303038);
 }
 
 .tw-control:focus-within,
 .tw-textarea:focus,
 .ui-select.is-open,
 .ui-select:focus-visible {
-  background: var(--field-bg-hover, #24242b);
+  background: var(--field-bg-hover, #1c1c23);
   background-image: none;
   border-color: #4a6fd6;
   box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
@@ -5494,7 +5494,7 @@
 
 .tw-dash .tw-control,
 .tw-dash .tw-textarea {
-  background: var(--field-bg, #1c1c22);
+  background: var(--field-bg, #1a1a1f);
 }
 
 /* The colour control is a chip plus its hex code, not a filled plate. */
@@ -5513,8 +5513,8 @@
   top: 0;
   left: 0;
   z-index: 140;
-  border-color: var(--menu-border, #3c3c46);
-  background: var(--menu-bg, #26262e);
+  border-color: var(--menu-border, #303038);
+  background: var(--menu-bg, #1b1b21);
   box-shadow: 0 26px 60px rgba(0, 0, 0, 0.62), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
@@ -5534,8 +5534,8 @@
 }
 
 .ui-select-pop {
-  border-color: var(--menu-border, #3c3c46);
-  background: var(--menu-bg, #26262e);
+  border-color: var(--menu-border, #303038);
+  background: var(--menu-bg, #1b1b21);
 }
 
 .ui-select-item:hover {
@@ -5550,15 +5550,15 @@
    between the two looked broken. One surface instead. */
 .tw-search {
   height: 40px;
-  border: 1px solid var(--field-border, #34343e);
+  border: 1px solid var(--field-border, #2a2a30);
   border-radius: 12px;
-  background: var(--field-bg, #1c1c22);
+  background: var(--field-bg, #1a1a1f);
   transition: border-color 0.18s ease, background-color 0.18s ease;
 }
 
 .tw-search:focus-within {
   border-color: #4a6fd6;
-  background: var(--field-bg-hover, #24242b);
+  background: var(--field-bg-hover, #1c1c23);
 }
 
 .tw-dash .tw-search input {
@@ -5569,4 +5569,72 @@
 
 .tw-dash .tw-search input::placeholder {
   color: #7b8390;
+}
+
+/* ── black shell, outlined sections ──────────────────────────────────────
+   The page and the sidebar are the same pure black; every content section is
+   an outline with a soft grey inside, so the structure reads from the fills
+   rather than from panels floating on a lighter backdrop. */
+.tw-dash,
+.tw-main,
+.tw-shell {
+  background: #000;
+  background-image: none;
+}
+
+.tw-rail {
+  background: #000;
+  border-right: 1px solid #1d1d22;
+  border-top-right-radius: 0;
+}
+
+.tw-card,
+.tw-card-page > .tw-card,
+.tw-stat,
+.tw-panel,
+.tw-tile,
+.tw-modal-card,
+.tw-dash .tw-card {
+  border: 1px solid #26262c;
+  background: #141418;
+  background-image: none;
+  box-shadow: none;
+}
+
+.tw-card-inner,
+.tw-set-block,
+.tw-stat-panel {
+  border-color: #23232a;
+  background: #191920;
+}
+
+/* ── rail order: plan and account on top, search at the bottom ─────────── */
+.tw-rail > .tw-brand {
+  order: 0;
+}
+
+.tw-rail > .tw-rail-foot {
+  order: 1;
+  padding: 0 16px;
+}
+
+.tw-rail > .tw-rail-scroll {
+  order: 2;
+}
+
+.tw-rail > .tw-search {
+  order: 3;
+  margin: 10px 16px 16px;
+}
+
+/* With the account row at the top, its menus open downwards. */
+.tw-rail-foot .tw-user-pop {
+  top: calc(100% + 8px);
+  bottom: auto;
+  transform-origin: top right;
+}
+
+.tw-rail-foot .tw-note-pop {
+  top: calc(100% + 8px);
+  bottom: auto;
 }

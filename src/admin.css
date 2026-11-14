@@ -2786,8 +2786,109 @@
 .adm input[type="email"],
 .adm input[type="password"],
 .adm textarea {
-  background: var(--field-bg, #1c1c22);
+  background: var(--field-bg, #1a1a1f);
   background-image: none;
   box-shadow: none;
-  border-color: var(--field-border, #34343e);
+  border-color: var(--field-border, #2a2a30);
+}
+
+/* ── the admin console wears the dashboard's clothes ───────────────────────
+   Black page, outlined sections with a soft grey inside, the dashboard's
+   type scale and the same button shapes — one console, one language. */
+.adm.adm--embedded,
+.adm.adm-page {
+  background: #000;
+  color: #e7e9ee;
+}
+
+.adm .adm-hero,
+.adm .adm-panel,
+.adm .adm-card,
+.adm .adm-stat,
+.adm .adm-invite,
+.adm .adm-bot-form,
+.adm .adm-block,
+.adm .adm-data-transfer,
+.adm .adm-discord-automation,
+.adm .adm-automation-settings,
+.adm .adm-modal {
+  border: 1px solid #26262c;
+  border-radius: 16px;
+  background: #141418;
+  background-image: none;
+  box-shadow: none;
+}
+
+.adm .adm-tabs {
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.adm .adm-tab {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  color: #9fa2af;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.adm .adm-tab:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+}
+
+.adm .adm-tab.is-active {
+  border-color: #2f3a55;
+  background: #1b233b;
+  color: #cfdcff;
+}
+
+.adm .adm-tab.is-active svg {
+  color: #cfdcff;
+}
+
+.adm .adm-btn,
+.adm .adm-action,
+.adm .adm-mini {
+  border: 1px solid #2a2a30;
+  border-radius: 10px;
+  background: #1b1b21;
+  color: #d6dae2;
+  font-weight: 600;
+}
+
+.adm .adm-btn:hover,
+.adm .adm-action:hover,
+.adm .adm-mini:hover {
+  border-color: #3a3a42;
+  background: #232329;
+}
+
+.adm .adm-btn--primary,
+.adm .adm-action--primary {
+  border-color: #3b5bb5;
+  background: #22315c;
+  color: #dbe6ff;
+}
+
+.adm .adm-hero h2 {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.adm .adm-stat-value {
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.adm .adm-kicker,
+.adm .adm-hero p,
+.adm .adm-metric span,
+.adm .adm-hint {
+  color: #9fa2af;
 }

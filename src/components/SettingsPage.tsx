@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { accountUid, useAuth } from "../lib/auth";
 import { formatJoined } from "../lib/format";
 import { Button, Card, CardHead, Chip, Field, Icon, TextInput } from "../dash/ui";
+import { UploadEmbedCard, UploadResponseCard } from "./UploadSettings";
 
 type SettingsNavigateTarget = "about" | "widgets" | "links";
 
@@ -258,6 +259,10 @@ export function SettingsPage({
           account. Use the button above when they don't match.
         </p>
       </Card>
+
+      <UploadEmbedCard />
+
+      <UploadResponseCard />
 
       <Card>
         <CardHead

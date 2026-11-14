@@ -24,12 +24,12 @@
   /* Lexend: geometric, round letterforms, open even spacing. */
   --font: "Lexend", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  /* Controls sit above the page instead of being punched out in pure black. */
-  --field-bg: #1c1c22;
-  --field-bg-hover: #24242b;
-  --field-border: #34343e;
-  --menu-bg: #26262e;
-  --menu-border: #3c3c46;
+  /* Controls sit above the page instead of being punched out in black. */
+  --field-bg: #1a1a1f;
+  --field-bg-hover: #1c1c23;
+  --field-border: #2a2a30;
+  --menu-bg: #1b1b21;
+  --menu-border: #303038;
   color-scheme: dark;
 }
 
@@ -5345,13 +5345,13 @@ button:active,
     inset 0 -1px 0 rgba(0, 0, 0, 0.65);
 }
 
-/* Fields are a lifted surface, never a punched-out black hole. */
+/* Public fields and dropdowns: a lifted surface, never a black hole. */
 .field input,
 .field textarea,
 .ui-select {
   background: var(--field-bg);
   background-image: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: none;
   border-color: var(--field-border);
 }
 
@@ -5362,6 +5362,11 @@ button:active,
   box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
 }
 
+.ui-select-pop {
+  background: var(--menu-bg);
+  background-image: none;
+}
+
 /* Globally loaded, so every sheet's own field colours lose to this. */
 .tw-control,
 .tw-textarea,
@@ -5369,23 +5374,22 @@ button:active,
 .ui-select-trigger,
 .tw-dash input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
 .tw-dash textarea {
-  background: var(--field-bg);
+  background-color: var(--field-bg);
   background-image: none;
-  border-color: var(--field-border);
 }
 
 .tw-control:hover,
 .tw-textarea:hover,
 .ui-select:hover {
-  background: var(--field-bg-hover);
+  background-color: var(--field-bg-hover);
 }
 
 .tw-control:focus-within,
 .tw-textarea:focus {
-  background: var(--field-bg-hover);
+  background-color: var(--field-bg-hover);
 }
 
-/* Menus sit one more step above the fields they open from. */
+/* Menus are one step lighter than the fields they open from. */
 .ui-select-pop {
   background: var(--menu-bg);
   border-color: var(--menu-border);
