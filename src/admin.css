@@ -1513,7 +1513,7 @@
   padding: 0 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  background: #0d0e12;
+  background: #101014;
   color: #e8ebf2;
   font-family: inherit;
   font-size: 12px;
@@ -1915,7 +1915,7 @@
 
 .adm-modal-card {
   width: min(720px, 100%);
-  background: #0b0b0c;
+  background: #101014;
   background-image: none;
   border-color: #1e1e22;
   box-shadow: 0 40px 90px -44px #000;
@@ -1942,7 +1942,7 @@
   padding: 14px;
   border: 1px solid #191919;
   border-radius: 14px;
-  background: #070708;
+  background: #101014;
 }
 
 .adm-modal-group h4 {
@@ -1971,7 +1971,7 @@
   padding: 10px 11px;
   border: 1px solid #1c1c20;
   border-radius: 11px;
-  background: #0d0d0f;
+  background: #101014;
   color: #c9b9ba;
   text-align: left;
   cursor: pointer;
@@ -2022,7 +2022,7 @@
   position: relative;
   padding: 6px 9px;
   border-color: #1b1b1f;
-  background: #0b0b0d;
+  background: #101014;
 }
 
 .adm-badge-pick span {
@@ -2096,7 +2096,7 @@
   padding: 5px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: #0b0b0d;
+  background: #101014;
 }
 
 .adm.adm--embedded .adm-tab {
@@ -2156,7 +2156,7 @@
 .adm.adm--embedded .adm-stat {
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: #0d0d0f;
+  background: #101014;
   padding: 14px 16px;
 }
 
@@ -2230,7 +2230,7 @@
 .adm.adm--embedded .adm-copy-link {
   border: 1px solid #26292f;
   border-radius: 10px;
-  background: #0b0b0d;
+  background: #101014;
   color: #e8ebf1;
   font-family: inherit;
   font-size: 13px;
@@ -2281,7 +2281,7 @@
   padding: 10px 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
-  background: #0c0e12;
+  background: #101014;
   color: #f5e7e7;
   font-family: var(--adm-mono, ui-monospace, monospace);
   font-size: 12px;
@@ -2490,7 +2490,7 @@
   padding: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  background-color: #0d0d10;
+  background-color: #101014;
   background-image: none;
   box-shadow: none;
 }
@@ -2631,7 +2631,7 @@
 .adm .adm-check input[type="checkbox"]:checked::after,
 .adm .adm-rule-options input[type="checkbox"]:checked::after {
   transform: translateX(14px);
-  background: #0b0d12;
+  background: #101014;
 }
 
 .adm .adm-check input[type="checkbox"]:focus-visible,

@@ -30,7 +30,7 @@
 
 .widgets-catalog-head p {
   margin: 4px 0 0;
-  color: #8c7c7d;
+  color: #7f7f7f;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -86,7 +86,7 @@
 }
 
 .widgets-platform-tile-name {
-  color: #cfc0c1;
+  color: #c3c3c3;
   font-size: 11px;
   font-weight: 580;
   text-align: center;
@@ -123,7 +123,7 @@
 
 .widgets-shell-head p {
   margin: 5px 0 0;
-  color: #907f80;
+  color: #838383;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -178,7 +178,7 @@
 .widgets-custom-head p {
   max-width: 62ch;
   margin: 5px 0 0;
-  color: #8c7c7d;
+  color: #7f7f7f;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -196,7 +196,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 7px;
   background: #111214;
-  color: #9d8d8e;
+  color: #909090;
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;
@@ -206,7 +206,7 @@
 .widgets-reset:hover {
   border-color: rgba(255, 143, 147, 0.24);
   background: rgba(255, 143, 147, 0.08);
-  color: #ffe5e6;
+  color: #ebebeb;
 }
 
 .widgets-controls {
@@ -234,7 +234,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  color: #938384;
+  color: #868686;
   font-size: 11px;
 }
 
@@ -285,7 +285,7 @@
   display: grid;
   gap: 5px;
   min-width: 0;
-  color: #938384;
+  color: #868686;
   font-size: 11px;
 }
 
@@ -297,7 +297,7 @@
   padding: 4px 7px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  background: #0d0e10;
+  background: #101014;
 }
 
 .wg-color-row input[type="color"] {
@@ -368,7 +368,7 @@
 
 .widgets-side-head p {
   margin: 4px 0 0;
-  color: #837374;
+  color: #767676;
   font-size: 11px;
   line-height: 1.45;
 }
@@ -417,7 +417,7 @@
 }
 
 .widgets-preview-label {
-  color: #8d7d7e;
+  color: #808080;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -454,7 +454,7 @@
 .widgets-empty p {
   max-width: 25ch;
   margin: 0;
-  color: #7d6d6e;
+  color: #707070;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -479,14 +479,14 @@
 }
 
 .wg-backgrounds-head > span {
-  color: #938384;
+  color: #868686;
   font-size: 11px;
 }
 
 .wg-backgrounds-head p {
   max-width: 52ch;
   margin: 0;
-  color: #726263;
+  color: #656565;
   font-size: 11px;
   line-height: 1.5;
   text-align: right;
@@ -508,7 +508,7 @@
   border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.02);
-  color: #9b8b8c;
+  color: #8e8e8e;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -528,7 +528,7 @@
 
 .wg-background b {
   overflow: hidden;
-  color: #dbcbcc;
+  color: #cecece;
   font-size: 11px;
   font-weight: 620;
   text-overflow: ellipsis;
@@ -536,13 +536,13 @@
 }
 
 .wg-background.is-active b {
-  color: #ffeaeb;
+  color: #efefef;
 }
 
 .wg-background small {
   grid-column: 2;
   overflow: hidden;
-  color: #726263;
+  color: #656565;
   font-size: 11px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -933,7 +933,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.1);
-  color: #f4e7e7;
+  color: #eaeaea;
   font-size: 7px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -955,7 +955,7 @@
   flex: none;
   align-items: center;
   gap: 3px;
-  color: #e1cbcc;
+  color: #d0d0d0;
   opacity: 0.9;
 }
 
@@ -967,7 +967,7 @@
 
 .widget-card-handle {
   overflow: hidden;
-  color: #bdaaab;
+  color: #aeaeae;
   font-size: 11px;
   line-height: 1.35;
   text-overflow: ellipsis;
@@ -1007,7 +1007,7 @@
   border: 0;
   border-radius: 0;
   background: none;
-  color: #cdbabb;
+  color: #bebebe;
   font-size: 9px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -1048,7 +1048,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: rgba(8, 9, 11, 0.72);
-  color: #dac8c9;
+  color: #cccccc;
   text-decoration: none;
   opacity: 0;
   transform: translateY(3px);
@@ -1065,7 +1065,7 @@
 .widget-card-popout:hover {
   border-color: rgba(255, 143, 147, 0.3);
   background: rgba(255, 143, 147, 0.14);
-  color: #ffeaeb;
+  color: #efefef;
 }
 
 .widget-card:has(.widget-card-popout) .widget-card-bottom {
@@ -1098,7 +1098,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   background: rgba(8, 9, 11, 0.68);
-  color: #ac9a9b;
+  color: #9e9e9e;
   cursor: pointer;
   backdrop-filter: blur(8px);
   transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
@@ -1107,7 +1107,7 @@
 .widget-card-action:hover {
   border-color: rgba(255, 143, 147, 0.24);
   background: rgba(255, 143, 147, 0.12);
-  color: #ffe7e8;
+  color: #ececec;
 }
 
 .widget-card-action--danger:hover {
@@ -1212,7 +1212,7 @@
 
 .widgets-modal-head p {
   margin: 4px 0 0;
-  color: #8a7a7b;
+  color: #7d7d7d;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -1345,7 +1345,7 @@
 
 .platform-card-copy .platform-card-live {
   -webkit-line-clamp: 1;
-  color: #806b6c;
+  color: #707070;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -1365,7 +1365,7 @@
 .platform-card-copy > span {
   display: -webkit-box;
   overflow: hidden;
-  color: #847475;
+  color: #777777;
   font-size: 11px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
@@ -1408,7 +1408,7 @@
 
 .widget-tip p {
   margin: 4px 0 0;
-  color: #a18384;
+  color: #898989;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -1432,7 +1432,7 @@
 }
 
 .widget-options-head span {
-  color: #baaaab;
+  color: #adadad;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -1440,7 +1440,7 @@
 }
 
 .widget-options-head small {
-  color: #6d5e5e;
+  color: #616161;
   font-size: 11px;
 }
 
@@ -1470,7 +1470,7 @@
 
 .widget-option p {
   margin: 3px 0 0;
-  color: #847475;
+  color: #777777;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -1519,7 +1519,7 @@
   padding: 0 9px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 7px;
-  background: #0d0d0e;
+  background: #101014;
   color: #e5eaed;
   font-size: 11px;
 }
@@ -1533,7 +1533,7 @@
   border: 1px solid rgba(248, 113, 113, 0.16);
   border-radius: 6px;
   background: rgba(248, 113, 113, 0.05);
-  color: #f0a1a1;
+  color: #b2b2b2;
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;
@@ -1732,20 +1732,20 @@
 
 .platform-card-copy > span {
   max-width: 42ch;
-  color: #9b8b8c;
+  color: #8e8e8e;
   font-size: 11.5px;
   line-height: 1.5;
 }
 
 .platform-card-copy .platform-card-live {
   margin-top: 2px;
-  color: #806b6c;
+  color: #707070;
   font-size: 11px;
 }
 
 /* Widget cards on a profile share the same dark surface. */
 .widget-card {
-  background-color: #0b0c10;
+  background-color: #101014;
   background-image: radial-gradient(
     130% 120% at 100% 0%,
     color-mix(in srgb, var(--wg-brand, #ffb3ae) 12%, transparent),
@@ -1756,7 +1756,7 @@
 }
 
 .widget-card--bg-frosted {
-  background-color: #0b0c10;
+  background-color: #101014;
 }
 
 /* Profile pictures are always circles, whatever platform the widget shows. */
@@ -1771,14 +1771,14 @@
 
 .widget-card-handle {
   font-size: 11px;
-  color: #a28f90;
+  color: #939393;
 }
 
 /* Keep the meta row plain text — no plate, no border. */
 .widget-card-chip {
   border: 0;
   background: none;
-  color: #bfaeaf;
+  color: #b2b2b2;
 }
 
 /* The inline "Add a widget" catalog uses the same wide tiles as the modal. */
@@ -1881,7 +1881,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   background: rgba(8, 9, 11, 0.72);
-  color: #9d8b8c;
+  color: #8f8f8f;
   cursor: grab;
   opacity: 0;
   transition: opacity 0.16s ease, color 0.16s ease, border-color 0.16s ease;
@@ -1895,7 +1895,7 @@
 
 .wg-sort-grip:hover {
   border-color: rgba(255, 143, 147, 0.3);
-  color: #ffe7e8;
+  color: #ececec;
 }
 
 /* Green light for anything counting people who are on right now. */
@@ -1910,9 +1910,9 @@
 }
 
 
-.widget-card-presence-notice { margin: 8px 14px 12px; color: #bba5a6; font-size: 10px; line-height: 1.5; }
+.widget-card-presence-notice { margin: 8px 14px 12px; color: #aaaaaa; font-size: 10px; line-height: 1.5; }
 
-.widget-card-presence-notice { position: relative; z-index: 2; color: #d5babb; }
+.widget-card-presence-notice { position: relative; z-index: 2; color: #c0c0c0; }
 
 /* Shared widget rows. */
 .lkr-widgets,.home-real-widgets { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch; }
@@ -1940,12 +1940,12 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 .profile-preview .widget-card-handle {
-  color: #f7eeee;
+  color: #f0f0f0;
   opacity: 0.94;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 .profile-preview .widget-card-chip {
-  color: #f4e7e7;
+  color: #eaeaea;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 .profile-preview .widget-card-copy {

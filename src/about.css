@@ -36,7 +36,7 @@
 .about-panel-head p {
   max-width: 62ch;
   margin: 5px 0 0;
-  color: #8d7d7e;
+  color: #808080;
   font-size: 10.5px;
   line-height: 1.55;
 }
@@ -51,7 +51,7 @@
   border: 1px solid rgba(255, 168, 171, 0.2);
   border-radius: 7px;
   background: rgba(255, 168, 171, 0.06);
-  color: #ffc9cb;
+  color: #d5d5d5;
   font-family: inherit;
   font-size: 9.5px;
   font-weight: 550;
@@ -85,13 +85,13 @@
 }
 
 .about-counter {
-  color: #7d6c6d;
+  color: #707070;
   font-size: 9.5px;
   font-variant-numeric: tabular-nums;
 }
 
 .about-help {
-  color: #766667;
+  color: #696969;
   font-size: 9.5px;
   line-height: 1.5;
 }
@@ -106,7 +106,7 @@
   left: 12px;
   z-index: 1;
   transform: translateY(-50%);
-  color: #876f70;
+  color: #747474;
   pointer-events: none;
 }
 
@@ -122,7 +122,7 @@
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 9px;
   outline: none;
-  background: #0d0e10;
+  background: #101014;
   color: #edf2f5;
   font-family: inherit;
   font-size: 12px;
@@ -130,7 +130,7 @@
 }
 
 .about-panel input::placeholder {
-  color: #6b5a5b;
+  color: #5e5e5e;
 }
 
 .about-panel input:focus {
@@ -177,7 +177,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 10px;
-  background: #0b0c0e;
+  background: #101014;
 }
 
 .rich-toolbar {
@@ -187,7 +187,7 @@
   gap: 3px;
   padding: 6px 7px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  background: #0e0f11;
+  background: #101014;
 }
 
 .rich-tool-group {
@@ -206,7 +206,7 @@
   border: 1px solid transparent;
   border-radius: 6px;
   background: none;
-  color: #a89697;
+  color: #9a9a9a;
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;
@@ -216,7 +216,7 @@
 .rich-tool:hover {
   border-color: rgba(255, 168, 171, 0.2);
   background: rgba(255, 168, 171, 0.08);
-  color: #ffe8e9;
+  color: #ededed;
 }
 
 .rich-tool b {
@@ -314,7 +314,7 @@
 }
 
 .rich-editor-grid textarea::placeholder {
-  color: #685959;
+  color: #5c5c5c;
 }
 
 .rich-live-preview {
@@ -323,7 +323,7 @@
   padding: 14px;
   overflow-y: auto;
   border-left: 1px solid rgba(255, 255, 255, 0.07);
-  color: #cab9ba;
+  color: #bdbdbd;
   font-size: 11px;
   line-height: 1.68;
   scrollbar-width: thin;
@@ -331,7 +331,7 @@
 }
 
 .rich-live-empty {
-  color: #685959;
+  color: #5c5c5c;
 }
 
 .rich-help {
@@ -341,7 +341,7 @@
   margin: 0;
   padding: 9px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  color: #6d5d5e;
+  color: #606060;
   font-size: 8.5px;
   line-height: 1.5;
 }
@@ -350,7 +350,7 @@
   padding: 1px 4px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.04);
-  color: #c88f91;
+  color: #9b9b9b;
   font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 8.5px;
 }
@@ -377,7 +377,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  color: #b2a3a3;
+  color: #a6a6a6;
   font-size: 10px;
 }
 
@@ -434,7 +434,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 2px 4px;
-  color: #9d8d8e;
+  color: #909090;
   font-size: 10.5px;
   cursor: pointer;
   list-style: none;
@@ -488,7 +488,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  color: #9b8a8b;
+  color: #8e8e8e;
   font-size: 9.5px;
 }
 
@@ -513,7 +513,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #a99899;
+  color: #9c9c9c;
   font-size: 10px;
 }
 
@@ -523,7 +523,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   background: #111214;
-  color: #9d8d8e;
+  color: #909090;
   font-family: inherit;
   font-size: 9px;
   cursor: pointer;
@@ -532,7 +532,7 @@
 
 .about-reset:hover {
   border-color: rgba(255, 168, 171, 0.26);
-  color: #ffe6e7;
+  color: #ebebeb;
 }
 
 .about-color-grid {
@@ -562,7 +562,7 @@
 }
 
 .about-save-note {
-  color: #766667;
+  color: #696969;
   font-size: 9px;
 }
 
@@ -578,13 +578,13 @@
   gap: 5px;
   padding: 4px 6px;
   border-radius: 5px;
-  color: #9e8d8e;
+  color: #919191;
   font-size: 9.5px;
   transition: color 0.16s ease;
 }
 
 .about-view-link:hover {
-  color: #ffe6e7;
+  color: #ebebeb;
 }
 
 .about-saved {
@@ -3286,9 +3286,9 @@
 }
 
 .tt--dark {
-  background: #08090c;
+  background: #101014;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #e5d7d7;
+  color: #dadada;
   box-shadow:
     0 10px 30px -10px #000,
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
@@ -3297,7 +3297,7 @@
 .tt--minimal {
   background: transparent;
   border: none;
-  color: #e5d7d7;
+  color: #dadada;
   font-size: 12px;
   font-weight: 600;
   padding: 2px 6px;
@@ -3395,7 +3395,7 @@
 }
 
 .pv-loading-copy {
-  color: #8c797a;
+  color: #7d7d7d;
   font-size: 11.5px;
   letter-spacing: 0.02em;
 }
@@ -3428,7 +3428,7 @@
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: #f8eaea;
+  color: #ededed;
 }
 
 .demo-claim-brand span {
@@ -3437,12 +3437,12 @@
 
 .demo-claim-handle {
   margin: 2px 0 0;
-  color: #bf9092;
+  color: #9a9a9a;
   font-size: 14.5px;
 }
 
 .demo-claim-handle b {
-  color: #f8eaea;
+  color: #ededed;
   font-weight: 700;
 }
 
@@ -3490,7 +3490,7 @@
   text-align: center;
   border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 16px;
-  background: #0b0b0d;
+  background: #101014;
 }
 
 .pn-mark {
@@ -3526,7 +3526,7 @@
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: #8d797a;
+  color: #7d7d7d;
   overflow-wrap: anywhere;
 }
 
@@ -3575,13 +3575,13 @@
 .pn-account small {
   display: block;
   font-size: 9.5px;
-  color: #8c7879;
+  color: #7c7c7c;
 }
 
 .pn-copy {
   max-width: 36ch;
   margin: 0;
-  color: #9e8b8c;
+  color: #8f8f8f;
   font-size: 12.5px;
   line-height: 1.6;
 }
@@ -3608,7 +3608,7 @@
   padding: 14px 18px 16px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
-  background: #0b0b0d;
+  background: #101014;
 }
 
 .pn-session-who {
@@ -3616,7 +3616,7 @@
   align-items: center;
   gap: 7px;
   margin: 0;
-  color: #aa9899;
+  color: #9c9c9c;
   font-size: 12px;
 }
 
@@ -3644,7 +3644,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.02);
-  color: #d9c9ca;
+  color: #cccccc;
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 550;
@@ -4045,7 +4045,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  background: #05060a;
+  background: #101014;
 }
 
 .entry-stage .lkr-page { height: 100%; min-height: 0; }

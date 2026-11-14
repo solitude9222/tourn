@@ -7,19 +7,19 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 .app.app--home {
-  --hm-bg: #09080b;
-  --hm-surface: #111111;
-  --hm-widget: #161616;
-  --hm-tile: #121212;
-  --hm-line: #1f1f1f;
-  --hm-line-strong: #2e2e2e;
-  --hm-blue: #e00a0e;
-  --hm-blue-text: #ee4a4f;
-  --hm-blue-light: #f87478;
-  --hm-text: #ffffff;
-  --hm-muted: #af9fa0;
-  --hm-caption: #915e60;
-  --hm-focus: #7a2b2c;
+  --hm-bg: #09090b;
+  --hm-surface: #141417;
+  --hm-widget: #18181c;
+  --hm-tile: #121215;
+  --hm-line: #26262c;
+  --hm-line-strong: #33333b;
+  --hm-blue: #f04452;
+  --hm-blue-text: #ff7880;
+  --hm-blue-light: #ff9aa0;
+  --hm-text: #f5f5f7;
+  --hm-muted: #b0b0ba;
+  --hm-caption: #8e8e99;
+  --hm-focus: #3a1c23;
   background: var(--hm-bg);
   color: var(--hm-text);
 }
@@ -58,12 +58,12 @@
   padding: 0 12px 0 20px;
   border: 1px solid var(--hm-line);
   border-radius: 16px;
-  background: #0f0f0f;
+  background: #101014;
   box-shadow: 0 24px 60px -40px #000;
 }
 
 .app--home .head-link {
-  color: #af9fa0;
+  color: #a2a2a2;
   font-size: 14px;
   font-weight: 600;
 }
@@ -243,7 +243,7 @@
 
 .hm-btn-tag {
   display: inline-flex;
-  color: #e2cfd0;
+  color: #d3d3d3;
 }
 
 /* ── hero ─────────────────────────────────────────────────────────── */
@@ -253,7 +253,7 @@
   isolation: isolate;
   overflow: hidden;
   padding: 150px 0 96px;
-  background: #09090b;
+  background: #101014;
 }
 
 /* The brand mark, tiled quietly across the top instead of the old bolts. */
@@ -374,13 +374,13 @@
   border: 1px solid var(--hm-line);
   border-radius: 10px;
   background: var(--hm-surface);
-  color: #a08b8c;
+  color: #909090;
   filter: grayscale(1);
   transition: color 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
 }
 
 .hm-platform:hover {
-  color: #eedfe0;
+  color: #e2e2e2;
   border-color: var(--hm-line-strong);
   filter: none;
 }
@@ -440,7 +440,7 @@
   padding: 4px;
   border: 1px solid var(--hm-line);
   border-radius: 999px;
-  background: #0c0c0e;
+  background: #101014;
 }
 
 .hm-seg {
@@ -467,7 +467,7 @@
   height: 32px;
   border: 1px solid var(--hm-focus, #e00a0e);
   border-radius: 999px;
-  background: #2a1f20;
+  background: var(--panel-solid, #18181c);
   pointer-events: none;
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), width 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
 }
@@ -664,7 +664,7 @@
   padding: 24px 18px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 18px;
-  background: #101116;
+  background: #141417;
   text-align: center;
 }
 
@@ -742,7 +742,7 @@
   padding: 5px 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
-  background: #101116;
+  background: #141417;
   color: rgba(255, 255, 255, 0.78);
   font-size: 11px;
 }
@@ -962,7 +962,7 @@ button.hm-metric:focus-visible {
   overflow: hidden;
   border-radius: 50%;
   background: #1b1d24;
-  color: #e6cbcc;
+  color: #d1d1d1;
   font-size: 13px;
   font-weight: 700;
 }
@@ -1045,7 +1045,7 @@ button.hm-metric:focus-visible {
 
 .hm-faq-chevron {
   display: inline-flex;
-  color: #806b6c;
+  color: #707070;
   transition: transform 0.22s ease;
 }
 
@@ -1096,7 +1096,7 @@ button.hm-metric:focus-visible {
   padding: 68px 32px;
   border: 1px solid #23242b;
   border-radius: 32px;
-  background: #0e1015;
+  background: #141417;
   text-align: center;
 }
 
@@ -1132,7 +1132,7 @@ button.hm-metric:focus-visible {
 .hm-cta p {
   margin: 14px auto 0;
   max-width: 480px;
-  color: #af9fa0;
+  color: #a2a2a2;
   font-size: 15px;
   line-height: 1.6;
 }
@@ -1146,14 +1146,14 @@ button.hm-metric:focus-visible {
 .hm-claim--cta .hm-claim-field {
   height: 48px;
   border-color: rgba(255, 255, 255, 0.12);
-  background: #0b0c0f;
+  background: #101014;
 }
 
 .hm-btn--claim {
   height: 48px;
   flex: none;
   background: #97262a;
-  color: #ffdfe0;
+  color: #e6e6e6;
 }
 
 .hm-btn--claim:hover {
@@ -1416,11 +1416,11 @@ button.hm-metric:focus-visible {
 .hm-pages-grid--live .hm-page-preview:nth-child(2) { z-index:2; transform:translateY(-12px); }
 .hm-live-profile { width:500px; flex:none; zoom:.56; pointer-events:none; }
 .hm-live-profile .about-preview { max-width:100%; }
-.hm-pages-grid--live .hm-page-caption { z-index:3; position:absolute; inset:auto 0 0; display:flex; gap:10px; align-items:center; justify-content:center; padding:20px; background:linear-gradient(transparent,#120808 35%); color:#ffdcdd; }
-.hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #4a2b2d; border-radius:16px; background:#17100f; box-shadow:0 12px 45px #0005; }
-.hm-claim--cta .hm-claim-field { display:flex; flex:1; min-width:0; align-items:center; gap:2px; padding:0 10px; border:0; background:transparent; color:#af8082; font-family:inherit; font-size:15px; }
+.hm-pages-grid--live .hm-page-caption { z-index:3; position:absolute; inset:auto 0 0; display:flex; gap:10px; align-items:center; justify-content:center; padding:20px; background:linear-gradient(transparent,#120808 35%); color:#e4e4e4; }
+.hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #4a2b2d; border-radius:16px; background:var(--panel-solid, #18181c); box-shadow:0 12px 45px #0005; }
+.hm-claim--cta .hm-claim-field { display:flex; flex:1; min-width:0; align-items:center; gap:2px; padding:0 10px; border:0; background:transparent; color:#8a8a8a; font-family:inherit; font-size:15px; }
 .hm-claim--cta input { width:100%; min-width:0; padding:0; border:0; outline:0; background:transparent; color:#fff; font:inherit; box-shadow:none; }
 .hm-claim--cta:focus-within { outline:2px solid #ff6469; outline-offset:3px; }
-.hm-claim--cta input::placeholder { color:#9d7879; }
+.hm-claim--cta input::placeholder { color:#808080; }
 .hm-btn--claim { border-radius:10px; padding:0 20px; background:#ed5055; color:white; }
 @media(max-width:800px){ .hm-pages-grid--live { grid-template-columns:1fr; max-width:480px; margin-inline:auto; } .hm-pages-grid--live .hm-page-preview:first-child,.hm-pages-grid--live .hm-page-preview:last-child,.hm-pages-grid--live .hm-page-preview:nth-child(2){transform:none;} }

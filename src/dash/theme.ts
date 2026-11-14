@@ -22,14 +22,14 @@ export const DASH_THEMES: DashThemeDef[] = [
   {
     id: "default",
     label: "Default",
-    description: "Near-black console with the tourn red accent.",
-    swatch: ["#000000", "#16161b", "#e00a0e"],
+    description: "Charcoal console with a single crimson accent.",
+    swatch: ["#09090b", "#18181c", "#f04452"],
   },
   {
     id: "black",
-    label: "Full black",
-    description: "Every surface is pure black, separated by hairlines only.",
-    swatch: ["#000000", "#000000", "#e00a0e"],
+    label: "Flat black",
+    description: "One flat charcoal surface, separated by hairlines only.",
+    swatch: ["#0b0b0d", "#141418", "#f04452"],
   },
   {
     id: "mono",
