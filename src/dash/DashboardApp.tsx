@@ -186,9 +186,9 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     icon: "user",
     crumb: "Portfolio",
   },
-  "portfolio-projects": {
-    title: "Projects",
-    subtitle: "Cards, sections and the order they appear in.",
+  "portfolio-sections": {
+    title: "Sections",
+    subtitle: "Projects, games and interests, in the order they appear.",
     icon: "layers",
     crumb: "Portfolio",
   },
@@ -202,12 +202,6 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     title: "Audio player",
     subtitle: "The track, its playback and the player's look.",
     icon: "music",
-    crumb: "Portfolio",
-  },
-  "portfolio-games": {
-    title: "Games",
-    subtitle: "The games you play, shown as their own cards.",
-    icon: "gamepad",
     crumb: "Portfolio",
   },
   "portfolio-design": {
@@ -256,7 +250,11 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
 
 function readDashboardLocation(isAdmin: boolean): { page: Page; tab: ProfileTab } {
   const parts = window.location.hash.replace(/^#\/?/, "").split("?")[0].split("/");
-  const candidate = parts[0] === "admin" ? "admin" : parts[1] || "home";
+  // Older bookmarks still point at the retired Projects and Games tabs.
+  const requested = parts[1] === "portfolio-projects" || parts[1] === "portfolio-games"
+    ? "portfolio-sections"
+    : parts[1];
+  const candidate = parts[0] === "admin" ? "admin" : requested || "home";
   const page = Object.hasOwn(META, candidate) && (candidate !== "admin" || isAdmin) ? candidate as Page : "home";
   const tab = ["profile", "experience", "integrations", "switches"].includes(parts[2]) ? parts[2] as ProfileTab : "profile";
   return { page, tab };
@@ -606,14 +604,11 @@ export function Dashboard(props: DashboardProps) {
     case "portfolio-general":
       content = <PortfolioPage tab="general" />;
       break;
-    case "portfolio-projects":
+    case "portfolio-sections":
       content = <LayoutPage section="sections" />;
       break;
     case "portfolio-gallery":
       content = <PortfolioPage tab="gallery" />;
-      break;
-    case "portfolio-games":
-      content = <PortfolioPage tab="games" />;
       break;
     case "portfolio-design":
       content = <PortfolioPage tab="design" />;

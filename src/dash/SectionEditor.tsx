@@ -1,5 +1,5 @@
 import { SkillPicker } from "./SkillPicker";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { type ProfileSection, type ProfileSectionKind } from "../lib/about";
 import { imageToDataUrl } from "./files";
 import { Button, Field, FileUpload, TextInput, Textarea } from "./ui";
@@ -17,15 +17,20 @@ const PICK_LIMIT = 12;
 export function SectionEditor({
   section,
   index,
+  handle,
   onChange,
   onRemove,
   onMoveUp,
+  onMoveDown,
 }: {
   section: ProfileSection;
   index: number;
+  /** Drag handle rendered in the header, owned by the list that reorders it. */
+  handle?: ReactNode;
   onChange: (patch: Partial<ProfileSection>) => void;
   onRemove: () => void;
   onMoveUp: () => void;
+  onMoveDown?: () => void;
 }) {
   const { notify } = useDash();
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -66,6 +71,7 @@ export function SectionEditor({
   return (
     <details className={`tw-section-editor tw-section-editor--${section.kind}`}>
       <summary className="tw-section-editor-head">
+        {handle}
         <span className="tw-section-number">{String(index + 1).padStart(2, "0")}</span>
         <span className="tw-section-editor-title">
           <b>{section.title || (project ? "Untitled project" : `${picks.length || ""} interest${picks.length === 1 ? "" : "s"}`.trim() || "Interests")}</b>
@@ -75,6 +81,11 @@ export function SectionEditor({
           {index > 0 ? (
             <Button onClick={onMoveUp} aria-label="Move section up">
               Move up
+            </Button>
+          ) : null}
+          {onMoveDown ? (
+            <Button onClick={onMoveDown} aria-label="Move section down">
+              Move down
             </Button>
           ) : null}
           <Button variant="danger" icon="trash" onClick={onRemove}>

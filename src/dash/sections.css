@@ -17,7 +17,7 @@
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--section-accent) 5%, transparent), transparent 120px), var(--bar);
+  background: var(--bar);
 }
 
 .tw-section-editor::before {
@@ -25,7 +25,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 2px;
-  background: linear-gradient(180deg, var(--section-accent), transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--section-accent) 60%, transparent), transparent 70%);
 }
 
 .tw-section-editor--project {
@@ -49,6 +49,14 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
+  list-style: none;
+  cursor: default;
+}
+
+.tw-section-editor-head::-webkit-details-marker,
+.tw-section-editor-head::marker {
+  display: none;
+  content: "";
 }
 
 .tw-section-number {
@@ -57,10 +65,10 @@
   height: 30px;
   flex: none;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--section-accent) 35%, var(--border));
+  border: 1px solid var(--border);
   border-radius: 9px;
-  background: color-mix(in srgb, var(--section-accent) 12%, transparent);
-  color: var(--section-accent);
+  background: var(--tile);
+  color: var(--sub);
   font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -91,6 +99,25 @@
   display: flex;
   flex: none;
   gap: 6px;
+}
+
+/* Section headers stay one line even in a narrow column. */
+.tw-section-editor-actions .tw-btn {
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 760px) {
+  .tw-section-editor-head {
+    flex-wrap: wrap;
+  }
+  .tw-section-editor-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 .tw-section-kind-row {
@@ -809,4 +836,73 @@
 
 .tw-about-editor-head {
   margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------------ reorder */
+
+/* The card holds its place while a section moves; only a hairline travels. */
+.tw-section-card {
+  position: relative;
+}
+
+.tw-section-card.is-dragging {
+  opacity: 0.5;
+}
+
+.tw-section-grip {
+  display: grid;
+  width: 26px;
+  height: 30px;
+  flex: none;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--nav);
+  font-size: 13px;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.tw-section-grip:hover {
+  border-color: var(--border);
+  background: var(--tile);
+  color: var(--title);
+}
+
+.tw-section-grip:active {
+  cursor: grabbing;
+}
+
+.tw-section-grip:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 2px;
+}
+
+.tw-section-drop {
+  position: absolute;
+  z-index: 3;
+  top: -7px;
+  right: 2px;
+  left: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.tw-section-drop.is-below {
+  top: auto;
+  bottom: -7px;
+}
+
+/* While sorting, nothing under the pointer should react to hover. */
+body.tw-sorting {
+  cursor: grabbing;
+  user-select: none;
+}
+
+body.tw-sorting .tw-section-card * {
+  pointer-events: none;
 }

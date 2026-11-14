@@ -14,7 +14,7 @@ import { LayoutPage } from "./Layout";
 import { AssetBrowserPage } from "./Community";
 import { DesignPage } from "./Design";
 
-export type PortfolioTab = "general" | "about" | "projects" | "gallery" | "audio" | "games" | "design";
+export type PortfolioTab = "general" | "about" | "sections" | "gallery" | "audio" | "design";
 export type ProfileWorkspaceTab =
   | "profile"
   | "appearance"
@@ -25,10 +25,9 @@ export type ProfileWorkspaceTab =
 export const PORTFOLIO_TABS: { id: PortfolioTab; label: string; icon: IconName }[] = [
   { id: "general", label: "General", icon: "home" },
   { id: "about", label: "About", icon: "user" },
-  { id: "projects", label: "Projects", icon: "layers" },
+  { id: "sections", label: "Sections", icon: "layers" },
   { id: "gallery", label: "Gallery", icon: "image" },
   { id: "audio", label: "Audio player", icon: "music" },
-  { id: "games", label: "Games", icon: "gamepad" },
   { id: "design", label: "Design", icon: "palette" },
 ];
 
@@ -44,8 +43,8 @@ function GeneralPortfolio() {
   const { about, links, widgets, go } = useDash();
   const design = about.design;
   const rows: { label: string; value: string; tab: PortfolioTab }[] = [
-    { label: "Sections", value: `${design.sections.length} / 24`, tab: "projects" },
-    { label: "Slideshow", value: design.slideshow ? "On" : "Off", tab: "projects" },
+    { label: "Sections", value: `${design.sections.length} / 24`, tab: "sections" },
+    { label: "Slideshow", value: design.slideshow ? "On" : "Off", tab: "sections" },
     { label: "Social links", value: String(links.links.filter((link) => link.visible).length), tab: "general" },
     { label: "Widgets", value: String(widgets.widgets.filter((widget) => widget.visible !== false).length), tab: "general" },
   ];
@@ -75,7 +74,7 @@ function GeneralPortfolio() {
       <Card>
         <CardHead icon="sparkles" title="Jump back in" subtitle="The three things people change most." />
         <div className="tw-row">
-          <button type="button" className="tw-quick-link" onClick={() => go("portfolio-projects")}>
+          <button type="button" className="tw-quick-link" onClick={() => go("portfolio-sections")}>
             <Icon name="layers" size={15} /> Edit projects
           </button>
           <button type="button" className="tw-quick-link" onClick={() => go("portfolio-design")}>
@@ -94,32 +93,12 @@ export function PortfolioPage({ tab }: { tab: PortfolioTab }) {
   switch (tab) {
     case "about":
       return <CustomizeProfilePage tab="profile" />;
-    case "projects":
+    case "sections":
       return <LayoutPage />;
     case "gallery":
       return <AssetBrowserPage />;
     case "audio":
       return <CustomizeProfilePage tab="integrations" />;
-    case "games":
-      return (
-        <Card>
-          <CardHead
-            icon="gamepad"
-            title="Games"
-            subtitle="The games you play, shown as their own cards on the page."
-          />
-          <EmptyState
-            icon="gamepad"
-            title="No games yet"
-            message="Games use the same section system as projects: add an Interests section and pick the games from the library."
-            action={
-              <button type="button" className="tw-btn tw-btn--primary" onClick={() => (window.location.hash = "#/dashboard/portfolio-projects")}>
-                Add a section
-              </button>
-            }
-          />
-        </Card>
-      );
     case "design":
       return <DesignPage />;
     default:

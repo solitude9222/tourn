@@ -2150,9 +2150,10 @@
 .fx-mini-cursor--smoke { width:22px; height:22px; background:radial-gradient(circle,#fff8,transparent 70%); filter:blur(3px); box-shadow:-20px 10px 0 -4px #fff5, -36px 16px 0 -6px #fff2; }
 
 /* Shared editing workspace: one category at a time, full usable width. */
-.tw-workspace-tabs { display:flex; flex-wrap:wrap; gap:6px; padding:5px; border:1px solid var(--border); border-radius:12px; background:var(--page); margin-bottom:20px; }
-.tw-workspace-tabs button { flex:1 1 auto; padding:11px 16px; border:0; border-radius:8px; background:transparent; color:var(--sub); font:inherit; font-size:13px; cursor:pointer; }
-.tw-workspace-tabs button[aria-pressed="true"] { background:#242424; color:#fff; }
+.tw-workspace-tabs { display:flex; flex-wrap:wrap; gap:4px; padding:5px; border:1px solid var(--border); border-radius:12px; background:var(--bar); margin-bottom:20px; }
+.tw-workspace-tabs button { flex:1 1 auto; padding:10px 14px; border:1px solid transparent; border-radius:9px; background:transparent; color:var(--sub); font:inherit; font-size:13px; font-weight:500; cursor:pointer; }
+.tw-workspace-tabs button:hover { background:var(--tile); color:var(--title); }
+.tw-workspace-tabs button[aria-pressed="true"] { border-color:color-mix(in srgb, var(--accent) 30%, transparent); background:var(--accent-soft); color:var(--accent-text); }
 .tw-workspace-tabs button:focus-visible, .fx-choice:focus-visible { outline:2px solid white; outline-offset:3px; }
 .fx-workspace { width:100%; min-width:0; }
 .fx-gallery { margin-bottom:24px; }

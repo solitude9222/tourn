@@ -1,5 +1,5 @@
 import {ProfileHistory} from "../ProfileHistory";
-import { useRef, useState } from "react";
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 /* ---------------------------------------------------------------------------
    Customize > Card — the card layout, the widget positions and the card's
    colours in one place. The layout only decides how much room the card and
@@ -189,7 +189,13 @@ export function LayoutPage({
   /** Which slice of the card editor this route is. The sidebar owns the switch. */
   section?: "layout" | "style" | "sections";
 } = {}) {
-  const [dragSection,setDragSection]=useState<number|null>(null);
+  const sectionRefs = useRef(new Map<string, HTMLDivElement>());
+  const dragRef = useRef<{ from: number; over: number } | null>(null);
+  const [drag, setDragState] = useState<{ from: number; over: number } | null>(null);
+  const setDrag = (next: { from: number; over: number } | null) => {
+    dragRef.current = next;
+    setDragState(next);
+  };
   const { about, setAbout, notify, user, badges, links } = useDash();
   const design = about.design;
 
@@ -214,6 +220,66 @@ export function LayoutPage({
   const addSection = (kind: ProfileSectionKind) => {
     if (design.sections.length >= 24) return;
     updateDesign({ sectionsEnabled:true, sections: [...design.sections, createProfileSection(kind)] });
+  };
+
+  /** Games are one more section, not a page of their own. */
+  const addGamesSection = () => {
+    if (design.sections.length >= 24) return;
+    const section = { ...createProfileSection("interest"), title: "Games", subtitle: "What I play" };
+    updateDesign({ sectionsEnabled: true, sections: [...design.sections, section] });
+  };
+
+  const moveSection = (from: number, to: number) => {
+    if (from === to || to < 0 || to >= design.sections.length) return;
+    const sections = [...design.sections];
+    const [moved] = sections.splice(from, 1);
+    sections.splice(to, 0, moved);
+    updateDesign({ sections });
+  };
+
+  /*
+     Reorder with a plain pointer: the card never leaves the list, so no drag
+     ghost of its artwork floats around, and nothing re-renders mid-drag.
+     A hairline marks where the card will land.
+  */
+  const beginSectionDrag = (event: ReactPointerEvent<HTMLButtonElement>, index: number) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    const pointerId = event.pointerId;
+    const ids = design.sections.map((item) => item.id);
+    setDrag({ from: index, over: index });
+
+    const targetIndex = (clientY: number) => {
+      for (let i = 0; i < ids.length; i += 1) {
+        const node = sectionRefs.current.get(ids[i]);
+        if (!node) continue;
+        const rect = node.getBoundingClientRect();
+        if (clientY < rect.top + rect.height / 2) return i;
+      }
+      return ids.length - 1;
+    };
+
+    const onMove = (moveEvent: PointerEvent) => {
+      if (moveEvent.pointerId !== pointerId) return;
+      const over = targetIndex(moveEvent.clientY);
+      setDrag({ from: dragRef.current?.from ?? index, over });
+    };
+
+    const finish = (upEvent: PointerEvent) => {
+      if (upEvent.pointerId !== pointerId) return;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+      document.body.classList.remove("tw-sorting");
+      const state = dragRef.current;
+      setDrag(null);
+      if (state) moveSection(state.from, state.over);
+    };
+
+    document.body.classList.add("tw-sorting");
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
   };
 
   return (
@@ -510,8 +576,8 @@ export function LayoutPage({
           </Field>
         </div>
       </Card> : null}
-      {section === "sections" ? <Card><CardHead icon="layers" title="Profile sections" subtitle="Two kinds only: the projects you built, and the animes you like. Both render as real showcase cards with artwork, icons and links." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
-        <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime library.</p>
+      {section === "sections" ? <Card><CardHead icon="layers" title="Sections" subtitle="Everything below your card: projects, games and the animes you like. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
+        <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime and game libraries.</p>
         <div className="tw-toggle-grid">
           <div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div>
           <div className="tw-inline-toggle"><b>Vertical slideshow</b><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div>
@@ -606,23 +672,42 @@ export function LayoutPage({
           </details>
         ) : null}
 
-        <div className="tw-section-list">
+        <div className={`tw-section-list${drag ? " is-sorting" : ""}`}>
           {design.sections.map((section, index) => (
-            <div key={section.id} draggable onDragStart={event=>{if((event.target as HTMLElement).closest('input,textarea,select,button')){event.preventDefault();return;}setDragSection(index);}} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();if(dragSection===null)return;const sections=[...design.sections];const [moved]=sections.splice(dragSection,1);sections.splice(index,0,moved);updateDesign({sections});setDragSection(null);}}><div className="tw-section-drag" title="Drag to reorder">⠿ Drag to reorder</div><SectionEditor
+            <div
               key={section.id}
-              section={section}
-              index={index}
-              onChange={(patch) => patchSection(section.id, patch)}
-              onRemove={() => updateDesign({ sections: design.sections.filter((item) => item.id !== section.id) })}
-              onMoveUp={() => {
-                const sections = [...design.sections];
-                [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]];
-                updateDesign({ sections });
+              className={`tw-section-card${drag?.from === index ? " is-dragging" : ""}`}
+              ref={(node) => {
+                if (node) sectionRefs.current.set(section.id, node);
+                else sectionRefs.current.delete(section.id);
               }}
-            /></div>
+            >
+              {drag && drag.from !== index && drag.over === index ? (
+                <span className={`tw-section-drop${drag.from < index ? " is-below" : ""}`} aria-hidden="true" />
+              ) : null}
+              <SectionEditor
+                section={section}
+                index={index}
+                onMoveDown={index < design.sections.length - 1 ? () => moveSection(index, index + 1) : undefined}
+                handle={
+                  <button
+                    type="button"
+                    className="tw-section-grip"
+                    aria-label={`Reorder ${section.title || "section"}`}
+                    title="Drag to reorder"
+                    onPointerDown={(event) => beginSectionDrag(event, index)}
+                  >
+                    ⠿
+                  </button>
+                }
+                onChange={(patch) => patchSection(section.id, patch)}
+                onRemove={() => updateDesign({ sections: design.sections.filter((item) => item.id !== section.id) })}
+                onMoveUp={() => moveSection(index, index - 1)}
+              />
+            </div>
           ))}
         </div>
-        {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a project you built, or an anime you like.</p> : null}
+        {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a project, a game list, or an anime you like.</p> : null}
         <div className="tw-section-add">
           <span className="tw-section-add-label">Add a section</span>
           <div className="tw-section-add-row">
@@ -639,6 +724,16 @@ export function LayoutPage({
                 <small>{kind.hint}</small>
               </button>
             ))}
+            <button
+              type="button"
+              className="tw-section-add-btn tw-section-add-btn--interest"
+              disabled={design.sections.length >= 24}
+              onClick={addGamesSection}
+            >
+              <span className="tw-section-kind-dot" aria-hidden="true" />
+              <b>Games</b>
+              <small>Pick games from the library</small>
+            </button>
           </div>
         </div>
       </Card> : null}

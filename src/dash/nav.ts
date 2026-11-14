@@ -64,9 +64,8 @@ export const NAV: NavItem[] = [
     icon: "layers",
     tabs: [
       { page: "portfolio-general", label: "General", icon: "home" },
-      { page: "portfolio-projects", label: "Projects", icon: "layers" },
+      { page: "portfolio-sections", label: "Sections", icon: "layers" },
       { page: "portfolio-gallery", label: "Gallery", icon: "image" },
-      { page: "portfolio-games", label: "Games", icon: "gamepad" },
       { page: "portfolio-design", label: "Design", icon: "palette" },
     ],
   },
