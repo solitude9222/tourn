@@ -272,7 +272,20 @@ export function LinkerPreview({
     setEntryOpen(showEntry && design.entry.enabled);
   }, [entryPlayToken, showEntry, design.entry.enabled]);
 
+  // The background layer only gets a CSS filter when the owner actually changed
+  // something. A permanent blur(0) saturate(1) contrast(1) brightness(1) chain
+  // forced a full-screen filter pass on every frame of a background video.
+  const bgFilter = [
+    assets.background.blur > 0 ? `blur(${assets.background.blur}px)` : "",
+    assets.background.saturation !== 1 ? `saturate(${assets.background.saturation})` : "",
+    assets.background.contrast !== 1 ? `contrast(${assets.background.contrast})` : "",
+    assets.background.brightness !== 1 ? `brightness(${assets.background.brightness})` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   const style = {
+    "--lkr-bg-filter": bgFilter || "none",
     "--pv-accent": design.colors.accent,
     "--pv-text": design.colors.text,
     "--pv-muted": design.colors.muted,
@@ -373,7 +386,7 @@ export function LinkerPreview({
   const sideLocation = design.layout === "left" && design.locationPosition === "side";
   const hasSideMeta = sideViews || sideJoined || sideLocation;
   const sideMeta = hasSideMeta ? (
-    <div className="lkr-side-meta">
+    <div className="lkr-side-meta" data-meta-style={design.metaStyle ?? "plain"}>
       {sideViews ? <span className="lkr-side-pill"><EyeIcon size={12} />{typeof views === "number" ? views.toLocaleString("en-US") : "—"}</span> : null}
       {sideJoined ? <span className="lkr-side-pill"><CalendarIcon size={12} />Joined {joined ?? "—"}</span> : null}
       {sideLocation && about.location.trim() ? <span className="lkr-side-pill"><PinIcon size={12} />{about.location.trim()}</span> : null}

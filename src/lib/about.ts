@@ -239,6 +239,8 @@ export type AboutDesign = {
   advancedLayout?: boolean;
   /** How the view counter reads. */
   viewStyle?: "icon" | "text" | "number";
+  /** Location / views / joined: quiet text with a divider (plain) or boxed chips (pill). */
+  metaStyle?: "plain" | "pill";
   skills?: string[];
   audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "fixed-bottom" | "hidden";
   widgetsPosition: WidgetsPosition;
@@ -401,6 +403,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   avatarShape: "circle",
   advancedLayout: false,
   viewStyle: "icon",
+  metaStyle: "plain",
   viewPosition: "outside-below-left",
   joinPosition: "under-name",
   locationPosition: "outside-below-left",
@@ -787,6 +790,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     ),
     advancedLayout: boolIn(raw.advancedLayout, false),
     viewStyle: oneOf(raw.viewStyle, ["icon", "text", "number"] as const, "icon"),
+    metaStyle: oneOf(raw.metaStyle, ["plain", "pill"] as const, "plain"),
     entry: loadEntry(raw.entry),
     colors: {
       accent: validColor(rawColors.accent, DEFAULT_PROFILE_COLORS.accent),

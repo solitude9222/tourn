@@ -37,6 +37,7 @@ function handleFrom(anchor: HTMLAnchorElement): string | null {
 }
 
 function warm(target: EventTarget | null): void {
+  if (!connectionAllowsWarming()) return;
   const element = target as Element | null;
   const anchor = element?.closest?.("a[href]") as HTMLAnchorElement | null;
   if (!anchor) return;
@@ -48,13 +49,25 @@ function warm(target: EventTarget | null): void {
   preloadProfile(handle);
 }
 
+/** Warming costs the visitor's data and the server's time, so it stays out of
+ *  the way on slow or metered connections. */
+function connectionAllowsWarming(): boolean {
+  const connection = (navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+  }).connection;
+  if (!connection) return true;
+  if (connection.saveData) return false;
+  return !/(^|-)2g$/.test(connection.effectiveType ?? "");
+}
+
 function warmVisibleLinks(): void {
+  if (!connectionAllowsWarming()) return;
   const seen = new Set<string>();
   document.querySelectorAll<HTMLAnchorElement>('a[href^="/"]').forEach((anchor) => {
     const handle = handleFrom(anchor);
     if (!handle || seen.has(handle.toLowerCase())) return;
     seen.add(handle.toLowerCase());
-    if (seen.size > 8) return;
+    if (seen.size > 4) return;
     warm(anchor);
   });
 }

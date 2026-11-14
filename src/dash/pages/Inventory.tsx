@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { naturalCompare, sorted } from "../../lib/sort";
 import { api, post } from "../../lib/backend";
 import { useAuth } from "../../lib/auth";
 import { BADGE_CATALOGUE, BUYABLE_BADGES, EARNABLE_BADGES } from "../../lib/badges";
@@ -237,8 +238,7 @@ export function InventoryPage() {
                   <span className="invt-chip">{unlocked}/{list.items.length}</span>
                 </header>
                 <div className="invt-badges">
-                  {[...list.items]
-                    .sort((a, b) => Number(owned.has(b.id)) - Number(owned.has(a.id)))
+                  {sorted(list.items, (a, b) => Number(owned.has(b.id)) - Number(owned.has(a.id)) || naturalCompare(a.name, b.name))
                     .map((badge) => {
                       const has = owned.has(badge.id);
                       return (

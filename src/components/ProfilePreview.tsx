@@ -310,6 +310,7 @@ export function ProfilePreview({
       data-views={viewPosition}
       data-join={joinPosition}
       data-location={locationPosition}
+      data-meta-style={design.metaStyle ?? "plain"}
     >
       {cardFx.id !== "none" ? <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" /> : null}
       {hasBanner ? (
@@ -341,7 +342,7 @@ export function ProfilePreview({
           <span className="pv-avatar-wrap">
             <span className="pv-avatar" aria-hidden="true">
               {avatar ? (
-                <img src={avatar} alt="" />
+                <img src={avatar} alt="" decoding="async" />
               ) : (
                 <span>{displayName.slice(0, 1).toUpperCase()}</span>
               )}

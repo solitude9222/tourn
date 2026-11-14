@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDash } from "../context";
-import { Button, Card, CardHead, Icon, Modal, TextInput } from "../ui";
+import { Button, Card, CardHead, Icon, Modal, SortSelect, TextInput } from "../ui";
+import { chain, naturalCompare, numberCompare, sorted, timeOf } from "../../lib/sort";
 import { api, post } from "../../lib/backend";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { EMPTY_ABOUT } from "../../lib/about";
@@ -52,6 +53,7 @@ export function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState<MarketTemplate | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [order, setOrder] = useState("popular");
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -76,6 +78,17 @@ export function TemplatesPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const ordered = useMemo(() => {
+    const byName = (a: MarketTemplate, b: MarketTemplate) => naturalCompare(a.name, b.name);
+    const mineFirst = (a: MarketTemplate, b: MarketTemplate) => Number(b.mine) - Number(a.mine);
+    if (order === "newest") return sorted(items, chain((a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "desc"), byName));
+    if (order === "oldest") return sorted(items, chain((a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "asc"), byName));
+    if (order === "az") return sorted(items, byName);
+    if (order === "za") return sorted(items, (a, b) => byName(b, a));
+    if (order === "mine") return sorted(items, chain(mineFirst, (a, b) => numberCompare(a.uses, b.uses, "desc"), byName));
+    return sorted(items, chain((a, b) => numberCompare(a.uses, b.uses, "desc"), (a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "desc"), byName));
+  }, [items, order]);
 
   const apply = async (template: MarketTemplate) => {
     const snapshot = template.snapshot;
@@ -136,6 +149,18 @@ export function TemplatesPage() {
           <p className="tw-foot-note">
             {items.length} template{items.length === 1 ? "" : "s"} live · previews render with your own content
           </p>
+          <SortSelect
+            value={order}
+            onChange={setOrder}
+            options={[
+              { value: "popular", label: "Most used" },
+              { value: "newest", label: "Newest first" },
+              { value: "oldest", label: "Oldest first" },
+              { value: "az", label: "Name A–Z" },
+              { value: "za", label: "Name Z–A" },
+              { value: "mine", label: "Mine first" },
+            ]}
+          />
           <Button variant="primary" icon="upload" onClick={() => setPublishing(true)}>
             Publish this look
           </Button>
@@ -152,7 +177,7 @@ export function TemplatesPage() {
         <p className="tw-foot-note">Loading templates…</p>
       ) : items.length ? (
         <div className="tw-tpl-grid">
-          {items.map((template) => (
+          {ordered.map((template) => (
             <article className="tw-tpl-card" key={template.id}>
               <div className="tw-tpl-stage">
                 <TemplateStage snapshot={template.snapshot} />

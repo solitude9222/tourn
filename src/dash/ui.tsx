@@ -654,6 +654,24 @@ export function Select({
   );
 }
 
+/** The one sort dropdown every list uses, so they all look and read the same. */
+export function SortSelect({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: Option[];
+}) {
+  return (
+    <span className="tw-sort" role="group" aria-label="Sort">
+      <span className="tw-sort-label">Sort</span>
+      <Select value={value} onChange={onChange} options={options} ariaLabel="Sort by" />
+    </span>
+  );
+}
+
 export function MultiSelect({
   value,
   onChange,

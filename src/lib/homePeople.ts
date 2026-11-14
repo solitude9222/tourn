@@ -6,6 +6,7 @@
    --------------------------------------------------------------------------- */
 
 import { api } from "./backend";
+import { naturalCompare, numberCompare, sorted } from "./sort";
 import { initialHomePreviews, refreshHomePreviews } from "./homePreview";
 
 export type CommunityPerson = {
@@ -60,8 +61,9 @@ function mergePeople(groups: CommunityPerson[][]): CommunityPerson[] {
       });
     }
   }
-  return [...byHandle.values()].sort(
-    (a, b) => (b.views ?? -1) - (a.views ?? -1) || a.handle.localeCompare(b.handle),
+  return sorted(
+    [...byHandle.values()],
+    (a, b) => numberCompare(a.views, b.views, "desc") || naturalCompare(a.handle, b.handle),
   );
 }
 

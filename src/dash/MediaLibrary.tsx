@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loadCatalog, type CatalogItem, type CatalogKind } from "../lib/mediaCatalog";
-import { Button, Modal, TextInput } from "./ui";
+import { naturalCompare, sorted } from "../lib/sort";
+import { Button, Modal, SortSelect, TextInput } from "./ui";
 
 /* A searchable browser over the public anime and game catalogues. The parent
    decides what a pick means; this only loads and presents the real artwork. */
@@ -21,7 +22,17 @@ export function MediaLibrary({
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [order, setOrder] = useState("popular");
   const request = useRef(0);
+  const ordered = useMemo(
+    () =>
+      order === "az"
+        ? sorted(items, (a, b) => naturalCompare(a.title, b.title))
+        : order === "za"
+          ? sorted(items, (a, b) => naturalCompare(b.title, a.title))
+          : items,
+    [items, order],
+  );
 
   // A fresh open always starts from the popular first page.
   useEffect(() => {
@@ -84,6 +95,15 @@ export function MediaLibrary({
             placeholder={kind === "anime" ? "Search anime…" : "Search games…"}
             onChange={(event) => changeQuery(event.target.value)}
           />
+          <SortSelect
+            value={order}
+            onChange={setOrder}
+            options={[
+              { value: "popular", label: "Most popular" },
+              { value: "az", label: "Title A–Z" },
+              { value: "za", label: "Title Z–A" },
+            ]}
+          />
           <span className="tw-media-count">
             {loading && page === 1 ? "Loading…" : `${items.length} loaded`}
           </span>
@@ -101,7 +121,7 @@ export function MediaLibrary({
           <p className="tw-empty-note">Nothing matched that search.</p>
         ) : (
           <div className="tw-media-grid">
-            {items.map((item) => (
+            {ordered.map((item) => (
               <button
                 type="button"
                 className={`tw-media-card tw-media-card--${item.kind}`}

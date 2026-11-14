@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { naturalCompare, numberCompare, sorted } from "../lib/sort";
 import { api } from "../lib/backend";
 import { openSellAuthCheckout } from "../lib/sellAuth";
 import { BUYABLE_BADGES } from "../lib/badges";
@@ -30,7 +31,13 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
       const board = await api<{ profiles: BoardRow[] }>("/api/leaderboard");
       if (!active) return;
       if (board.ok && board.data.profiles.length) {
-        setRows(board.data.profiles.map((row) => ({ ...row, views: Number(row.views) || 0 })));
+        setRows(
+          sorted(
+            board.data.profiles.map((row) => ({ ...row, views: Number(row.views) || 0 })),
+            // Rank by views, then name, so ties never swap places between loads.
+            (a, b) => numberCompare(a.views, b.views, "desc") || naturalCompare(a.username, b.username),
+          ),
+        );
       } else {
         // Older/offline backend: still show the claimed handles, just without
         // a view count, rather than an empty page.

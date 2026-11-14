@@ -5009,3 +5009,11 @@ body:has(.dash) {
   background-color: #000;
   background-image: none;
 }
+
+/* ── shared sort control ─────────────────────────────────────────────── */
+.tw-sort { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.tw-sort-label { color: var(--tw-muted, #8b8b93); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
+.tw-sort .tw-select { min-width: 150px; }
+.fx-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.fx-toolbar > :first-child { flex: 1 1 200px; min-width: 0; }
+.tw-tpl-toolbar { flex-wrap: wrap; gap: 10px 14px; }

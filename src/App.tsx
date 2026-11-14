@@ -363,7 +363,7 @@ function ProfilePage({
     let active = true;
     // Keep an already-painted page on screen while revalidating.
     setRemote((current) => (current.status === "ok" ? current : { status: "loading" }));
-    void fetchPublicProfile(handle).then((result) => {
+    void fetchPublicProfile(handle, { force: attempt > 0 }).then((result) => {
       if (!active) return;
       if (result.ok) {
         setRemote({ status: "ok", data: result.data });

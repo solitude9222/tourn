@@ -10,12 +10,20 @@ function seenKey(username: string): string {
   return `tourn.lol/views-seen/v1/${username.toLowerCase()}`;
 }
 
-/** Reads the current view count without incrementing it. */
-export async function getViewCount(username: string): Promise<number | null> {
+const countReads = new Map<string, Promise<number | null>>();
+
+/** Reads the current view count without incrementing it. Concurrent callers
+ *  share one request (the page and recordView both asked for it at load). */
+export function getViewCount(username: string): Promise<number | null> {
   const handle = username.trim().toLowerCase();
-  if (!handle) return null;
-  const result = await api<{ views: number }>(`/api/views/${encodeURIComponent(handle)}`);
-  return result.ok ? Number(result.data.views) || 0 : null;
+  if (!handle) return Promise.resolve(null);
+  const pending = countReads.get(handle);
+  if (pending) return pending;
+  const request = api<{ views: number }>(`/api/views/${encodeURIComponent(handle)}`)
+    .then((result) => (result.ok ? Number(result.data.views) || 0 : null))
+    .finally(() => countReads.delete(handle));
+  countReads.set(handle, request);
+  return request;
 }
 
 /** Records one view for `username` — at most once per visitor per calendar

@@ -21,6 +21,7 @@ import {
 } from "../files";
 import { EMPTY_ABOUT, type About } from "../../lib/about";
 import { LinkerPreview } from "../../components/LinkerPreview";
+import { naturalCompare, numberCompare, sorted } from "../../lib/sort";
 import { fetchLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
 import "../../leaderboard.css";
 import {
@@ -66,10 +67,12 @@ export function AssetBrowserPage() {
 
   const shown = useMemo(() => {
     const list = library.filter((asset) => type === "all" || asset.type === type);
-    return [...list].sort((a, b) => {
-      if (sort === "oldest") return a.createdAt - b.createdAt;
-      if (sort === "name") return a.name.localeCompare(b.name);
-      return b.createdAt - a.createdAt;
+    return sorted(list, (a, b) => {
+      if (sort === "oldest") return numberCompare(a.createdAt, b.createdAt, "asc");
+      if (sort === "name") return naturalCompare(a.name, b.name);
+      if (sort === "name-desc") return naturalCompare(b.name, a.name);
+      if (sort === "type") return naturalCompare(a.type, b.type) || naturalCompare(a.name, b.name);
+      return numberCompare(a.createdAt, b.createdAt, "desc");
     });
   }, [library, type, sort]);
 
@@ -229,6 +232,8 @@ export function AssetBrowserPage() {
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
                 <option value="name">Name (A–Z)</option>
+                <option value="name-desc">Name (Z–A)</option>
+                <option value="type">Type</option>
               </select>
               <Icon name="chevron-down" size={14} className="tw-select-chevron" />
             </span>

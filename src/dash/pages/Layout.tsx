@@ -197,6 +197,16 @@ export function LayoutPage() {
               onChange={(viewStyle) => updateDesign({ viewStyle: viewStyle as typeof design.viewStyle })}
             />
           </Field>
+          <Field label="Detail style" hint="Plain is quiet text with a divider. Pills put each detail in its own chip.">
+            <Select
+              value={design.metaStyle ?? "plain"}
+              options={[
+                { value: "plain", label: "Plain (icon + text, divider)" },
+                { value: "pill", label: "Pills (boxed chips)" },
+              ]}
+              onChange={(metaStyle) => updateDesign({ metaStyle: metaStyle as typeof design.metaStyle })}
+            />
+          </Field>
           <Field label="Detail glow" hint="Glow behind the location, view and join icons.">
             <ColorField
               value={design.metaGlowColor ?? "#b4bffa"}

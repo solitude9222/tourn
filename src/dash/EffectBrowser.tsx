@@ -1,7 +1,8 @@
 import { useState, type CSSProperties } from "react";
 import { BackgroundEffectLayer, OverlayEffectLayer, EffectText } from "../components/ProfileEffects";
 import { DEFAULT_PROFILE_ASSETS, DEFAULT_TEXT_EFFECT, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type OverlayEffectId } from "../lib/profileAssets";
-import { TextInput } from "./ui";
+import { naturalCompare, sorted, chain } from "../lib/sort";
+import { SortSelect, TextInput } from "./ui";
 
 type Option = { id: string; name: string; hint: string };
 export type EffectKind = "background" | "overlay" | "text" | "card" | "cursor" | "trail";
@@ -37,11 +38,27 @@ function TilePreview({ option, kind }: { option: Option; kind: EffectKind }) {
 export function EffectBrowser({ kind, options, value, onApply }: { kind: EffectKind; options: Option[]; value: string; onApply: (id: string) => void }) {
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState("All");
+  const [order, setOrder] = useState("featured");
   const groups = ["All", ...new Set(options.map((option) => groupFor(kind, option.id)))];
   return <div className="fx-gallery" aria-label={`${kind} effects`}>
-    <TextInput value={query} placeholder="Search effects" onChange={(event) => setQuery(event.target.value)} />
+    <div className="fx-toolbar">
+      <TextInput value={query} placeholder="Search effects" onChange={(event) => setQuery(event.target.value)} />
+      <SortSelect value={order} onChange={setOrder} options={[{ value: "featured", label: "Featured" }, { value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }]} />
+    </div>
     <div className="fx-categories">{groups.map((item) => <button key={item} type="button" aria-pressed={item === group} onClick={() => setGroup(item)}>{item}</button>)}</div>
-    <div className="fx-browser-grid">{options.filter((option) => (group === "All" || groupFor(kind, option.id) === group) && `${option.name} ${option.hint}`.toLowerCase().includes(query.toLowerCase())).sort((a, b) => { const first = groupFor(kind, a.id), second = groupFor(kind, b.id); if (first === "Basics" && second !== "Basics") return -1; if (second === "Basics" && first !== "Basics") return 1; return first.localeCompare(second) || a.name.localeCompare(b.name); }).map((option) => <button className={`fx-choice${value === option.id ? " is-selected" : ""}`} key={option.id} type="button" aria-pressed={value === option.id} aria-label={option.name} onClick={() => onApply(option.id)} style={{ "--pv-card-fx-color": "#ffffff", "--pv-card-fx-strength": .7, "--pv-card-fx-speed": "4s" } as CSSProperties}>
+    <div className="fx-browser-grid">{sorted(
+      options.filter((option) => (group === "All" || groupFor(kind, option.id) === group) && `${option.name} ${option.hint}`.toLowerCase().includes(query.trim().toLowerCase())),
+      order === "az"
+        ? (a, b) => naturalCompare(a.name, b.name)
+        : order === "za"
+          ? (a, b) => naturalCompare(b.name, a.name)
+          : chain(
+              // Featured: Basics first, then grouped, then A–Z inside a group.
+              (a: Option, b: Option) => Number(groupFor(kind, b.id) === "Basics") - Number(groupFor(kind, a.id) === "Basics"),
+              (a: Option, b: Option) => naturalCompare(groupFor(kind, a.id), groupFor(kind, b.id)),
+              (a: Option, b: Option) => naturalCompare(a.name, b.name),
+            ),
+    ).map((option) => <button className={`fx-choice${value === option.id ? " is-selected" : ""}`} key={option.id} type="button" aria-pressed={value === option.id} aria-label={option.name} onClick={() => onApply(option.id)} style={{ "--pv-card-fx-color": "#ffffff", "--pv-card-fx-strength": .7, "--pv-card-fx-speed": "4s" } as CSSProperties}>
       <TilePreview kind={kind} option={option} /><b>{option.name}</b><small>{option.hint}</small>
     </button>)}</div>
   </div>;

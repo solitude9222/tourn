@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
 import { formatClock } from "../lib/format";
 import {
   activeLyricIndex,
@@ -13,7 +13,7 @@ import { useTilt } from "../lib/useTilt";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "./Icons";
 import "../audioPlayer.css";
 
-function LyricsPanel({
+const LyricsPanel = memo(function LyricsPanel({
   lines,
   activeLine,
   loading,
@@ -63,7 +63,7 @@ function LyricsPanel({
       </p>
     </div>
   );
-}
+});
 
 /**
  * The owner's uploaded track, in one of four styles. Playback is a native
@@ -224,8 +224,12 @@ export function AudioPlayer({
   // track visibly lag a fast line. While the track plays, read the real clock
   // on an animation frame (throttled) so the highlight and the scroll land on
   // the line the moment it is sung.
+  // Only styles that show synced lyrics need it. Everything else is happy with
+  // the native `timeupdate` (about 4 Hz); running a React state update every
+  // 80 ms re-rendered the whole player for nothing.
+  const needsFineClock = style === "lyrics" || style === "vinyl";
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || !needsFineClock) return;
     const el = audioRef.current;
     if (!el) return;
     let frame = 0;
@@ -239,7 +243,7 @@ export function AudioPlayer({
     };
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [playing]);
+  }, [playing, needsFineClock]);
 
   const skip = (deltaSeconds: number) => {
     const el = audioRef.current;
@@ -277,7 +281,7 @@ export function AudioPlayer({
     <audio
       ref={audioRef}
       src={trackSrc}
-      preload="auto"
+      preload={enabled ? "auto" : "metadata"}
       onError={() => {
         setLoadFailed(true);
         console.warn("[tourn] audio failed to load", trackSrc);
@@ -294,7 +298,7 @@ export function AudioPlayer({
   );
 
   const coverNode = cover ? (
-    <img src={cover} alt="" draggable={false} />
+    <img src={cover} alt="" draggable={false} decoding="async" />
   ) : (
     <span className="ap-cover-fallback" aria-hidden="true">
       <PlayIcon size={13} />
@@ -356,6 +360,142 @@ export function AudioPlayer({
   // 0% player opacity means off. Rendering nothing is the only way a fully
   // transparent player cannot leave a ghost frame, border or icon behind.
   if (settings.cardOpacity <= 0.005) return null;
+
+  const seekFrom = (event: ReactMouseEvent<HTMLElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    seekToFraction((event.clientX - rect.left) / rect.width);
+  };
+  const fraction = duration ? Math.min(1, Math.max(0, position / duration)) : 0;
+  const tiltProps = {
+    ref: musicTilt.ref,
+    onPointerMove: tilt > 0 ? musicTilt.onPointerMove : undefined,
+    onPointerLeave: tilt > 0 ? musicTilt.onPointerLeave : undefined,
+  };
+  const playButton = (
+    <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
+      {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
+    </button>
+  );
+  const errorNode = loadFailed ? (
+    <span className="ap-load-error" role="status">Track unavailable — re-upload it in Customise</span>
+  ) : null;
+
+  if (style === "bars") {
+    return (
+      <div
+        {...tiltProps}
+        className={`ap ap-edge-${settings.edgeEffect} ap--bars${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
+        style={cardStyle}
+      >
+        {audioEl}
+        {errorNode}
+        <div className="ap-row">
+          <span className="ap-cover">{coverNode}</span>
+          <div className="ap-meta">
+            <b className="ap-title">{title}</b>
+            <small className="ap-artist">{artist || "Uploaded track"}</small>
+          </div>
+          <span className="ap-eq" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+          {playButton}
+        </div>
+        <div className="ap-bars-progress is-seekable" onClick={seekFrom}>
+          <span className="ap-progress-fill" style={{ width: `${fraction * 100}%` }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "minimal") {
+    return (
+      <div
+        {...tiltProps}
+        className={`ap ap-edge-${settings.edgeEffect} ap--minimal${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
+        style={cardStyle}
+      >
+        {audioEl}
+        {errorNode}
+        <div className="ap-min-row">
+          {playButton}
+          <span className="ap-min-text">
+            <b>{title}</b>
+            <span aria-hidden="true"> – </span>
+            <span className="ap-min-artist">{artist || "Uploaded track"}</span>
+          </span>
+          <span className="ap-min-time">{formatClock(position * 1000)}</span>
+        </div>
+        <div className="ap-min-progress is-seekable" onClick={seekFrom}>
+          <span className="ap-progress-fill" style={{ width: `${fraction * 100}%` }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "cover") {
+    return (
+      <div
+        {...tiltProps}
+        className={`ap ap-edge-${settings.edgeEffect} ap--cover${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
+        style={cardStyle}
+      >
+        {audioEl}
+        {errorNode}
+        <div className="ap-album">{coverNode}</div>
+        <div className="ap-album-body">
+          <div className="ap-album-copy">
+            <b className="ap-title">{title}</b>
+            <small className="ap-artist">{artist || "Uploaded track"}</small>
+          </div>
+          <div className="ap-progress is-seekable" onClick={seekFrom}>
+            <span className="ap-progress-fill" style={{ width: `${fraction * 100}%` }} />
+          </div>
+          <div className="ap-times">
+            <span>{formatClock(position * 1000)}</span>
+            <span>{duration ? formatClock(duration * 1000) : "--:--"}</span>
+          </div>
+          <div className="ap-transport ap-transport--center">
+            <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
+              <SkipBackIcon size={13} />
+            </button>
+            {playButton}
+            <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">
+              <SkipForwardIcon size={13} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (style === "glass") {
+    const glassStyle = {
+      ...cardStyle,
+      "--ap-pct": `${(fraction * 360).toFixed(1)}deg`,
+      "--ap-glass-cover": cover ? `url("${cover.replace(/"/g, '\\"')}")` : "none",
+    } as CSSProperties;
+    return (
+      <div
+        {...tiltProps}
+        className={`ap ap-edge-${settings.edgeEffect} ap--glass${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
+        style={glassStyle}
+      >
+        {audioEl}
+        {errorNode}
+        <span className="ap-glass-bg" aria-hidden="true" />
+        <div className="ap-row">
+          <span className="ap-cover">{coverNode}</span>
+          <div className="ap-meta">
+            <b className="ap-title">{title}</b>
+            <small className="ap-artist">{artist || "Uploaded track"}</small>
+            <div className="ap-times ap-times--inline">
+              <span>{formatClock(position * 1000)}</span>
+              <span>{duration ? formatClock(duration * 1000) : "--:--"}</span>
+            </div>
+          </div>
+          <span className="ap-ring">{playButton}</span>
+        </div>
+      </div>
+    );
+  }
 
   if (style === "popup") {
     return       <div

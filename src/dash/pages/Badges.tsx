@@ -11,7 +11,8 @@ import { useMemo, useState } from "react";
 import { BADGE_ANIMATIONS, BADGE_CATALOGUE, BADGE_ROW_PRESETS, BUYABLE_BADGES, EARNABLE_BADGES, badgeDef, type BadgeDef } from "../../lib/badges";
 import { BadgeChip, BadgeRow } from "../../components/BadgeRow";
 import { useDash } from "../context";
-import { Button, Card, CardHead, Chip, ColorField, EmptyState, Field, Icon, IconButton, Modal, Select, Slider, Toggle } from "../ui";
+import { Button, Card, CardHead, Chip, ColorField, EmptyState, Field, Icon, IconButton, Modal, Select, Slider, SortSelect, Toggle } from "../ui";
+import { chain, naturalCompare, sorted } from "../../lib/sort";
 import "../badgeStudio.css";
 
 const MAX_ACTIVE = 30;
@@ -54,6 +55,7 @@ export function BadgesPage() {
   const [preview, setPreview] = useState(false);
   const [detail, setDetail] = useState<BadgeDef | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [order, setOrder] = useState("catalogue");
 
   const equipped = badges.equipped.flatMap((instance) => {
     const badge = badgeDef(instance.id);
@@ -91,6 +93,16 @@ export function BadgesPage() {
         ? current.equipped.filter((entry) => entry.id !== badge.id)
         : [...current.equipped, { id: badge.id, visible: true }],
     }));
+  };
+
+  const arrange = (list: BadgeDef[]) => {
+    if (order === "az") return sorted(list, (a, b) => naturalCompare(a.name, b.name));
+    if (order === "za") return sorted(list, (a, b) => naturalCompare(b.name, a.name));
+    if (order === "unlocked")
+      return sorted(list, chain((a: BadgeDef, b: BadgeDef) => Number(earnedSet.has(b.id)) - Number(earnedSet.has(a.id)), (a, b) => naturalCompare(a.name, b.name)));
+    if (order === "locked")
+      return sorted(list, chain((a: BadgeDef, b: BadgeDef) => Number(earnedSet.has(a.id)) - Number(earnedSet.has(b.id)), (a, b) => naturalCompare(a.name, b.name)));
+    return list;
   };
 
   const visible = (badge: BadgeDef) => {
@@ -242,6 +254,18 @@ export function BadgesPage() {
           title="Catalogue"
           subtitle={`${earnedCount} of ${BADGE_CATALOGUE.length} unlocked on this account`}
           actions={
+            <>
+            <SortSelect
+              value={order}
+              onChange={setOrder}
+              options={[
+                { value: "catalogue", label: "Catalogue order" },
+                { value: "az", label: "Name A–Z" },
+                { value: "za", label: "Name Z–A" },
+                { value: "unlocked", label: "Unlocked first" },
+                { value: "locked", label: "Locked first" },
+              ]}
+            />
             <div className="tw-badge-filter" role="group" aria-label="Filter badges">
               {(
                 [
@@ -261,12 +285,13 @@ export function BadgesPage() {
                 </button>
               ))}
             </div>
+            </>
           }
         />
 
         {LISTS.map((group) => {
           if (!group.items.length) return null;
-          const items = group.items.filter(visible);
+          const items = arrange(group.items.filter(visible));
           const unlocked = group.items.filter((badge) => earnedSet.has(badge.id)).length;
           return (
             <details className="tw-badge-group" key={group.id} open>

@@ -30,7 +30,17 @@ export type BackgroundEffectId =
   | "dust"
   | "leaf";
 export type OverlayEffectId = BackgroundEffectId | "dotted" | "grain" | "scanlines" | "vignette" | "bloom" | "fog" | "chromatic" | "custom";
-export type AudioStyle = "none" | "compact" | "lyrics" | "pill" | "popup" | "vinyl";
+export type AudioStyle =
+  | "none"
+  | "compact"
+  | "lyrics"
+  | "pill"
+  | "popup"
+  | "vinyl"
+  | "bars"
+  | "minimal"
+  | "cover"
+  | "glass";
 export type TextEffectId =
   | "none"
   | "rgb"
@@ -482,6 +492,10 @@ export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
   { id: "pill", name: "Pill", hint: "A long bar with cover art and a track name that glides back and forth" },
   { id: "vinyl", name: "Vinyl", hint: "A record in the card edge, spinning while it plays" },
   { id: "popup", name: "Popup", hint: "A collapsible music player in the top-left corner" },
+  { id: "bars", name: "Equalizer", hint: "Cover, title and live equalizer bars that dance while it plays" },
+  { id: "minimal", name: "Minimal", hint: "One quiet line: play, title – artist, time, hairline progress" },
+  { id: "cover", name: "Album card", hint: "A tall card with big cover art, title and transport underneath" },
+  { id: "glass", name: "Glass", hint: "Blurred cover backdrop with a circular progress ring around play" },
 ];
 
 export const TEXT_TARGETS: { id: TextEffectTarget; name: string }[] = [

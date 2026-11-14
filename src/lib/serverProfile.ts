@@ -76,19 +76,57 @@ type PublicProfileResult =
   | { ok: false; notFound: boolean; error: string };
 
 const inflight = new Map<string, Promise<PublicProfileResult>>();
+/** Finished reads stay usable for a short window. Before this, a hover/idle
+ *  preload that had already finished was thrown away, so the page fetched the
+ *  same profile a second time and the preload helped nobody. */
+const PROFILE_TTL_MS = 20_000;
+const recent = new Map<string, { at: number; result: PublicProfileResult }>();
+
+/** Start the images a profile will paint the moment its document arrives, so
+ *  they download while React is still rendering instead of after it. */
+function warmAssets(data: ProfilePayload): void {
+  if (typeof Image === "undefined") return;
+  const doc = data.profile;
+  const urls = [
+    data.account.avatarUrl,
+    doc?.about.assets.avatarUrl,
+    doc?.about.assets.background.style === "image" ? doc.about.assets.background.imageUrl : "",
+    doc?.about.assets.banner?.enabled ? doc.about.assets.banner.imageUrl : "",
+    doc?.about.design.entry?.enabled ? doc.about.design.entry.imageUrl : "",
+    doc?.about.design.entry?.enabled ? doc.about.design.entry.backgroundImageUrl : "",
+    doc?.about.assets.decoration?.discordUrl,
+  ];
+  for (const url of new Set(urls)) {
+    // data: URLs are already in the document; only real network images matter.
+    if (!url || url.startsWith("data:") || url.startsWith("blob:")) continue;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+  }
+}
 
 /** Warm a profile before the visitor commits to the link. Failures stay silent. */
 export function preloadProfile(handle: string): void {
   const key = handle.trim().toLowerCase();
   if (!key || inflight.has(key)) return;
+  const hit = recent.get(key);
+  if (hit && Date.now() - hit.at < PROFILE_TTL_MS) return;
   void fetchPublicProfile(key).catch(() => undefined);
 }
 
-/** The public page behind tourn.lol/<handle>. */
-export async function fetchPublicProfile(handle: string): Promise<PublicProfileResult> {
+/** The public page behind tourn.lol/<handle>. `force` skips the short cache
+ *  (used by Retry) but still joins a request that is already in flight. */
+export async function fetchPublicProfile(
+  handle: string,
+  options: { force?: boolean } = {},
+): Promise<PublicProfileResult> {
   const key = handle.trim().toLowerCase();
   const pending = inflight.get(key);
   if (pending) return pending;
+  if (!options.force) {
+    const hit = recent.get(key);
+    if (hit && Date.now() - hit.at < PROFILE_TTL_MS) return hit.result;
+  }
   const request = (async (): Promise<PublicProfileResult> => {
     const result = await api<ProfilePayload>(`/api/profile/${encodeURIComponent(handle)}`);
     if (!result.ok) {
@@ -98,7 +136,14 @@ export async function fetchPublicProfile(handle: string): Promise<PublicProfileR
   })();
   inflight.set(key, request);
   try {
-    return await request;
+    const result = await request;
+    // Only successful documents are cached; errors and 404s are always retried.
+    if (result.ok) {
+      recent.set(key, { at: Date.now(), result });
+      try { warmAssets(result.data); } catch { /* optional */ }
+    }
+    else recent.delete(key);
+    return result;
   } finally {
     inflight.delete(key);
   }
