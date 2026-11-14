@@ -6,8 +6,8 @@
 
 .adm {
   --adm-brand: var(--accent-text, #ff8f92);
-  --adm-brand-strong: var(--accent, #e00a0e);
-  --adm-brand-soft: rgba(224, 10, 14, 0.16);
+  --adm-brand-strong: var(--accent, #d40410);
+  --adm-brand-soft: rgba(212, 4, 16, 0.16);
   --adm-ink: var(--page, #0b0b0d);
   --adm-glass: rgba(255, 255, 255, 0.03);
   --adm-line: rgba(255, 255, 255, 0.1);
@@ -2072,8 +2072,8 @@
 
 .adm.adm--embedded {
   --adm-brand: var(--accent-text, #ff8f92);
-  --adm-brand-strong: var(--accent, #e00a0e);
-  --adm-brand-soft: rgba(224, 10, 14, 0.14);
+  --adm-brand-strong: var(--accent, #d40410);
+  --adm-brand-soft: rgba(212, 4, 16, 0.14);
   --adm-line: var(--border, #1f1f1f);
   --adm-line-soft: #1b1b1f;
   --adm-muted: #9d8a8b;
@@ -2117,7 +2117,7 @@
 }
 
 .adm.adm--embedded .adm-tab.is-active {
-  background: rgba(224, 10, 14, 0.16);
+  background: rgba(212, 4, 16, 0.16);
   color: #ffd6d3;
   box-shadow: none;
 }

@@ -51,7 +51,7 @@
   padding: 0 12px;
   border: 1px solid #4a2325;
   border-radius: 999px;
-  background: rgba(224, 10, 14, 0.12);
+  background: rgba(212, 4, 16, 0.12);
   color: #b9b9b9;
   font-size: 10px;
   font-weight: 600;
@@ -147,8 +147,8 @@
 /* ── controls ────────────────────────────────────────────────────────── */
 
 .page .btn-primary {
-  border-color: #e00a0e;
-  background: #e00a0e;
+  border-color: #d40410;
+  background: #d40410;
   color: #fff;
 }
 

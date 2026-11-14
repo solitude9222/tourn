@@ -565,11 +565,11 @@
 }
 
 .wg-background-swatch.is-gradient {
-  background: linear-gradient(135deg, #e00a0e, #ff8a85);
+  background: linear-gradient(135deg, #d40410, #ff8a85);
 }
 
 .wg-background-swatch.is-rgb {
-  background: conic-gradient(from 20deg, #e00a0e, #fbbf24, #34d399, #fa6065, #fa8b8f, #e00a0e);
+  background: conic-gradient(from 20deg, #d40410, #fbbf24, #34d399, #fa6065, #fa8b8f, #d40410);
 }
 
 .wg-background-swatch.is-solid {
@@ -1501,7 +1501,7 @@
 
 .switch.is-on {
   border-color: rgba(255, 143, 147, 0.38);
-  background: rgba(224, 10, 14, 0.24);
+  background: rgba(212, 4, 16, 0.24);
 }
 
 .switch.is-on span {

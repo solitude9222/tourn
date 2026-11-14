@@ -16,7 +16,7 @@
   pointer-events: none;
   background:
     radial-gradient(1000px 700px at 90% -8%, rgba(255, 143, 146, 0.12), transparent 62%),
-    radial-gradient(900px 600px at 8% 18%, rgba(224, 10, 14, 0.07), transparent 68%);
+    radial-gradient(900px 600px at 8% 18%, rgba(212, 4, 16, 0.07), transparent 68%);
 }
 
 .dash-rail {
@@ -387,8 +387,8 @@
   place-items: center;
   flex: none;
   border-radius: 11px;
-  border: 1px solid rgba(224, 10, 14, 0.25);
-  background: linear-gradient(160deg, rgba(224, 10, 14, 0.18), #101012);
+  border: 1px solid rgba(212, 4, 16, 0.25);
+  background: linear-gradient(160deg, rgba(212, 4, 16, 0.18), #101012);
   color: #ffdcdd;
   font-size: 14px;
   font-weight: 700;
@@ -414,7 +414,7 @@
 
 .dash-user-avatar i.is-on {
   background: var(--accent, #ff8f93);
-  box-shadow: 0 0 8px rgba(224, 10, 14, 0.6);
+  box-shadow: 0 0 8px rgba(212, 4, 16, 0.6);
 }
 
 .dash-user-meta {
@@ -475,8 +475,8 @@
 }
 
 .dash-user-action:hover {
-  background: rgba(224, 10, 14, 0.1);
-  border-color: rgba(224, 10, 14, 0.25);
+  background: rgba(212, 4, 16, 0.1);
+  border-color: rgba(212, 4, 16, 0.25);
   color: #ffeaeb;
 }
 
@@ -730,8 +730,8 @@
   flex: none;
   padding: 4px 9px;
   border-radius: 999px;
-  border: 1px solid rgba(224, 10, 14, 0.18);
-  background: rgba(224, 10, 14, 0.06);
+  border: 1px solid rgba(212, 4, 16, 0.18);
+  background: rgba(212, 4, 16, 0.06);
   color: #ff9fa2;
   font-size: 11px;
   font-weight: 650;
@@ -769,7 +769,7 @@
   stroke: url(#dashScoreRing);
   stroke-width: 11;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 8px rgba(224, 10, 14, 0.35));
+  filter: drop-shadow(0 0 8px rgba(212, 4, 16, 0.35));
   transition: stroke-dashoffset 0.9s var(--ease-out);
 }
 
@@ -836,8 +836,8 @@
 }
 
 .chart-legend li.is-done .chart-legend-dot {
-  border-color: rgba(224, 10, 14, 0.25);
-  background: rgba(224, 10, 14, 0.1);
+  border-color: rgba(212, 4, 16, 0.25);
+  background: rgba(212, 4, 16, 0.1);
 }
 
 .chart-bars {
@@ -876,7 +876,7 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #f74f55, #ffb7b9);
-  box-shadow: 0 0 12px rgba(224, 10, 14, 0.4);
+  box-shadow: 0 0 12px rgba(212, 4, 16, 0.4);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform 0.7s var(--ease-out);
@@ -921,7 +921,7 @@
 
 .chart-segments span.is-on {
   background: var(--accent, #ff8f93);
-  box-shadow: 0 0 10px rgba(224, 10, 14, 0.35);
+  box-shadow: 0 0 10px rgba(212, 4, 16, 0.35);
 }
 
 /* -------------------------------------------------------- stat details */
@@ -1139,7 +1139,7 @@
   height: 100%;
   width: var(--progress);
   border-radius: inherit;
-  background: linear-gradient(90deg, #e00a0e, #ff8f92 55%, #ffd0cd);
+  background: linear-gradient(90deg, #d40410, #ff8f92 55%, #ffd0cd);
   box-shadow: 0 0 14px rgba(255, 143, 146, 0.7);
   animation: growBar 1.2s var(--ease-out) both 0.25s;
 }
@@ -1997,10 +1997,10 @@
 @keyframes livePulse {
   0%,
   100% {
-    box-shadow: 0 0 0 3px rgba(224, 10, 14, 0.12);
+    box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.12);
   }
   50% {
-    box-shadow: 0 0 0 5px rgba(224, 10, 14, 0.04);
+    box-shadow: 0 0 0 5px rgba(212, 4, 16, 0.04);
   }
 }
 
@@ -2259,7 +2259,7 @@
 
 .dash::before {
   background:
-    radial-gradient(900px 620px at 88% -12%, rgba(224, 10, 14, 0.045), transparent 62%),
+    radial-gradient(900px 620px at 88% -12%, rgba(212, 4, 16, 0.045), transparent 62%),
     radial-gradient(800px 520px at 6% 16%, rgba(255, 255, 255, 0.022), transparent 66%);
 }
 
@@ -2283,8 +2283,8 @@
 
 .dash-nav-item.is-active {
   color: #fff3f3;
-  border-color: rgba(224, 10, 14, 0.22);
-  background: linear-gradient(90deg, rgba(224, 10, 14, 0.16), rgba(224, 10, 14, 0.035));
+  border-color: rgba(212, 4, 16, 0.22);
+  background: linear-gradient(90deg, rgba(212, 4, 16, 0.16), rgba(212, 4, 16, 0.035));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -2294,7 +2294,7 @@
 
 .dash-nav-dot {
   background: var(--accent, #ff8f93);
-  box-shadow: 0 0 10px rgba(224, 10, 14, 0.65);
+  box-shadow: 0 0 10px rgba(212, 4, 16, 0.65);
 }
 
 .dash-soon {
@@ -2332,8 +2332,8 @@
 }
 
 .dash-icon-btn:hover {
-  border-color: rgba(224, 10, 14, 0.28);
-  background: rgba(224, 10, 14, 0.12);
+  border-color: rgba(212, 4, 16, 0.28);
+  background: rgba(212, 4, 16, 0.12);
   color: #ffeaeb;
 }
 
@@ -2392,8 +2392,8 @@
 
 .dash-live.is-live {
   color: #ffc3c5;
-  border-color: rgba(224, 10, 14, 0.25);
-  background: rgba(224, 10, 14, 0.07);
+  border-color: rgba(212, 4, 16, 0.25);
+  background: rgba(212, 4, 16, 0.07);
 }
 
 .dash-live.is-live i {
@@ -2407,7 +2407,7 @@
 }
 
 .dash-stat::after {
-  background: linear-gradient(90deg, transparent, rgba(224, 10, 14, 0.24), transparent);
+  background: linear-gradient(90deg, transparent, rgba(212, 4, 16, 0.24), transparent);
 }
 
 .dash-stat:hover {
@@ -2477,7 +2477,7 @@
 
 .dash-progress span {
   background: linear-gradient(90deg, #f74f55, #ffc4c6);
-  box-shadow: 0 0 14px rgba(224, 10, 14, 0.35);
+  box-shadow: 0 0 14px rgba(212, 4, 16, 0.35);
 }
 
 .dash-stat-rows li {
@@ -2499,8 +2499,8 @@
 }
 
 .dash-copy:hover {
-  border-color: rgba(224, 10, 14, 0.3);
-  background: rgba(224, 10, 14, 0.12);
+  border-color: rgba(212, 4, 16, 0.3);
+  background: rgba(212, 4, 16, 0.12);
   color: #ffeff0;
 }
 
@@ -2521,8 +2521,8 @@
 }
 
 .dash-signal-icon.is-ok {
-  border-color: rgba(224, 10, 14, 0.22);
-  background: rgba(224, 10, 14, 0.08);
+  border-color: rgba(212, 4, 16, 0.22);
+  background: rgba(212, 4, 16, 0.08);
   color: #ff9fa2;
 }
 
@@ -2544,7 +2544,7 @@
 
 .dash-signal-value i.is-ok {
   background: var(--accent, #ff8f93);
-  box-shadow: 0 0 8px rgba(224, 10, 14, 0.55);
+  box-shadow: 0 0 8px rgba(212, 4, 16, 0.55);
 }
 
 .about-name {
@@ -2574,8 +2574,8 @@
 }
 
 .about-copy:hover {
-  border-color: rgba(224, 10, 14, 0.28);
-  background: rgba(224, 10, 14, 0.08);
+  border-color: rgba(212, 4, 16, 0.28);
+  background: rgba(212, 4, 16, 0.08);
   color: #ffeeef;
 }
 
@@ -2597,7 +2597,7 @@
 
 .about-field input:focus,
 .about-field textarea:focus {
-  border-color: rgba(224, 10, 14, 0.38);
+  border-color: rgba(212, 4, 16, 0.38);
   background: #111214;
 }
 
@@ -2626,8 +2626,8 @@
 }
 
 .dash-secondary:hover {
-  border-color: rgba(224, 10, 14, 0.24);
-  background: rgba(224, 10, 14, 0.08);
+  border-color: rgba(212, 4, 16, 0.24);
+  background: rgba(212, 4, 16, 0.08);
   color: #ffeeef;
 }
 
@@ -2638,13 +2638,13 @@
 .dash-gate-card {
   border-color: rgba(255, 255, 255, 0.09);
   background:
-    radial-gradient(520px 300px at 50% 0%, rgba(224, 10, 14, 0.05), transparent 65%),
+    radial-gradient(520px 300px at 50% 0%, rgba(212, 4, 16, 0.05), transparent 65%),
     #09090a;
   box-shadow: 0 60px 130px -70px #000;
 }
 
 .dash-gate-icon {
-  border-color: rgba(224, 10, 14, 0.25);
+  border-color: rgba(212, 4, 16, 0.25);
   background: #111113;
   color: #ffc2c4;
   box-shadow: none;
@@ -2708,7 +2708,7 @@ body:has(.dash) {
 }
 
 .dash::before {
-  background: radial-gradient(760px 420px at 88% -12%, rgba(224, 10, 14, 0.045), transparent 64%);
+  background: radial-gradient(760px 420px at 88% -12%, rgba(212, 4, 16, 0.045), transparent 64%);
 }
 
 .dash-rail {
@@ -2758,8 +2758,8 @@ body:has(.dash) {
 }
 
 .dash-nav-item.is-active {
-  border-color: rgba(224, 10, 14, 0.2);
-  background: linear-gradient(90deg, rgba(224, 10, 14, 0.13), rgba(224, 10, 14, 0.02));
+  border-color: rgba(212, 4, 16, 0.2);
+  background: linear-gradient(90deg, rgba(212, 4, 16, 0.13), rgba(212, 4, 16, 0.02));
 }
 
 .dash-rail-links {
@@ -2778,13 +2778,13 @@ body:has(.dash) {
 
 .dash-live.is-live {
   color: #ffc8ca;
-  border-color: rgba(224, 10, 14, 0.24);
-  background: rgba(224, 10, 14, 0.07);
+  border-color: rgba(212, 4, 16, 0.24);
+  background: rgba(212, 4, 16, 0.07);
 }
 
 .dash-live.is-live i {
   background: var(--accent, #ff8f93);
-  box-shadow: 0 0 0 3px rgba(224, 10, 14, 0.1);
+  box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.1);
 }
 
 .dash-stats {
@@ -3084,9 +3084,9 @@ body:has(.dash) {
 .reach-online-pill {
   flex: none;
   padding: 3px 8px;
-  border: 1px solid rgba(224, 10, 14, 0.2);
+  border: 1px solid rgba(212, 4, 16, 0.2);
   border-radius: 999px;
-  background: rgba(224, 10, 14, 0.07);
+  background: rgba(212, 4, 16, 0.07);
   color: var(--accent-text, #ffb3ae);
   font-size: 11px;
   white-space: nowrap;
@@ -3260,9 +3260,9 @@ body:has(.dash) {
   height: 27px;
   flex: none;
   place-items: center;
-  border: 1px solid rgba(224, 10, 14, 0.16);
+  border: 1px solid rgba(212, 4, 16, 0.16);
   border-radius: 8px;
-  background: rgba(224, 10, 14, 0.07);
+  background: rgba(212, 4, 16, 0.07);
   color: var(--accent-text, #ffb3ae);
 }
 
@@ -3303,8 +3303,8 @@ body:has(.dash) {
 }
 
 .dash-share-copy:hover {
-  border-color: rgba(224, 10, 14, 0.26);
-  background: rgba(224, 10, 14, 0.1);
+  border-color: rgba(212, 4, 16, 0.26);
+  background: rgba(212, 4, 16, 0.1);
   color: #ffeaeb;
 }
 
@@ -3330,7 +3330,7 @@ body:has(.dash) {
 }
 
 .dash-user-row[aria-expanded="true"] {
-  border-color: rgba(224, 10, 14, 0.24);
+  border-color: rgba(212, 4, 16, 0.24);
   background: #0f1114;
 }
 
@@ -3439,9 +3439,9 @@ body:has(.dash) {
 .dash-user-plan {
   flex: none;
   padding: 2px 6px;
-  border: 1px solid rgba(224, 10, 14, 0.18);
+  border: 1px solid rgba(212, 4, 16, 0.18);
   border-radius: 999px;
-  background: rgba(224, 10, 14, 0.06);
+  background: rgba(212, 4, 16, 0.06);
   color: #ff9fa2;
   font-size: 11px;
   font-weight: 650;
@@ -3831,7 +3831,7 @@ body:has(.dash) {
 .adm-user-initial {
   display: grid;
   place-items: center;
-  background: rgba(224, 10, 14, 0.12);
+  background: rgba(212, 4, 16, 0.12);
   color: var(--ice, var(--accent-text, #ffb3ae));
   font-size: 11px;
   font-weight: 700;
@@ -3878,8 +3878,8 @@ body:has(.dash) {
 }
 
 .adm-toggle.is-on {
-  border-color: rgba(224, 10, 14, 0.4);
-  background: rgba(224, 10, 14, 0.12);
+  border-color: rgba(212, 4, 16, 0.4);
+  background: rgba(212, 4, 16, 0.12);
   color: var(--ice, var(--accent-text, #ffb3ae));
 }
 
@@ -4000,7 +4000,7 @@ body:has(.dash) {
   margin-left: auto;
   padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(224, 10, 14, 0.1);
+  background: rgba(212, 4, 16, 0.1);
   color: var(--ice, var(--accent-text, #ffb3ae));
   font-size: 11px;
   font-weight: 700;
@@ -4039,7 +4039,7 @@ body:has(.dash) {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
   background:
-    radial-gradient(120% 160% at 100% 0%, rgba(224, 10, 14, 0.09), transparent 55%),
+    radial-gradient(120% 160% at 100% 0%, rgba(212, 4, 16, 0.09), transparent 55%),
     rgba(10, 12, 15, 0.66);
 }
 
@@ -4062,7 +4062,7 @@ body:has(.dash) {
 .settings-hero-avatar--initial {
   display: grid;
   place-items: center;
-  background: rgba(224, 10, 14, 0.12);
+  background: rgba(212, 4, 16, 0.12);
   color: #f7cbcc;
   font-weight: 700;
   font-size: 17px;
@@ -4488,8 +4488,8 @@ body:has(.dash) {
 }
 
 .board--dash .board-row.is-you {
-  border-color: rgba(224, 10, 14, 0.16);
-  background: rgba(224, 10, 14, 0.055);
+  border-color: rgba(212, 4, 16, 0.16);
+  background: rgba(212, 4, 16, 0.055);
 }
 
 .board--dash .board-row.is-you .board-rank {
@@ -4524,7 +4524,7 @@ body:has(.dash) {
 .dash-board-you {
   padding: 1px 5px;
   border-radius: 999px;
-  background: rgba(224, 10, 14, 0.13);
+  background: rgba(212, 4, 16, 0.13);
   color: var(--accent-text, #ffb3ae);
   font-size: 11px;
   font-weight: 650;
@@ -4566,8 +4566,8 @@ body:has(.dash) {
 }
 
 .settings-connection.is-connected {
-  border-color: rgba(224, 10, 14, 0.34);
-  background: rgba(224, 10, 14, 0.07);
+  border-color: rgba(212, 4, 16, 0.34);
+  background: rgba(212, 4, 16, 0.07);
 }
 
 .settings-connection-icon {
@@ -4577,7 +4577,7 @@ body:has(.dash) {
   flex: none;
   place-items: center;
   border-radius: 10px;
-  background: rgba(224, 10, 14, 0.14);
+  background: rgba(212, 4, 16, 0.14);
   color: #ffa5a8;
 }
 
@@ -4894,7 +4894,7 @@ body:has(.dash) {
 }
 
 .dash-accounts-add:hover {
-  border-color: rgba(224, 10, 14, 0.38);
+  border-color: rgba(212, 4, 16, 0.38);
   color: #ffeaeb;
 }
 

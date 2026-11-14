@@ -13,7 +13,7 @@
   --hm-tile: #121215;
   --hm-line: #26262c;
   --hm-line-strong: #33333b;
-  --hm-blue: #f04452;
+  --hm-blue: #d40410;
   --hm-blue-text: #ff7880;
   --hm-blue-light: #ff9aa0;
   --hm-text: #f5f5f7;
@@ -465,7 +465,7 @@
   top: 4px;
   left: 0;
   height: 32px;
-  border: 1px solid var(--hm-focus, #e00a0e);
+  border: 1px solid var(--hm-focus, #d40410);
   border-radius: 999px;
   background: var(--panel-solid, #18181c);
   pointer-events: none;
@@ -848,7 +848,7 @@ button.hm-metric:hover {
 }
 
 button.hm-metric:focus-visible {
-  outline: 2px solid var(--hm-focus, #e00a0e);
+  outline: 2px solid var(--hm-focus, #d40410);
   outline-offset: -2px;
 }
 

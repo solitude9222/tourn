@@ -14,7 +14,7 @@
   --tile: #1f1f24;
   --border: #303037;
   --input-border: #3a3a42;
-  --accent: #f04452;
+  --accent: #d40410;
   --accent-soft: #3a1c23;
   --accent-text: #ff7880;
   --title: #f5f5f7;
@@ -64,7 +64,7 @@
 }
 
 .tw-dash ::selection {
-  background: rgba(224, 10, 14, 0.4);
+  background: rgba(212, 4, 16, 0.4);
 }
 
 /* ------------------------------------------------------------------ scroll */
@@ -975,7 +975,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--accent-text);
-  box-shadow: 0 0 0 4px rgba(224, 10, 14, 0.18);
+  box-shadow: 0 0 0 4px rgba(212, 4, 16, 0.18);
   appearance: none;
 }
 
@@ -1056,7 +1056,7 @@
 }
 
 .tw-toggle-tile.is-accent {
-  border-color: rgba(224, 10, 14, 0.55);
+  border-color: rgba(212, 4, 16, 0.55);
 }
 
 .tw-toggle-tile-icon {
@@ -1142,7 +1142,7 @@
 }
 
 .tw-btn--soft {
-  background: rgba(224, 10, 14, 0.14);
+  background: rgba(212, 4, 16, 0.14);
   color: #ffa8ab;
 }
 
@@ -1244,7 +1244,7 @@
 }
 
 .tw-chip--accent {
-  background: rgba(224, 10, 14, 0.16);
+  background: rgba(212, 4, 16, 0.16);
   color: #ff8f92;
 }
 
@@ -1811,7 +1811,7 @@
 }
 
 .tw-badge-tile.is-equipped {
-  border-color: rgba(224, 10, 14, 0.5);
+  border-color: rgba(212, 4, 16, 0.5);
   background: rgba(82, 32, 34, 0.32);
 }
 
@@ -3176,7 +3176,7 @@
 }
 
 .tw-select-item.is-active {
-  background: rgba(224, 10, 14, 0.14);
+  background: rgba(212, 4, 16, 0.14);
   color: var(--accent-text);
 }
 
@@ -3422,7 +3422,7 @@
 
 .tw-platform-option.is-active {
   border-color: var(--accent);
-  background: rgba(224, 10, 14, 0.14);
+  background: rgba(212, 4, 16, 0.14);
   color: #fff;
 }
 
@@ -5105,7 +5105,7 @@
 .ui-select:focus-visible {
   border-color: #b8080c;
   background: #141419;
-  box-shadow: 0 0 0 3px rgba(224, 10, 14, 0.18);
+  box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.18);
   outline: none;
 }
 
@@ -5145,7 +5145,7 @@
 .tw-textarea:focus {
   border-color: #b8080c;
   background: #141419;
-  box-shadow: 0 0 0 3px rgba(224, 10, 14, 0.18);
+  box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.18);
 }
 
 /* The portal-rendered dropdown list keeps the same surface language. */
@@ -5176,7 +5176,7 @@
 }
 
 .ui-select-item.is-active {
-  background: rgba(224, 10, 14, 0.22);
+  background: rgba(212, 4, 16, 0.22);
   color: #ffeeef;
 }
 
@@ -5328,7 +5328,7 @@
     radial-gradient(130% 160% at 0% 0%, rgba(255, 255, 255, 0.12), transparent 46%),
     linear-gradient(158deg, #221717 0%, #090910 52%, #101019 100%);
   box-shadow:
-    0 0 0 3px rgba(224, 10, 14, 0.2),
+    0 0 0 3px rgba(212, 4, 16, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.09);
 }
 
@@ -5342,7 +5342,7 @@
 
 .ui-select-item.is-active {
   background:
-    linear-gradient(160deg, rgba(224, 10, 14, 0.34), rgba(224, 10, 14, 0.14));
+    linear-gradient(160deg, rgba(212, 4, 16, 0.34), rgba(212, 4, 16, 0.14));
 }
 
 /* The fine checker texture came from these three shells. */
@@ -5487,11 +5487,11 @@
   background: var(--field-bg-hover, #1c1c23);
   background-image: none;
   border-color: #b8080c;
-  box-shadow: 0 0 0 3px rgba(224, 10, 14, 0.18);
+  box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.18);
 }
 
 .ui-select-item.is-active {
-  background: rgba(224, 10, 14, 0.28);
+  background: rgba(212, 4, 16, 0.28);
 }
 
 .tw-dash .tw-control,
@@ -5545,7 +5545,7 @@
 }
 
 .ui-select-item.is-active {
-  background: rgba(224, 10, 14, 0.32);
+  background: rgba(212, 4, 16, 0.32);
 }
 
 /* The sidebar search was a black input inside a lighter label — the seam
