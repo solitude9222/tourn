@@ -41,7 +41,7 @@
 }
 
 .tw-section-editor--text {
-  --section-accent: #94a3b8;
+  --section-accent: #b89495;
 }
 
 .tw-section-editor-head {
@@ -153,8 +153,8 @@
   height: 8px;
   flex: none;
   border-radius: 50%;
-  background: #94a3b8;
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  background: #b89495;
+  box-shadow: 0 0 0 3px rgba(184, 148, 149, 0.12);
 }
 
 .tw-section-kind-dot--project {
@@ -703,8 +703,8 @@
   width: 8px;
   height: 8px;
   margin-left: 6px;
-  border-right: 1.5px solid #7d8290;
-  border-bottom: 1.5px solid #7d8290;
+  border-right: 1.5px solid #907d7e;
+  border-bottom: 1.5px solid #907d7e;
   transform: rotate(45deg) translateY(-1px);
   transition: transform 0.18s ease;
 }
@@ -747,12 +747,12 @@
 
 .tw-about-editor > summary small,
 .tw-tag-drawer > summary small {
-  color: #8b8f98;
+  color: #988b8b;
   font-size: 11px;
 }
 
 .tw-details-hint {
-  color: #8b8f98;
+  color: #988b8b;
   font-size: 11px;
 }
 

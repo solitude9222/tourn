@@ -9,8 +9,8 @@
   --line: rgba(255, 154, 149, 0.12);
   --line-strong: rgba(255, 154, 149, 0.26);
   --text: #ffeaeb;
-  --muted: #92aec0;
-  --muted-2: #658092;
+  --muted: #c09294;
+  --muted-2: #926566;
   --ice: #ff9a95;
   --ice-2: #f2605a;
   --ice-3: #e0453f;
@@ -276,7 +276,7 @@ button {
   position: relative;
   font-size: 13px;
   font-weight: 520;
-  color: #9db8ca;
+  color: #ca9d9e;
   padding: 8px 12px;
   border-radius: 8px;
   transition: color 0.2s ease;
@@ -458,7 +458,7 @@ button {
   place-items: center;
   border: none;
   background: none;
-  color: #9bb7c9;
+  color: #c99b9d;
   cursor: pointer;
   border-radius: 0 999px 999px 0;
 }
@@ -509,7 +509,7 @@ button {
 .menu-mail {
   margin: 3px 0 0;
   font-size: 10.5px;
-  color: #7e9aae;
+  color: #ae7e80;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -820,7 +820,7 @@ button {
   max-width: 500px;
   font-size: 15px;
   line-height: 1.68;
-  color: #94b2c5;
+  color: #c59496;
 }
 
 .hero-actions {
@@ -836,7 +836,7 @@ button {
   gap: 18px;
   margin-top: 24px;
   font-size: 11.5px;
-  color: #7895a8;
+  color: #a8787a;
 }
 
 .hero-meta span {
@@ -905,7 +905,7 @@ button {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #7895a8;
+  color: #a8787a;
 }
 
 .stats-band-dot {
@@ -1054,13 +1054,13 @@ button {
 .pc-handle {
   margin: 3px 0 0;
   font-size: 12px;
-  color: #8eacbe;
+  color: #be8e90;
 }
 
 .pc-joined {
   margin: 5px 0 0;
   font-size: 10.5px;
-  color: #6f8b9d;
+  color: #9d6f71;
 }
 
 .pc-location {
@@ -1068,7 +1068,7 @@ button {
   align-items: center;
   gap: 4px;
   margin: 5px 0 0;
-  color: #738a98;
+  color: #987374;
   font-size: 10px;
   line-height: 1.3;
 }
@@ -1096,13 +1096,13 @@ button {
   position: relative;
   margin: 9px 0 0;
   font-size: 12px;
-  color: #a9c4d4;
+  color: #d4a9aa;
   line-height: 1.45;
   transform: translateZ(10px);
 }
 
 .pc-custom.is-empty {
-  color: #6f8b9d;
+  color: #9d6f71;
   font-style: italic;
 }
 
@@ -1123,7 +1123,7 @@ button {
   place-items: center;
   background: rgba(16, 2, 2, 0.72);
   border: 1px solid rgba(255, 154, 149, 0.1);
-  color: #587486;
+  color: #86585a;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
@@ -1136,7 +1136,7 @@ button {
 
 .pc-platform-label {
   font-size: 10.5px;
-  color: #6f8b9d;
+  color: #9d6f71;
   margin-left: 2px;
 }
 
@@ -1171,7 +1171,7 @@ button {
   font-size: 9px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: #6f8b9d;
+  color: #9d6f71;
 }
 
 .pc-footer {
@@ -1181,11 +1181,11 @@ button {
   justify-content: flex-end;
   margin-top: 16px;
   font-size: 10.5px;
-  color: #668294;
+  color: #946668;
 }
 
 .pc-url {
-  color: #8aa8ba;
+  color: #ba8a8c;
   letter-spacing: 0.01em;
 }
 
@@ -1248,7 +1248,7 @@ button {
   margin: 0 0 6px;
   font-size: 12px;
   line-height: 1.6;
-  color: #8faabd;
+  color: #bd8f91;
 }
 
 /* --------------------------------------------------------------- avatars */
@@ -1352,7 +1352,7 @@ button {
   max-width: 60ch;
   font-size: 14px;
   line-height: 1.68;
-  color: #90adbf;
+  color: #bf9092;
 }
 
 /* ----------------------------------------------------------------- bento */
@@ -1630,7 +1630,7 @@ button {
   align-items: center;
   gap: 5px;
   flex: none;
-  color: #7f9aab;
+  color: #ab7f80;
 }
 
 .bcard-chips .is-on {
@@ -1736,7 +1736,7 @@ button {
   margin-top: 2px;
   padding-right: 24px;
   font-size: 9.5px;
-  color: #85a3b5;
+  color: #b58587;
   min-width: 0;
   white-space: nowrap;
 }
@@ -1870,7 +1870,7 @@ button {
   margin: 28px 0 0;
   text-align: center;
   font-size: 11.5px;
-  color: #6f8d9f;
+  color: #9f6f71;
 }
 
 .bento-foot button {
@@ -1974,7 +1974,7 @@ button {
   border: 1px solid rgba(255, 154, 149, 0.12);
   border-radius: 999px;
   background: rgba(255, 154, 149, 0.035);
-  color: #6b899b;
+  color: #9b6b6d;
   transition: transform 0.3s var(--ease-out), color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
@@ -1991,7 +1991,7 @@ button {
   max-width: 66ch;
   font-size: 12.8px;
   line-height: 1.72;
-  color: #90adbf;
+  color: #bf9092;
 }
 
 @media (max-width: 980px) {
@@ -2079,7 +2079,7 @@ button {
   max-width: 48ch;
   font-size: 13.5px;
   line-height: 1.68;
-  color: #a5c2d3;
+  color: #d3a5a7;
 }
 
 .claim-row {
@@ -2109,7 +2109,7 @@ button {
 
 .claim-input span {
   font-size: 13px;
-  color: #6d8b9e;
+  color: #9e6d6f;
 }
 
 .claim-input input {
@@ -2154,7 +2154,7 @@ button {
 .footer-brand p {
   margin: 10px 0 0;
   font-size: 12.5px;
-  color: #7d99ab;
+  color: #ab7d7f;
 }
 
 .footer-badges {
@@ -2171,7 +2171,7 @@ button {
   border-radius: 8px;
   border: 1px solid rgba(255, 154, 149, 0.1);
   background: rgba(255, 154, 149, 0.04);
-  color: #87a5b7;
+  color: #b78789;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
@@ -2193,7 +2193,7 @@ button {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #6d8b9d;
+  color: #9d6d6f;
 }
 
 .footer-cols a,
@@ -2205,7 +2205,7 @@ button {
   background: none;
   font-family: inherit;
   font-size: 12.5px;
-  color: #a2bfce;
+  color: #cea2a3;
   text-align: left;
   cursor: pointer;
   transition: color 0.16s ease;
@@ -2224,7 +2224,7 @@ button {
   padding: 18px 24px 30px;
   border-top: 0;
   font-size: 10.5px;
-  color: #5d7a8c;
+  color: #8c5d5f;
 }
 
 /* --------------------------------------------------------------- dialog */
@@ -2287,7 +2287,7 @@ button {
   border: 1px solid rgba(255, 140, 144, 0.16);
   background:
     radial-gradient(120% 90% at 50% -10%, rgba(242, 88, 93, 0.24), transparent 62%),
-    linear-gradient(180deg, rgba(13, 17, 25, 0.985), rgba(7, 9, 13, 0.995));
+    linear-gradient(180deg, rgba(25, 13, 13, 0.985), rgba(7, 9, 13, 0.995));
   box-shadow:
     0 50px 120px -50px #000,
     0 0 0 1px rgba(255, 255, 255, 0.03) inset;
@@ -2377,7 +2377,7 @@ button {
   border: 0;
   border-radius: 8px;
   background: none;
-  color: #c9d4dd;
+  color: #ddc9ca;
   font: inherit;
   font-size: 11.5px;
   text-align: left;
@@ -2401,7 +2401,7 @@ button {
   border: 1px solid rgba(255, 140, 144, 0.16);
   background:
     radial-gradient(120% 90% at 50% -10%, rgba(242, 88, 93, 0.24), transparent 62%),
-    linear-gradient(180deg, rgba(13, 17, 25, 0.985), rgba(7, 9, 13, 0.995));
+    linear-gradient(180deg, rgba(25, 13, 13, 0.985), rgba(7, 9, 13, 0.995));
   box-shadow:
     0 50px 120px -50px #000,
     0 0 0 1px rgba(255, 255, 255, 0.03) inset;
@@ -2449,7 +2449,7 @@ button {
 
 .dialog--auth .auth-note {
   margin: 0;
-  color: #8b96a0;
+  color: #a08b8c;
   font-size: 11px;
   line-height: 1.6;
   text-align: center;
@@ -2459,7 +2459,7 @@ button {
   margin: 2px 0 0;
   text-align: center;
   font-size: 11.5px;
-  color: #8b96a0;
+  color: #a08b8c;
 }
 
 .dialog-head {
@@ -2482,7 +2482,7 @@ button {
   max-width: 42ch;
   font-size: 12px;
   line-height: 1.58;
-  color: #8ca8b9;
+  color: #b98c8d;
 }
 
 .auth-logo {
@@ -2524,7 +2524,7 @@ button {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #a4c1d2;
+  color: #d2a4a6;
 }
 
 .field-badge {
@@ -2547,7 +2547,7 @@ button {
 .field > span {
   font-size: 11.5px;
   font-weight: 550;
-  color: #aac6d6;
+  color: #d6aaab;
 }
 
 .field input {
@@ -2573,7 +2573,7 @@ button {
 .field small {
   font-size: 10.5px;
   line-height: 1.6;
-  color: #718e9f;
+  color: #9f7173;
 }
 
 .field small a {
@@ -2601,7 +2601,7 @@ button {
 
 .input-prefix span {
   font-size: 12.5px;
-  color: #6e8b9d;
+  color: #9d6e70;
 }
 
 .input-prefix input {
@@ -2686,7 +2686,7 @@ button {
   font-size: 9px;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: #607d8f;
+  color: #8f6062;
 }
 
 .auth-divider::before,
@@ -2736,7 +2736,7 @@ button {
   margin: 0;
   text-align: center;
   font-size: 11.5px;
-  color: #87a3b4;
+  color: #b48788;
 }
 
 .auth-switch button {
@@ -2789,7 +2789,7 @@ button {
   max-width: 58ch;
   font-size: 14px;
   line-height: 1.68;
-  color: #90adbf;
+  color: #bf9092;
 }
 
 .board {
@@ -2821,7 +2821,7 @@ button {
   flex: none;
   font-size: 11.5px;
   letter-spacing: 0.08em;
-  color: #5d7a8c;
+  color: #8c5d5f;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2841,7 +2841,7 @@ button {
   display: block;
   margin-top: 2px;
   font-size: 11px;
-  color: #7d99ab;
+  color: #ab7d7f;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2850,7 +2850,7 @@ button {
 .board-joined {
   flex: none;
   font-size: 11px;
-  color: #7d99ab;
+  color: #ab7d7f;
 }
 
 /* Leaderboard: a podium for the top three, then a clean clickable list. */
@@ -2905,7 +2905,7 @@ button {
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #7d99ab;
+  color: #ab7d7f;
   font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2920,7 +2920,7 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 15px;
   background: #260b0c;
-  color: #9fb8c9;
+  color: #c99fa0;
   font-size: 18px;
   font-weight: 700;
   object-fit: cover;
@@ -2941,7 +2941,7 @@ button {
 }
 
 .board-podium-id small {
-  color: #7d99ab;
+  color: #ab7d7f;
   font-size: 11px;
 }
 
@@ -2962,7 +2962,7 @@ button {
 }
 
 .board-podium-views small {
-  color: #6f8b9d;
+  color: #9d6f71;
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2983,13 +2983,13 @@ button {
 
 .board-views small {
   margin-left: 4px;
-  color: #6f8b9d;
+  color: #9d6f71;
   font-size: 10px;
 }
 
 .board-row > svg {
   flex: none;
-  color: #5d7a8c;
+  color: #8c5d5f;
 }
 
 .board-more {
@@ -3041,7 +3041,7 @@ button {
 .empty-card p {
   margin: 0 0 8px;
   font-size: 12.5px;
-  color: #8aa7b8;
+  color: #b88a8c;
 }
 
 /* shop */
@@ -3112,7 +3112,7 @@ button {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.62;
-  color: #8aa7b8;
+  color: #b88a8c;
 }
 
 .shop-foot {
@@ -3136,7 +3136,7 @@ button {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #6b899b;
+  color: #9b6b6d;
 }
 
 .shop-note {
@@ -3157,7 +3157,7 @@ button {
   max-width: 56ch;
   font-size: 12px;
   line-height: 1.62;
-  color: #8aa7b8;
+  color: #b88a8c;
 }
 
 /* ------------------------------------------------------------- reveal */
@@ -3655,11 +3655,11 @@ html:has(.app--site) ::-webkit-scrollbar-track {
 
 html:has(.app--site) ::-webkit-scrollbar-thumb {
   border-color: #000;
-  background: linear-gradient(180deg, #3b434a, #59636b);
+  background: linear-gradient(180deg, #4a3b3b, #6b595a);
 }
 
 html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #4a535b, #7c8890);
+  background: linear-gradient(180deg, #5b4a4b, #907c7d);
 }
 
 .app--site {
@@ -3669,8 +3669,8 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   --site-line: rgba(255, 255, 255, 0.08);
   --site-line-strong: rgba(255, 168, 171, 0.22);
   --site-text: #eff3f5;
-  --site-muted: #959da6;
-  --site-muted-2: #6f7780;
+  --site-muted: #a69596;
+  --site-muted-2: #806f70;
   --site-ice: #ffb3ae;
 }
 
@@ -3713,7 +3713,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .head-link {
-  color: #969ea7;
+  color: #a79697;
 }
 
 .app--site .head-link:hover {
@@ -3727,7 +3727,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .head-signin {
-  color: #b9c1c8;
+  color: #c8b9ba;
 }
 
 .app--site .head-burger {
@@ -3770,13 +3770,13 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .page-sub,
 .app--site .footer-brand p,
 .app--site .bento-foot {
-  color: #99a1aa;
+  color: #aa999a;
 }
 
 .app--site .hero-meta,
 .app--site .pc-handle,
 .app--site .pc-joined {
-  color: #7a838c;
+  color: #8c7a7b;
 }
 
 .app--site .eyebrow {
@@ -3808,18 +3808,18 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .pc-owner {
   border-color: rgba(255, 255, 255, 0.09);
   background: rgba(255, 255, 255, 0.04);
-  color: #b6c2cc;
+  color: #ccb6b7;
 }
 
 .app--site .pc-custom {
   max-height: 148px;
   margin-top: 9px;
   overflow-y: auto;
-  color: #a8b1ba;
+  color: #baa8a9;
   font-size: 11.5px;
   line-height: 1.55;
   scrollbar-width: thin;
-  scrollbar-color: #30353b transparent;
+  scrollbar-color: #3b3030 transparent;
 }
 
 .app--site .pc-custom .rt-heading {
@@ -3829,7 +3829,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .pc-platform {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.035);
-  color: #68727c;
+  color: #7c6869;
 }
 
 .app--site .pc-platform.is-on {
@@ -3850,7 +3850,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .pc-stats span,
 .app--site .pc-url,
 .app--site .pc-sync {
-  color: #737c85;
+  color: #857374;
 }
 
 .app--site .section-title,
@@ -3907,7 +3907,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .bcard-art::after {
-  background: linear-gradient(135deg, #ecb6b8, #2a343d);
+  background: linear-gradient(135deg, #ecb6b8, #3d2a2b);
   opacity: 0.62;
 }
 
@@ -3922,11 +3922,11 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .bcard-sub {
-  color: #9aa6af;
+  color: #af9a9b;
 }
 
 .app--site .bcard-meta {
-  color: #86939c;
+  color: #9c8687;
 }
 
 .app--site .bcard-action {
@@ -3971,7 +3971,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   justify-content: center;
   gap: 2px;
   padding: 15px 16px;
-  color: #a1a9b1;
+  color: #b1a1a2;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -4002,7 +4002,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .bento-add-card small {
-  color: #757e87;
+  color: #877576;
   font-size: 9.5px;
 }
 
@@ -4039,7 +4039,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .bento-user-empty p {
   max-width: 42ch;
   margin: 0 0 8px;
-  color: #838c95;
+  color: #958384;
   font-size: 11px;
   line-height: 1.6;
 }
@@ -4064,7 +4064,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .app--site .faq-chevron {
-  color: #717a83;
+  color: #837172;
 }
 
 .app--site .cta-card {
@@ -4110,13 +4110,13 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .footer-cols h4,
 .app--site .footer-brand p,
 .app--site .footer-bottom {
-  color: #737c85;
+  color: #857374;
 }
 
 .app--site .footer-badges span {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
-  color: #7f8a93;
+  color: #937f80;
 }
 
 .app--site .footer-badges span:hover {
@@ -4144,7 +4144,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--site .board-joined,
 .app--site .shop-card p,
 .app--site .shop-note p {
-  color: #8b949d;
+  color: #9d8b8c;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4199,7 +4199,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   border-bottom: 2px solid transparent;
   border-radius: 8px 8px 0 0;
   background: none;
-  color: var(--site-muted, #959da6);
+  color: var(--site-muted, #a69596);
   font: inherit;
   font-size: 12.5px;
   font-weight: 600;
@@ -4259,7 +4259,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .settings-link-list small {
-  color: var(--site-muted-2, #6f7780);
+  color: var(--site-muted-2, #806f70);
   font-size: 11px;
 }
 
@@ -4285,14 +4285,14 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .settings-session-row small {
-  color: var(--site-muted-2, #6f7780);
+  color: var(--site-muted-2, #806f70);
   font-size: 11px;
 }
 
 .settings-session-id {
   margin-left: auto;
   font-size: 11px;
-  color: var(--site-muted-2, #6f7780);
+  color: var(--site-muted-2, #806f70);
 }
 
 .settings-admin-tag {
@@ -4320,7 +4320,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   margin: 10px 0;
   font-size: 11.5px;
   word-break: break-all;
-  color: var(--site-muted, #959da6);
+  color: var(--site-muted, #a69596);
 }
 
 .settings-premium-state {
@@ -4348,7 +4348,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .settings-premium-list small {
-  color: var(--site-muted-2, #6f7780);
+  color: var(--site-muted-2, #806f70);
   font-size: 10.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -4538,7 +4538,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .premium-hero-points small {
   display: block;
   margin-top: 3px;
-  color: #8aa7b8;
+  color: #b88a8c;
   font-size: 11.5px;
   line-height: 1.6;
 }
@@ -4562,7 +4562,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .premium-table-head {
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  color: #7d99ab;
+  color: #ab7d7f;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -4597,7 +4597,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 
 .premium-table-cell.is-out {
-  color: #4d5860;
+  color: #604d4e;
 }
 
 .premium-faq {
@@ -4663,7 +4663,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .legal-updated {
   margin-top: 10px;
-  color: var(--muted, #98a2b3);
+  color: var(--muted, #b39899);
   font-size: 11.5px;
   font-weight: 550;
 }
@@ -4689,7 +4689,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .legal-toc a {
   padding: 5px 8px;
   border-radius: 7px;
-  color: #8d9aa5;
+  color: #a58d8e;
   font-size: 11px;
   line-height: 1.3;
   text-decoration: none;
@@ -4702,7 +4702,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .legal-body {
   max-width: 760px;
-  color: #c8cfda;
+  color: #dac8c9;
   font-size: 13.5px;
   line-height: 1.72;
 }
@@ -5037,7 +5037,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   display: grid;
   gap: 10px;
   padding: 20px;
-  border: 1px solid #262c39;
+  border: 1px solid #392627;
   border-radius: 16px;
   background: #10131a;
 }
@@ -5046,7 +5046,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 .crash-card p {
   margin: 0;
-  color: #8b96a9;
+  color: #a98b8c;
   font-size: 12.5px;
   line-height: 1.6;
   word-break: break-word;
@@ -5059,7 +5059,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 .crash-btn {
   padding: 9px 13px;
-  border: 1px solid #2a3040;
+  border: 1px solid #402a2b;
   border-radius: 9px;
   background: transparent;
   color: #e8cfd0;
@@ -5091,7 +5091,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 .head-cart:hover,
 .head-cart.is-active {
-  border-color: var(--line-strong, #3a3f4a);
+  border-color: var(--line-strong, #4a3a3b);
   background: rgba(255, 255, 255, 0.04);
 }
 .head-cart-count {
@@ -5211,7 +5211,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 
 .auth-reset-copy {
   margin: 0;
-  color: #98a2b3;
+  color: #b39899;
   font-size: 12px;
   line-height: 1.55;
 }

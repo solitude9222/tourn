@@ -42,7 +42,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #7b808c;
+  color: #8c7b7c;
   cursor: pointer;
 }
 
@@ -73,7 +73,7 @@
 }
 
 .tw-user-pop-head small {
-  color: #6f7684;
+  color: #846f70;
   font-size: 10.5px;
   letter-spacing: 0.02em;
 }
@@ -121,7 +121,7 @@
 
 .tw-account-row svg {
   margin-left: auto;
-  color: #565e6b;
+  color: #6b5657;
 }
 
 .tw-account-avatar {
@@ -132,8 +132,8 @@
   flex: none;
   overflow: hidden;
   border-radius: 50%;
-  background: #1d2028;
-  color: #b9c0cc;
+  background: #281d1d;
+  color: #ccb9ba;
   font-size: 11px;
   font-weight: 600;
 }
@@ -160,7 +160,7 @@
 
 .tw-account-copy small {
   overflow: hidden;
-  color: #7d8492;
+  color: #927d7e;
   font-size: 10.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -173,16 +173,16 @@
   width: 100%;
   margin-top: 2px;
   padding: 8px;
-  border: 1px dashed #2a2d35;
+  border: 1px dashed #352a2a;
   border-radius: 8px;
   background: none;
-  color: #cfd5df;
+  color: #dfcfd0;
   text-align: left;
   cursor: pointer;
 }
 
 .tw-account-add:hover {
-  border-color: #3a3f4a;
+  border-color: #4a3a3b;
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -193,8 +193,8 @@
   height: 26px;
   flex: none;
   border-radius: 50%;
-  border: 1px solid #2d3138;
-  color: #93a0b5;
+  border: 1px solid #382d2d;
+  color: #b59394;
 }
 
 .tw-account-add b {
@@ -205,7 +205,7 @@
 
 .tw-account-add small {
   display: block;
-  color: #6f7684;
+  color: #846f70;
   font-size: 10.5px;
 }
 
@@ -231,7 +231,7 @@
   border: 0;
   border-radius: 8px;
   background: none;
-  color: #cfd4dc;
+  color: #dccfcf;
   font-size: 13px;
   text-align: left;
   text-decoration: none;
@@ -245,7 +245,7 @@
 
 .tw-user-pop-item svg:last-child {
   margin-left: auto;
-  color: #6c7180;
+  color: #806c6d;
 }
 
 .tw-note-pop {
@@ -292,7 +292,7 @@
   border: 0;
   border-radius: 7px;
   background: none;
-  color: #9ba3af;
+  color: #af9b9c;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
@@ -310,7 +310,7 @@
 
 .tw-chart-note {
   margin: 8px 0 0;
-  color: #6c7180;
+  color: #806c6d;
   font-size: 11px;
 }
 
@@ -365,7 +365,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #8b919c;
+  color: #9c8b8c;
   font-size: 12px;
   white-space: nowrap;
 }
@@ -401,7 +401,7 @@
 
 .tw-meta-grid small {
   display: block;
-  color: #7f8590;
+  color: #907f80;
   font-size: 10.5px;
 }
 
@@ -445,7 +445,7 @@
 .tw-inline-toggle small {
   display: block;
   margin-top: 2px;
-  color: #7f8590;
+  color: #907f80;
   font-size: 11px;
 }
 
@@ -509,7 +509,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #6c7180;
+  color: #806c6d;
   font-size: 10.5px;
 }
 
@@ -519,13 +519,13 @@
 
 .tw-copy-block {
   margin: 10px 0 16px;
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 12.5px;
   line-height: 1.55;
 }
 
 .tw-active-count {
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -534,7 +534,7 @@
 
 .tw-foot-note {
   margin: 14px 0 0;
-  color: #6c7180;
+  color: #806c6d;
   font-size: 11.5px;
 }
 
@@ -579,7 +579,7 @@
 
 .tw-badge-detail p {
   margin: 0;
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 13px;
   line-height: 1.55;
 }
@@ -596,7 +596,7 @@
 .tw-drag {
   display: grid;
   place-items: center;
-  color: #4f545e;
+  color: #5e4f4f;
   cursor: grab;
 }
 
@@ -642,7 +642,7 @@
 
 .tw-widget-preview-note {
   margin-top: 3px;
-  color: #6c7180;
+  color: #806c6d;
   font-size: 10.5px;
 }
 
@@ -824,7 +824,7 @@
   display: block;
   margin-top: 3px;
   max-width: 56ch;
-  color: #828a98;
+  color: #988283;
   font-size: 12.5px;
   line-height: 1.5;
 }
@@ -1300,7 +1300,7 @@
   width: 30px;
   height: 30px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2a2d36, #1a1c22);
+  background: linear-gradient(135deg, #362a2a, #1a1c22);
 }
 
 .tw-effect-stage-lines b {
@@ -1310,7 +1310,7 @@
 }
 
 .tw-effect-stage-lines small {
-  color: #9aa0ab;
+  color: #ab9a9b;
   font-size: 11px;
 }
 
@@ -1336,7 +1336,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #cfd4dc;
+  color: #dccfcf;
   font-size: 13px;
   font-weight: 500;
 }
@@ -1364,7 +1364,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #b9bfc9;
+  color: #c9b9ba;
   font-size: 12.5px;
 }
 
@@ -1450,7 +1450,7 @@
 
 .tw-gate-card p {
   margin: 0;
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 13px;
   line-height: 1.55;
 }
@@ -1463,7 +1463,7 @@
 
 .tw-gate-card .tw-inline-link {
   margin-top: 8px;
-  color: #6c7180;
+  color: #806c6d;
   font-size: 12px;
   text-decoration: none;
 }
@@ -1598,7 +1598,7 @@
   border-radius: 50%;
   border: 1px solid #2a2d34;
   background: #1a1c22;
-  color: #cfd6e2;
+  color: #e2cfd0;
   font-size: 22px;
   font-weight: 600;
 }
@@ -1625,7 +1625,7 @@
 .tw-set-idcopy > small {
   display: block;
   margin-top: 2px;
-  color: #8a91a0;
+  color: #a08a8b;
   font-size: 12.5px;
 }
 
@@ -1675,7 +1675,7 @@
 
 .tw-set-note {
   margin: 0;
-  color: #858d9b;
+  color: #9b8586;
   font-size: 12px;
   line-height: 1.5;
 }
@@ -1709,12 +1709,12 @@
 }
 
 .tw-set-links code {
-  color: #d7dde8;
+  color: #e8d7d8;
   font-size: 12px;
 }
 
 .tw-set-links small {
-  color: #6f7684;
+  color: #846f70;
   font-size: 10.5px;
 }
 
@@ -1744,7 +1744,7 @@
   border-radius: 9px;
   border: 1px solid #23262d;
   background: #14161b;
-  color: #9fa8b8;
+  color: #b89fa0;
 }
 
 .tw-set-row-icon img {
@@ -1771,7 +1771,7 @@
 .tw-set-row-copy small {
   display: block;
   margin-top: 2px;
-  color: #7c8492;
+  color: #927c7d;
   font-size: 11.5px;
   line-height: 1.45;
 }
@@ -1858,7 +1858,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   background: #0c0c0e;
-  color: #7e8695;
+  color: #957e7f;
   font-size: 12.5px;
 }
 
@@ -1872,7 +1872,7 @@
 
 .tw-set-plan li small {
   margin-left: auto;
-  color: #6b7381;
+  color: #816b6c;
   font-size: 10.5px;
 }
 
@@ -1891,7 +1891,7 @@
 .tw-prefix i {
   padding: 0 10px;
   border-right: 1px solid #22252b;
-  color: #6f7a8c;
+  color: #8c6f70;
   font-size: 12px;
   font-style: normal;
   white-space: nowrap;
@@ -1987,7 +1987,7 @@
 
 .tw-deco-caption {
   margin: 2px 0 0;
-  color: #9aa4ad;
+  color: #ad9a9b;
   font-size: 12px;
   text-align: center;
 }
@@ -2009,7 +2009,7 @@
 }
 
 .tw-deco-side small {
-  color: #8b95a1;
+  color: #a18b8c;
   font-size: 12px;
   line-height: 1.45;
 }
@@ -2027,7 +2027,7 @@
 
 .tw-deco-count {
   flex: none;
-  color: #78828f;
+  color: #8f7879;
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.05em;
@@ -2513,7 +2513,7 @@
 .tw-set-toggle-copy small {
   display: block;
   margin-top: 2px;
-  color: #8a91a0;
+  color: #a08a8b;
   font-size: 12px;
 }
 
@@ -2537,7 +2537,7 @@
   height: 36px;
   flex: none;
   border-radius: 50%;
-  background: #4a5162;
+  background: #624a4b;
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
@@ -2562,7 +2562,7 @@
 }
 
 .tw-embed-meta span {
-  color: #8a91a0;
+  color: #a08a8b;
   font-size: 11px;
 }
 
@@ -2591,7 +2591,7 @@
 
 .tw-embed-card > p {
   margin: 0;
-  color: #a9b0bd;
+  color: #bda9aa;
   font-size: 12.5px;
 }
 
@@ -2599,7 +2599,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #7d8492;
+  color: #927d7e;
   font-size: 11px;
 }
 
@@ -2624,7 +2624,7 @@
 }
 
 .tw-var-title {
-  color: #7b808c;
+  color: #8c7b7c;
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -2643,7 +2643,7 @@
   border: 1px solid #2a2a30;
   border-radius: 8px;
   background: #1b1b21;
-  color: #c3cad6;
+  color: #d6c3c4;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11.5px;
   cursor: pointer;
@@ -2677,7 +2677,7 @@
 .tw-result code {
   flex: 1;
   min-width: 0;
-  color: #cfd6e2;
+  color: #e2cfd0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   word-break: break-all;
@@ -2721,7 +2721,7 @@
 
 .tw-design-preview-card > p {
   margin: 4px 0 12px;
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 12.5px;
 }
 
@@ -2766,7 +2766,7 @@
 }
 
 .tw-portfolio-stat small {
-  color: #8a91a0;
+  color: #a08a8b;
   font-size: 12px;
 }
 
@@ -2815,7 +2815,7 @@
 }
 
 .tw-overview-row > span {
-  color: #8a91a0;
+  color: #a08a8b;
   font-size: 12.5px;
   font-weight: 500;
 }
@@ -2830,7 +2830,7 @@
 }
 
 .tw-overview-row > small {
-  color: #6f7684;
+  color: #846f70;
   font-size: 11.5px;
   white-space: nowrap;
 }
@@ -2862,7 +2862,7 @@
   border: 0;
   border-radius: 7px;
   background: none;
-  color: #8a91a0;
+  color: #a08a8b;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -2896,7 +2896,7 @@
 }
 
 .tw-feedback-counts small {
-  color: #8a91a0;
+  color: #a08a8b;
   font-size: 11.5px;
 }
 
@@ -2917,7 +2917,7 @@
 
 .tw-feedback-empty p {
   margin: 4px 0 10px;
-  color: #7b808c;
+  color: #8c7b7c;
   font-size: 12px;
 }
 

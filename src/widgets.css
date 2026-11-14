@@ -30,7 +30,7 @@
 
 .widgets-catalog-head p {
   margin: 4px 0 0;
-  color: #7c848c;
+  color: #8c7c7d;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -86,7 +86,7 @@
 }
 
 .widgets-platform-tile-name {
-  color: #c0c8cf;
+  color: #cfc0c1;
   font-size: 11px;
   font-weight: 580;
   text-align: center;
@@ -123,7 +123,7 @@
 
 .widgets-shell-head p {
   margin: 5px 0 0;
-  color: #7f8790;
+  color: #907f80;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -178,7 +178,7 @@
 .widgets-custom-head p {
   max-width: 62ch;
   margin: 5px 0 0;
-  color: #7c848c;
+  color: #8c7c7d;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -196,7 +196,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 7px;
   background: #111214;
-  color: #8d959d;
+  color: #9d8d8e;
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;
@@ -234,7 +234,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  color: #838b93;
+  color: #938384;
   font-size: 11px;
 }
 
@@ -285,7 +285,7 @@
   display: grid;
   gap: 5px;
   min-width: 0;
-  color: #838b93;
+  color: #938384;
   font-size: 11px;
 }
 
@@ -368,7 +368,7 @@
 
 .widgets-side-head p {
   margin: 4px 0 0;
-  color: #737b83;
+  color: #837374;
   font-size: 11px;
   line-height: 1.45;
 }
@@ -404,7 +404,7 @@
 
 .widgets-scroll::-webkit-scrollbar-thumb {
   border: 0;
-  background: #2b3238;
+  background: #382b2b;
 }
 
 .widgets-preview-box {
@@ -417,7 +417,7 @@
 }
 
 .widgets-preview-label {
-  color: #7d858d;
+  color: #8d7d7e;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -454,7 +454,7 @@
 .widgets-empty p {
   max-width: 25ch;
   margin: 0;
-  color: #6d757d;
+  color: #7d6d6e;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -479,14 +479,14 @@
 }
 
 .wg-backgrounds-head > span {
-  color: #838b93;
+  color: #938384;
   font-size: 11px;
 }
 
 .wg-backgrounds-head p {
   max-width: 52ch;
   margin: 0;
-  color: #626a72;
+  color: #726263;
   font-size: 11px;
   line-height: 1.5;
   text-align: right;
@@ -508,7 +508,7 @@
   border: 1px solid rgba(255, 255, 255, 0.075);
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.02);
-  color: #8b939b;
+  color: #9b8b8c;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -528,7 +528,7 @@
 
 .wg-background b {
   overflow: hidden;
-  color: #cbd4db;
+  color: #dbcbcc;
   font-size: 11px;
   font-weight: 620;
   text-overflow: ellipsis;
@@ -542,7 +542,7 @@
 .wg-background small {
   grid-column: 2;
   overflow: hidden;
-  color: #626a72;
+  color: #726263;
   font-size: 11px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -565,7 +565,7 @@
 }
 
 .wg-background-swatch.is-gradient {
-  background: linear-gradient(135deg, #ff5f6d, #7c5cff);
+  background: linear-gradient(135deg, #ff5f6d, #ff8a85);
 }
 
 .wg-background-swatch.is-rgb {
@@ -955,7 +955,7 @@
   flex: none;
   align-items: center;
   gap: 3px;
-  color: #cbd5e1;
+  color: #e1cbcc;
   opacity: 0.9;
 }
 
@@ -967,7 +967,7 @@
 
 .widget-card-handle {
   overflow: hidden;
-  color: #aab5bd;
+  color: #bdaaab;
   font-size: 11px;
   line-height: 1.35;
   text-overflow: ellipsis;
@@ -1007,7 +1007,7 @@
   border: 0;
   border-radius: 0;
   background: none;
-  color: #bac5cd;
+  color: #cdbabb;
   font-size: 9px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -1048,7 +1048,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: rgba(8, 9, 11, 0.72);
-  color: #c8d2da;
+  color: #dac8c9;
   text-decoration: none;
   opacity: 0;
   transform: translateY(3px);
@@ -1098,7 +1098,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   background: rgba(8, 9, 11, 0.68);
-  color: #9aa4ac;
+  color: #ac9a9b;
   cursor: pointer;
   backdrop-filter: blur(8px);
   transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
@@ -1212,7 +1212,7 @@
 
 .widgets-modal-head p {
   margin: 4px 0 0;
-  color: #7a828a;
+  color: #8a7a7b;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -1226,7 +1226,7 @@
   padding: 17px 20px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #2b3238 transparent;
+  scrollbar-color: #382b2b transparent;
 }
 
 .widgets-modal-body::-webkit-scrollbar {
@@ -1235,7 +1235,7 @@
 
 .widgets-modal-body::-webkit-scrollbar-thumb {
   border: 2px solid #0a0a0c;
-  background: #2b3238;
+  background: #382b2b;
 }
 
 .widgets-modal-foot {
@@ -1345,7 +1345,7 @@
 
 .platform-card-copy .platform-card-live {
   -webkit-line-clamp: 1;
-  color: #6b7680;
+  color: #806b6c;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -1365,7 +1365,7 @@
 .platform-card-copy > span {
   display: -webkit-box;
   overflow: hidden;
-  color: #747c84;
+  color: #847475;
   font-size: 11px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
@@ -1408,7 +1408,7 @@
 
 .widget-tip p {
   margin: 4px 0 0;
-  color: #8395a1;
+  color: #a18384;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -1432,7 +1432,7 @@
 }
 
 .widget-options-head span {
-  color: #aab3ba;
+  color: #baaaab;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -1440,7 +1440,7 @@
 }
 
 .widget-options-head small {
-  color: #5e666d;
+  color: #6d5e5e;
   font-size: 11px;
 }
 
@@ -1470,7 +1470,7 @@
 
 .widget-option p {
   margin: 3px 0 0;
-  color: #747c84;
+  color: #847475;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -1495,7 +1495,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #6c737a;
+  background: #7a6c6c;
   transition: transform 0.22s var(--ease-out, ease), background 0.22s ease;
 }
 
@@ -1732,14 +1732,14 @@
 
 .platform-card-copy > span {
   max-width: 42ch;
-  color: #8b929b;
+  color: #9b8b8c;
   font-size: 11.5px;
   line-height: 1.5;
 }
 
 .platform-card-copy .platform-card-live {
   margin-top: 2px;
-  color: #6b7580;
+  color: #806b6c;
   font-size: 11px;
 }
 
@@ -1771,14 +1771,14 @@
 
 .widget-card-handle {
   font-size: 11px;
-  color: #8f98a2;
+  color: #a28f90;
 }
 
 /* Keep the meta row plain text — no plate, no border. */
 .widget-card-chip {
   border: 0;
   background: none;
-  color: #aeb6bf;
+  color: #bfaeaf;
 }
 
 /* The inline "Add a widget" catalog uses the same wide tiles as the modal. */
@@ -1881,7 +1881,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   background: rgba(8, 9, 11, 0.72);
-  color: #8b959d;
+  color: #9d8b8c;
   cursor: grab;
   opacity: 0;
   transition: opacity 0.16s ease, color 0.16s ease, border-color 0.16s ease;
@@ -1910,9 +1910,9 @@
 }
 
 
-.widget-card-presence-notice { margin: 8px 14px 12px; color: #a5adbb; font-size: 10px; line-height: 1.5; }
+.widget-card-presence-notice { margin: 8px 14px 12px; color: #bba5a6; font-size: 10px; line-height: 1.5; }
 
-.widget-card-presence-notice { position: relative; z-index: 2; color: #bac5d5; }
+.widget-card-presence-notice { position: relative; z-index: 2; color: #d5babb; }
 
 /* Shared widget rows. */
 .lkr-widgets,.home-real-widgets { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch; }

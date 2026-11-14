@@ -29,7 +29,7 @@
 .tw-badge-group-head::before {
   content: "▸";
   flex: none;
-  color: #6f7682;
+  color: #826f70;
   font-size: 10px;
   transition: transform 0.16s ease;
 }
@@ -179,7 +179,7 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   background: #101116;
-  color: #c8d0d8;
+  color: #d8c8c9;
   font-size: 10.5px;
   font-weight: 600;
   cursor: pointer;

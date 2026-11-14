@@ -167,7 +167,7 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   borderColor: "#ffffff",
   backgroundColor: "#0b0c10",
   gradientFrom: "#ff5f6d",
-  gradientTo: "#7c5cff",
+  gradientTo: "#ff8a85",
   backgroundOpacity: 0.94,
   artOpacity: 0.9,
   scrimOpacity: 1,

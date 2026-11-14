@@ -10,7 +10,7 @@
   --ap-border: #ffffff;
   --ap-border-opacity: 0.09;
   --ap-title: #f2f5f7;
-  --ap-artist: #aab3bb;
+  --ap-artist: #bbaaab;
   --ap-progress: #ffffff;
   --ap-track: #ffffff;
   --ap-track-opacity: 0.14;
@@ -221,7 +221,7 @@
   display: block;
   height: var(--ap-lyric-h);
   line-height: var(--ap-lyric-h);
-  color: #7b838b;
+  color: #8b7b7c;
   font-size: 9.5px;
   white-space: nowrap;
   overflow: hidden;
@@ -363,7 +363,7 @@
 
 .ap-vinyl-copy small {
   font-size: 10px;
-  color: #aab3bb;
+  color: #bbaaab;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

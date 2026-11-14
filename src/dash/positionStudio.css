@@ -23,7 +23,7 @@
 }
 
 .pos-studio-copy small {
-  color: var(--sub, #7d8792);
+  color: var(--sub, #927d7e);
   font-size: 10px;
 }
 
@@ -42,7 +42,7 @@
   border: 0;
   border-radius: 6px;
   background: none;
-  color: #8a939d;
+  color: #9d8a8b;
   font-size: 9.5px;
   font-weight: 650;
   cursor: pointer;
@@ -64,7 +64,7 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   background: #101116;
-  color: #aeb8c2;
+  color: #c2aeaf;
   font-size: 9.5px;
   font-weight: 600;
   cursor: pointer;
@@ -148,7 +148,7 @@
   height: 46px;
   flex: none;
   border-radius: 50%;
-  background: linear-gradient(145deg, #313742, #15181d);
+  background: linear-gradient(145deg, #423132, #15181d);
 }
 
 .pos-scaffold-ident {
@@ -166,7 +166,7 @@
 }
 
 .pos-scaffold-ident i {
-  color: #76828e;
+  color: #8e7677;
   font-size: 10.5px;
   font-style: normal;
   line-height: 1;
@@ -252,7 +252,7 @@
   border: 1px dashed rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: rgba(9, 4, 4, 0.6);
-  color: #828d99;
+  color: #998283;
   cursor: pointer;
   transition: border-color 0.16s ease, background 0.16s ease;
 }
@@ -342,7 +342,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #73808b;
+  color: #8b7374;
   font-size: 10px;
   line-height: 1;
   cursor: pointer;
@@ -363,14 +363,14 @@
 }
 
 .pos-bin-copy {
-  color: #7d8792;
+  color: #927d7e;
   font-size: 9.5px;
   font-weight: 600;
 }
 
 .pos-studio-hint {
   margin: 0;
-  color: #68737e;
+  color: #7e6869;
   font-size: 9.5px;
   line-height: 1.45;
 }

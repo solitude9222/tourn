@@ -17,8 +17,8 @@
   --hm-blue-text: #ee4a4f;
   --hm-blue-light: #f87478;
   --hm-text: #ffffff;
-  --hm-muted: #9fa2af;
-  --hm-caption: #5e7191;
+  --hm-muted: #af9fa0;
+  --hm-caption: #915e60;
   --hm-focus: #7a2b2c;
   background: var(--hm-bg);
   color: var(--hm-text);
@@ -63,7 +63,7 @@
 }
 
 .app--home .head-link {
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 14px;
   font-weight: 600;
 }
@@ -243,7 +243,7 @@
 
 .hm-btn-tag {
   display: inline-flex;
-  color: #cfd5e2;
+  color: #e2cfd0;
 }
 
 /* ── hero ─────────────────────────────────────────────────────────── */
@@ -374,13 +374,13 @@
   border: 1px solid var(--hm-line);
   border-radius: 10px;
   background: var(--hm-surface);
-  color: #8b90a0;
+  color: #a08b8c;
   filter: grayscale(1);
   transition: color 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
 }
 
 .hm-platform:hover {
-  color: #dfe4ee;
+  color: #eedfe0;
   border-color: var(--hm-line-strong);
   filter: none;
 }
@@ -1045,7 +1045,7 @@ button.hm-metric:focus-visible {
 
 .hm-faq-chevron {
   display: inline-flex;
-  color: #6b7280;
+  color: #806b6c;
   transition: transform 0.22s ease;
 }
 
@@ -1132,7 +1132,7 @@ button.hm-metric:focus-visible {
 .hm-cta p {
   margin: 14px auto 0;
   max-width: 480px;
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 15px;
   line-height: 1.6;
 }
@@ -1418,9 +1418,9 @@ button.hm-metric:focus-visible {
 .hm-live-profile .about-preview { max-width:100%; }
 .hm-pages-grid--live .hm-page-caption { z-index:3; position:absolute; inset:auto 0 0; display:flex; gap:10px; align-items:center; justify-content:center; padding:20px; background:linear-gradient(transparent,#120808 35%); color:#ffdcdd; }
 .hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #4a2b2d; border-radius:16px; background:#17100f; box-shadow:0 12px 45px #0005; }
-.hm-claim--cta .hm-claim-field { display:flex; flex:1; min-width:0; align-items:center; gap:2px; padding:0 10px; border:0; background:transparent; color:#8090af; font-family:inherit; font-size:15px; }
+.hm-claim--cta .hm-claim-field { display:flex; flex:1; min-width:0; align-items:center; gap:2px; padding:0 10px; border:0; background:transparent; color:#af8082; font-family:inherit; font-size:15px; }
 .hm-claim--cta input { width:100%; min-width:0; padding:0; border:0; outline:0; background:transparent; color:#fff; font:inherit; box-shadow:none; }
 .hm-claim--cta:focus-within { outline:2px solid #ff6469; outline-offset:3px; }
-.hm-claim--cta input::placeholder { color:#78849d; }
+.hm-claim--cta input::placeholder { color:#9d7879; }
 .hm-btn--claim { border-radius:10px; padding:0 20px; background:#ed5055; color:white; }
 @media(max-width:800px){ .hm-pages-grid--live { grid-template-columns:1fr; max-width:480px; margin-inline:auto; } .hm-pages-grid--live .hm-page-preview:first-child,.hm-pages-grid--live .hm-page-preview:last-child,.hm-pages-grid--live .hm-page-preview:nth-child(2){transform:none;} }

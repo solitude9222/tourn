@@ -397,7 +397,7 @@
 
 .adm-panel-copy {
   margin: 0 0 12px;
-  color: #8b93a3;
+  color: #a38b8c;
   font-size: 12px;
   line-height: 1.6;
 }
@@ -734,7 +734,7 @@
 }
 
 .adm-search input::placeholder {
-  color: #5d6472;
+  color: #725d5e;
 }
 
 .adm-table-wrap {
@@ -842,7 +842,7 @@
 }
 
 .adm-claim--unset b {
-  color: #5d6472;
+  color: #725d5e;
 }
 
 .adm-claim--views {
@@ -1184,7 +1184,7 @@
 
 .adm-field input::placeholder,
 .adm-field textarea::placeholder {
-  color: #5d6472;
+  color: #725d5e;
 }
 
 .adm-field textarea {
@@ -1239,7 +1239,7 @@
 .adm-toggle-row small {
   display: block;
   margin-top: 3px;
-  color: #7c8494;
+  color: #947c7d;
   font-size: 10.5px;
   line-height: 1.45;
 }
@@ -1264,7 +1264,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #6d7583;
+  background: #836d6e;
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.2), background 0.2s ease;
 }
 
@@ -1525,7 +1525,7 @@
 }
 
 .adm-rule input::placeholder {
-  color: #5d6472;
+  color: #725d5e;
 }
 
 .adm-rule-remove {
@@ -1536,7 +1536,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background: transparent;
-  color: #8b93a3;
+  color: #a38b8c;
   cursor: pointer;
   transition: border-color 0.16s ease, color 0.16s ease;
 }
@@ -1757,7 +1757,7 @@
   align-items: baseline;
   gap: 8px;
   margin: 0 0 8px;
-  color: #9aa1bb;
+  color: #bb9a9b;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -1777,7 +1777,7 @@
 
 .adm-modal-note {
   margin: 0 0 8px;
-  color: #8b93ad;
+  color: #ad8b8c;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -1802,7 +1802,7 @@
 .adm-role-row small {
   display: block;
   margin-top: 2px;
-  color: #8b93ad;
+  color: #ad8b8c;
   font-size: 11px;
   line-height: 1.45;
 }
@@ -1830,7 +1830,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
-  color: #b9c0d6;
+  color: #d6b9ba;
   font: inherit;
   font-size: 10.5px;
   font-weight: 700;
@@ -1862,7 +1862,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.02);
-  color: #9aa1bb;
+  color: #bb9a9b;
   font: inherit;
   font-size: 11px;
   font-weight: 600;
@@ -1972,7 +1972,7 @@
   border: 1px solid #1c1c20;
   border-radius: 11px;
   background: #0d0d0f;
-  color: #b9c0c9;
+  color: #c9b9ba;
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -1987,7 +1987,7 @@
 .adm-role-btn small {
   font-size: 9px;
   line-height: 1.35;
-  color: #6f7780;
+  color: #806f70;
 }
 
 .adm-role-btn:hover:not(:disabled) {
@@ -2006,7 +2006,7 @@
 }
 
 .adm-role-btn.is-active small {
-  color: #9aa3b8;
+  color: #b89a9b;
 }
 
 .adm-role-btn:disabled {
@@ -2076,8 +2076,8 @@
   --adm-brand-soft: rgba(224, 69, 63, 0.14);
   --adm-line: var(--border, #1f1f1f);
   --adm-line-soft: #1b1b1f;
-  --adm-muted: #8a919d;
-  --adm-dim: #6b7280;
+  --adm-muted: #9d8a8b;
+  --adm-dim: #806b6c;
   gap: 16px;
 }
 
@@ -2104,7 +2104,7 @@
   padding: 8px 13px;
   border: 0;
   border-radius: 8px;
-  color: #8a919d;
+  color: #9d8a8b;
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -2165,7 +2165,7 @@
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #7c8492;
+  color: #927c7d;
 }
 
 .adm.adm--embedded .adm-stat-value {
@@ -2176,7 +2176,7 @@
 }
 
 .adm.adm--embedded .adm-stat small {
-  color: #6f7684;
+  color: #846f70;
   font-size: 11.5px;
 }
 
@@ -2239,7 +2239,7 @@
 .adm.adm--embedded .adm-hint,
 .adm.adm--embedded .adm-invite-note,
 .adm.adm--embedded .adm-empty {
-  color: #7c8492;
+  color: #927c7d;
   font-size: 12px;
 }
 
@@ -2315,7 +2315,7 @@
 .adm-serial-skipped {
   margin: 0;
   padding-left: 18px;
-  color: #9aa4b5;
+  color: #b59a9b;
   font-size: 11.5px;
   line-height: 1.7;
 }
@@ -2357,7 +2357,7 @@
 }
 
 .adm-hint {
-  color: #8f97a6;
+  color: #a68f90;
   font-family: inherit;
   font-size: 11.5px;
   line-height: 1.55;
@@ -2385,13 +2385,13 @@
 .adm-action--primary {
   border-color: #ffeeef;
   background: #ffeeef;
-  color: #10131c;
+  color: #1c1010;
 }
 
 .adm-action--primary:hover:not(:disabled) {
   border-color: #ffffff;
   background: #ffffff;
-  color: #10131c;
+  color: #1c1010;
 }
 
 .adm-field {
@@ -2421,7 +2421,7 @@
 }
 
 .adm-block-head small {
-  color: #8f97a6;
+  color: #a68f90;
   font-size: 11.5px;
   line-height: 1.55;
 }
@@ -2462,7 +2462,7 @@
   margin: 0;
   font-size: 11.5px;
   line-height: 1.5;
-  color: #9aa3b2;
+  color: #b29a9b;
 }
 
 .adm-note.is-ok {
@@ -2517,13 +2517,13 @@
 }
 
 .adm .adm-hint {
-  color: #8b8f98;
+  color: #988b8b;
   font-size: 11.5px;
   line-height: 1.55;
 }
 
 .adm .adm-panel-copy {
-  color: #8b8f98;
+  color: #988b8b;
   font-size: 12.5px;
 }
 
@@ -2581,7 +2581,7 @@
 .adm .adm-field {
   gap: 6px;
   font-size: 11.5px;
-  color: #8b8f98;
+  color: #988b8b;
 }
 
 /* checkboxes become switches */
@@ -2589,7 +2589,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: #c9cdd6;
+  color: #d6c9c9;
   font-size: 12px;
   cursor: pointer;
 }
@@ -2618,7 +2618,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #9aa0ab;
+  background: #ab9a9b;
   transition: transform 0.18s ease, background 0.18s ease;
 }
 
@@ -2644,7 +2644,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #c9cdd6;
+  color: #d6c9c9;
   font-size: 11.5px;
   cursor: pointer;
 }
@@ -2673,14 +2673,14 @@
 .adm .adm-action--primary {
   border-color: #ffeeef;
   background: #ffeeef;
-  color: #10131c;
+  color: #1c1010;
 }
 
 .adm .adm-btn--primary:hover,
 .adm .adm-action--primary:hover {
   border-color: #fff;
   background: #fff;
-  color: #10131c;
+  color: #1c1010;
 }
 
 /* the pinned server row replaces the old dropdown */
@@ -2696,7 +2696,7 @@
 }
 
 .adm-server-pin span {
-  color: #8b8f98;
+  color: #988b8b;
 }
 
 .adm-server-pin b {
@@ -2706,7 +2706,7 @@
 
 .adm-server-pin code {
   margin-left: auto;
-  color: #6f7580;
+  color: #806f70;
   font-size: 11px;
 }
 
@@ -2748,7 +2748,7 @@
 }
 
 .adm .adm-bot-report li span {
-  color: #8b8f98;
+  color: #988b8b;
   line-height: 1.5;
 }
 
@@ -2761,7 +2761,7 @@
 }
 
 .adm .adm-bot-report li.is-skip b {
-  color: #8b8f98;
+  color: #988b8b;
 }
 
 /* DM delivery test row */
@@ -2832,7 +2832,7 @@
   border: 1px solid transparent;
   border-radius: 10px;
   background: none;
-  color: #9fa2af;
+  color: #af9fa0;
   font-size: 13px;
   font-weight: 600;
 }
@@ -2890,5 +2890,5 @@
 .adm .adm-hero p,
 .adm .adm-metric span,
 .adm .adm-hint {
-  color: #9fa2af;
+  color: #af9fa0;
 }
