@@ -238,13 +238,14 @@ button {
   flex: none;
 }
 
-/* Still used by the footer brand; the header now shows the wordmark alone. */
+/* The mark sits at its own colours next to the wordmark — the photo-real
+   shading is already strong enough without a recolour or glow. */
 .brand-logo {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   display: block;
-  filter: saturate(1.4) hue-rotate(-24deg) brightness(1.35) drop-shadow(0 4px 14px rgba(248, 56, 62, 0.4));
+  flex: none;
 }
 
 .brand-text {
@@ -2041,7 +2042,6 @@ button {
   height: 620px;
   background: url("/logo.png") center / contain no-repeat;
   opacity: 0.04;
-  filter: saturate(1.5) hue-rotate(-26deg) brightness(1.4);
   transform: rotate(-10deg);
   animation: markFloat 24s ease-in-out infinite alternate;
   pointer-events: none;
@@ -2255,7 +2255,6 @@ button {
   transform: translate(-50%, -50%) rotate(-8deg);
   background: url("/logo.png") center / contain no-repeat;
   opacity: 0.045;
-  filter: saturate(1.5) hue-rotate(-26deg) brightness(1.4);
   pointer-events: none;
   animation: markFloat 20s ease-in-out infinite alternate;
 }
@@ -2491,7 +2490,7 @@ button {
   object-fit: contain;
   display: block;
   border-radius: 10px;
-  filter: saturate(1.45) hue-rotate(-24deg) brightness(1.35) drop-shadow(0 6px 18px rgba(248, 56, 62, 0.45));
+  filter: drop-shadow(0 6px 18px rgba(248, 56, 62, 0.45));
   animation: float 5.5s ease-in-out infinite;
 }
 

@@ -108,10 +108,9 @@
 }
 
 .tw-brand img {
-  width: 37px;
-  height: 37px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(255, 154, 149, 0.28));
 }
 
 .tw-brand-text {

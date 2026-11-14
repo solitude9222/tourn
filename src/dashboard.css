@@ -54,7 +54,6 @@
   width: 30px;
   height: 30px;
   object-fit: contain;
-  filter: saturate(1.45) hue-rotate(-24deg) brightness(1.35) drop-shadow(0 4px 14px rgba(255, 154, 149, 0.4));
 }
 
 .dash-brand span span {
@@ -1885,7 +1884,6 @@
   width: 30px;
   height: 30px;
   object-fit: contain;
-  filter: saturate(1.45) hue-rotate(-24deg) brightness(1.35) drop-shadow(0 4px 14px rgba(255, 154, 149, 0.4));
 }
 
 .dash-gate-brand span span {
