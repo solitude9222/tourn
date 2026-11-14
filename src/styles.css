@@ -24,6 +24,12 @@
   /* Lexend: geometric, round letterforms, open even spacing. */
   --font: "Lexend", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Controls sit above the page instead of being punched out in pure black. */
+  --field-bg: #1c1c22;
+  --field-bg-hover: #24242b;
+  --field-border: #34343e;
+  --menu-bg: #26262e;
+  --menu-border: #3c3c46;
   color-scheme: dark;
 }
 
@@ -5339,53 +5345,48 @@ button:active,
     inset 0 -1px 0 rgba(0, 0, 0, 0.65);
 }
 
-/* Public fields and dropdowns: black, nothing else. */
+/* Fields are a lifted surface, never a punched-out black hole. */
 .field input,
 .field textarea,
 .ui-select {
-  background: #000;
+  background: var(--field-bg);
   background-image: none;
-  box-shadow: none;
-  border-color: #2a2a30;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-color: var(--field-border);
 }
 
 .field input:focus,
 .field textarea:focus {
-  background: #000;
+  background: var(--field-bg-hover);
   border-color: #4a6fd6;
   box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
-}
-
-.ui-select-pop {
-  background: #000;
-  background-image: none;
 }
 
 /* Globally loaded, so every sheet's own field colours lose to this. */
 .tw-control,
 .tw-textarea,
 .ui-select,
-.ui-select-pop,
 .ui-select-trigger,
 .tw-dash input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
 .tw-dash textarea {
-  background-color: #000;
+  background: var(--field-bg);
   background-image: none;
+  border-color: var(--field-border);
 }
 
 .tw-control:hover,
 .tw-textarea:hover,
 .ui-select:hover {
-  background-color: #000;
+  background: var(--field-bg-hover);
 }
 
 .tw-control:focus-within,
 .tw-textarea:focus {
-  background-color: #000;
+  background: var(--field-bg-hover);
 }
 
-/* Menus are one step lighter than the black fields they open from. */
+/* Menus sit one more step above the fields they open from. */
 .ui-select-pop {
-  background: #191920;
-  border-color: #303038;
+  background: var(--menu-bg);
+  border-color: var(--menu-border);
 }

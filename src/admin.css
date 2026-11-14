@@ -2777,7 +2777,7 @@
   min-width: 0;
 }
 
-/* Admin fields: black surfaces too. */
+/* Admin fields: the same lifted surface as the rest of the console. */
 .adm select,
 .adm input[type="text"],
 .adm input[type="number"],
@@ -2786,8 +2786,8 @@
 .adm input[type="email"],
 .adm input[type="password"],
 .adm textarea {
-  background: #000;
+  background: var(--field-bg, #1c1c22);
   background-image: none;
   box-shadow: none;
-  border-color: #2a2a30;
+  border-color: var(--field-border, #34343e);
 }

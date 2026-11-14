@@ -5457,33 +5457,32 @@
   will-change: auto;
 }
 
-/* Plain black fields: no gradient, no sheen — just black with a hairline. */
+/* Fields: a lifted surface one step above the cards, with a hairline. */
 .tw-control,
 .tw-textarea,
 .ui-select,
-.ui-select-pop,
 .tw-select,
 .tw-dash input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
 .tw-dash textarea {
-  background: #000;
+  background: var(--field-bg, #1c1c22);
   background-image: none;
   box-shadow: none;
-  border-color: #2a2a30;
+  border-color: var(--field-border, #34343e);
 }
 
 .tw-control:hover,
 .tw-textarea:hover,
 .ui-select:hover {
-  background: #000;
+  background: var(--field-bg-hover, #24242b);
   background-image: none;
-  border-color: #3a3a42;
+  border-color: var(--menu-border, #3c3c46);
 }
 
 .tw-control:focus-within,
 .tw-textarea:focus,
 .ui-select.is-open,
 .ui-select:focus-visible {
-  background: #000;
+  background: var(--field-bg-hover, #24242b);
   background-image: none;
   border-color: #4a6fd6;
   box-shadow: 0 0 0 3px rgba(74, 111, 214, 0.18);
@@ -5495,7 +5494,15 @@
 
 .tw-dash .tw-control,
 .tw-dash .tw-textarea {
-  background: #000;
+  background: var(--field-bg, #1c1c22);
+}
+
+/* The colour control is a chip plus its hex code, not a filled plate. */
+.tw-color,
+.tw-dash .tw-color {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 /* ── floating menus ──────────────────────────────────────────────────────
@@ -5506,8 +5513,8 @@
   top: 0;
   left: 0;
   z-index: 140;
-  border-color: #303038;
-  background: #191920;
+  border-color: var(--menu-border, #3c3c46);
+  background: var(--menu-bg, #26262e);
   box-shadow: 0 26px 60px rgba(0, 0, 0, 0.62), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
@@ -5527,8 +5534,8 @@
 }
 
 .ui-select-pop {
-  border-color: #303038;
-  background: #191920;
+  border-color: var(--menu-border, #3c3c46);
+  background: var(--menu-bg, #26262e);
 }
 
 .ui-select-item:hover {
@@ -5543,15 +5550,15 @@
    between the two looked broken. One surface instead. */
 .tw-search {
   height: 40px;
-  border: 1px solid #2c2c34;
+  border: 1px solid var(--field-border, #34343e);
   border-radius: 12px;
-  background: #191920;
+  background: var(--field-bg, #1c1c22);
   transition: border-color 0.18s ease, background-color 0.18s ease;
 }
 
 .tw-search:focus-within {
   border-color: #4a6fd6;
-  background: #1d1d25;
+  background: var(--field-bg-hover, #24242b);
 }
 
 .tw-dash .tw-search input {

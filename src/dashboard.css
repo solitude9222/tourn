@@ -5000,13 +5000,17 @@ body:has(.dash) {
   line-height: 1.45;
 }
 
-/* Every text field and dropdown stays plain black, whichever sheet loaded last. */
+/* Fields stay a lifted surface, whichever sheet loaded last. */
 .tw-control,
 .tw-textarea,
 .ui-select,
-.ui-select-pop,
 .ui-select-trigger {
-  background-color: #000;
+  background-color: var(--field-bg, #1c1c22);
+  background-image: none;
+}
+
+.ui-select-pop {
+  background-color: var(--menu-bg, #26262e);
   background-image: none;
 }
 
