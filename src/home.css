@@ -13,13 +13,13 @@
   --hm-tile: #121212;
   --hm-line: #1f1f1f;
   --hm-line-strong: #2e2e2e;
-  --hm-blue: #3965e6;
+  --hm-blue: #e0453f;
   --hm-blue-text: #4a73ee;
   --hm-blue-light: #74a0f8;
   --hm-text: #ffffff;
   --hm-muted: #9fa2af;
   --hm-caption: #5e7191;
-  --hm-focus: #27397c;
+  --hm-focus: #7a2b2c;
   background: var(--hm-bg);
   color: var(--hm-text);
 }
@@ -465,9 +465,9 @@
   top: 4px;
   left: 0;
   height: 32px;
-  border: 1px solid var(--hm-focus, #3965e6);
+  border: 1px solid var(--hm-focus, #e0453f);
   border-radius: 999px;
-  background: #182140;
+  background: #2a1f20;
   pointer-events: none;
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), width 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
 }
@@ -848,7 +848,7 @@ button.hm-metric:hover {
 }
 
 button.hm-metric:focus-visible {
-  outline: 2px solid var(--hm-focus, #3965e6);
+  outline: 2px solid var(--hm-focus, #e0453f);
   outline-offset: -2px;
 }
 

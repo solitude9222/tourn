@@ -661,7 +661,7 @@ async function weatherLive(input: string, signal: AbortSignal): Promise<WidgetLi
     decoration: null,
     banner: null,
     art: null,
-    accent: "#38bdf8",
+    accent: "#f2605a",
     tag: null,
     badges: [],
     status: null,

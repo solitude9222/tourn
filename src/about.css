@@ -396,7 +396,7 @@
   appearance: none;
   border-radius: 999px;
   outline: none;
-  background: linear-gradient(90deg, #4d9fc4, #a8e0ff) no-repeat, rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, #4d9fc4, #ffb3ae) no-repeat, rgba(255, 255, 255, 0.08);
   background-size: var(--slider-fill, 50%) 100%, 100% 100%;
   cursor: pointer;
 }
@@ -1304,8 +1304,8 @@
 }
 
 .pv-link-icon.is-copied {
-  color: var(--lnk-glow, #b4bffa);
-  filter: drop-shadow(0 0 6px var(--lnk-glow, #b4bffa));
+  color: var(--lnk-glow, #ff9d98);
+  filter: drop-shadow(0 0 6px var(--lnk-glow, #ff9d98));
 }
 
 /* A quiet key to the row: the one icon that is not a link. */
@@ -3277,7 +3277,7 @@
 }
 
 .tt--accent {
-  background: linear-gradient(135deg, #8fd8ff, #b4bffa);
+  background: linear-gradient(135deg, #8fd8ff, #ff9d98);
   border: 1px solid rgba(255, 255, 255, 0.55);
   color: #0b1018;
   box-shadow:
@@ -3432,7 +3432,7 @@
 }
 
 .demo-claim-brand span {
-  color: var(--ice, #a8e0ff);
+  color: var(--ice, #ffb3ae);
 }
 
 .demo-claim-handle {
@@ -3531,7 +3531,7 @@
 }
 
 .pn-handle b {
-  color: var(--ice, #a8e0ff);
+  color: var(--ice, #ffb3ae);
 }
 
 .pn-account {
@@ -4222,10 +4222,10 @@
 
 .badge-chip--monogram {
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--badge-tint, #b4bffa) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--badge-tint, #ff9d98) 45%, transparent);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--badge-tint, #b4bffa) 22%, rgba(255, 255, 255, 0.04));
-  color: var(--badge-tint, #b4bffa);
+  background: color-mix(in srgb, var(--badge-tint, #ff9d98) 22%, rgba(255, 255, 255, 0.04));
+  color: var(--badge-tint, #ff9d98);
 }
 
 .badge-chip-initial {
@@ -4548,9 +4548,9 @@
 }
 
 .pv-react-btn.is-on {
-  border-color: var(--pv-accent, #b4bffa);
+  border-color: var(--pv-accent, #ff9d98);
   background: rgba(255, 255, 255, 0.07);
-  color: var(--pv-accent, #b4bffa);
+  color: var(--pv-accent, #ff9d98);
 }
 
 .pv-react-btn:disabled {
@@ -5117,7 +5117,7 @@
 .lkr-slide-dots {position:absolute;top:50%;right:clamp(12px,2.2vw,26px);z-index:8;display:flex;flex-direction:column;align-items:center;gap:9px;padding:12px 9px;border:1px solid color-mix(in srgb,var(--pv-text,#fff) 14%,transparent);border-radius:999px;background:color-mix(in srgb,var(--pv-card,#101116) 74%,transparent);backdrop-filter:blur(14px);transform:translateY(-50%);}
 .lkr-slide-dot {width:7px;height:7px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--pv-text,#fff) 32%,transparent);cursor:pointer;transition:background .18s ease,box-shadow .18s ease,transform .18s ease;}
 .lkr-slide-dot:hover {background:color-mix(in srgb,var(--pv-text,#fff) 66%,transparent);}
-.lkr-slide-dot.is-active {background:var(--pv-accent,#b4bffa);box-shadow:0 0 0 3px color-mix(in srgb,var(--pv-accent,#b4bffa) 24%,transparent);transform:scale(1.25);}
+.lkr-slide-dot.is-active {background:var(--pv-accent,#ff9d98);box-shadow:0 0 0 3px color-mix(in srgb,var(--pv-accent,#ff9d98) 24%,transparent);transform:scale(1.25);}
 .lkr-skills-section h2 {font-size:18px;margin-bottom:16px;}
 .lkr-skills-section {padding:24px;background:var(--pv-card);border:1px solid var(--pv-border-color);border-radius:var(--pv-radius);margin-top:24px;}
 .lkr-page:not([data-interactive]) .lkr-slideshow {height:min(86dvh,840px);max-height:840px;}
@@ -5192,10 +5192,10 @@
    the row's custom colour. */
 .pv-link-icons.is-glow .pv-link-icon > :is(svg, img) {
   filter:
-    drop-shadow(0 0 calc(2px + var(--lnk-glow-strength, 0.45) * 5px) var(--lnk-glow, #b4bffa))
+    drop-shadow(0 0 calc(2px + var(--lnk-glow-strength, 0.45) * 5px) var(--lnk-glow, #ff9d98))
     drop-shadow(
       0 0 calc(6px + var(--lnk-glow-strength, 0.45) * 14px)
-        color-mix(in srgb, var(--lnk-glow, #b4bffa) 68%, transparent)
+        color-mix(in srgb, var(--lnk-glow, #ff9d98) 68%, transparent)
     );
 }
 
@@ -5351,7 +5351,7 @@
     0 0 calc(1px + var(--pv-meta-glow-strength, 0) * 9px)
       color-mix(
         in srgb,
-        var(--pv-meta-glow, #b4bffa) calc(var(--pv-meta-glow-strength, 0) * 100%),
+        var(--pv-meta-glow, #ff9d98) calc(var(--pv-meta-glow-strength, 0) * 100%),
         transparent
       )
   );
@@ -6130,7 +6130,7 @@
 
 .lkr-about-project:hover {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--pv-accent, #b4bffa) 36%, transparent);
+  border-color: color-mix(in srgb, var(--pv-accent, #ff9d98) 36%, transparent);
   background: rgba(255, 255, 255, 0.05);
 }
 

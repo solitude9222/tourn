@@ -71,7 +71,7 @@
 }
 
 .pos-studio-presets button:hover {
-  border-color: color-mix(in srgb, var(--accent, #a8e0ff) 42%, transparent);
+  border-color: color-mix(in srgb, var(--accent, #ffb3ae) 42%, transparent);
   color: #e8f7ff;
 }
 
@@ -325,8 +325,8 @@
 }
 
 .pos-chip.is-active {
-  border-color: var(--accent, #a8e0ff);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #a8e0ff) 18%, transparent);
+  border-color: var(--accent, #ffb3ae);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #ffb3ae) 18%, transparent);
 }
 
 .pos-chip.is-dragging {

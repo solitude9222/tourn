@@ -68,13 +68,13 @@ export type BadgeStore = {
 
 export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   glow: false,
-  glowColor: "#b4bffa",
+  glowColor: "#ff9d98",
   glowIntensity: 60,
   glowPulse: false,
   monochrome: false,
-  monoColor: "#b4bffa",
+  monoColor: "#ff9d98",
   overlay: false,
-  overlayColor: "#b4bffa",
+  overlayColor: "#ff9d98",
   overlayStrength: 50,
   // Badges carry a light sweep by default so they never look like flat stickers.
   animation: "shimmer",
@@ -193,15 +193,15 @@ const ICON = "/badges/icons/norm";
 /* ── platform badges (tourn.lol's own) ─────────────────────── */
 
 const PLATFORM: BadgeDef[] = [
-  { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: `${ICON}/owner.gif`, color: "#b4bffa" },
-  { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/staffteam.png`, color: "#38bdf8" },
-  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: `${ICON}/verifed.png`, color: "#b4bffa" },
+  { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: `${ICON}/owner.gif`, color: "#ff9d98" },
+  { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/staffteam.png`, color: "#f2605a" },
+  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: `${ICON}/verifed.png`, color: "#ff9d98" },
   { id: "partner", name: "Partner", description: "Official platform partner", requirement: "Granted by staff to official partners.", group: "platform", art: `${ICON}/parnter.png`, color: "#60a5fa" },
   { id: "donator", name: "Donator", description: "Donated to keep the site running", requirement: "Granted by staff after a donation.", group: "platform", art: `${ICON}/donator.gif`, color: "#fbbf24" },
   { id: "coder", name: "Coder", description: "Contributed code", requirement: "Automatic: publish a profile with a GitHub link or GitHub widget.", group: "platform", art: `${ICON}/coder.gif`, color: "#22c55e" },
   { id: "bughunter", name: "Bug Hunter", description: "Found and reported a real bug", requirement: "Granted by staff for a reproducible bug report.", group: "platform", art: `${ICON}/bughunter.png`, color: "#a3e635" },
-  { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: `${ICON}/newbie.png`, color: "#b4bffa" },
-  { id: "user", name: "Active User", description: "Long-time active member", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: `${ICON}/iverauser.gif`, color: "#b4bffa" },
+  { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: `${ICON}/newbie.png`, color: "#ff9d98" },
+  { id: "user", name: "Active User", description: "Long-time active member", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: `${ICON}/iverauser.gif`, color: "#ff9d98" },
   { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: `${ICON}/premium.svg`, color: "#f472b6" },
   { id: "booster", name: "Booster", description: "Server booster", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: `${ICON}/booster.png`, color: "#f472b6" },
 ];
@@ -211,7 +211,7 @@ const PLATFORM: BadgeDef[] = [
 /* ── platform badges: store drops and staff grants ─────────── */
 
 const EXTRA: BadgeDef[] = [
-  { id: "developer", name: "Developer", description: "Built tourn.lol", requirement: "Granted by staff to the people who build and maintain tourn.lol.", group: "platform", art: `${ICON}/developer.svg`, color: "#7dd3fc" },
+  { id: "developer", name: "Developer", description: "Built tourn.lol", requirement: "Granted by staff to the people who build and maintain tourn.lol.", group: "platform", art: `${ICON}/developer.svg`, color: "#ff9a95" },
   { id: "administrator", name: "Administrator", description: "Runs the platform", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/administrator.svg`, color: "#f87171" },
   { id: "gifter", name: "Gifter", description: "Gifted a product to someone", requirement: "Automatic: transfer a username or product to another member.", group: "platform", art: `${ICON}/gifter.svg`, color: "#f472b6" },
   { id: "event-winner", name: "Winner", description: "Won a tourn.lol event", requirement: "Granted by staff for winning an event.", group: "platform", art: `${ICON}/event-winner.svg`, color: "#fbbf24" },

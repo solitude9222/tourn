@@ -177,7 +177,7 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   showMeta: true,
   showBadges: true,
   outlineEffect: "none",
-  outlineColor: "#b4bffa",
+  outlineColor: "#ff9d98",
   outlineSpeed: 4,
   hoverLift: true,
 };

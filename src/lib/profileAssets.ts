@@ -309,7 +309,7 @@ export const DEFAULT_TEXT_EFFECT: TextEffectSettings = {
   effect: "none",
   effects: [],
   colorA: "#ffcfa8",
-  colorB: "#a8e0ff",
+  colorB: "#ffb3ae",
   speed: 3,
   strength: 1,
   params: defaultParamsFor(null),
@@ -322,19 +322,19 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   card: {
     // Two beams chase each other around the card's edge — the default look.
     id: "beam",
-    color: "#b4bffa",
+    color: "#ff9d98",
     intensity: 70,
     speed: 6,
   },
   decoration: {
     style: "none",
-    color: "#a8e0ff",
+    color: "#ffb3ae",
     size: 1,
     spin: false,
   },
   cursor: {
     style: "default",
-    color: "#a8e0ff",
+    color: "#ffb3ae",
     size: 10,
     trail: false,
     trailType: "dots",
@@ -397,7 +397,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
       id: "none",
       intensity: 50,
       speed: 9,
-      color: "#a8e0ff",
+      color: "#ffb3ae",
       params: defaultParamsFor(null),
     },
     overlay: {

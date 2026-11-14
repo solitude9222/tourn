@@ -804,7 +804,7 @@
   flex: none;
   border: 1px solid #24272e;
   border-radius: 12px;
-  background: rgba(57, 101, 230, 0.1);
+  background: rgba(224, 69, 63, 0.1);
   color: var(--accent-text);
 }
 
@@ -1329,7 +1329,7 @@
 }
 
 .tw-plan.is-active {
-  border-color: rgba(57, 101, 230, 0.5);
+  border-color: rgba(224, 69, 63, 0.5);
 }
 
 .tw-plan-head {
@@ -1437,8 +1437,8 @@
   height: 44px;
   margin-bottom: 4px;
   border-radius: 12px;
-  background: #1b233b;
-  color: #79a1f7;
+  background: #3a1a1d;
+  color: #ff9a95;
 }
 
 .tw-gate-card h1 {
@@ -2568,7 +2568,7 @@
 
 .tw-embed-link,
 .tw-embed-plain {
-  color: #7ea6ff;
+  color: #ff9d98;
   font-size: 12.5px;
   word-break: break-all;
 }
@@ -2652,15 +2652,15 @@
 
 .tw-var:hover {
   border-color: #3a4a68;
-  background: #20242c;
+  background: #2b2223;
   color: #e6ecf6;
 }
 
 .tw-var.is-copied,
 .tw-var.is-active {
-  border-color: #4a6fd6;
-  background: rgba(74, 111, 214, 0.18);
-  color: #cfdcff;
+  border-color: #d93c36;
+  background: rgba(224, 69, 63, 0.18);
+  color: #ffd6d3;
 }
 
 .tw-result {
@@ -2869,8 +2869,8 @@
 }
 
 .tw-feedback-tabs button.is-active {
-  background: #1b233b;
-  color: #cfdcff;
+  background: #3a1a1d;
+  color: #ffd6d3;
 }
 
 .tw-feedback-counts {
@@ -2954,12 +2954,12 @@
 
 .tw-drag-chip:hover {
   border-color: #3a4a68;
-  background: #20242c;
+  background: #2b2223;
 }
 
 .tw-drag-chip.is-dragging {
-  border-color: #4a6fd6;
-  background: #1e2740;
+  border-color: #d93c36;
+  background: #3d1b1d;
   cursor: grabbing;
 }
 
@@ -3002,7 +3002,7 @@
   place-items: center;
   border: 1px dashed transparent;
   border-radius: 10px;
-  color: #cfdcff;
+  color: #ffd6d3;
   font-size: 11px;
   font-weight: 600;
   transition: border-color 0.14s ease, background 0.14s ease;
@@ -3013,11 +3013,11 @@
 }
 
 .tw-layout-stage.is-dragging .tw-layout-zone {
-  border-color: #2f3a55;
-  background: rgba(57, 101, 230, 0.06);
+  border-color: #5a2b2d;
+  background: rgba(224, 69, 63, 0.06);
 }
 
 .tw-layout-zone.is-hot {
-  border-color: #4a6fd6;
-  background: rgba(74, 111, 214, 0.2);
+  border-color: #d93c36;
+  background: rgba(224, 69, 63, 0.2);
 }

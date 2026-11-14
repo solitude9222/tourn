@@ -118,7 +118,7 @@
 }
 
 .rt-link {
-  color: var(--ice, #a8e0ff);
+  color: var(--ice, #ffb3ae);
   text-decoration: underline;
   text-decoration-color: rgba(168, 224, 255, 0.45);
   text-underline-offset: 2px;
@@ -128,7 +128,7 @@
 
 .rt-link:hover {
   color: #f2fbff;
-  text-decoration-color: #a8e0ff;
+  text-decoration-color: #ffb3ae;
 }
 
 /* Live values read as coloured text inside the sentence. They used to be

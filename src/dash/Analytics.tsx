@@ -32,10 +32,10 @@ export function ViewsChart({ daily, days = 7 }: { daily: AnalyticsData["daily"];
   return (
     <svg className="tw-chart" viewBox="0 0 650 190" role="img" aria-label={`Daily profile views: ${points.map((p) => `${p.date}: ${p.views}`).join(", ")}`}>
       {[0, .25, .5, .75, 1].map((ratio) => <g key={ratio}><line className="tw-chart-grid" x1="40" x2="630" y1={y(max * ratio)} y2={y(max * ratio)} /><text x="30" y={y(max * ratio) + 4} textAnchor="end">{Math.round(max * ratio)}</text></g>)}
-      <polygon points={`${x(0)},156 ${coordinates} ${x(points.length - 1)},156`} fill="rgba(121,161,247,.1)" />
+      <polygon points={`${x(0)},156 ${coordinates} ${x(points.length - 1)},156`} fill="rgba(255, 154, 149,.1)" />
       <polyline className="tw-chart-line" points={coordinates} />
       {points.map((point, index) => <g key={point.date}>
-        <circle cx={x(index)} cy={y(point.views)} r={points.length > 40 ? 1.5 : 3} fill="#79a1f7"><title>{point.date}: {point.views} views</title></circle>
+        <circle cx={x(index)} cy={y(point.views)} r={points.length > 40 ? 1.5 : 3} fill="#ff9a95"><title>{point.date}: {point.views} views</title></circle>
         {(index % Math.max(1, Math.ceil(points.length / 6)) === 0 || index === points.length - 1) && <text x={x(index)} y="180" textAnchor="middle">{formatter.format(new Date(point.date + "T00:00:00Z"))}</text>}
       </g>)}
     </svg>
