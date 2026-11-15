@@ -6,6 +6,8 @@ import { pipeline } from "node:stream/promises";
 // Tracks are stored independently of profile JSON and sent in bounded chunks.
 // There is no application-level limit on total track size or duration.
 export const AUDIO_CHUNK_BYTES = 1024 * 1024;
+/** Background video ceiling for Premium accounts. */
+export const VIDEO_MAX_BYTES = 100 * 1024 * 1024;
 export const AUDIO_SCHEMA = `
 create table if not exists profile_audio (
   id uuid primary key,
@@ -31,7 +33,13 @@ const handler = (run) => async (req, res, next) => {
 export function registerAudioRoutes(app, pool, requireAuth) {
   app.post("/api/media/audio", requireAuth, express.json({ limit: "4kb" }), handler(async (req, res) => {
     const { bytes, mime } = req.body || {};
-    if (!Number.isSafeInteger(bytes) || bytes <= 0 || typeof mime !== "string" || !/^audio\/[a-z0-9.+-]+$/i.test(mime)) return res.status(400).json({ error: "Choose a non-empty audio file." });
+    if (!Number.isSafeInteger(bytes) || bytes <= 0 || typeof mime !== "string" || !/^(audio|video)\/[a-z0-9.+-]+$/i.test(mime))
+      return res.status(400).json({ error: "Choose a non-empty audio or video file." });
+    if (mime.toLowerCase().startsWith("video/")) {
+      const { rows: owners } = await pool.query("select premium from users where id = $1", [req.auth.sub]);
+      if (!owners[0]?.premium) return res.status(403).json({ error: "Background video is a Premium feature." });
+      if (bytes > VIDEO_MAX_BYTES) return res.status(400).json({ error: "Videos up to 100 MB." });
+    }
     await pool.query("delete from profile_audio where user_id = $1 and complete = false and created_at < now() - interval '1 day'", [req.auth.sub]);
     const id = randomUUID();
     await pool.query("insert into profile_audio (id,user_id,mime,bytes) values ($1,$2,$3,$4)", [id, req.auth.sub, mime, bytes]);

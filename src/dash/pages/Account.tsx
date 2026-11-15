@@ -7,6 +7,7 @@ import { formatJoined } from "../../lib/format";
 import decorations from "../../lib/decorations.json";
 import { useDash } from "../context";
 import { copyText, imageToDataUrl, fileToDataUrl } from "../files";
+import { VIDEO_MAX_BYTES, uploadVideoFile } from "../../lib/videoUpload";
 import { FileUpload,
   Button,
   Card,
@@ -31,7 +32,7 @@ const BIO_LIMIT = 800;
 const DECO_PAGE = 36;
 
 export function AccountProfilePage() {
-  const { user, about, setAbout, notify, go } = useDash();
+  const { user, about, setAbout, notify, go, isPremium } = useDash();
   const avatarInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [decoOpen, setDecoOpen] = useState(false);
@@ -450,7 +451,43 @@ export function AccountProfilePage() {
 
           {assets.background.style === "video" ? <div className="tw-stack">
             <Field label="Background video URL" hint="Use a direct MP4 or WebM URL. Video plays behind the whole page."><TextInput value={assets.background.videoUrl} placeholder="https://.../background.mp4" onChange={(event) => updateAssets({ background: { ...assets.background, videoUrl: event.target.value } })} /></Field>
-            <Field label="Upload a short background video" hint="Up to 4 MB. Use a hosted URL for larger videos."><FileUpload aria-label="Background video file" accept="video/mp4,video/webm" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("video/") || file.size > 4_000_000) { notify("Video", "Choose a video under 4 MB, or use a hosted URL."); return; } updateAssets({ background: { ...assets.background, videoUrl: await fileToDataUrl(file), style: "video" } }); }} /></Field>
+            <Field
+              label="Background video"
+              hint={
+                isPremium
+                  ? "Up to 100 MB — uploaded in chunks, so long clips are fine. A hosted URL works too."
+                  : "Up to 4 MB on the free plan. Premium lifts the cap to 100 MB, or use a hosted URL."
+              }
+            >
+              <FileUpload
+                aria-label="Background video file"
+                accept="video/mp4,video/webm,video/quicktime"
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  if (!file.type.startsWith("video/")) {
+                    notify("Video", "Choose an MP4, WebM or MOV file.");
+                    return;
+                  }
+                  if (!isPremium && file.size > 4_000_000) {
+                    notify("Video", "Free accounts can upload up to 4 MB. Premium allows 100 MB.");
+                    return;
+                  }
+                  if (isPremium && file.size > VIDEO_MAX_BYTES) {
+                    notify("Video", "Videos up to 100 MB.");
+                    return;
+                  }
+                  try {
+                    const videoUrl = isPremium
+                      ? await uploadVideoFile(file)
+                      : await fileToDataUrl(file);
+                    updateAssets({ background: { ...assets.background, videoUrl, style: "video" } });
+                  } catch (error) {
+                    notify("Video", error instanceof Error ? error.message : "That video could not be uploaded.");
+                  }
+                }}
+              />
+            </Field>
             <div className="tw-inline-toggle"><span><b>Video sound</b><small>Unmutes after the visitor clicks the page.</small></span><Toggle label="Video sound" checked={assets.background.videoAudio} onChange={(videoAudio) => updateAssets({ background: { ...assets.background, videoAudio } })} /></div>
             <Slider label="Video volume" value={Math.round(assets.background.videoVolume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAssets({ background: { ...assets.background, videoVolume: volume / 100 } })} />
           </div> : null}

@@ -82,7 +82,7 @@
 .pos-studio-canvas {
   position: relative;
   display: flex;
-  min-height: 560px;
+  min-height: 380px;
   align-items: center;
   justify-content: center;
   padding: 96px 78px 104px;

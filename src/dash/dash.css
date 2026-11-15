@@ -618,8 +618,8 @@
 /* ------------------------------------------------------------------ cards */
 
 .tw-card {
-  margin-top: 16px;
-  padding: 20px;
+  margin-top: 12px;
+  padding: 18px;
   border: 2px solid var(--border);
   border-radius: var(--r-card);
   background: var(--card);
@@ -1339,8 +1339,8 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 190px;
-  padding: 28px 20px;
+  min-height: 132px;
+  padding: 22px 18px;
   border-radius: 12px;
   color: var(--title);
   text-align: center;
@@ -2048,7 +2048,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  min-height: 108px;
+  min-height: 76px;
   margin-top: 14px;
   padding: 14px;
   border: 1px dashed #262629;
@@ -2137,8 +2137,8 @@
   align-items: flex-start;
   flex-direction: column;
   gap: 10px;
-  min-height: 132px;
-  padding: 16px;
+  min-height: 108px;
+  padding: 14px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -2648,7 +2648,7 @@
 }
 
 .tw-stat-panel {
-  min-height: 222px;
+  min-height: 150px;
   padding: 14px 16px;
   border: 2px solid var(--border);
   border-radius: 12px;
@@ -3606,7 +3606,7 @@
 .tw-card-preview {
   position: sticky;
   top: 12px;
-  height: 470px;
+  height: 400px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -4446,8 +4446,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 170px;
-  padding: 20px;
+  min-height: 132px;
+  padding: 16px;
   border: 1px dashed #26262f;
   border-radius: 18px;
   color: #988b8b;
