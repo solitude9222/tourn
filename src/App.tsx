@@ -411,7 +411,7 @@ function ProfilePage({
     }
     return (
       <section className="profile-page">
-        <Oneko enabled={Boolean(about.design.oneko)} />
+        <Oneko enabled={Boolean(about.design.oneko)} cat={about.design.onekoCat} />
         <LinkerPreview
           user={user}
           about={about}
@@ -448,7 +448,7 @@ function ProfilePage({
     const document = remote.data.profile;
     return (
       <section className="profile-page">
-        <Oneko enabled={Boolean(document.about.design.oneko)} />
+        <Oneko enabled={Boolean(document.about.design.oneko)} cat={document.about.design.onekoCat} />
         <LinkerPreview
           user={remote.data.account}
           about={document.about}

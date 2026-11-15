@@ -10,9 +10,32 @@
  * without a reload). Behaviour, timing and animations are the upstream ones.
  */
 
+/** Colourways for the same sprite sheet, done with CSS filters. */
+export const ONEKO_CATS = [
+  { id: "classic", label: "Classic", filter: "none" },
+  { id: "orange", label: "Orange tabby", filter: "sepia(1) saturate(3.6) hue-rotate(-15deg) brightness(1.05)" },
+  { id: "tuxedo", label: "Tuxedo", filter: "grayscale(1) contrast(1.8) brightness(1.12)" },
+  { id: "ghost", label: "Ghost", filter: "grayscale(1) brightness(1.85) contrast(0.55) opacity(0.85)" },
+  { id: "mint", label: "Mint", filter: "sepia(1) saturate(4) hue-rotate(75deg) brightness(1.1)" },
+  { id: "bubblegum", label: "Bubblegum", filter: "sepia(1) saturate(5) hue-rotate(-45deg) brightness(1.15)" },
+  { id: "midnight", label: "Midnight", filter: "brightness(0.42) saturate(0.7) contrast(1.2)" },
+] as const;
+
+export type OnekoCat = (typeof ONEKO_CATS)[number]["id"];
+
+export function isOnekoCat(value: unknown): value is OnekoCat {
+  return typeof value === "string" && ONEKO_CATS.some((entry) => entry.id === value);
+}
+
+export function onekoFilter(cat: OnekoCat | undefined): string {
+  return ONEKO_CATS.find((entry) => entry.id === cat)?.filter ?? "none";
+}
+
 export type OnekoOptions = {
   /** Sprite sheet URL. Defaults to the bundled copy. */
   spriteUrl?: string;
+  /** CSS filter that recolours the sprite. */
+  filter?: string;
   /** Pixels per tick (upstream default is 10, one tick every 100ms). */
   speed?: number;
   /** Where the cat starts, in viewport pixels. */
@@ -98,7 +121,7 @@ const TICK_MS = 100;
 /** Starts the cat. Returns a cleanup function that removes it. */
 export function startOneko(options: OnekoOptions = {}): () => void {
   if (typeof window === "undefined" || typeof document === "undefined") return () => {};
-  const { spriteUrl = "/oneko.gif", speed = 10, respectReducedMotion = true } = options;
+  const { spriteUrl = "/oneko.gif", speed = 10, respectReducedMotion = true, filter } = options;
 
   if (respectReducedMotion && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return () => {};
@@ -134,6 +157,7 @@ export function startOneko(options: OnekoOptions = {}): () => void {
     `background-image:url("${spriteUrl}")`,
     "z-index:2147483646",
     "will-change:transform",
+    filter ? "filter:" + filter : "",
     "transform:translate3d(0,0,0)",
   ].join(";");
 

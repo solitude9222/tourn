@@ -10,6 +10,7 @@ import { uploadAudioFile } from "../../lib/audioUpload";
 import { AudioPlayer } from "../../components/AudioPlayer";
 import { imageToDataUrl } from "../files";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
+import { ONEKO_CATS } from "../../lib/oneko";
 import { fileToDataUrl } from "../files";
 import { ProfilePreview } from "../../components/ProfilePreview";
 import { EntryOverlay } from "../../components/LinkerPreview";
@@ -88,7 +89,6 @@ export function AudioSettingsCard() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-
   const updateDesign = (patch: Partial<typeof about.design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
 
@@ -111,9 +111,6 @@ export function AudioSettingsCard() {
         style: audio.style === "none" ? "compact" : audio.style,
         title: audio.title || file.name.replace(/\.[^.]+$/, ""),
       });
-      // A freshly uploaded track must be visible somewhere: a profile left on
-      // "hidden" would swallow the player the upload just made.
-      // Nothing to reveal any more: there is no hidden position.
       notify("Audio", "Track added. Changes save automatically.");
     } catch (error) {
       notify("Upload failed", error instanceof Error ? error.message : "That audio file could not be read.");
@@ -129,7 +126,7 @@ export function AudioSettingsCard() {
       updateAudio({
         queue: [
           ...audio.queue,
-          { id: globalThis.crypto?.randomUUID?.() ?? `q-${Date.now()}`, url, title: file.name.replace(/\.[^.]+$/, "") },
+          { id: globalThis.crypto?.randomUUID?.() ?? "q-" + Date.now(), url, title: file.name.replace(/\.[^.]+$/, "") },
         ].slice(0, 2),
       });
       notify("Playlist", "Song added. Save to publish it.");
@@ -156,48 +153,165 @@ export function AudioSettingsCard() {
     try {
       const text = (await file.text()).slice(0, 40_000);
       updateAudio({ lyrics: text, autoLyrics: false });
-      notify("Lyrics", `${file.name} loaded. Changes save automatically.`);
+      notify("Lyrics", file.name + " loaded. Changes save automatically.");
     } catch {
       notify("Lyrics", "That lyrics file could not be read.");
     }
   };
+
+  const audioSlotNames: Record<string, string> = {
+    "card-bottom": "Bottom of card",
+    "below-card": "Below card",
+    "page-top": "Top of page",
+    "page-bottom": "Bottom of page",
+  };
+
+  const styleName = AUDIO_STYLES.find((entry) => entry.id === audio.style)?.name ?? "No style";
+  const placementName =
+    audioSlotNames[about.design.audioSlot] ?? about.design.audioSlot;
+  const songCount = audio.fileUrl ? 1 + audio.queue.length : 0;
 
   return (
     <Card>
       <CardHead
         icon="music"
         title="Audio player"
-        subtitle="Upload a track, choose a player and preview it here."
+        subtitle="Songs first, then how it plays, where it sits and how it looks."
       />
 
       {audio.fileUrl && audio.style !== "none" && audio.cardOpacity > 0.005 ? (
-        <div className="tw-audio-live-preview"><AudioPlayer settings={{ ...audio, autoplay: false }} /></div>
+        <div className="tw-audio-live-preview">
+          <AudioPlayer settings={{ ...audio, autoplay: false }} />
+        </div>
       ) : (
         <p className="tw-foot-note">
           {!audio.fileUrl
-            ? "Add an audio file to preview your player."
+            ? "Upload a song below to preview your player here."
             : audio.style === "none"
-              ? "Player style is None, so nothing is drawn. Choose a style above."
-              : "Player opacity is 0%, so the player is invisible. Raise it above."}
+              ? "Player style is None, so nothing is drawn yet."
+              : "Player opacity is 0%, so the player is invisible."}
         </p>
       )}
-      {audio.fileUrl ? (
-        <p className="tw-foot-note">
-          Track attached · placed {about.design.audioSlot.replace("-", " ")}
-        </p>
-      ) : null}
-      <div className="tw-audio-settings-grid"><div className="tw-stack">
-        <Field label="Border animation"><Select value={audio.edgeEffect} options={[{value:"none",label:"None"},{value:"trace",label:"Travelling light"},{value:"pulse",label:"Soft pulse"}]} onChange={edgeEffect=>updateAudio({edgeEffect:edgeEffect as typeof audio.edgeEffect})}/></Field><Slider label="Border animation duration" value={audio.edgeSpeed} min={1} max={15} step={.5} suffix="s" onChange={edgeSpeed=>updateAudio({edgeSpeed})}/>
-        <div className="tw-stack"><Slider label="Border alpha" value={Math.round(audio.borderOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ borderOpacity: value / 100 })} /></div>
-        <div className="tw-stack"><Slider label="Track alpha" value={Math.round(audio.trackOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ trackOpacity: value / 100 })} /></div>
-        <Slider label="Default volume" value={Math.round(audio.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAudio({ volume: volume / 100 })} />
-        <Slider label="Player opacity" value={Math.round(audio.cardOpacity * 100)} min={0} max={100} suffix="%" onChange={(cardOpacity) => updateAudio({ cardOpacity: cardOpacity / 100 })} />
-        <Slider label="Playback speed" value={audio.playbackRate} min={.5} max={2} step={.05} suffix="×" onChange={(playbackRate) => updateAudio({ playbackRate })} />
-        <Slider label="Start at" value={audio.startAt} min={0} max={300} suffix="s" onChange={(startAt) => updateAudio({ startAt })} />
-        <div className="tw-inline-toggle"><b>Loop track</b><Toggle label="Loop track" checked={audio.loop} onChange={(loop) => updateAudio({ loop })} /></div>
-        <div className="tw-inline-toggle"><b>Start muted</b><Toggle label="Start muted" checked={audio.startMuted} onChange={(startMuted) => updateAudio({ startMuted })} /></div>
-        <div className="tw-inline-toggle"><span><b>Shuffle</b><small>Pick a random song when the page loads</small></span><Toggle label="Shuffle" checked={audio.shuffle} onChange={(shuffle) => updateAudio({ shuffle })} /></div>
+      <div className="tw-audio-chips">
+        <span>{songCount ? songCount + (songCount === 1 ? " song" : " songs") : "No track"}</span>
+        <span>{styleName}</span>
+        <span>{placementName}</span>
+      </div>
 
+      <SectionLabel hint="One main track plus up to two more. Shuffle picks one per visit.">
+        Songs
+      </SectionLabel>
+      <div className="tw-audio-group">
+        <Field label="Main track" hint="MP3, WAV, OGG, M4A and other audio formats.">
+          <div className="tw-row">
+            <Button icon="upload" disabled={uploading} onClick={() => audioInput.current?.click()}>
+              {uploading ? "Uploading " + uploadProgress + "%" : audio.fileUrl ? "Replace track" : "Upload track"}
+            </Button>
+            {audio.fileUrl ? (
+              <Button variant="danger" icon="trash" onClick={() => updateAudio({ fileUrl: "", style: "none" })}>
+                Remove
+              </Button>
+            ) : null}
+          </div>
+        </Field>
+
+        <div className="tw-audio-playlist">
+          <div className="tw-audio-playlist-head">
+            <b>Playlist</b>
+            <span>{audio.queue.length + (audio.fileUrl ? 1 : 0)} of 3</span>
+          </div>
+          {audio.fileUrl ? (
+            <div className="tw-queue-row">
+              <span>
+                <b>{audio.title || "Main track"}</b>
+                <small>Main track</small>
+              </span>
+            </div>
+          ) : null}
+          {audio.queue.map((song, index) => (
+            <div className="tw-queue-row" key={song.id}>
+              <span>
+                <b>{song.title || "Song " + (index + 2)}</b>
+                <small>{"Extra song " + (index + 2)}</small>
+              </span>
+              <Button
+                icon="trash"
+                variant="danger"
+                onClick={() => updateAudio({ queue: audio.queue.filter((item) => item.id !== song.id) })}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
+          <Button icon="upload" onClick={() => queueInput.current?.click()} disabled={audio.queue.length >= 2 || !audio.fileUrl}>
+            Add another song
+          </Button>
+          {!audio.fileUrl ? <small className="tw-foot-note">Upload the main track first.</small> : null}
+        </div>
+
+        <div className="tw-form-grid">
+          <Field label="Track title">
+            <TextInput
+              value={audio.title}
+              maxLength={80}
+              placeholder="Track title"
+              onChange={(event) => updateAudio({ title: event.target.value.slice(0, 80) })}
+            />
+          </Field>
+          <Field label="Artist">
+            <TextInput
+              value={audio.artist}
+              maxLength={80}
+              placeholder="Artist"
+              onChange={(event) => updateAudio({ artist: event.target.value.slice(0, 80) })}
+            />
+          </Field>
+        </div>
+
+        <Field label="Cover art" hint="Square image shown on the player.">
+          <div className="tw-row">
+            {audio.coverUrl ? <img className="tw-audio-cover" src={audio.coverUrl} alt="" /> : null}
+            <Button icon="upload" onClick={() => coverInput.current?.click()}>
+              {audio.coverUrl ? "Replace cover" : "Upload cover"}
+            </Button>
+            {audio.coverUrl ? (
+              <Button variant="danger" icon="trash" onClick={() => updateAudio({ coverUrl: "" })}>
+                Remove
+              </Button>
+            ) : null}
+          </div>
+        </Field>
+      </div>
+
+      <SectionLabel hint="How the song behaves when someone opens your profile.">Playback</SectionLabel>
+      <div className="tw-audio-group">
+        <div className="tw-audio-sliders">
+          <Slider label="Start at" value={audio.startAt} min={0} max={300} suffix="s" onChange={(startAt) => updateAudio({ startAt })} />
+          <Slider label="Playback speed" value={audio.playbackRate} min={0.5} max={2} step={0.05} suffix="×" onChange={(playbackRate) => updateAudio({ playbackRate })} />
+          <Slider label="Default volume" value={Math.round(audio.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAudio({ volume: volume / 100 })} />
+        </div>
+        <div className="tw-audio-toggles">
+          <div className="tw-inline-toggle">
+            <span><b>Play after entry</b><small>Starts once the visitor is inside.</small></span>
+            <Toggle label="Play after entry" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} />
+          </div>
+          <div className="tw-inline-toggle">
+            <span><b>Loop track</b><small>Restart when it ends.</small></span>
+            <Toggle label="Loop track" checked={audio.loop} onChange={(loop) => updateAudio({ loop })} />
+          </div>
+          <div className="tw-inline-toggle">
+            <span><b>Start muted</b><small>Visitors unmute with one click.</small></span>
+            <Toggle label="Start muted" checked={audio.startMuted} onChange={(startMuted) => updateAudio({ startMuted })} />
+          </div>
+          <div className="tw-inline-toggle">
+            <span><b>Shuffle</b><small>Pick a random song each visit.</small></span>
+            <Toggle label="Shuffle" checked={audio.shuffle} onChange={(shuffle) => updateAudio({ shuffle })} />
+          </div>
+        </div>
+      </div>
+
+      <SectionLabel hint="Same four places the Layout preview drops it on.">Placement and style</SectionLabel>
+      <div className="tw-form-grid">
         <Field label="Player style" hint="How the player looks on your profile.">
           <Select
             value={audio.style}
@@ -205,8 +319,7 @@ export function AudioSettingsCard() {
             onChange={(value) => updateAudio({ style: value as typeof audio.style })}
           />
         </Field>
-
-        <Field label="Player placement" hint="Or drag it in Layout to any of these.">
+        <Field label="Player placement" hint="Or drag the player in Layout.">
           <Select
             value={about.design.audioSlot}
             options={[
@@ -218,22 +331,67 @@ export function AudioSettingsCard() {
             onChange={(value) => updateDesign({ audioSlot: value as typeof about.design.audioSlot })}
           />
         </Field>
+      </div>
 
+      <SectionLabel hint="Surface, accent and typography.">Look</SectionLabel>
+      <div className="tw-audio-group">
+        <div className="tw-form-grid tw-audio-colors">
+          <ColorField label="Player background" value={audio.playerColor} onChange={(value) => updateAudio({ playerColor: value })} />
+          <ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
+          <ColorField label="Title colour" value={audio.titleColor} onChange={(value) => updateAudio({ titleColor: value })} />
+          <ColorField label="Artist colour" value={audio.artistColor} onChange={(value) => updateAudio({ artistColor: value })} />
+          <ColorField label="Play button" value={audio.buttonColor} onChange={(value) => updateAudio({ buttonColor: value })} />
+          <ColorField label="Play icon" value={audio.buttonIconColor} onChange={(value) => updateAudio({ buttonIconColor: value })} />
+        </div>
+        <div className="tw-audio-sliders">
+          <Slider label="Player opacity" value={Math.round(audio.cardOpacity * 100)} min={0} max={100} suffix="%" onChange={(cardOpacity) => updateAudio({ cardOpacity: cardOpacity / 100 })} />
+          <Slider label="Accent opacity" value={Math.round(audio.accentOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ accentOpacity: value / 100 })} />
+        </div>
+        <details className="tw-advanced">
+          <summary>Bar and progress colours<small>optional</small></summary>
+          <div className="tw-form-grid tw-audio-colors">
+            <ColorField label="Progress colour" value={audio.progressColor} onChange={(value) => updateAudio({ progressColor: value })} />
+            <ColorField label="Track colour" value={audio.trackColor} onChange={(value) => updateAudio({ trackColor: value })} />
+          </div>
+          <div className="tw-audio-sliders">
+            <Slider label="Track alpha" value={Math.round(audio.trackOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ trackOpacity: value / 100 })} />
+          </div>
+        </details>
+        <details className="tw-advanced">
+          <summary>Border<small>colour, alpha and animation</small></summary>
+          <div className="tw-form-grid tw-audio-colors">
+            <ColorField label="Border colour" value={audio.borderColor} onChange={(value) => updateAudio({ borderColor: value })} />
+            <ColorField label="Animation colour" value={audio.edgeColor} onChange={(edgeColor) => updateAudio({ edgeColor })} />
+          </div>
+          <Field label="Border animation">
+            <Select
+              value={audio.edgeEffect}
+              options={[
+                { value: "none", label: "None" },
+                { value: "trace", label: "Travelling light" },
+                { value: "pulse", label: "Soft pulse" },
+              ]}
+              onChange={(edgeEffect) => updateAudio({ edgeEffect: edgeEffect as typeof audio.edgeEffect })}
+            />
+          </Field>
+          <div className="tw-audio-sliders">
+            <Slider label="Border alpha" value={Math.round(audio.borderOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ borderOpacity: value / 100 })} />
+            <Slider label="Animation duration" value={audio.edgeSpeed} min={1} max={15} step={0.5} suffix="s" onChange={(edgeSpeed) => updateAudio({ edgeSpeed })} />
+          </div>
+        </details>
+      </div>
 
-        <div className="tw-design-divider" role="presentation" />
-
-        <SectionLabel hint="A floating control that silences the track. It is not a player.">Mute button</SectionLabel>
+      <SectionLabel hint="A floating control that silences the track. It is not a player.">
+        Mute button
+      </SectionLabel>
+      <div className="tw-audio-group">
         <div className="tw-inline-toggle">
-          <span>
-            <b>Show mute button</b>
-            <small>Floats in a corner of the page and mutes the track</small>
-          </span>
+          <span><b>Show mute button</b><small>Floats in a corner of the page and mutes the track.</small></span>
           <Toggle label="Mute button" checked={audio.muteButton} onChange={(muteButton) => updateAudio({ muteButton })} />
         </div>
-
         {audio.muteButton ? (
-          <div className="tw-audio-settings-grid">
-            <div className="tw-stack">
+          <>
+            <div className="tw-form-grid">
               <Field label="Corner" hint="Where the mute button sits on the page.">
                 <Select
                   value={audio.popupSide}
@@ -246,120 +404,36 @@ export function AudioSettingsCard() {
                   onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })}
                 />
               </Field>
+              <ColorField label="Button background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
+              <ColorField label="Icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
+            </div>
+            <div className="tw-audio-sliders">
               <Slider label="Button size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
               <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
               <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
               <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
             </div>
-            <div className="tw-stack tw-audio-colors">
-              <ColorField label="Icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
-              <ColorField label="Button background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
-            </div>
-          </div>
+          </>
         ) : null}
+      </div>
 
-        <Field label="Audio file" hint="MP3, WAV, OGG, M4A and other audio formats.">
-          <div className="tw-row">
-            <Button
-              icon="upload"
-              disabled={uploading}
-              onClick={() => audioInput.current?.click()}
-            >
-              {uploading ? `Uploading ${uploadProgress}%` : audio.fileUrl ? "Replace audio" : "Upload audio"}
+      <SectionLabel hint="Optional synced words over the player.">Lyrics</SectionLabel>
+      <div className="tw-audio-group">
+        <div className="tw-row">
+          <Button icon="upload" onClick={() => lyricsInput.current?.click()}>
+            {audio.lyrics ? "Replace .lrc" : "Upload .lrc"}
+          </Button>
+          {audio.lyrics ? (
+            <Button variant="danger" icon="trash" onClick={() => updateAudio({ lyrics: "" })}>
+              Remove
             </Button>
-            {audio.fileUrl ? (
-              <Button
-                variant="danger"
-                icon="trash"
-                onClick={() => updateAudio({ fileUrl: "", style: "none" })}
-              >
-                Remove
-              </Button>
-            ) : null}
+          ) : null}
+          <div className="tw-inline-toggle tw-audio-inline-toggle">
+            <span><b>Auto-fetch</b><small>When no file is set.</small></span>
+            <Toggle label="Auto-fetch lyrics" checked={audio.autoLyrics} onChange={(checked) => updateAudio({ autoLyrics: checked })} />
           </div>
-        </Field>
-
-        <Field label="Playlist" hint="The main file plus up to two more songs — three in total. Shuffle picks one.">
-          <div className="tw-stack">
-            {audio.queue.map((song, index) => (
-              <div className="tw-queue-row" key={song.id}>
-                <span>
-                  <b>{song.title || `Song ${index + 2}`}</b>
-                  <small>{Math.round(song.url.length / 14000)} KB uploaded</small>
-                </span>
-                <Button icon="trash" variant="danger" onClick={() => updateAudio({ queue: audio.queue.filter((item) => item.id !== song.id) })}>Remove</Button>
-              </div>
-            ))}
-            <div className="tw-row">
-              <Button icon="upload" onClick={() => queueInput.current?.click()} disabled={audio.queue.length >= 2}>
-                Add another song
-              </Button>
-              <small className="tw-foot-note">{audio.queue.length + 1} of 3</small>
-            </div>
-          </div>
-        </Field>
-
-        <Field label="Cover art" hint="Square image shown on the player.">
-          <div className="tw-row">
-            {audio.coverUrl ? (
-              <img className="tw-audio-cover" src={audio.coverUrl} alt="" />
-            ) : null}
-            <Button icon="upload" onClick={() => coverInput.current?.click()}>
-              {audio.coverUrl ? "Replace cover" : "Upload cover"}
-            </Button>
-            {audio.coverUrl ? (
-              <Button variant="danger" icon="trash" onClick={() => updateAudio({ coverUrl: "" })}>
-                Remove
-              </Button>
-            ) : null}
-          </div>
-        </Field>
-
-        <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div>
-        <Field label="Track title">
-          <TextInput
-            value={audio.title}
-            maxLength={80}
-            placeholder="Track title"
-            onChange={(event) => updateAudio({ title: event.target.value.slice(0, 80) })}
-          />
-        </Field>
-
-        <Field label="Artist">
-          <TextInput
-            value={audio.artist}
-            maxLength={80}
-            placeholder="Artist"
-            onChange={(event) => updateAudio({ artist: event.target.value.slice(0, 80) })}
-          />
-        </Field>
-
-        <Field
-          label="Lyrics file"
-          className="tw-span-2"
-          hint="Upload a .lrc file with [mm:ss.xx] timestamps for synced lyrics, or a .txt file for plain lines."
-        >
-          <div className="tw-row">
-            <Button icon="upload" onClick={() => lyricsInput.current?.click()}>
-              {audio.lyrics ? "Replace lyrics" : "Upload .lrc"}
-            </Button>
-            {audio.lyrics ? (
-              <Button
-                variant="danger"
-                icon="trash"
-                onClick={() => updateAudio({ lyrics: "" })}
-              >
-                Remove
-              </Button>
-            ) : null}
-          </div>
-        </Field>
-
-        <Field
-          label="Lyrics"
-          className="tw-span-2"
-          hint={`${audio.lyrics.length} / 40000`}
-        >
+        </div>
+        <Field label="Lyrics text" hint={audio.lyrics.length + " / 40000"}>
           <Textarea
             rows={6}
             maxLength={40_000}
@@ -368,32 +442,7 @@ export function AudioSettingsCard() {
             onChange={(event) => updateAudio({ lyrics: event.target.value.slice(0, 40_000) })}
           />
         </Field>
-
-      <div className="tw-inline-toggle" style={{ marginTop: 14 }}>
-        <span>
-          <b>Auto-fetch lyrics</b>
-          <small>Used when no lyrics text or .lrc file is set.</small>
-        </span>
-        <Toggle
-          checked={audio.autoLyrics}
-          onChange={(checked) => updateAudio({ autoLyrics: checked })}
-          label="Auto-fetch lyrics"
-        />
-      </div></div><details className="tw-advanced"><summary>Colours &amp; transparency<small>10 colours, all optional</small></summary><div className="tw-stack tw-audio-colors">
-        <ColorField label="Border animation colour" value={audio.edgeColor} onChange={edgeColor=>updateAudio({edgeColor})}/><ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
-        <Slider label="Accent opacity" value={Math.round(audio.accentOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ accentOpacity: value / 100 })} />
-        <ColorField label="Player background" value={audio.playerColor} onChange={(value) => updateAudio({ playerColor: value })} />
-        <ColorField label="Border colour" value={audio.borderColor} onChange={(value) => updateAudio({ borderColor: value })} />
-
-        <ColorField label="Title colour" value={audio.titleColor} onChange={(value) => updateAudio({ titleColor: value })} />
-        <ColorField label="Artist colour" value={audio.artistColor} onChange={(value) => updateAudio({ artistColor: value })} />
-        <ColorField label="Progress colour" value={audio.progressColor} onChange={(value) => updateAudio({ progressColor: value })} />
-        <ColorField label="Track colour" value={audio.trackColor} onChange={(value) => updateAudio({ trackColor: value })} />
-
-        <ColorField label="Play button" value={audio.buttonColor} onChange={(value) => updateAudio({ buttonColor: value })} />
-        <ColorField label="Play icon" value={audio.buttonIconColor} onChange={(value) => updateAudio({ buttonIconColor: value })} />
-</div></details></div>
-
+      </div>
 
       <input
         ref={audioInput}
@@ -857,6 +906,23 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
             onChange={(checked) => updateDesign({ oneko: checked })}
           />
         </div>
+
+        {design.oneko ? (
+          <div className="tw-oneko-cats">
+            {ONEKO_CATS.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={"tw-oneko-cat" + (design.onekoCat === cat.id ? " is-active" : "")}
+                onClick={() => updateDesign({ onekoCat: cat.id })}
+                aria-pressed={design.onekoCat === cat.id}
+              >
+                <span style={{ filter: cat.filter === "none" ? undefined : cat.filter }} />
+                <small>{cat.label}</small>
+              </button>
+            ))}
+          </div>
+        ) : null}
 
       </Card>
 

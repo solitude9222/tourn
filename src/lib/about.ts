@@ -1,4 +1,5 @@
 import { DEFAULT_PROFILE_ASSETS, loadProfileAssets, type ProfileAssets } from "./profileAssets";
+import { isOnekoCat, type OnekoCat } from "./oneko";
 import type { TooltipAnimation, TooltipStyle } from "./links";
 
 export type AboutTheme = "default" | "modern" | "portfolio";
@@ -338,6 +339,8 @@ export type AboutDesign = {
   tiltInvert?: boolean;
   /** A small cat that follows the pointer around the card. */
   oneko?: boolean;
+  /** Which colourway that cat uses. */
+  onekoCat?: OnekoCat;
   /** Avatar position offset from default */
   avatarX?: number;
   avatarY?: number;
@@ -473,6 +476,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   locationSlot: "card-bl",
   joinedSlot: "card-bl",
   groupInterests: false,
+  onekoCat: "classic",
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
   pills: DEFAULT_PILL_STYLE,
@@ -820,6 +824,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),
     tiltInvert: boolIn(raw.tiltInvert, false),
     oneko: boolIn(raw.oneko, false),
+    onekoCat: isOnekoCat(raw.onekoCat) ? raw.onekoCat : "classic",
     avatarX: numberIn(raw.avatarX, 0, -200, 200),
     avatarY: numberIn(raw.avatarY, 0, -200, 200),
     badgeX: numberIn(raw.badgeX, 0, -200, 200),

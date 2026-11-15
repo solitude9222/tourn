@@ -6656,7 +6656,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   background: none;
   box-shadow: none;
   color: var(--pv-muted);
-  font-size: calc(14.5px * var(--pv-scale, 1));
+  font-size: calc(15.5px * var(--pv-scale, 1));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -6775,7 +6775,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   color: inherit;
   font-size: inherit;
 }
-.pv-slot svg { width: calc(18px * var(--pv-scale, 1)); height: calc(18px * var(--pv-scale, 1)); opacity: 0.92; }
+.pv-slot svg { width: calc(23px * var(--pv-scale, 1)); height: calc(23px * var(--pv-scale, 1)); opacity: 0.92; }
 .pv-slot .pv-react { gap: 2px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
 .pv-slot .pv-react-btn { padding: 2px 5px; font-size: inherit; }
 
@@ -6792,7 +6792,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .pv-slot--page-tr { top: 18px; right: 22px; }
 .pv-slot--page-bl { bottom: 18px; left: 22px; }
 .pv-slot--page-br { bottom: 18px; right: 22px; }
-.pv-page-slots svg { width: 17px; height: 17px; opacity: 0.92; }
+.pv-page-slots svg { width: 22px; height: 22px; opacity: 0.92; }
 
 /* ── page-level audio ─────────────────────────────────────────────────── */
 .lkr-page-audio {

@@ -201,13 +201,13 @@ function LayoutPreview() {
                   ) : (
                     <>
                       {dragging === "views" ? (
-                        <ViewsGlyph size={17} />
+                        <ViewsGlyph size={22} />
                       ) : dragging === "location" ? (
-                        <LocationGlyph size={16} />
+                        <LocationGlyph size={21} />
                       ) : dragging === "likes" ? (
-                        <ThumbIcon size={17} />
+                        <ThumbIcon size={22} />
                       ) : (
-                        <Icon name="calendar" size={16} />
+                        <Icon name="calendar" size={21} />
                       )}
                       {dragging === "likes" ? (
                         <><b>19</b><b>5</b></>

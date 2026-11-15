@@ -3560,3 +3560,32 @@
 .tw-ghost-play { width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); }
 .tw-drop-zone:has(.tw-ghost--audio) { width: 216px; height: 52px; }
 .tw-drop-zone:hover .tw-ghost, .tw-drop-zone.is-hot .tw-ghost { opacity: 1; }
+
+/* ── audio settings, grouped ─────────────────────────────────────────── */
+.tw-audio-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
+.tw-audio-chips span { padding: 4px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--tile); color: var(--sub); font-size: 11px; font-weight: 600; }
+.tw-audio-group {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--tile);
+}
+.tw-audio-group > .tw-form-grid { gap: 12px; }
+.tw-audio-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; }
+.tw-audio-toggles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; }
+.tw-audio-toggles .tw-inline-toggle { margin: 0; }
+.tw-audio-playlist { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+.tw-audio-playlist-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tw-audio-playlist-head b { font-size: 12.5px; color: var(--title); }
+.tw-audio-playlist-head span { color: var(--desc); font-size: 11px; }
+.tw-audio-inline-toggle { margin-left: auto; }
+@media (max-width: 900px) { .tw-audio-sliders, .tw-audio-toggles { grid-template-columns: minmax(0, 1fr); } }
+.tw-oneko-cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; margin-top: 14px; }
+.tw-oneko-cat { display: flex; align-items: center; flex-direction: column; gap: 6px; padding: 9px 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--tile); font-family: inherit; cursor: pointer; }
+.tw-oneko-cat span { width: 38px; height: 38px; background-image: url(/oneko.gif); background-repeat: no-repeat; background-size: 256px 128px; background-position: -96px -96px; image-rendering: pixelated; }
+.tw-oneko-cat small { color: var(--sub); font-size: 10.5px; }
+.tw-oneko-cat.is-active { border-color: #b8080c; background: #2a1113; }
+.tw-oneko-cat.is-active small { color: var(--title); }
