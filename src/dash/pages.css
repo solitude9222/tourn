@@ -2974,7 +2974,8 @@
 
 .tw-layout-stage {
   position: relative;
-  height: 500px;
+  height: min(880px, calc(100vh - 190px));
+  min-height: 620px;
   overflow: hidden;
   border: 1px solid #23232a;
   border-radius: 16px;
@@ -2994,11 +2995,9 @@
 .tw-layout-stage-scaler {
   position: absolute;
   inset: 0;
-  width: 152%;
-  height: 152%;
-  transform: scale(0.66);
-  transform-origin: top left;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .tw-layout-zones {
@@ -3467,20 +3466,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 144px;
-  height: 34px;
-  padding: 0 10px;
-  border: 1px dashed rgba(212, 4, 16, 0.6);
-  border-radius: 9px;
-  background: rgba(9, 9, 11, 0.82);
-  color: #ff9aa0;
+  width: 150px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  background: rgba(9, 9, 11, 0.5);
+  color: #f2f2f5;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   cursor: pointer;
   backdrop-filter: blur(6px);
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, opacity 0.12s ease;
 }
 .tw-drop-zone.is-hot {
   border-style: solid;
@@ -3488,7 +3487,7 @@
   background: rgba(212, 4, 16, 0.28);
   color: #ffffff;
 }
-.tw-layout-stage.is-dragging .tw-layout-stage-scaler { filter: saturate(0.8) brightness(0.8); }
+.tw-layout-stage.is-dragging .tw-layout-stage-scaler { filter: saturate(0.86) brightness(0.72); }
 
 /* ── media row ────────────────────────────────────────────────────────── */
 .tw-media-row {
@@ -3547,3 +3546,16 @@
 .tw-layout-stage [data-detail] { cursor: grab; }
 .tw-layout-stage [data-detail]:active { cursor: grabbing; }
 .tw-layout-stage.is-dragging [data-detail] { cursor: grabbing; }
+
+/* Ghost widgets inside the drop targets: the same shape as the real pin. */
+.tw-ghost { display: inline-flex; align-items: center; gap: 7px; min-width: 0; opacity: 0.7; }
+.tw-ghost b { font-weight: 600; }
+.tw-ghost--likes { gap: 10px; }
+.tw-ghost--audio { gap: 9px; width: 100%; }
+.tw-ghost-cover { width: 26px; height: 26px; border-radius: 7px; background: rgba(255, 255, 255, 0.18); }
+.tw-ghost-lines { display: flex; flex-direction: column; gap: 4px; }
+.tw-ghost-lines i { display: block; width: 70px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.4); }
+.tw-ghost-lines i:last-child { width: 46px; opacity: 0.6; }
+.tw-ghost-play { width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); }
+.tw-drop-zone:has(.tw-ghost--audio) { width: 216px; height: 52px; }
+.tw-drop-zone:hover .tw-ghost, .tw-drop-zone.is-hot .tw-ghost { opacity: 1; }

@@ -226,8 +226,33 @@ function LayoutPreview() {
                 style={zoneStyle(zone.id)}
                 onPointerEnter={() => setHover(zone.id)}
                 onClick={() => place(dragging, zone.id)}
+                aria-label={zone.label}
               >
-                {zone.label}
+                <span className={`tw-ghost tw-ghost--${dragging}`}>
+                  {dragging === "audio" ? (
+                    <>
+                      <span className="tw-ghost-cover" />
+                      <span className="tw-ghost-lines"><i /><i /></span>
+                      <span className="tw-ghost-play" />
+                    </>
+                  ) : (
+                    <>
+                      <Icon
+                        name={dragging === "views" ? "eye" : dragging === "location" ? "pin" : dragging === "likes" ? "like" : "calendar"}
+                        size={13}
+                      />
+                      {dragging === "likes" ? (
+                        <><b>19</b><b>5</b></>
+                      ) : dragging === "views" ? (
+                        <b>1</b>
+                      ) : dragging === "location" ? (
+                        "Location"
+                      ) : (
+                        "Joined"
+                      )}
+                    </>
+                  )}
+                </span>
               </button>
             ))}
           </div>

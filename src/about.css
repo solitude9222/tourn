@@ -6655,7 +6655,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   background: none;
   box-shadow: none;
   color: var(--pv-muted);
-  font-size: calc(11px * var(--pv-scale, 1));
+  font-size: calc(13px * var(--pv-scale, 1));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -6774,14 +6774,14 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   color: inherit;
   font-size: inherit;
 }
-.pv-slot svg { width: calc(13px * var(--pv-scale, 1)); height: calc(13px * var(--pv-scale, 1)); opacity: 0.85; }
+.pv-slot svg { width: calc(14px * var(--pv-scale, 1)); height: calc(14px * var(--pv-scale, 1)); opacity: 0.85; }
 .pv-slot .pv-react { gap: 2px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
 .pv-slot .pv-react-btn { padding: 2px 5px; font-size: inherit; }
 
 .pv-page-slots {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 55;
+  z-index: 5;
   pointer-events: none;
   font-family: "Lexend", "Segoe UI", system-ui, sans-serif;
   font-size: 12px;
@@ -6795,7 +6795,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 
 /* ── page-level audio ─────────────────────────────────────────────────── */
 .lkr-page-audio {
-  position: fixed;
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
   width: min(560px, calc(100vw - 44px));
@@ -6807,4 +6807,23 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 /* Uploaded pointer cursor for links and buttons. */
 .lkr-page :is(a, button, [role="button"], input[type="range"]) {
   cursor: var(--lkr-pointer-cursor, inherit);
+}
+
+/* Server widgets read as boxed entries: one per row, full card width. */
+.lkr-widgets .widget-card[data-platform="discord"] {
+  grid-column: 1 / -1;
+  min-height: 78px;
+  padding: 13px 16px;
+  border-radius: 16px;
+}
+.lkr-widgets .widget-card[data-platform="discord"] .widget-card-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+.lkr-widgets .widget-card[data-platform="discord"] .widget-card-name b {
+  font-size: 15px;
+}
+.lkr-widgets .widget-card[data-platform="discord"] .widget-card-meta {
+  font-size: 12px;
 }

@@ -264,6 +264,11 @@ export function LinkerPreview({
     }
   };
   const [entryOpen, setEntryOpen] = useState(entryWanted);
+  // Page pins are portals into this element, so they sit on the page instead
+  // of over whatever dashboard chrome happens to be behind the preview.
+  const [pageHost, setPageHost] = useState<HTMLElement | null>(null);
+  // Stable ref so React does not detach and re-attach the portal host every render.
+  const attachPageHost = useCallback((node: HTMLElement | null) => setPageHost(node), []);
 
   useEffect(() => {
     setEntryOpen(entryWanted());
@@ -396,6 +401,7 @@ export function LinkerPreview({
       entryActive={entryOpen}
       disableTilt={sharedTilt}
       hideAudio={hideAudio || audioSlot !== "card-bottom"}
+      pageLayerTarget={pageHost}
     >
       {includeWidgets && orderedWidgets.length ? widgetStack : null}
     </ProfilePreview>
@@ -607,6 +613,7 @@ export function LinkerPreview({
 
   return (
     <div
+      ref={attachPageHost}
       className={`lkr-page lkr-card-${design.cardStyle}${className ? ` ${className}` : ""}`}
       style={style}
       data-interactive={interactive ? "true" : undefined}
@@ -639,14 +646,11 @@ export function LinkerPreview({
           ))}
         </nav>
       ) : null}
-      {showAudioPage && typeof document !== "undefined"
-        ? createPortal(
-            <div data-detail="audio" className={`lkr-page-audio lkr-page-audio--${audioSlot}`}>
-              <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
-            </div>,
-            document.body,
-          )
-        : null}
+      {showAudioPage ? (
+        <div data-detail="audio" className={`lkr-page-audio lkr-page-audio--${audioSlot}`}>
+          <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
+        </div>
+      ) : null}
       {hasTrack && assets.audio.muteButton ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       <ProfileCursor settings={assets.cursor} />

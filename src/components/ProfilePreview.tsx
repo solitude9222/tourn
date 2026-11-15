@@ -54,6 +54,7 @@ export function ProfilePreview({
   /** Marketing previews (the home hero) show the card, not the player. */
   hideAudio = false,
   disableTilt = false,
+  pageLayerTarget,
   children,
 }: {
   user: Pick<Account, "id" | "uid" | "username" | "avatarUrl">;
@@ -77,6 +78,8 @@ export function ProfilePreview({
   /** Hide the audio player entirely — used by the home page preview. */
   hideAudio?: boolean;
   disableTilt?: boolean;
+  /** Element that owns the page-level pins (the page or the editor stage). */
+  pageLayerTarget?: HTMLElement | null;
   children?: ReactNode;
 }) {
   const design = about.design;
@@ -195,21 +198,21 @@ export function ProfilePreview({
       })}
     </>
   );
-  const pageSlotLayer =
-    typeof document !== "undefined" &&
-    PAGE_SLOTS.some((slot) => slots.some((entry) => entry.slot === slot && entry.node))
-      ? createPortal(
-          <div className="pv-page-slots" style={{ color: design.colors.muted }}>
-            {PAGE_SLOTS.map((slot) => {
-              const nodes = nodesFor(slot);
-              return nodes.length ? (
-                <div key={slot} className={`pv-slot pv-slot--${slot}`}>{nodes}</div>
-              ) : null;
-            })}
-          </div>,
-          document.body,
-        )
-      : null;
+  // Page pins live inside the page that renders the card, never in a body
+  // portal: on the dashboard the portal used to float the owner's likes and
+  // location over the dashboard chrome itself.
+  const pageSlotLayer = PAGE_SLOTS.some((slot) =>
+    slots.some((entry) => entry.slot === slot && entry.node),
+  ) ? (
+    <div className="pv-page-slots" style={{ color: design.colors.muted }}>
+      {PAGE_SLOTS.map((slot) => {
+        const nodes = nodesFor(slot);
+        return nodes.length ? (
+          <div key={slot} className={`pv-slot pv-slot--${slot}`}>{nodes}</div>
+        ) : null;
+      })}
+    </div>
+  ) : null;
   const hasCardSlot = slots.some((entry) => entry.node && entry.slot.startsWith("card-"));
 
   // Every size in the card is expressed against a 726px reference card, so a
@@ -272,6 +275,7 @@ export function ProfilePreview({
   } as CSSProperties;
 
   return (
+    <>
     <article
       ref={tilt.ref}
       onPointerMove={tiltEnabled ? tilt.onPointerMove : undefined}
@@ -305,7 +309,6 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
-      {pageSlotLayer}
       <div className="pv-body">
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
@@ -405,6 +408,12 @@ export function ProfilePreview({
       </div>
       {cardSlotLayer}
     </article>
+    {pageSlotLayer
+      ? pageLayerTarget
+        ? createPortal(pageSlotLayer, pageLayerTarget)
+        : pageSlotLayer
+      : null}
+    </>
   );
 }
 
