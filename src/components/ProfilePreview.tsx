@@ -417,43 +417,41 @@ export function ProfilePreview({
   );
 }
 
-/** Views: a slim eye with a lash crown, lighter than the old solid eye. */
-function ViewsGlyph({ size = 12 }: { size?: number }) {
+/** Views: a solid eye with a punched-out pupil. */
+export function ViewsGlyph({ size = 12 }: { size?: number }) {
   return (
     <svg
       viewBox="0 0 24 24"
       width={size}
       height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.65"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
       aria-hidden="true"
     >
-      <path d="M2.6 12S6.2 5.7 12 5.7 21.4 12 21.4 12 17.8 18.3 12 18.3 2.6 12 2.6 12Z" />
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 2.9v1.6M20.6 5.9l-1.1 1.2M3.4 5.9l1.1 1.2" opacity="0.5" />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
+      />
+      <circle cx="12" cy="12" r="2" />
     </svg>
   );
 }
 
-/** Location: a slim map pin with a hollow centre. */
-function LocationGlyph({ size = 12 }: { size?: number }) {
+/** Location: a solid map pin. */
+export function LocationGlyph({ size = 12 }: { size?: number }) {
   return (
     <svg
       viewBox="0 0 24 24"
       width={size}
       height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.65"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
       aria-hidden="true"
     >
-      <path d="M12 21.2c3.9-3.4 6.6-6.6 6.6-10.1a6.6 6.6 0 1 0-13.2 0c0 3.5 2.7 6.7 6.6 10.1Z" />
-      <circle cx="12" cy="10.9" r="2.4" />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Zm0-9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"
+      />
     </svg>
   );
 }

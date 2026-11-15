@@ -8,22 +8,20 @@
 import { useEffect, useState } from "react";
 import { readReactions, sendReaction, type ReactionKind, type ReactionState } from "../lib/reactions";
 
-function ThumbIcon({ down = false, size = 15 }: { down?: boolean; size?: number }) {
+/** Solid thumb; the dislike is the same shape mirrored vertically. */
+export function ThumbIcon({ down = false, size = 15 }: { down?: boolean; size?: number }) {
   return (
     <svg
       viewBox="0 0 24 24"
       width={size}
       height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
       aria-hidden="true"
-      style={down ? { transform: "rotate(180deg)" } : undefined}
     >
-      <path d="M7.4 20V10.4l4.2-6.2c1.4 0 2.2 1 2 2.4l-.8 3h4.9a2 2 0 0 1 1.9 2.5l-1.4 5.6A2.4 2.4 0 0 1 15.9 20Z" />
-      <path d="M3.4 10.4h4v9.6h-4z" />
+      <g transform={down ? "matrix(1 0 0 -1 0 24)" : undefined}>
+        <rect x="2" y="10" width="4" height="12" rx="1.5" />
+        <path d="M8.5 10.5 12 3a3 3 0 0 1 3 3.6L14.3 10H19.5a2.5 2.5 0 0 1 2.4 3.1l-2 7A2.5 2.5 0 0 1 17.5 22H9.5a1 1 0 0 1-1-1Z" />
+      </g>
     </svg>
   );
 }

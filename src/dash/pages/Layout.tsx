@@ -9,6 +9,8 @@ import { createProfileSection, type AboutLayout, type ProfileSection, type Profi
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
+import { LocationGlyph, ViewsGlyph } from "../../components/ProfilePreview";
+import { ThumbIcon } from "../../components/Reactions";
 import { TECH_STACK, techCategory, techIconUrl } from "../../lib/techStack";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
@@ -237,10 +239,15 @@ function LayoutPreview() {
                     </>
                   ) : (
                     <>
-                      <Icon
-                        name={dragging === "views" ? "eye" : dragging === "location" ? "pin" : dragging === "likes" ? "like" : "calendar"}
-                        size={13}
-                      />
+                      {dragging === "views" ? (
+                        <ViewsGlyph size={14} />
+                      ) : dragging === "location" ? (
+                        <LocationGlyph size={13} />
+                      ) : dragging === "likes" ? (
+                        <ThumbIcon size={14} />
+                      ) : (
+                        <Icon name="calendar" size={13} />
+                      )}
                       {dragging === "likes" ? (
                         <><b>19</b><b>5</b></>
                       ) : dragging === "views" ? (
