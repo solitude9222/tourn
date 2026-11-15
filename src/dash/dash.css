@@ -1549,7 +1549,9 @@
 /* Real enter screen inside the dashboard, scaled to fit the card. */
 .tw-enter-stage {
   position: relative;
-  height: 300px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 560px;
   border: 2px solid var(--border);
   border-radius: var(--r-card);
   background: #101014;

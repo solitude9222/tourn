@@ -2103,6 +2103,26 @@ app.get("/api/discord/:id", async (req, res) => {
   } catch { res.status(503).json({ error: "Discord lookup timed out. Try again shortly." }); }
 });
 
+app.get("/api/discord/member/:id", async (req, res) => {
+  const id = String(req.params.id);
+  if (!/^\d{16,20}$/.test(id)) return res.status(400).json({ error: "Enter a Discord user ID." });
+  try {
+    const info = await discordAutomation.memberInfo(id);
+    if (!info) return res.status(503).json({ error: "Discord member lookup is unavailable right now." });
+    res.set("Cache-Control", "public, max-age=30").json(info);
+  } catch { res.status(503).json({ error: "Discord member lookup timed out." }); }
+});
+
+app.get("/api/discord/guild/:id", async (req, res) => {
+  const id = String(req.params.id);
+  if (!/^\d{16,20}$/.test(id)) return res.status(400).json({ error: "Enter a Discord server ID." });
+  try {
+    const info = await discordAutomation.guildInfo();
+    if (!info || info.id !== id) return res.status(404).json({ error: "The bot is not in that server." });
+    res.set("Cache-Control", "public, max-age=60").json(info);
+  } catch { res.status(503).json({ error: "Discord server lookup timed out." }); }
+});
+
 async function canonicalViewHandle(input) {
   const handle = cleanHandle(input);
   if (!handle) return null;

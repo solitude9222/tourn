@@ -274,12 +274,28 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
  }
  /* Who a snowflake actually is, so a reset can say the exact handle it sent to
      (or that the ID is not linked to anything). */
+ const detailCache=new Map();
+ async function memberInfo(discordId){
+  const guild=await guildId();if(!token || !guild || !snowflake(discordId))return null;
+  const key=guild+':'+discordId,cached=detailCache.get(key);if(cached && Date.now()-cached.at<60000)return cached.value;
+  try{
+   const [data,roles,server]=await Promise.all([request(`/guilds/${guild}/members/${discordId}`),request(`/guilds/${guild}/roles`).catch(()=>[]),request(`/guilds/${guild}?with_counts=true`).catch(()=>null)]);
+   const byId=new Map((Array.isArray(roles)?roles:[]).map(role=>[String(role.id),role]));
+   const memberRoles=(Array.isArray(data.roles)?data.roles:[]).map(id=>byId.get(String(id))).filter(Boolean).sort((a,b)=>b.position-a.position).map(role=>({id:String(role.id),name:role.name,color:role.color||0}));
+   const value={present:true,id:String(data.user.id),username:data.user.username,globalName:data.user.global_name||null,nick:data.nick||null,avatar:data.user.avatar?`https://cdn.discordapp.com/avatars/${data.user.id}/${data.user.avatar}.png?size=256`:null,joinedAt:data.joined_at||null,createdAt:data.user.id?new Date(Number((BigInt(data.user.id)>>22n)+1420070400000n)).toISOString():null,premiumSince:data.premium_since||null,bot:Boolean(data.user.bot),roles:memberRoles,guild:server?{id:String(server.id),name:server.name,icon:server.icon?`https://cdn.discordapp.com/icons/${server.id}/${server.icon}.png?size=128`:null,description:server.description||null,memberCount:server.approximate_member_count||null,onlineCount:server.approximate_presence_count||null,createdAt:new Date(Number((BigInt(server.id)>>22n)+1420070400000n)).toISOString()}:null};
+   if(detailCache.size>4000)detailCache.clear();detailCache.set(key,{at:Date.now(),value});return value;
+  }catch(error){if(error?.status===404)return {present:false};lastError=error?.message||lastError;return null;}
+ }
+ async function guildInfo(){
+  const guild=await guildId();if(!token || !guild)return null;
+  try{const data=await request(`/guilds/${guild}?with_counts=true`);return {id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=128`:null,description:data.description||null,memberCount:data.approximate_member_count||null,onlineCount:data.approximate_presence_count||null,createdAt:new Date(Number((BigInt(data.id)>>22n)+1420070400000n)).toISOString()};}catch{return null;}
+ }
  async function discordUser(id){
   if(!snowflake(String(id||'')))return null;
   const data=await rawRest('GET',`/users/${id}`);
   return data?{id:String(data.id),username:data.username,globalName:data.global_name||null}:null;
  }
- return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser,updateBotBio};
+ return {config,guildId,member,memberInfo,guildInfo,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser,updateBotBio};
 }
 export function registerDiscordAutomation(app,service,requireAdmin){
  app.get('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{res.json({...(await service.inspect(req.query.guildId)),config:await service.config()});}catch(error){res.status(503).json({error:error.message});}});

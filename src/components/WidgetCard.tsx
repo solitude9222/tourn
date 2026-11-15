@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { useTilt } from "../lib/useTilt";
 import { hexToRgba } from "../lib/about";
 import {
@@ -75,6 +76,88 @@ function WidgetAvatar({
   );
 }
 
+function WidgetInfoDialog({
+  platform,
+  live,
+  content,
+  profileHref,
+  onClose,
+}: {
+  platform: WidgetPlatform;
+  live: WidgetLive | null;
+  content: string;
+  profileHref: string | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const title = live?.title?.trim() || content || platform.name;
+  const rows = live?.details?.filter((row) => row.value.trim()) ?? [];
+
+  return createPortal(
+    <div
+      className="wg-info-backdrop"
+      onPointerDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="wg-info" role="dialog" aria-modal="true" aria-label={`${title} details`}>
+        <header className="wg-info-head">
+          <span className="wg-info-icon" style={{ color: platform.color }}>
+            <WidgetPlatformIcon id={platform.id} size={19} />
+          </span>
+          <span className="wg-info-titles">
+            <b>{title}</b>
+            <small>{live?.subtitle || platform.name}</small>
+          </span>
+          <button type="button" className="wg-info-close" onClick={onClose} aria-label="Close">×</button>
+        </header>
+        <div className="wg-info-body">
+          {live?.meta?.length ? (
+            <div className="wg-info-chips">
+              {live.meta.map((item, index) => (
+                <span key={`${item}-${index}`}>{item}</span>
+              ))}
+            </div>
+          ) : null}
+          {rows.length ? (
+            <dl className="wg-info-rows">
+              {rows.map((row) => (
+                <div key={row.label}>
+                  <dt>{row.label}</dt>
+                  <dd>{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="wg-info-empty">Nothing else to show yet.</p>
+          )}
+        </div>
+        <footer className="wg-info-foot">
+          {profileHref ? (
+            <a
+              className="wg-info-open"
+              href={profileHref}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Open on {platform.name}
+            </a>
+          ) : null}
+          <button type="button" className="wg-info-done" onClick={onClose}>Close</button>
+        </footer>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function WidgetCardSurface({
   widget,
   platform,
@@ -102,6 +185,7 @@ function WidgetCardSurface({
   tilt?: number;
 }) {
   const cardTilt = useTilt<HTMLElement>(tilt);
+  const [infoOpen, setInfoOpen] = useState(false);
   const content = widget.content.trim();
   const configured = Boolean(content);
   const supported = widgetSupportsLive(platform.id);
@@ -171,8 +255,22 @@ function WidgetCardSurface({
   }
 
   return (
+    <>
     <article
       ref={cardTilt.ref}
+      role={preview ? undefined : "button"}
+      tabIndex={preview ? undefined : 0}
+      aria-label={preview ? undefined : `${title} — open details`}
+      onClick={preview ? undefined : () => setInfoOpen(true)}
+      onKeyDown={
+        preview
+          ? undefined
+          : (event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              setInfoOpen(true);
+            }
+      }
       onPointerMove={tilt > 0 ? cardTilt.onPointerMove : undefined}
       onPointerLeave={tilt > 0 ? cardTilt.onPointerLeave : undefined}
       className={`widget-card${tilt > 0 ? " has-tilt" : ""} widget-card--bg-${background}${hasArt ? " has-art" : ""}${
@@ -270,6 +368,7 @@ function WidgetCardSurface({
           href={profileHref}
           target="_blank"
           rel="noreferrer noopener"
+          onClick={(event) => event.stopPropagation()}
           aria-label={`Open ${platform.name} in a new tab`}
           title={`Open ${platform.name}`}
         >
@@ -282,7 +381,10 @@ function WidgetCardSurface({
             <button
               type="button"
               className="widget-card-action"
-              onClick={() => onConfigure(widget)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onConfigure(widget);
+              }}
               aria-label={`Configure ${platform.name} widget`}
             >
               <SettingsIcon size={13} />
@@ -292,7 +394,10 @@ function WidgetCardSurface({
             <button
               type="button"
               className="widget-card-action widget-card-action--danger"
-              onClick={() => onRemove(widget)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRemove(widget);
+              }}
               aria-label={`Remove ${platform.name} widget`}
             >
               <TrashIcon size={13} />
@@ -301,6 +406,16 @@ function WidgetCardSurface({
         </span>
       ) : null}
     </article>
+    {infoOpen && !preview ? (
+      <WidgetInfoDialog
+        platform={platform}
+        live={live}
+        content={content}
+        profileHref={profileHref}
+        onClose={() => setInfoOpen(false)}
+      />
+    ) : null}
+    </>
   );
 }
 

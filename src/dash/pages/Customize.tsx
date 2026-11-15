@@ -5,7 +5,7 @@
    disabled rather than pretending to save.
    --------------------------------------------------------------------------- */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { uploadAudioFile } from "../../lib/audioUpload";
 import { AudioPlayer } from "../../components/AudioPlayer";
 import { imageToDataUrl } from "../files";
@@ -488,6 +488,32 @@ export function AudioSettingsCard() {
   );
 }
 
+function EntryPreviewStage({ about, token }: { about: ReturnType<typeof useDash>["about"]; token: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.5);
+
+  // The entry screen is designed at full page size, so preview it at that
+  // size and scale the whole thing down — cropping or shrinking the type
+  // would show a different screen from the one visitors get.
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const measure = () => setScale(node.clientWidth / 1440);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="tw-enter-stage" ref={ref}>
+      <div className="tw-enter-canvas" style={{ transform: `scale(${scale})` }}>
+        <EntryOverlay key={token} about={about} onEnter={() => undefined} preview />
+      </div>
+    </div>
+  );
+}
+
 export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
   const {
     user,
@@ -880,9 +906,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
         </div>
         {/* The real screen, not a mock — so every setting above is visible.
             It never starts audio: the entry screen is silent here. */}
-        <div className="tw-enter-stage">
-          <EntryOverlay key={previewToken} about={about} onEnter={() => undefined} preview />
-        </div>
+        <EntryPreviewStage about={about} token={previewToken} />
       </Card>
     );
   }
@@ -917,7 +941,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
                 onClick={() => updateDesign({ onekoCat: cat.id })}
                 aria-pressed={design.onekoCat === cat.id}
               >
-                <span style={{ filter: cat.filter === "none" ? undefined : cat.filter }} />
+                <span style={{ backgroundImage: `url(${cat.sprite})` }} />
                 <small>{cat.label}</small>
               </button>
             ))}

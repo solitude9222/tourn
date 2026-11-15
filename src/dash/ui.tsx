@@ -827,6 +827,10 @@ export function ColorField({
   );
   const rootRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
+  // Typing a hex value must not be fought by the value it is still becoming,
+  // so the field keeps its own text while it has focus.
+  const [draftHex, setDraftHex] = useState(value.toUpperCase());
+  const editingHex = useRef(false);
   const [placement, setPlacement] = useState({ top: 0, left: 0, up: false, ready: false });
 
   // Cards and panels scroll, so an absolutely positioned popup gets clipped at
@@ -895,25 +899,26 @@ export function ColorField({
     });
   };
 
-  // Hue runs left-to-right; the vertical axis goes white → pure colour →
-  // black, so every colour is reachable directly in one rounded square.
-  const spectrumFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+  // Saturation runs left → right, brightness bottom → top, and the band under
+  // the square picks the hue — the arrangement every other colour picker uses,
+  // so nobody has to learn this one.
+  const squareFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
     const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
-    commit({
-      h: x >= 1 ? 0 : x * 360,
-      s: y <= 0.5 ? y * 2 : 1,
-      v: y <= 0.5 ? 1 : 2 - y * 2,
-    });
+    commit({ h: hsv.h, s: x, v: 1 - y });
+  };
+
+  const hueFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    commit({ ...hsv, h: x >= 1 ? 359.9 : x * 360 });
   };
 
   const shiftHue = (hue: number) => commit({ ...hsv, h: (hue + 360) % 360 });
-  const spectrumX = hsv.h / 360;
-  // Match the square's lightness ramp, so the thumb sits where this colour
-  // would be picked rather than floating at an unrelated position.
-  const spectrumY = Math.min(1, Math.max(0, 1 - hsv.v * (1 - hsv.s / 2)));
+  const hueColor = `hsl(${hsv.h} 100% 50%)`;
   const valid = /^#[0-9a-f]{6}$/i.test(value);
+  const readout = valid ? value.toUpperCase() : "#000000";
 
   return (
     <div className="tw-color-field" ref={rootRef}>
@@ -928,18 +933,15 @@ export function ColorField({
           aria-label={typeof label === "string" ? `${label} picker` : "Colour picker"}
           aria-expanded={open}
         />
-        <input
-          className="tw-color-hex"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onBlur={(event) => {
-            const raw = event.target.value.trim();
-            if (!/^#[0-9a-f]{6}$/i.test(raw)) onChange("#000000");
-          }}
-          spellCheck={false}
-          aria-label="Hex colour"
+        <button
+          type="button"
+          className="tw-color-value"
+          onClick={() => setOpen((current) => !current)}
           disabled={disabled}
-        />
+          aria-expanded={open}
+        >
+          {readout}
+        </button>
       </span>
 
       {open ? (
@@ -948,14 +950,77 @@ export function ColorField({
           ref={popRef}
           style={{ top: placement.top, left: placement.left, visibility: placement.ready ? "visible" : "hidden" }}
         >
+          <div className="tw-color-top">
+            <span className="tw-color-dot" style={{ background: readout }} />
+            <input
+              className="tw-color-input"
+              value={editingHex.current ? draftHex : readout}
+              onFocus={() => {
+                editingHex.current = true;
+                setDraftHex(readout);
+              }}
+              onChange={(event) => {
+                const next = event.target.value;
+                setDraftHex(next);
+                if (/^#[0-9a-f]{6}$/i.test(next)) onChange(next);
+              }}
+              onBlur={() => {
+                editingHex.current = false;
+                const raw = draftHex.trim();
+                if (/^#[0-9a-f]{6}$/i.test(raw)) onChange(raw);
+                else setDraftHex(readout);
+              }}
+              spellCheck={false}
+              aria-label="Hex colour"
+            />
+            <button
+              type="button"
+              className="tw-color-close"
+              onClick={() => setOpen(false)}
+              aria-label="Close colour picker"
+            >
+              ×
+            </button>
+          </div>
+
           <div
             className="tw-color-square"
+            style={{
+              backgroundImage: `linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, ${hueColor})`,
+            }}
             onPointerDown={(event) => {
               event.currentTarget.setPointerCapture(event.pointerId);
-              spectrumFromPointer(event);
+              squareFromPointer(event);
             }}
             onPointerMove={(event) => {
-              if (event.currentTarget.hasPointerCapture(event.pointerId)) spectrumFromPointer(event);
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) squareFromPointer(event);
+            }}
+            role="slider"
+            aria-label="Saturation and brightness"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(hsv.s * 100)}
+            aria-valuetext={`${Math.round(hsv.s * 100)}% saturation, ${Math.round(hsv.v * 100)}% brightness`}
+            tabIndex={0}
+          >
+            <span
+              className="tw-color-square-thumb"
+              style={{
+                left: `${hsv.s * 100}%`,
+                top: `${(1 - hsv.v) * 100}%`,
+                background: hsvToHex(hsv),
+              }}
+            />
+          </div>
+
+          <div
+            className="tw-hue"
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              hueFromPointer(event);
+            }}
+            onPointerMove={(event) => {
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) hueFromPointer(event);
             }}
             onKeyDown={(event) => {
               if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
@@ -963,28 +1028,23 @@ export function ColorField({
               shiftHue(hsv.h + (event.key === "ArrowRight" ? 4 : -4));
             }}
             role="slider"
-            aria-label="Colour spectrum"
+            aria-label="Hue"
             aria-valuemin={0}
             aria-valuemax={360}
             aria-valuenow={Math.round(hsv.h)}
-            aria-valuetext={`${Math.round(hsv.s * 100)}% saturation, ${Math.round(hsv.v * 100)}% brightness`}
             tabIndex={0}
           >
             <span
-              className="tw-color-square-thumb"
-              style={{
-                left: `${spectrumX * 100}%`,
-                top: `${spectrumY * 100}%`,
-                background: hsvToHex(hsv),
-              }}
+              className="tw-hue-thumb"
+              style={{ left: `${(hsv.h / 360) * 100}%`, background: hueColor }}
             />
           </div>
-
         </div>
       ) : null}
     </div>
   );
 }
+
 
 export function Slider({
   label,

@@ -28,6 +28,7 @@ export type WidgetLive = {
   status: LiveStatus;
   timezone?: string;
   presenceNotice?: string;
+  details?: { label: string; value: string }[];
 };
 
 const STATUS_LABELS: Record<Exclude<LiveStatus, null>, string> = {
@@ -140,6 +141,47 @@ async function fetchDiscordLookup(id: string, signal: AbortSignal): Promise<Disc
   return body as DiscordLookup;
 }
 
+type DiscordMember = {
+  present: boolean;
+  id?: string;
+  username?: string;
+  globalName?: string | null;
+  nick?: string | null;
+  joinedAt?: string | null;
+  createdAt?: string | null;
+  premiumSince?: string | null;
+  roles?: { name: string; color: number }[];
+  guild?: { name: string; memberCount?: number | null; onlineCount?: number | null; createdAt?: string | null; description?: string | null } | null;
+};
+
+type DiscordGuild = {
+  id: string;
+  name: string;
+  description?: string | null;
+  memberCount?: number | null;
+  onlineCount?: number | null;
+  createdAt?: string | null;
+};
+
+async function fetchDiscordMember(id: string, signal: AbortSignal): Promise<DiscordMember | null> {
+  const res = await fetch(`/api/discord/member/${encodeURIComponent(id)}`, { signal, headers: { Accept: "application/json" } }).catch(() => null);
+  if (!res?.ok) return null;
+  return (await res.json().catch(() => null)) as DiscordMember | null;
+}
+
+async function fetchDiscordGuild(id: string, signal: AbortSignal): Promise<DiscordGuild | null> {
+  const res = await fetch(`/api/discord/guild/${encodeURIComponent(id)}`, { signal, headers: { Accept: "application/json" } }).catch(() => null);
+  if (!res?.ok) return null;
+  return (await res.json().catch(() => null)) as DiscordGuild | null;
+}
+
+const stamp = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+};
+
 async function discordLive(
   widget: WidgetInstance,
   input: string,
@@ -165,8 +207,25 @@ async function discordLive(
     if (typeof invite.approximate_member_count === "number") {
       meta.push(`${invite.approximate_member_count.toLocaleString("en-US")} members`);
     }
+    // Our own bot knows the real numbers and the description, which the
+    // public invite payload leaves out.
+    const guild = /^\d{16,20}$/.test(invite.guild.id)
+      ? await fetchDiscordGuild(invite.guild.id, signal).catch(() => null)
+      : null;
+    const guildDetails: { label: string; value: string }[] = [];
+    if (guild?.description) guildDetails.push({ label: "About", value: guild.description });
+    if (typeof guild?.memberCount === "number") {
+      guildDetails.push({ label: "Members", value: guild.memberCount.toLocaleString("en-US") });
+    }
+    if (typeof guild?.onlineCount === "number") {
+      guildDetails.push({ label: "Online now", value: guild.onlineCount.toLocaleString("en-US") });
+    }
+    const guildCreated = stamp(guild?.createdAt);
+    if (guildCreated) guildDetails.push({ label: "Created", value: guildCreated });
+    guildDetails.push({ label: "Invite", value: `discord.gg/${invite.code || code}` });
 
     return {
+      details: guildDetails,
       title: invite.guild.name,
       subtitle: `discord.gg/${invite.code || code}`,
       meta,
@@ -181,13 +240,16 @@ async function discordLive(
     };
   }
 
-  const [lookupResult, presenceResult] = await Promise.allSettled([
-    fetchDiscordLookup(id, signal), fetchLanyard(id, signal),
+  const [lookupResult, presenceResult, memberResult] = await Promise.allSettled([
+    fetchDiscordLookup(id, signal),
+    fetchLanyard(id, signal),
+    fetchDiscordMember(id, signal),
   ]);
   if (signal.aborted) throw new DOMException("Aborted", "AbortError");
   const lookup = lookupResult.status === "fulfilled" ? lookupResult.value : null;
   const presence = presenceResult.status === "fulfilled" ? presenceResult.value : null;
   const presenceError = presenceResult.status === "rejected" ? presenceResult.reason : null;
+  const member = memberResult.status === "fulfilled" ? memberResult.value : null;
 
   if (!lookup && !presence) {
     throw presenceError instanceof WidgetError ? presenceError : new WidgetError("network", "Discord profile lookup is temporarily unavailable");
@@ -293,6 +355,25 @@ async function discordLive(
   if (platforms.length && widget.options.status !== false) meta.push(platforms.join(" · "));
   if (activity && widget.options.status !== false) meta.push(activity);
   if (joined) meta.push(`Joined ${formatJoined(joined)}`);
+  const inServer = Boolean(member?.present);
+  if (inServer && member?.guild?.name) meta.push(`In ${member.guild.name}`);
+  const details: { label: string; value: string }[] = [{ label: "User ID", value: id }];
+  if (member?.present) {
+    if (member.guild?.name) {
+      details.push({ label: "Server", value: member.nick ? `${member.guild.name} · ${member.nick}` : member.guild.name });
+    }
+    const memberSince = stamp(member.joinedAt);
+    if (memberSince) details.push({ label: "Joined server", value: memberSince });
+    if (member.roles?.length) {
+      details.push({ label: "Roles", value: member.roles.slice(0, 6).map((role) => role.name).join(", ") });
+    }
+    const boosting = stamp(member.premiumSince);
+    if (boosting) details.push({ label: "Boosting since", value: boosting });
+  }
+  const accountCreated = stamp(lookupUser?.id ? new Date(Number((BigInt(lookupUser.id) >> 22n) + 1420070400000n)).toISOString() : null);
+  if (accountCreated) details.push({ label: "Account created", value: accountCreated });
+  if (status) details.push({ label: "Status", value: STATUS_LABELS[status] });
+  if (activity) details.push({ label: "Activity", value: activity });
 
   return {
     title: displayName,
@@ -307,9 +388,13 @@ async function discordLive(
     tagBadge,
     badges,
     status,
-    presenceNotice: presence || widget.options.status === false ? undefined : presenceError instanceof WidgetError && presenceError.code === "not_monitored"
-      ? "Live status needs Lanyard. Join discord.gg/lanyard, then refresh."
-      : "Live status is temporarily unavailable. Your Discord profile is still shown.",
+    details,
+    // No Lanyard, no third-party presence server: membership of the tourn
+    // Discord is enough to show who someone is, and the bot already knows it.
+    presenceNotice:
+      presence || inServer || widget.options.status === false
+        ? undefined
+        : "Join the tourn.lol Discord server to show live status without Lanyard.",
   };
 }
 

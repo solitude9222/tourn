@@ -10,25 +10,28 @@
  * without a reload). Behaviour, timing and animations are the upstream ones.
  */
 
-/** Colourways for the same sprite sheet, done with CSS filters. */
+/**
+ * The skins from oneko.js-skins (kittibyte/oneko.js-skins). Every sheet is
+ * 8 columns × 4 rows of 32×32 frames, so they drop straight into the same
+ * sprite coordinates. Dog, Tora, Sakura, Tomoyo and the BSD daemon are the
+ * original X11 oneko characters, not recolours of the cat.
+ */
 export const ONEKO_CATS = [
-  { id: "classic", label: "Classic", filter: "none" },
-  { id: "orange", label: "Orange tabby", filter: "sepia(1) saturate(3.6) hue-rotate(-15deg) brightness(1.05)" },
-  { id: "tuxedo", label: "Tuxedo", filter: "grayscale(1) contrast(1.8) brightness(1.12)" },
-  { id: "ghost", label: "Ghost", filter: "grayscale(1) brightness(1.85) contrast(0.55) opacity(0.85)" },
-  { id: "mint", label: "Mint", filter: "sepia(1) saturate(4) hue-rotate(75deg) brightness(1.1)" },
-  { id: "bubblegum", label: "Bubblegum", filter: "sepia(1) saturate(5) hue-rotate(-45deg) brightness(1.15)" },
-  { id: "midnight", label: "Midnight", filter: "brightness(0.42) saturate(0.7) contrast(1.2)" },
+  { id: "classic", label: "Cat", sprite: "/oneko.gif" },
+  { id: "dog", label: "Dog", sprite: "/oneko-dog.gif" },
+  { id: "tora", label: "Tora", sprite: "/oneko-tora.gif" },
+  { id: "sakura", label: "Sakura", sprite: "/oneko-sakura.gif" },
+  { id: "tomoyo", label: "Tomoyo", sprite: "/oneko-tomoyo.gif" },
+  { id: "bsd", label: "BSD daemon", sprite: "/oneko-bsd.gif" },
 ] as const;
-
 export type OnekoCat = (typeof ONEKO_CATS)[number]["id"];
 
 export function isOnekoCat(value: unknown): value is OnekoCat {
   return typeof value === "string" && ONEKO_CATS.some((entry) => entry.id === value);
 }
 
-export function onekoFilter(cat: OnekoCat | undefined): string {
-  return ONEKO_CATS.find((entry) => entry.id === cat)?.filter ?? "none";
+export function onekoSprite(cat: OnekoCat | undefined): string {
+  return ONEKO_CATS.find((entry) => entry.id === cat)?.sprite ?? "/oneko.gif";
 }
 
 export type OnekoOptions = {

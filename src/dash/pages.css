@@ -3589,3 +3589,129 @@
 .tw-oneko-cat small { color: var(--sub); font-size: 10.5px; }
 .tw-oneko-cat.is-active { border-color: #b8080c; background: #2a1113; }
 .tw-oneko-cat.is-active small { color: var(--title); }
+
+/* ── colour picker ────────────────────────────────────────────────────── */
+.tw-color-value {
+  min-width: 0;
+  flex: 1;
+  height: 30px;
+  padding: 0 8px 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--title);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+}
+.tw-color-pop {
+  width: 232px;
+  padding: 11px;
+  border-radius: 16px;
+}
+.tw-color-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+  padding: 5px 6px 5px 7px;
+  border: 1px solid var(--menu-border, #303038);
+  border-radius: 12px;
+  background: #101013;
+}
+.tw-color-dot {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+}
+.tw-color-input {
+  min-width: 0;
+  flex: 1;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--title, #fff);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.tw-color-close {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #8a8a94;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tw-color-close:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+.tw-color-square {
+  width: 100%;
+  height: 152px;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.tw-color-square::before { content: none; }
+.tw-color-square-thumb {
+  width: 15px;
+  height: 15px;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65), 0 3px 8px rgba(0, 0, 0, 0.55);
+}
+.tw-hue {
+  position: relative;
+  height: 13px;
+  margin: 12px 3px 3px;
+  border-radius: 99px;
+  background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  touch-action: none;
+  cursor: pointer;
+}
+.tw-hue-thumb {
+  position: absolute;
+  top: 50%;
+  width: 17px;
+  height: 17px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Entry preview: the real screen at page size, scaled to the card. */
+.tw-enter-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1440px;
+  height: 810px;
+  transform-origin: top left;
+}
+
+/* Media row, matched to the reference: four tiles, one height. */
+.tw-media-well { height: 128px; }
+.tw-media-well--avatar img { width: 104px; height: 104px; }
+.tw-media-hint { opacity: 0; transition: opacity 140ms ease; }
+.tw-media-well:hover .tw-media-hint { opacity: 1; }
+.tw-oneko-cat span {
+  background-image: none;
+  background-size: 256px 128px;
+  background-position: -96px -96px;
+}
