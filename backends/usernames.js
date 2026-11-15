@@ -26,6 +26,18 @@ create table if not exists username_transfers (
 );`;
 export const stockHandleValid = value => typeof value === "string" && [...value].length === 1 && !/[<>]/.test(value) && /^[a-z0-9]$|^\p{S}$/u.test(value);
 export const freeHandleValid = value => /^[a-z0-9]{3,24}$/.test(value);
+/** True when this account bought this exact single-character handle. */
+export async function handleOwned(db, userId, handle) {
+  const { rowCount } = await db.query(
+    "select 1 from username_inventory where handle = $1 and owner_id = $2 limit 1",
+    [handle, userId],
+  );
+  return rowCount > 0;
+}
+
+/** Handles that are never free: one character, or anything not a letter/number. */
+export const isMarketplaceExclusive = value =>
+  typeof value === "string" && (!/^[a-z0-9]{3,24}$/.test(value));
 export const priceValid = value => Number.isSafeInteger(value) && value >= 50 && value <= 99999999;
 const fail = (status, message) => Object.assign(new Error(message), { status });
 

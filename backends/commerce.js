@@ -18,7 +18,27 @@ create table if not exists commerce_deliveries(
 const digest = code => crypto.createHash('sha256').update(code.trim().toUpperCase()).digest('hex');
 const LETTERS=[...'abcdefghijklmnopqrstuvwxyz'];
 const NUMBERS=[...'0123456789'];
-const SYMBOLS=[...'✦★♥✧♛✿☾'];
+// Symbol handles sold as their own variants on the special product.
+const PURCHASABLE_SYMBOLS=['☿','♱','✞','⛤','⛧'];
+// Only symbols that exist as a SellAuth variant are sold; ✦★♥✧♛✿☾ are retired.
+const SYMBOLS=[...PURCHASABLE_SYMBOLS];
+/* The special product and its per-symbol variants, so a buyer who picks ☿
+   gets the ☿ variant rather than whatever the store would default to. */
+const DEFAULT_SPECIAL_PRODUCT=994091;
+export const SYMBOL_VARIANTS={'2079173':'☿','2079174':'♱','2079175':'✞','2079176':'⛤','2079177':'⛧'};
+export function usernameVariantMap(env=process.env){
+ const productId=Number(env.SELLAUTH_SPECIAL_PRODUCT_ID)||DEFAULT_SPECIAL_PRODUCT;
+ const map={};
+ for(const [variantId,handle] of Object.entries(SYMBOL_VARIANTS))map[variantId]={productId,handle};
+ try{const extra=JSON.parse(env.SELLAUTH_USERNAME_VARIANTS||'{}');for(const [variantId,entry] of Object.entries(extra||{}))if(!map[variantId])map[variantId]=entry;}catch{}
+ return map;
+}
+/** The SellAuth variant that sells this exact symbol, if there is one. */
+export function symbolVariantFor(handle,env=process.env){
+ const productId=Number(env.SELLAUTH_SPECIAL_PRODUCT_ID)||DEFAULT_SPECIAL_PRODUCT;
+ const found=Object.entries(usernameVariantMap(env)).find(([,entry]) => Number(entry.productId)===productId && entry.handle===handle);
+ return found?Number(found[0]):null;
+}
 /* Every handle already spoken for: profile addresses, owned inventory and issued codes. */
 // One env var per store badge keeps the dashboard readable, with the older JSON
 // map still honoured for variants it does not cover.
@@ -52,7 +72,7 @@ export function commerceConfig(env=process.env){
  return {
   shopId:id(env.SELLAUTH_SHOP_ID),
   shopUrl,
-  products:{premium:id(env.SELLAUTH_PREMIUM_PRODUCT_ID),oneCharacter:id(env.SELLAUTH_1C_PRODUCT_ID),special:id(env.SELLAUTH_SPECIAL_PRODUCT_ID),badge:id(env.SELLAUTH_BADGE_PRODUCT_ID)},
+  products:{premium:id(env.SELLAUTH_PREMIUM_PRODUCT_ID),oneCharacter:id(env.SELLAUTH_1C_PRODUCT_ID),special:id(env.SELLAUTH_SPECIAL_PRODUCT_ID)||DEFAULT_SPECIAL_PRODUCT,badge:id(env.SELLAUTH_BADGE_PRODUCT_ID)},
   // A product with a single variant still needs that variant named in the cart.
   variants:{premium:id(env.SELLAUTH_PREMIUM_VARIANT_ID),oneCharacter:id(env.SELLAUTH_1C_VARIANT_ID),special:id(env.SELLAUTH_SPECIAL_VARIANT_ID),badge:id(env.SELLAUTH_BADGE_VARIANT_ID)},
  };
@@ -100,7 +120,7 @@ export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=proc
    if(quantity!==1)throw fail(400,'Badges must be purchased individually.');
    kind='badge';handle=badge.badge;
   }
-  else{let variants={};try{variants=JSON.parse(env.SELLAUTH_USERNAME_VARIANTS||'{}');}catch{}const mapping=variants[String(item.variant_id)];
+  else{let variants={};try{variants=JSON.parse(env.SELLAUTH_USERNAME_VARIANTS||'{}');}catch{}const mapping=variants[String(item.variant_id)]||usernameVariantMap(env)[String(item.variant_id)];
    const isUsernameProduct=[config.products.oneCharacter,config.products.special].filter(Boolean).includes(Number(item.product_id));
    if(!isUsernameProduct && !mapping)throw fail(400,'Unmapped product variant.');
    // The buyer picks the handle on tourn.lol; the signed checkout ticket carries
@@ -170,7 +190,8 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
       if(rows.length)throw fail(409,`@${chosen} is already taken.`);
      }
      const variant=config.variants?.[characterKind];
-     cart.push({productId:Number(config.products[characterKind]),...(variant?{variantId:Number(variant)}:{}),quantity:1});
+     const symbolVariant=characterKind==='special'?symbolVariantFor(chosen,env):null;
+     cart.push({productId:Number(config.products[characterKind]),...(symbolVariant?{variantId:symbolVariant}:variant?{variantId:Number(variant)}:{}),quantity:1});
      ticketItems.push({type,handle:chosen});
      cartHandle=chosen;hasUsername=true;
     }
@@ -214,7 +235,8 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
    badgeVariantId=match[0];
   }
   const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(handle?{handle}:{})},secret,{algorithm:'HS256',expiresIn:'2h'});
-  const variantId=badgeVariantId || config.variants?.[kind];
+  const symbolVariantId=kind==='special'&&handle?symbolVariantFor(handle,env):null;
+  const variantId=badgeVariantId || symbolVariantId || config.variants?.[kind];
   res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],...(variantId?{variantId}:{}),quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark'});
  }));
  app.post('/api/commerce/redeem',limiter,requireAuth,wrap(async(req,res)=>{

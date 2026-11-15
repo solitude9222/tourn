@@ -1,6 +1,6 @@
 import { COMMERCE_SCHEMA, registerSellAuthDelivery, registerSellAuthRoutes } from "./commerce.js";
 import { requestOriginAllowed, canEditMember, verifiedDiscordEmail, privilegedEmail } from "./security.js";
-import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid, startUsernameReconciliation } from "./usernames.js";
+import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid, handleOwned, startUsernameReconciliation } from "./usernames.js";
 import { TRADE_SCHEMA, registerTradeRoutes } from "./trades.js";
 import { TEMPLATE_SCHEMA, registerTemplateRoutes } from "./templates.js";
 import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
@@ -1844,8 +1844,13 @@ app.post("/api/security/confirm-code", requireAuth, async (req, res) => {
 app.post("/api/profile/alias", requireAuth, async (req, res) => {
   try {
     const clean = cleanHandle(req.body?.alias);
-    if (clean && !freeHandleValid(clean)) return res.status(400).json({ error: "Free usernames use 3–24 letters or numbers. Single characters and symbols are marketplace exclusives." });
-    if (clean && clean.length < 3) return res.status(400).json({ error: "Aliases need at least 3 characters." });
+    if (clean && !freeHandleValid(clean)) {
+      // One character and symbols are stock, not a free choice: only the
+      // account that bought this exact handle may put it on their profile.
+      if (!(await handleOwned(pool, req.auth.sub, clean)))
+        return res.status(400).json({ error: "Single characters and symbols have to be bought from the store first." });
+    }
+    if (clean && clean.length < 3 && freeHandleValid(clean)) return res.status(400).json({ error: "Aliases need at least 3 characters." });
     if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
     if (RESERVED.has(clean)) return res.status(400).json({ error: `"${clean}" is reserved by the site.` });
     if (clean && (await claimTaken(clean, req.auth.sub))) {
@@ -1873,8 +1878,9 @@ app.post("/api/profile/alias2", requireAuth, async (req, res) => {
       );
       return res.json({ account: accountOf(rows[0]) });
     }
-    if (!freeHandleValid(clean)) return res.status(400).json({ error: "Free usernames use 3–24 letters or numbers. Single characters and symbols are marketplace exclusives." });
-    if (clean.length < 3) return res.status(400).json({ error: "Aliases need at least 3 characters." });
+    if (!freeHandleValid(clean) && !(await handleOwned(pool, user.id, clean)))
+      return res.status(400).json({ error: "Single characters and symbols have to be bought from the store first." });
+    if (clean.length < 3 && freeHandleValid(clean)) return res.status(400).json({ error: "Aliases need at least 3 characters." });
     if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
     if (RESERVED.has(clean) || clean === user.username) {
       return res.status(400).json({ error: `"${clean}" is already taken.` });
