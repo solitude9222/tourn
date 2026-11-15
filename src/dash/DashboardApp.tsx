@@ -34,6 +34,7 @@ const AccountProfilePage = lazyPage(() => import("./pages/Account"), "AccountPro
 const AffiliatesPage = lazyPage(() => import("./pages/Account"), "AffiliatesPage");
 const AnalyticsPage = lazyPage(() => import("./pages/Account"), "AnalyticsPage");
 const CustomizeProfilePage = lazyPage(() => import("./pages/Customize"), "CustomizeProfilePage");
+const AudioPage = lazyPage(() => import("./pages/Customize"), "AudioPage");
 const LayoutPage = lazyPage(() => import("./pages/Layout"), "LayoutPage");
 const EffectsPage = lazyPage(() => import("./pages/Effects"), "EffectsPage");
 const BadgesPage = lazyPage(() => import("./pages/Badges"), "BadgesPage");
@@ -560,7 +561,7 @@ export function Dashboard(props: DashboardProps) {
       content = <AnalyticsPage />;
       break;
     case "music":
-      content = <CustomizeProfilePage tab="integrations" />;
+      content = <AudioPage />;
       break;
     case "customize-profile":
       content = <CustomizeProfilePage tab={profileTab} />;

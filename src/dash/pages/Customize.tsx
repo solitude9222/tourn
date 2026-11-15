@@ -76,7 +76,7 @@ const FILTERS = [
   { value: "deep", label: "Deep blur" },
 ];
 
-function AudioSettingsCard() {
+export function AudioSettingsCard() {
   const { about, setAbout, notify } = useDash();
   const audio = about.assets.audio;
   const audioInput = useRef<HTMLInputElement>(null);
@@ -913,3 +913,13 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 }
 
 
+
+/** Appearance → Audio: the player settings on their own, not buried in
+    the integrations list. */
+export function AudioPage() {
+  return (
+    <>
+      <AudioSettingsCard />
+    </>
+  );
+}

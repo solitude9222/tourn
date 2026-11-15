@@ -843,6 +843,7 @@
 /* The card holds its place while a section moves; only a hairline travels. */
 .tw-section-card {
   position: relative;
+  contain: layout paint;
 }
 
 .tw-section-card.is-dragging {

@@ -161,95 +161,6 @@ export function BadgesPage() {
 
       <Card>
         <CardHead
-          icon="palette"
-          title="Badge finish"
-          subtitle="One finish applies to every badge on your card. Dial in the glow, colour and motion once."
-          actions={<span className="tw-badge-style-preview"><BadgeChip badge={previewBadge} style={style} /><small>Live preview</small></span>}
-        />
-        <div className="tw-badge-style-grid">
-          <div className="tw-badge-style-col">
-            <span className="tw-subhead">Glow &amp; colour</span>
-            <div className="tw-inline-toggle"><span><b>Outer glow</b><small>A soft halo behind each badge.</small></span><Toggle label="Outer glow" checked={style.glow} onChange={(glow) => updateStyle({ glow })} /></div>
-            <ColorField label="Glow colour" value={style.glowColor} onChange={(glowColor) => updateStyle({ glowColor })} />
-            <Slider label="Glow strength" value={style.glowIntensity} min={0} max={100} suffix="%" onChange={(glowIntensity) => updateStyle({ glowIntensity })} />
-            <div className="tw-inline-toggle"><span><b>Glow pulse</b><small>The halo breathes gently.</small></span><Toggle label="Glow pulse" checked={style.glowPulse} onChange={(glowPulse) => updateStyle({ glowPulse })} /></div>
-            <div className="tw-inline-toggle"><span><b>Monochrome</b><small>Replace the art with one flat tint.</small></span><Toggle label="Monochrome badges" checked={style.monochrome} onChange={(monochrome) => updateStyle({ monochrome })} /></div>
-            <ColorField label="Monochrome tint" value={style.monoColor} onChange={(monoColor) => updateStyle({ monoColor })} />
-          </div>
-          <div className="tw-badge-style-col">
-            <span className="tw-subhead">Overlay &amp; motion</span>
-            <div className="tw-inline-toggle"><span><b>Colour overlay</b><small>Wash the badge art in your accent.</small></span><Toggle label="Colour overlay" checked={style.overlay} onChange={(overlay) => updateStyle({ overlay })} /></div>
-            <ColorField label="Overlay colour" value={style.overlayColor} onChange={(overlayColor) => updateStyle({ overlayColor })} />
-            <Slider label="Overlay strength" value={style.overlayStrength} min={0} max={100} suffix="%" onChange={(overlayStrength) => updateStyle({ overlayStrength })} />
-            <Field label="Animation">
-              <Select value={style.animation} options={BADGE_ANIMATIONS.map((animation) => ({ value: animation.id, label: animation.name }))} onChange={(animation) => updateStyle({ animation: animation as typeof style.animation })} />
-            </Field>
-            <Slider label="Badge size" value={style.size} min={14} max={32} suffix="px" onChange={(size) => updateStyle({ size })} />
-          </div>
-        </div>
-
-        <div className="tw-badge-row-studio">
-          <div className="tw-badge-row-copy">
-            <span className="tw-subhead">Badge row</span>
-            <small>Style the little shelf that holds every badge.</small>
-          </div>
-          <div className="tw-badge-pill-preview">
-            <BadgeRow badges={previewBadges} style={style} size={style.size} tooltipEnabled={false} />
-            <small>Live shelf preview</small>
-          </div>
-          <div className="tw-badge-row-presets" role="group" aria-label="Badge row presets">
-            {BADGE_ROW_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                className="tw-badge-row-preset"
-                title={preset.hint}
-                onClick={() => updateStyle(preset.style)}
-              >
-                {preset.name}
-              </button>
-            ))}
-          </div>
-          <div className="tw-form-grid">
-            <ColorField label="Shelf colour" value={style.rowBackground} onChange={(rowBackground) => updateStyle({ rowBackground })} />
-            <Slider label="Shelf opacity" value={Math.round(style.rowOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowOpacity) => updateStyle({ rowOpacity: rowOpacity / 100 })} />
-            <ColorField label="Border colour" value={style.rowBorderColor} onChange={(rowBorderColor) => updateStyle({ rowBorderColor })} />
-            <Slider label="Border opacity" value={Math.round(style.rowBorderOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowBorderOpacity) => updateStyle({ rowBorderOpacity: rowBorderOpacity / 100 })} />
-            <Slider label="Corner radius" value={style.rowRadius} min={0} max={999} suffix="px" onChange={(rowRadius) => updateStyle({ rowRadius })} />
-            <Slider label="Backdrop blur" value={style.rowBlur} min={0} max={30} suffix="px" onChange={(rowBlur) => updateStyle({ rowBlur })} />
-            <Slider label="Shelf padding" value={style.rowPadding} min={0} max={18} suffix="px" onChange={(rowPadding) => updateStyle({ rowPadding })} />
-            <Slider label="Badge gap" value={style.rowGap} min={0} max={18} suffix="px" onChange={(rowGap) => updateStyle({ rowGap })} />
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <div className="tw-badge-promo">
-          <span className="tw-badge-promo-icon">
-            <img src="/badges/icons/norm/premium.svg" alt="" width={34} height={34} loading="lazy" />
-          </span>
-          <div className="tw-badge-promo-copy">
-            <b>
-              Custom badges <Chip tone="new">NEW</Chip>
-            </b>
-            <small>
-              Upload your own icon and name, then re-edit it later with an edit token. Part of
-              Premium.
-            </small>
-          </div>
-          <div className="tw-badge-promo-actions">
-            <Button icon="eye" onClick={() => setPreview(true)}>
-              Preview
-            </Button>
-            <Button variant="primary" icon="crown" onClick={() => go("premium")}>
-              {isPremium ? "Create one" : "Get Premium"}
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <CardHead
           icon="grid"
           title="Catalogue"
           subtitle={`${earnedCount} of ${BADGE_CATALOGUE.length} unlocked on this account`}
@@ -363,6 +274,96 @@ export function BadgesPage() {
         ) : null}
       </Card>
 
+      <Card>
+        <CardHead
+          icon="palette"
+          title="Badge finish"
+          subtitle="One finish applies to every badge on your card. Dial in the glow, colour and motion once."
+          actions={<span className="tw-badge-style-preview"><BadgeChip badge={previewBadge} style={style} /><small>Live preview</small></span>}
+        />
+        <div className="tw-badge-style-grid">
+          <div className="tw-badge-style-col">
+            <span className="tw-subhead">Glow &amp; colour</span>
+            <div className="tw-inline-toggle"><span><b>Outer glow</b><small>A soft halo behind each badge.</small></span><Toggle label="Outer glow" checked={style.glow} onChange={(glow) => updateStyle({ glow })} /></div>
+            <ColorField label="Glow colour" value={style.glowColor} onChange={(glowColor) => updateStyle({ glowColor })} />
+            <Slider label="Glow strength" value={style.glowIntensity} min={0} max={100} suffix="%" onChange={(glowIntensity) => updateStyle({ glowIntensity })} />
+            <div className="tw-inline-toggle"><span><b>Glow pulse</b><small>The halo breathes gently.</small></span><Toggle label="Glow pulse" checked={style.glowPulse} onChange={(glowPulse) => updateStyle({ glowPulse })} /></div>
+            <div className="tw-inline-toggle"><span><b>Monochrome</b><small>Replace the art with one flat tint.</small></span><Toggle label="Monochrome badges" checked={style.monochrome} onChange={(monochrome) => updateStyle({ monochrome })} /></div>
+            <ColorField label="Monochrome tint" value={style.monoColor} onChange={(monoColor) => updateStyle({ monoColor })} />
+          </div>
+          <div className="tw-badge-style-col">
+            <span className="tw-subhead">Overlay &amp; motion</span>
+            <div className="tw-inline-toggle"><span><b>Colour overlay</b><small>Wash the badge art in your accent.</small></span><Toggle label="Colour overlay" checked={style.overlay} onChange={(overlay) => updateStyle({ overlay })} /></div>
+            <ColorField label="Overlay colour" value={style.overlayColor} onChange={(overlayColor) => updateStyle({ overlayColor })} />
+            <Slider label="Overlay strength" value={style.overlayStrength} min={0} max={100} suffix="%" onChange={(overlayStrength) => updateStyle({ overlayStrength })} />
+            <Field label="Animation">
+              <Select value={style.animation} options={BADGE_ANIMATIONS.map((animation) => ({ value: animation.id, label: animation.name }))} onChange={(animation) => updateStyle({ animation: animation as typeof style.animation })} />
+            </Field>
+            <Slider label="Badge size" value={style.size} min={14} max={32} suffix="px" onChange={(size) => updateStyle({ size })} />
+          </div>
+        </div>
+
+        <div className="tw-badge-row-studio">
+          <div className="tw-badge-row-copy">
+            <span className="tw-subhead">Badge row</span>
+            <small>Style the little shelf that holds every badge.</small>
+          </div>
+          <div className="tw-badge-pill-preview">
+            <BadgeRow badges={previewBadges} style={style} size={style.size} tooltipEnabled={false} />
+            <small>Live shelf preview</small>
+          </div>
+          <div className="tw-badge-row-presets" role="group" aria-label="Badge row presets">
+            {BADGE_ROW_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className="tw-badge-row-preset"
+                title={preset.hint}
+                onClick={() => updateStyle(preset.style)}
+              >
+                {preset.name}
+              </button>
+            ))}
+          </div>
+          <div className="tw-form-grid">
+            <ColorField label="Shelf colour" value={style.rowBackground} onChange={(rowBackground) => updateStyle({ rowBackground })} />
+            <Slider label="Shelf opacity" value={Math.round(style.rowOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowOpacity) => updateStyle({ rowOpacity: rowOpacity / 100 })} />
+            <ColorField label="Border colour" value={style.rowBorderColor} onChange={(rowBorderColor) => updateStyle({ rowBorderColor })} />
+            <Slider label="Border opacity" value={Math.round(style.rowBorderOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowBorderOpacity) => updateStyle({ rowBorderOpacity: rowBorderOpacity / 100 })} />
+            <Slider label="Corner radius" value={style.rowRadius} min={0} max={999} suffix="px" onChange={(rowRadius) => updateStyle({ rowRadius })} />
+            <Slider label="Backdrop blur" value={style.rowBlur} min={0} max={30} suffix="px" onChange={(rowBlur) => updateStyle({ rowBlur })} />
+            <Slider label="Shelf padding" value={style.rowPadding} min={0} max={18} suffix="px" onChange={(rowPadding) => updateStyle({ rowPadding })} />
+            <Slider label="Badge gap" value={style.rowGap} min={0} max={18} suffix="px" onChange={(rowGap) => updateStyle({ rowGap })} />
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="tw-badge-promo">
+          <span className="tw-badge-promo-icon">
+            <img src="/badges/icons/norm/premium.svg" alt="" width={34} height={34} loading="lazy" />
+          </span>
+          <div className="tw-badge-promo-copy">
+            <b>
+              Custom badges <Chip tone="new">NEW</Chip>
+            </b>
+            <small>
+              Upload your own icon and name, then re-edit it later with an edit token. Part of
+              Premium.
+            </small>
+          </div>
+          <div className="tw-badge-promo-actions">
+            <Button icon="eye" onClick={() => setPreview(true)}>
+              Preview
+            </Button>
+            <Button variant="primary" icon="crown" onClick={() => go("premium")}>
+              {isPremium ? "Create one" : "Get Premium"}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      
       <Modal
         open={preview}
         title="Custom badge preview"

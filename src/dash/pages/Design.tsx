@@ -198,6 +198,35 @@ export function DesignPage() {
   const patchDesign = (next: Partial<typeof about.design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...next } }));
 
+  const metaStyle = about.design.metaStyle ?? "plain";
+  const viewStyle = about.design.viewStyle ?? "icon";
+  const viewPreview = viewStyle === "text" ? "12,480 views" : viewStyle === "number" ? "12,480" : "◉ 12,480";
+
+  /** Inline style for one surface container. */
+  const containerStyle = (key: SurfaceKey) => {
+    const { container } = surfaces[key];
+    return {
+      background: withAlpha(container.background, container.backgroundOpacity),
+      borderColor: withAlpha(container.border, container.borderOpacity),
+      borderWidth: container.borderWidth,
+      borderRadius: container.radius,
+      backdropFilter: `blur(${container.blur}px)`,
+    } as const;
+  };
+
+  /** Inline style for one surface pill. */
+  const pillStyle = (key: SurfaceKey) => {
+    const { pill } = surfaces[key];
+    return {
+      background: withAlpha(pill.background, pill.backgroundOpacity),
+      borderColor: withAlpha(pill.border, pill.borderOpacity),
+      borderWidth: pill.borderWidth,
+      borderRadius: pill.radius,
+      color: pill.text,
+      backdropFilter: `blur(${pill.blur}px)`,
+    } as const;
+  };
+
   const patch = (key: SurfaceKey, part: "container" | "pill", next: Record<string, number | string>) =>
     setAbout((current) => ({
       ...current,
@@ -214,8 +243,9 @@ export function DesignPage() {
     }));
 
   return (
-    <>
-      {SURFACES.map((surface) => (
+    <div className="tw-design-split">
+      <div className="tw-design-cards">
+        {SURFACES.map((surface) => (
         <Card key={surface.key}>
           <CardHead
             icon={surface.icon}
@@ -357,6 +387,40 @@ export function DesignPage() {
           Save publishes it
         </Button>
       </Card>
-    </>
+      </div>
+
+      <aside className="tw-design-live" aria-label="Live preview">
+        <div className="tw-design-live-inner">
+          <span className="tw-design-live-label">Live preview</span>
+
+          <div className="tw-design-live-about" style={containerStyle("about")}>
+            <b>Your name</b>
+            <p>Designer, builder, night owl.</p>
+            <div className="tw-design-live-tags">
+              {["TypeScript", "React", "Node"].map((tag) => (
+                <span key={tag} style={pillStyle("about")}>{tag}</span>
+              ))}
+            </div>
+            <div className={`tw-design-live-meta is-${metaStyle}`}>
+              <span>Berlin</span>
+              <span>{viewPreview}</span>
+              <span>Joined Sep 2026</span>
+            </div>
+          </div>
+
+          <div className="tw-design-live-card" style={containerStyle("project")}>
+            <b>Project card</b>
+            <p>A showcase entry with its stack.</p>
+            <div className="tw-design-live-tags">
+              {["Next.js", "Postgres"].map((tag) => (
+                <span key={tag} style={pillStyle("project")}>{tag}</span>
+              ))}
+            </div>
+          </div>
+
+          <p className="tw-design-live-note">Edits appear here as you move a control.</p>
+        </div>
+      </aside>
+    </div>
   );
 }

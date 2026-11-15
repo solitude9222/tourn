@@ -3151,3 +3151,139 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Focus reads as a neutral lift, not as an error state. */
+.tw-dash :is(.tw-control, .tw-color, .tw-search):focus-within {
+  border-color: #4a4a54;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+.tw-dash :is(input, textarea, select)::selection {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ── Portfolio > Design: editor on the left, live surface on the right ──── */
+.tw-design-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
+  align-items: start;
+}
+
+.tw-design-cards {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tw-design-live {
+  position: sticky;
+  top: 18px;
+}
+
+.tw-design-live-inner {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bar);
+}
+
+.tw-design-live-label {
+  color: var(--nav);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tw-design-live-about,
+.tw-design-live-card {
+  padding: 14px;
+  border-style: solid;
+}
+
+.tw-design-live-about b,
+.tw-design-live-card b {
+  display: block;
+  color: var(--title);
+  font-size: 14px;
+}
+
+.tw-design-live-about p,
+.tw-design-live-card p {
+  margin: 3px 0 10px;
+  color: var(--sub);
+  font-size: 12px;
+}
+
+.tw-design-live-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tw-design-live-tags span {
+  padding: 3px 8px;
+  border-style: solid;
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+.tw-design-live-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--sub);
+  font-size: 11px;
+}
+
+.tw-design-live-meta.is-plain span + span {
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.tw-design-live-meta.is-pill span {
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tw-design-live-meta.is-icons span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0;
+}
+
+.tw-design-live-meta.is-icons span::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.tw-design-live-note {
+  margin: 0;
+  color: var(--nav);
+  font-size: 11px;
+}
+
+@media (max-width: 1180px) {
+  .tw-design-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tw-design-live {
+    position: static;
+  }
+}

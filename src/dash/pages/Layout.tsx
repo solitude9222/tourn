@@ -259,14 +259,22 @@ export function LayoutPage({
       return ids.length - 1;
     };
 
+    // Pointer events fire faster than the page paints; one update per frame
+    // keeps a long section list from re-rendering on every pixel.
+    let frame = 0;
     const onMove = (moveEvent: PointerEvent) => {
-      if (moveEvent.pointerId !== pointerId) return;
-      const over = targetIndex(moveEvent.clientY);
-      setDrag({ from: dragRef.current?.from ?? index, over });
+      if (moveEvent.pointerId !== pointerId || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const over = targetIndex(moveEvent.clientY);
+        if (dragRef.current?.over === over) return;
+        setDrag({ from: dragRef.current?.from ?? index, over });
+      });
     };
 
     const finish = (upEvent: PointerEvent) => {
       if (upEvent.pointerId !== pointerId) return;
+      cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", finish);
       window.removeEventListener("pointercancel", finish);

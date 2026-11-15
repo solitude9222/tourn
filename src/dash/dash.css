@@ -64,7 +64,7 @@
 }
 
 .tw-dash ::selection {
-  background: rgba(212, 4, 16, 0.4);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 /* ------------------------------------------------------------------ scroll */
@@ -755,7 +755,7 @@
 }
 
 .tw-control:focus-within {
-  border-color: #b8080c;
+  border-color: #4a4a54;
 }
 
 .tw-control input {
@@ -5676,7 +5676,7 @@
 }
 
 .tw-dash ::selection {
-  background: color-mix(in srgb, var(--accent) 38%, transparent);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .tw-dash .tw-btn--primary:hover {
