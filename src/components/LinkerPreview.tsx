@@ -456,14 +456,16 @@ export function LinkerPreview({
   );
   const slidesRef=useRef<HTMLDivElement>(null);
   const dragRef=useRef<{y:number;scroll:number}|null>(null);
-  const aboutProjects = (design.sections ?? []).filter(
-    (section) => section.kind === "project" && ((section.title ?? "").trim() || section.image),
-  );
+  const visibleSections = (design.sections ?? []).filter((section) => {
+    if (section.kind === "project") return Boolean(section.title.trim() || section.image || section.text.trim());
+    if (section.kind === "pc-build") return Boolean(section.title.trim() || section.items?.length || section.subtitle.trim());
+    return Boolean(section.title.trim() || section.items?.length || section.text.trim());
+  });
+  const aboutProjects = visibleSections.filter((section) => section.kind === "project");
   // Projects listed inside the About page leave the slide rotation: they are
   // the same cards, shown full size in About, not a second small copy.
   const projectsInAbout = new Set(design.aboutSlide?.showProjects ? aboutProjects.map((project) => project.id) : []);
-  const groupedSections:typeof design.sections[]=[];
-  for(const section of design.sections){if(projectsInAbout.has(section.id))continue;const last=groupedSections[groupedSections.length-1];if(last && last[0].kind===section.kind)last.push(section);else groupedSections.push([section]);}
+  const publicSections = visibleSections.filter((section) => !projectsInAbout.has(section.id));
   const skills=(design.skills||[]).flatMap(id=>{const item=TECH_BY_ID.get(id);return item?[item]:[];});
   const skillPills=skills.length?<section className="lkr-skills-section"><h2>Skills</h2><div className="lkr-tech-row">{skills.map(item=><span key={item.id} className="lkr-tech"><img src={techIconUrl(item)} alt=""/>{item.name}</span>)}</div></section>:null;
   const sectionsVisible = design.sectionsEnabled === true || design.cardStyle === "slide";
@@ -473,7 +475,7 @@ export function LinkerPreview({
   const slideshowActive = Boolean(
     slideshowLayout &&
       (hasSkills ||
-        (sectionsVisible && groupedSections.length > 0) ||
+        (sectionsVisible && publicSections.length > 0) ||
         design.slideshowLinks ||
         design.slideshowBadges ||
         design.slideshowAbout),
@@ -482,13 +484,11 @@ export function LinkerPreview({
   const sectionContent = sectionsVisible || skillPills ? (
     <>
       {skillWrap}
-      {sectionsVisible
-        ? groupedSections.map((group) => (
-            <div key={group[0].id} className={slideshowActive ? "lkr-slide" : ""}>
-              <ProfileSections sections={group} />
-            </div>
-          ))
-        : null}
+      {sectionsVisible && publicSections.length ? (
+        <div className={slideshowActive ? "lkr-slide" : "lkr-section-content"}>
+          <ProfileSections sections={publicSections} />
+        </div>
+      ) : null}
     </>
   ) : null;
   const tooltips = design.tooltips;

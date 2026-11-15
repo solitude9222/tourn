@@ -5502,6 +5502,18 @@
   box-shadow: none;
 }
 
+.tw-dash .tw-color-hex {
+  background: transparent !important;
+  border-color: var(--border, #303038) !important;
+  box-shadow: none;
+}
+
+.tw-dash .tw-color-hex:focus {
+  background: transparent !important;
+  border-color: var(--accent, #ff8f92) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #ff8f92) 20%, transparent);
+}
+
 /* ── floating menus ──────────────────────────────────────────────────────
    Colour pickers and dropdown panels are lifted surfaces, not black holes:
    one step above the page so they read as "on top" instead of punched out. */

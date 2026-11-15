@@ -254,12 +254,23 @@ export function SectionEditor({
                     <TextInput
                       value={pick.subtitle}
                       maxLength={180}
-                      placeholder="Subtitle"
+                      placeholder={pick.category === "game" ? "Mode, role or platform" : "Subtitle"}
                       aria-label={`Subtitle for pick ${pick.title || "untitled"}`}
                       onChange={(event) =>
                         onChange({ items: picks.map((item) => (item.id === pick.id ? { ...item, subtitle: event.target.value } : item)) })
                       }
                     />
+                    {pick.category === "game" ? (
+                      <TextInput
+                        value={pick.meta}
+                        maxLength={80}
+                        placeholder="Rank (optional)"
+                        aria-label={`Optional rank for ${pick.title || "game"}`}
+                        onChange={(event) =>
+                          onChange({ items: picks.map((item) => (item.id === pick.id ? { ...item, meta: event.target.value } : item)) })
+                        }
+                      />
+                    ) : null}
                   </span>
                   <button
                     type="button"
@@ -297,7 +308,8 @@ export function SectionEditor({
             title: item.title,
             subtitle: item.subtitle,
             image: item.image,
-            meta: item.meta,
+            meta: item.kind === "game" ? "" : item.meta,
+            category: item.kind,
             url: item.url,
           })
         }

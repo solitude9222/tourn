@@ -4996,7 +4996,7 @@
 .profile-overlay--custom img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Profile compositions share normal flow; metadata never floats over identity. */
-.lkr-flow.lkr-flow--stacked { display:flex; flex-direction:column; align-items:stretch; width:min(100%,720px); max-width:720px; gap:22px; margin-inline:auto; }
+.lkr-flow.lkr-flow--stacked { display:flex; flex-direction:column; align-items:stretch; width:min(100%,720px); max-width:720px; gap:14px; margin-inline:auto; }
 .lkr-flow.lkr-flow--centered { width:min(100%,600px); max-width:600px; align-items:stretch; gap:22px; }
 .lkr-flow.lkr-flow--left { width:min(100%,1100px); max-width:1100px; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; gap:24px; }
 .lkr-flow > .profile-preview { max-width:100%; min-width:0; margin:0; }
