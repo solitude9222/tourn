@@ -6591,3 +6591,54 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   width: calc(var(--pv-meta-size, 12px) * 1.05);
   height: calc(var(--pv-meta-size, 12px) * 1.05);
 }
+
+/* Separate page-level details into calm, balanced corner chips. */
+html body .pv-page-meta.pv-page-meta {
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(44vw, 360px);
+  padding: 8px 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  background: rgba(12, 13, 18, .74);
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+  color: var(--pv-muted, rgba(255,255,255,.72));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+html body .pv-page-meta--right.pv-page-meta--right {
+  right: max(16px, env(safe-area-inset-right));
+  left: auto;
+}
+
+html body .pv-page-meta.pv-page-meta .pv-pin {
+  min-width: 0;
+  color: inherit;
+}
+
+html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  html body .pv-page-meta.pv-page-meta {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+    gap: 7px;
+    max-width: calc(50vw - 16px);
+    padding: 7px 9px;
+  }
+  html body .pv-page-meta--right.pv-page-meta--right {
+    right: max(10px, env(safe-area-inset-right));
+    left: auto;
+  }
+}

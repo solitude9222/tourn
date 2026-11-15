@@ -6,7 +6,7 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
    its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { createProfileSection, defaultMetadata, type AboutLayout, type JoinPosition, type ProfileSection, type ProfileSectionKind, type ViewPosition } from "../../lib/about";
+import { createProfileSection, defaultMetadata, type AboutLayout, type JoinPosition, type LocationPosition, type ProfileSection, type ProfileSectionKind, type ViewPosition } from "../../lib/about";
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
@@ -17,7 +17,8 @@ import { FileUpload, Button, Card, CardHead, ColorField, Field, Icon, Select, Sl
 
 const SECTION_KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
   { id: "project", label: "Projects", hint: "Artwork, stack and links" },
-  { id: "interest", label: "Interests", hint: "Pick animes from the library" },
+  { id: "interest", label: "Interests", hint: "Anime and games" },
+  { id: "pc-build", label: "PC build", hint: "Parts, specs and previews" },
 ];
 
 /** The three page layouts and the positions each one starts with. */
@@ -71,6 +72,17 @@ const ZONES: { id: string; position: "inside-top-left" | "inside-top-right" | "i
   { id: "bottom-left", position: "inside-bottom-left" },
   { id: "bottom-right", position: "inside-bottom-right" },
   { id: "footer", position: "footer" },
+];
+
+const DETAIL_POSITIONS = [
+  { value: "outside-below-left", label: "Below card · left" },
+  { value: "outside-below-right", label: "Below card · right" },
+  { value: "inside-top-left", label: "Inside · top left" },
+  { value: "inside-top-right", label: "Inside · top right" },
+  { value: "inside-bottom-left", label: "Inside · bottom left" },
+  { value: "inside-bottom-right", label: "Inside · bottom right" },
+  { value: "under-name", label: "Under the name" },
+  { value: "hidden", label: "Hidden" },
 ];
 
 function LayoutPreview() {
@@ -347,6 +359,14 @@ export function LayoutPage({
       </Card> : null}
 
       {section === "layout" ? <LayoutPreview /> : null}
+      {section === "layout" ? <Card>
+        <CardHead icon="move" title="Profile details" subtitle="Choose where location, views and join date sit. Overlapping bottom corners are automatically separated." />
+        <div className="tw-form-grid">
+          <Field label="Location"><Select value={design.locationPosition} options={DETAIL_POSITIONS} onChange={(locationPosition) => updateDesign({ locationPosition: locationPosition as LocationPosition })} /></Field>
+          <Field label="Profile views"><Select value={design.viewPosition} options={DETAIL_POSITIONS} onChange={(viewPosition) => updateDesign({ viewPosition: viewPosition as ViewPosition })} /></Field>
+          <Field label="Join date"><Select value={design.joinPosition} options={DETAIL_POSITIONS} onChange={(joinPosition) => updateDesign({ joinPosition: joinPosition as JoinPosition })} /></Field>
+        </div>
+      </Card> : null}
       {section === "layout" ? <details className="tw-advanced">
         <summary>Card motion<small>tilt, and moving the whole stack together</small></summary>
         <Card><CardHead icon="move" title="Card motion" subtitle="Tilt the profile by itself or move the entire stacked group together." /><div className="tw-form-grid"><Slider label="Card tilt" value={design.tilt} min={0} max={24} suffix="°" onChange={(tilt) => updateDesign({ tilt })} /><div className="tw-inline-toggle"><span><b>Tilt stacked cards together</b><small>Applies to the profile, widget cards and audio in Stacked layout.</small></span><Toggle label="Tilt stacked cards together" checked={design.stackTilt} onChange={(stackTilt) => updateDesign({ stackTilt, ...(stackTilt && design.tilt === 0 ? { tilt: 8 } : {}) })} /></div></div></Card>
@@ -559,8 +579,8 @@ export function LayoutPage({
           </Field>
         </div>
       </Card> : null}
-      {section === "sections" ? <Card><CardHead icon="layers" title="Sections" subtitle="Everything below your card: projects, games and the animes you like. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
-        <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime and game libraries.</p>
+      {section === "sections" ? <Card><CardHead icon="layers" title="Sections" subtitle="Build your page with projects, interests and a PC parts list. Drag to reorder." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
+        <p className="tw-foot-note">Projects show your stack and links. Interests use the media library. PC builds let you add up to 100 components with brand, specs, images and a lightweight 3D-style preview.</p>
         <div className="tw-toggle-grid">
           <div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div>
           <div className="tw-inline-toggle"><b>Vertical slideshow</b><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div>

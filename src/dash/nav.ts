@@ -53,17 +53,12 @@ export const NAV: NavItem[] = [
     ],
   },
   {
-    key: "layout",
-    label: "Layout",
-    icon: "layout",
-    tabs: [{ page: "layout", label: "Layout", icon: "layout" }],
-  },
-  {
-    key: "portfolio",
-    label: "Portfolio",
+    key: "content",
+    label: "Content",
     icon: "layers",
     tabs: [
-      { page: "portfolio-general", label: "General", icon: "home" },
+      { page: "layout", label: "Layout", icon: "layout" },
+      { page: "portfolio-general", label: "Overview", icon: "home" },
       { page: "portfolio-sections", label: "Sections", icon: "layers" },
       { page: "portfolio-gallery", label: "Gallery", icon: "image" },
       { page: "portfolio-design", label: "Design", icon: "palette" },
@@ -118,7 +113,7 @@ export const NAV: NavItem[] = [
 const OWNER: Partial<Record<Page, string>> = {
   "account-profile": "profile",
   "customize-profile": "appearance",
-  assets: "portfolio",
+  assets: "content",
   admin: "settings",
   premium: "billing",
   theme: "settings",

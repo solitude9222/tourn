@@ -36,6 +36,7 @@ export type MetadataPosition =
   | "outside-left"
   | "outside-right"
   | "outside-below-left"
+  | "outside-below-right"
   | "inside-top-left"
   | "inside-top-right"
   | "inside-bottom-left"
@@ -229,8 +230,8 @@ export const DEFAULT_PILL_STYLE: PillStyle = {
   blur: 6,
 };
 
-/** Sections are just two things now: work you built, and things you like. */
-export type ProfileSectionKind = "project" | "interest";
+/** Profile sections share one editor, with specialist cards for projects, interests and PC builds. */
+export type ProfileSectionKind = "project" | "interest" | "pc-build";
 
 /** A named link inside a project/media section. */
 export type ProfileSectionLink = { label: string; url: string };
@@ -243,6 +244,7 @@ export type SectionPick = {
   image: string;
   meta: string;
   url: string;
+  category?: string;
 };
 
 export type ProfileSection = {
@@ -258,8 +260,10 @@ export type ProfileSection = {
   status: string;
   /** Tech stack ids from lib/techStack. */
   stack: string[];
-  /** Interests only: every anime picked into this section. */
+  /** Interests and PC builds: selected media or user-entered components. */
   items: SectionPick[];
+  /** PC-build preview layout. */
+  pcView?: "grid" | "list" | "stage";
   /** Extra links shown beside the main one. */
   links: ProfileSectionLink[];
   /** Year, score, genre or other short metadata. */
@@ -461,7 +465,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   metaStyle: "plain",
   metaSize: 12,
   groupInterests: false,
-  viewPosition: "outside-below-left",
+  viewPosition: "outside-below-right",
   joinPosition: "under-name",
   locationPosition: "outside-below-left",
   entry: DEFAULT_ENTRY,
@@ -547,6 +551,7 @@ const METADATA_POSITIONS: readonly MetadataPosition[] = [
   "outside-left",
   "outside-right",
   "outside-below-left",
+  "outside-below-right",
   "inside-top-left",
   "inside-top-right",
   "inside-bottom-left",
@@ -596,9 +601,9 @@ export function defaultMetadata(layout: AboutLayout): {
     };
   }
   return {
-    locationPosition: "outside-below-left",
-    viewPosition: "outside-below-left",
-    joinPosition: "under-name",
+      locationPosition: "outside-below-left",
+      viewPosition: "outside-below-right",
+      joinPosition: "under-name",
   };
 }
 const JOIN_POSITIONS = METADATA_POSITIONS;
@@ -779,7 +784,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
       const item = section as Partial<ProfileSection>;
       // Older documents had text, anime and game sections; they all become
       // Interests, which is the single library-backed kind now.
-      const kind: ProfileSectionKind = item.kind === "project" ? "project" : "interest";
+      const kind: ProfileSectionKind = item.kind === "project" || item.kind === "pc-build" ? item.kind : "interest";
       const links = Array.isArray(item.links)
         ? item.links
             .filter((link) => link && typeof link.url === "string" && /^https?:\/\//i.test(link.url))
@@ -803,10 +808,11 @@ function loadDesignRaw(input: unknown): AboutDesign {
           : [],
         links,
         meta: typeof item.meta === "string" ? item.meta.slice(0, 80) : "",
+        pcView: item.pcView === "list" || item.pcView === "stage" ? item.pcView : "grid",
         items: Array.isArray(item.items)
           ? item.items
               .filter((pick) => pick && typeof pick === "object")
-              .slice(0, 12)
+              .slice(0, kind === "pc-build" ? 150 : 12)
               .map((pick, pickIndex) => ({
                 id: typeof pick.id === "string" ? pick.id.slice(0, 80) : `pick-${index}-${pickIndex}`,
                 title: typeof pick.title === "string" ? pick.title.slice(0, 100) : "",
@@ -814,6 +820,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
                 image: typeof pick.image === "string" ? pick.image.slice(0, 1_000_000) : "",
                 meta: typeof pick.meta === "string" ? pick.meta.slice(0, 80) : "",
                 url: typeof pick.url === "string" && /^https?:\/\//i.test(pick.url) ? pick.url.slice(0, 1000) : "",
+                category: typeof pick.category === "string" ? pick.category.slice(0, 40) : "",
               }))
           : [],
       };
@@ -862,7 +869,9 @@ function loadDesignRaw(input: unknown): AboutDesign {
     namePosition: oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
     bioPosition: oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
     avatarShape: oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
-    viewPosition: oneOf(raw.viewPosition, VIEW_POSITIONS, DEFAULT_ABOUT_DESIGN.viewPosition),
+    viewPosition: raw.viewPosition === "outside-below-left" && raw.locationPosition === raw.viewPosition
+      ? "outside-below-right"
+      : oneOf(raw.viewPosition, VIEW_POSITIONS, DEFAULT_ABOUT_DESIGN.viewPosition),
     joinPosition: oneOf(raw.joinPosition, JOIN_POSITIONS, DEFAULT_ABOUT_DESIGN.joinPosition),
     locationPosition: oneOf(
       raw.locationPosition,

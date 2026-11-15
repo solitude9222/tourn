@@ -194,10 +194,11 @@ export function ProfilePreview({
   ].filter((pin) => Boolean(pin.node) && pin.position !== "hidden");
   // Page-level details leave the card entirely: a fixed child of a tilted card
   // would position itself against the card's transform, not the screen.
-  const pagePins = metaPins.filter((pin) => pin.position === "outside-below-left");
+  const pagePins = metaPins.filter((pin) => pin.position === "outside-below-left" || pin.position === "outside-below-right");
   const absolutePins = metaPins.filter(
     (pin) =>
       pin.position !== "outside-below-left" &&
+      pin.position !== "outside-below-right" &&
       (pin.position.startsWith("inside-") || pin.position.startsWith("outside-")),
   );
   const inlinePins = (position: string) =>
@@ -229,13 +230,21 @@ export function ProfilePreview({
   const pagePinnedLayer =
     pagePins.length && typeof document !== "undefined"
       ? createPortal(
-          <span className="pv-page-meta">
-            {pagePins.map((pin) => (
-              <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
-                {pin.node}
-              </span>
-            ))}
-          </span>,
+          <>
+            {(["outside-below-left", "outside-below-right"] as const).map((position) => {
+              const pins = pagePins.filter((pin) => pin.position === position);
+              if (!pins.length) return null;
+              return (
+                <span key={position} className={`pv-page-meta pv-page-meta--${position.endsWith("right") ? "right" : "left"}`}>
+                  {pins.map((pin) => (
+                    <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
+                      {pin.node}
+                    </span>
+                  ))}
+                </span>
+              );
+            })}
+          </>,
           document.body,
         )
       : null;

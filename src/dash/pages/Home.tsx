@@ -8,7 +8,6 @@ import { useDash } from "../context";
 import { Button, Card, CardHead, Chip, Icon, SectionLabel, type IconName } from "../ui";
 import { AnalyticsPanel } from "../Analytics";
 import { copyText } from "../files";
-import { DEFAULT_PROFILE_ASSETS } from "../../lib/profileAssets";
 import { accountUid } from "../../lib/auth";
 import { readReactions, type ReactionState } from "../../lib/reactions";
 
@@ -58,14 +57,6 @@ export function HomePage() {
       label: "Add description",
       done: about.bio.trim().length > 0,
       target: () => go("portfolio-about"),
-    },
-    {
-      label: "Add a background",
-      done:
-        Boolean(about.assets.background.imageUrl) ||
-        about.assets.background.style === "gradient" ||
-        about.assets.background.color !== DEFAULT_PROFILE_ASSETS.background.color,
-      target: () => go("profile-appearance"),
     },
     {
       label: "Connect Discord account",
