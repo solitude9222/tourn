@@ -8,6 +8,7 @@
 import { useRef, useState } from "react";
 import { uploadAudioFile } from "../../lib/audioUpload";
 import { AudioPlayer } from "../../components/AudioPlayer";
+import { PositionStudio } from "../PositionStudio";
 import { imageToDataUrl } from "../files";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { fileToDataUrl } from "../files";
@@ -31,6 +32,7 @@ import { FileUpload,
   LockedBlock,
   MultiSelect,
   Select,
+  SectionLabel,
   Slider,
   TextInput,
   Textarea,
@@ -75,6 +77,19 @@ const FILTERS = [
   { value: "blur", label: "Blur" },
   { value: "deep", label: "Deep blur" },
 ];
+
+const META_STYLES = [
+  { id: "plain", label: "Plain", hint: "Icon and text, split by a divider." },
+  { id: "pill", label: "Pills", hint: "Each detail in its own chip." },
+  { id: "icons", label: "Icons only", hint: "Glyphs in small circles." },
+] as const;
+
+const VIEW_STYLES = [
+  { id: "icon", label: "Icon + number", hint: "An eye, then the count." },
+  { id: "text", label: "Reads as text", hint: "1,234 views." },
+  { id: "number", label: "Number only", hint: "Bare count, no glyph." },
+  { id: "icon-only", label: "Icon only", hint: "Just the eye, no number." },
+] as const;
 
 export function AudioSettingsCard() {
   const { about, setAbout, notify } = useDash();
@@ -835,6 +850,65 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
         </div>
       </Card>
 
+      <Card>
+        <CardHead
+          icon="pin"
+          title="Details & counter"
+          subtitle="Where location, views and the join date sit on the card, how they read, and how large."
+        />
+
+        <PositionStudio
+          viewPosition={design.viewPosition}
+          locationPosition={design.locationPosition}
+          joinPosition={design.joinPosition}
+          layout={design.layout}
+          onChange={(patch) => updateDesign(patch)}
+        />
+
+        <div className="tw-design-divider" role="presentation" />
+
+        <SectionLabel hint="Quiet text, boxed chips, or glyphs alone.">Detail style</SectionLabel>
+        <div className="tw-style-grid">
+          {META_STYLES.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={`tw-style-option${(design.metaStyle ?? "plain") === option.id ? " is-active" : ""}`}
+              aria-pressed={(design.metaStyle ?? "plain") === option.id}
+              onClick={() => updateDesign({ metaStyle: option.id })}
+            >
+              <b>{option.label}</b>
+              <small>{option.hint}</small>
+            </button>
+          ))}
+        </div>
+
+        <SectionLabel hint="The number beside the eye icon.">View counter</SectionLabel>
+        <div className="tw-style-grid">
+          {VIEW_STYLES.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={`tw-style-option${(design.viewStyle ?? "icon") === option.id ? " is-active" : ""}`}
+              aria-pressed={(design.viewStyle ?? "icon") === option.id}
+              onClick={() => updateDesign({ viewStyle: option.id })}
+            >
+              <b>{option.label}</b>
+              <small>{option.hint}</small>
+            </button>
+          ))}
+        </div>
+
+        <SectionLabel hint="How large location, views and the join date read.">Size</SectionLabel>
+        <Slider
+          label="Detail text size"
+          value={design.metaSize}
+          min={9}
+          max={22}
+          suffix="px"
+          onChange={(metaSize) => updateDesign({ metaSize })}
+        />
+      </Card>
       <Card>
         <CardHead icon="user" title="Profile elements" subtitle="What shows on the card" />
 

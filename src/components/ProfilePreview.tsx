@@ -101,24 +101,34 @@ export function ProfilePreview({
   // Basic mode ignores saved slots entirely: each layout has one calm default.
   const basic = defaultMetadata(design.layout);
   const custom = design.advancedLayout === true;
-  const viewPosition = custom
-    ? insideMetadata(design.viewPosition === "side" && design.layout !== "left" ? "footer" : design.viewPosition ?? "top-right")
-    : basic.viewPosition;
+  // Positions are honoured whether or not the advanced layout is on: picking
+  // Card top-right in the studio has to move the counter, always.
+  const viewPosition = insideMetadata(
+    design.viewPosition === "side" && design.layout !== "left"
+      ? "footer"
+      : design.viewPosition ?? basic.viewPosition,
+  );
   // The join date is part of the identity now: display name, handle, then the
   // date. "footer" is still accepted from older saved profiles but reads the
   // same as "under-name" so nobody's card silently loses the date.
-  const joinPosition = custom
-    ? insideMetadata(design.joinPosition === "side" && design.layout !== "left" ? "under-name" : design.joinPosition ?? "under-name")
-    : basic.joinPosition;
-  const locationPosition = custom
-    ? insideMetadata(design.locationPosition === "side" && design.layout !== "left" ? "footer" : design.locationPosition ?? "under-name")
-    : basic.locationPosition;
+  const joinPosition = insideMetadata(
+    design.joinPosition === "side" && design.layout !== "left"
+      ? "under-name"
+      : design.joinPosition ?? basic.joinPosition,
+  );
+  const locationPosition = insideMetadata(
+    design.locationPosition === "side" && design.layout !== "left"
+      ? "footer"
+      : design.locationPosition ?? basic.locationPosition,
+  );
   // Basic mode also owns the identity block: picture on the left, name, handle
   // and join date stacked beside it, matching the reference card.
   const pfpPosition = custom ? design.pfpPosition : design.layout === "centered" ? "above" : "left";
   const namePosition = custom ? design.namePosition : design.layout === "centered" ? "center" : "left";
   const bioPosition = custom ? design.bioPosition : design.layout === "centered" ? "center" : "left";
-  const viewCount = typeof views === "number" ? views : null;
+  // A dashboard preview has no counter to read, but the element still has to
+  // exist so its position and style are visible while editing.
+  const viewCount = typeof views === "number" ? views : 0;
   const showViews = !hideViews && viewCount !== null && viewPosition !== "hidden";
   // The links row and the player are titled sections too, so the card reads as
   // labelled blocks (Connections, Links, Music) instead of one long stack.

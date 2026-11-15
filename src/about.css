@@ -6567,3 +6567,27 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   column-gap: 18px;
   font-size: calc(16px * var(--pv-scale, 1));
 }
+
+/* Detail row: one size token drives the text and the glyphs beside it. */
+.profile-preview :is(.pv-location, .pv-views, .pv-foot-item, .pv-joined) {
+  font-size: var(--pv-meta-size, 12px);
+}
+
+.profile-preview :is(.pv-location, .pv-views, .pv-foot-item, .pv-joined) svg {
+  width: calc(var(--pv-meta-size, 12px) * 1.05);
+  height: calc(var(--pv-meta-size, 12px) * 1.05);
+}
+
+.profile-preview .pv-pin .pv-foot-item {
+  font-size: inherit;
+}
+
+/* The size setting must win over the per-style caption sizes. */
+.profile-preview.profile-preview :is(.pv-location, .pv-views, .pv-foot-item) {
+  font-size: var(--pv-meta-size, 12px);
+}
+
+.profile-preview.profile-preview :is(.pv-location, .pv-views, .pv-foot-item) svg {
+  width: calc(var(--pv-meta-size, 12px) * 1.05);
+  height: calc(var(--pv-meta-size, 12px) * 1.05);
+}

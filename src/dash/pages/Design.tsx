@@ -188,18 +188,6 @@ const SURFACES: { key: SurfaceKey; title: string; subtitle: string; icon: "layer
   },
 ];
 
-const META_STYLES = [
-  { id: "plain", label: "Plain", hint: "Icon and text, split by a divider." },
-  { id: "pill", label: "Pills", hint: "Each detail in its own chip." },
-  { id: "icons", label: "Icons only", hint: "Glyphs in small circles." },
-] as const;
-
-const VIEW_STYLES = [
-  { id: "icon", label: "Icon + number", hint: "An eye, then the count." },
-  { id: "text", label: "Reads as text", hint: "1,234 views." },
-  { id: "number", label: "Number only", hint: "Bare count, no glyph." },
-  { id: "icon-only", label: "Icon only", hint: "Just the eye, no number." },
-] as const;
 
 export function DesignPage() {
   const { about, setAbout, notify } = useDash();
@@ -340,72 +328,6 @@ export function DesignPage() {
         </Card>
       ))}
 
-      <Card>
-        <CardHead
-          icon="user"
-          title="Details & counter"
-          subtitle="How location, views and the join date read under your name."
-        />
-
-        <SectionLabel hint="Quiet text, boxed chips, or glyphs alone.">Detail style</SectionLabel>
-        <div className="tw-style-grid">
-          {META_STYLES.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={`tw-style-option${(about.design.metaStyle ?? "plain") === option.id ? " is-active" : ""}`}
-              aria-pressed={(about.design.metaStyle ?? "plain") === option.id}
-              onClick={() => patchDesign({ metaStyle: option.id })}
-            >
-              <span className={`tw-meta-demo tw-meta-demo--${option.id}`} aria-hidden="true">
-                <span>Berlin</span>
-                <span>12,480</span>
-                <span>Joined Sep 2026</span>
-              </span>
-              <b>{option.label}</b>
-              <small>{option.hint}</small>
-            </button>
-          ))}
-        </div>
-
-        <SectionLabel hint="How large location, views and the join date read.">Size</SectionLabel>
-        <Slider
-          label="Detail text size"
-          value={about.design.metaSize}
-          min={9}
-          max={22}
-          suffix="px"
-          onChange={(metaSize) => patchDesign({ metaSize })}
-        />
-
-        <SectionLabel hint="The number beside the eye icon.">View counter</SectionLabel>
-        <div className="tw-style-grid">
-          {VIEW_STYLES.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={`tw-style-option${(about.design.viewStyle ?? "icon") === option.id ? " is-active" : ""}`}
-              aria-pressed={(about.design.viewStyle ?? "icon") === option.id}
-              onClick={() => patchDesign({ viewStyle: option.id })}
-            >
-              <span className="tw-meta-demo tw-meta-demo--views" aria-hidden="true">
-                {option.id === "icon" || option.id === "icon-only" ? (
-                  <>
-                    <Icon name="eye" size={12} />
-                    {option.id === "icon" ? "12,480" : null}
-                  </>
-                ) : option.id === "text" ? (
-                  "12,480 views"
-                ) : (
-                  "12,480"
-                )}
-              </span>
-              <b>{option.label}</b>
-              <small>{option.hint}</small>
-            </button>
-          ))}
-        </div>
-      </Card>
 
       <Card>
         <CardHead

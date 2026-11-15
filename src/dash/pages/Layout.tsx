@@ -11,7 +11,6 @@ import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
 import { TECH_STACK, techCategory, techIconUrl } from "../../lib/techStack";
-import { PositionStudio } from "../PositionStudio";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Icon, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
@@ -389,13 +388,6 @@ export function LayoutPage({
           subtitle="Place your profile details and audio player."
         />
 
-        <PositionStudio
-          viewPosition={design.viewPosition}
-          locationPosition={design.locationPosition}
-          joinPosition={design.joinPosition}
-          layout={design.layout}
-          onChange={updateDesign}
-        />
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
           <Field label="Detail glow" hint="Glow behind the location, view and join icons.">
