@@ -879,9 +879,20 @@ export function ColorField({
     };
   }, [open]);
 
+  // Same rule as the sliders: the picker repaints locally, the store gets one
+  // update per frame instead of one per pointer move.
+  const pending = useRef<string | null>(null);
+  const frame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+
   const commit = (next: Hsv) => {
     setHsv(next);
-    onChange(hsvToHex(next));
+    pending.current = hsvToHex(next);
+    if (frame.current) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0;
+      if (pending.current) onChange(pending.current);
+    });
   };
 
   // Hue runs left-to-right; the vertical axis goes white → pure colour →
@@ -998,13 +1009,36 @@ export function Slider({
   disabled?: boolean;
   format?: (value: number) => string;
 }) {
-  const percent = ((value - min) / (max - min || 1)) * 100;
+  // The thumb follows the pointer locally and the store is updated once per
+  // frame, so dragging never queues a full dashboard render per pixel.
+  const [draft, setDraft] = useState(value);
+  const latest = useRef(value);
+  const frame = useRef(0);
+  const dragging = useRef(false);
+  latest.current = draft;
+
+  useEffect(() => {
+    if (!dragging.current) setDraft(value);
+  }, [value]);
+
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+
+  const flush = (next: number) => {
+    latest.current = next;
+    if (frame.current) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0;
+      onChange(latest.current);
+    });
+  };
+
+  const percent = ((draft - min) / (max - min || 1)) * 100;
   return (
     <div className={`tw-slider${disabled ? " is-disabled" : ""}`}>
       {label ? (
         <div className="tw-slider-head">
           <span>{label}</span>
-          <span className="tw-slider-value">{format ? format(value) : `${value}${suffix}`}</span>
+          <span className="tw-slider-value">{format ? format(draft) : `${draft}${suffix}`}</span>
         </div>
       ) : null}
       <input
@@ -1012,9 +1046,20 @@ export function Slider({
         min={min}
         max={max}
         step={step}
-        value={value}
+        value={draft}
         disabled={disabled}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onPointerDown={() => {
+          dragging.current = true;
+        }}
+        onChange={(event) => {
+          const next = Number(event.target.value);
+          setDraft(next);
+          flush(next);
+        }}
+        onPointerUp={() => {
+          dragging.current = false;
+          onChange(latest.current);
+        }}
         style={{ ["--tw-fill" as string]: `${percent}%` }}
         aria-label={typeof label === "string" ? label : "Slider"}
       />

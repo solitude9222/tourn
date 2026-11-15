@@ -48,6 +48,7 @@ const PremiumPage = lazyPage(() => import("./pages/Plan"), "PremiumPage");
 const PortfolioPage = lazyPage(() => import("./pages/Workspaces"), "PortfolioPage");
 const ProfileWorkspacePage = lazyPage(() => import("./pages/Workspaces"), "ProfileWorkspacePage");
 const ThemePage = lazyPage(() => import("./pages/Theme"), "ThemePage");
+const SupportPage = lazyPage(() => import("./pages/Support"), "SupportPage");
 
 const AccountSettingsPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AccountSettingsPage })),
@@ -162,6 +163,12 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     subtitle: "Your plan and payment details.",
     icon: "crown",
     crumb: "Settings",
+  },
+  support: {
+    title: "Support",
+    subtitle: "One ticket at a time, answered in the thread.",
+    icon: "help",
+    crumb: "Dashboard",
   },
   settings: {
     title: "Account",
@@ -595,6 +602,9 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "billing":
       content = <BillingPage />;
+      break;
+    case "support":
+      content = <SupportPage />;
       break;
     case "settings":
       content = <AccountSettingsPage />;

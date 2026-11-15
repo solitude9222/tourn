@@ -31,6 +31,7 @@ export type Page =
   | "templates"
   | "leaderboard"
   | "billing"
+  | "support"
   | "settings"
   | "theme"
   | "portfolio-general"

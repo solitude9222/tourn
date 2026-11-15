@@ -27,6 +27,7 @@ import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_
 import "dotenv/config";
 import { registerDataTransfer } from "./dataTransfer.js";
 import { AUDIO_SCHEMA, registerAudioRoutes } from "./audio.js";
+import { SUPPORT_SCHEMA, registerSupportRoutes } from "./support.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -240,6 +241,7 @@ async function initDb() {
   await pool.query(TEMPLATE_SCHEMA);
   startUsernameReconciliation(pool,stripe);
   await pool.query(AUDIO_SCHEMA);
+  await pool.query(SUPPORT_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
   // Trim history created before the limit existed, and keep the table small on
   // every boot as well as after each save.
@@ -761,6 +763,7 @@ const PROFILE_JSON_LIMIT = "36mb";
 const PROFILE_DOCUMENT_LIMIT = 32_000_000;
 
 registerAudioRoutes(app, pool, requireAuth);
+registerSupportRoutes(app, { pool, requireAuth, requireAdmin, limiter: billingLimiter, env: process.env });
 registerDataTransfer(app,pool,requireOwner,()=>profilePageCache.clear());
 
 app.put("/api/profile", express.json({ limit: PROFILE_JSON_LIMIT }), requireAuth, async (req, res) => {

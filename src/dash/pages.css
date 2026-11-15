@@ -3351,3 +3351,111 @@
   font-size: 11px;
   font-weight: 400;
 }
+
+/* ── Support ─────────────────────────────────────────────────────────────── */
+.tw-support-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tw-support-message {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bar);
+}
+
+.tw-support-message.is-admin {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--bar));
+}
+
+.tw-support-message p {
+  margin: 0;
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.tw-support-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tw-support-meta b {
+  color: var(--title);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tw-support-meta span {
+  color: var(--nav);
+  font-size: 11px;
+}
+
+.tw-support-composer,
+.tw-support-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tw-support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tw-support-error {
+  margin: 10px 0 0;
+  color: #ff9a9a;
+  font-size: 12.5px;
+}
+
+.tw-support-inbox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.tw-support-inbox-row {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bar);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tw-support-inbox-row.is-open,
+.tw-support-inbox-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.tw-support-inbox-row b {
+  color: var(--title);
+  font-size: 13px;
+}
+
+.tw-support-inbox-row small {
+  color: var(--nav);
+  font-size: 11px;
+}
+
+.tw-support-inbox-row span {
+  overflow: hidden;
+  color: var(--sub);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -106,6 +106,12 @@ export const NAV: NavItem[] = [
       { page: "premium", label: "Premium", icon: "star" },
     ],
   },
+  {
+    key: "support",
+    label: "Support",
+    icon: "help",
+    tabs: [{ page: "support", label: "Tickets", icon: "help" }],
+  },
 ];
 
 /** Pages that exist but are reached from inside another place. */
