@@ -8,6 +8,7 @@ import {
 } from "../lib/lyrics";
 import type { AudioSettings } from "../lib/profileAssets";
 import { hexToRgba } from "../lib/about";
+import { setAudioBus, subscribeAudioBus } from "../lib/audioBus";
 import { apiBase } from "../lib/backend";
 import { useTilt } from "../lib/useTilt";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "./Icons";
@@ -130,6 +131,23 @@ export function AudioPlayer({
   useEffect(() => { setVolume(settings.volume); }, [settings.volume]);
   useEffect(() => { setMuted(settings.startMuted); }, [settings.startMuted]);
   useEffect(() => { const el = audioRef.current; if (el) { el.volume = volume; el.muted = muted; el.playbackRate = settings.playbackRate; } }, [volume, muted, settings.playbackRate, settings.fileUrl, settings.style]);
+  // The mute button is a separate control on the page; it drives this player
+  // through the bus so there is never a second <audio> playing the same track.
+  const playsRef = useRef(0);
+  useEffect(() =>
+    subscribeAudioBus((next) => {
+      setMuted(next.muted);
+      setVolume(next.volume);
+      if (next.playToken !== playsRef.current) {
+        playsRef.current = next.playToken;
+        const el = audioRef.current;
+        if (el && el.paused) void el.play().then(() => setPlaying(true)).catch(() => undefined);
+      }
+    }),
+  []);
+  useEffect(() => {
+    setAudioBus({ muted, volume });
+  }, [muted, volume]);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const pillViewport = useRef<HTMLSpanElement>(null);
@@ -495,24 +513,6 @@ export function AudioPlayer({
         </div>
       </div>
     );
-  }
-
-  if (style === "popup") {
-    return       <div
-        ref={musicTilt.ref}
-        onPointerMove={tilt > 0 ? musicTilt.onPointerMove : undefined}
-        onPointerLeave={tilt > 0 ? musicTilt.onPointerLeave : undefined}
-        className={`ap-popup${tilt > 0 ? " has-tilt" : ""} ap-edge-${settings.edgeEffect}`} style={{ "--ap-edge-color":settings.edgeColor,"--ap-edge-speed":`${settings.edgeSpeed}s`, "--popup-size": `${settings.popupSize}px`, "--popup-color": settings.popupColor, "--popup-background": settings.popupBackground, "--popup-opacity": settings.cardOpacity, "--popup-bar-width": `${settings.popupBarWidth}px`, "--popup-duration": `${settings.popupDuration}ms`, "--popup-volume": `${volume * 100}%` } as CSSProperties}>
-      {audioEl}
-      {loadFailed ? <span className="ap-load-error ap-load-error--popup" role="status">Track unavailable</span> : null}
-      <button className={`ap-popup-icon${settings.coverUrl ? " has-cover" : ""}`} type="button" aria-label={!playing ? "Play music" : muted ? "Unmute music" : "Mute music"} onClick={() => { if (!playing) togglePlay(); else setMuted(!muted); }}>
-        {settings.coverUrl ? <img className="ap-popup-cover" src={settings.coverUrl} alt="" /> : null}
-        <span className={settings.coverUrl ? "ap-popup-state" : "ap-popup-glyph"}>
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" fill="currentColor" strokeLinejoin="round"/>{muted || volume === 0 || !playing ? <path d="m16 9 5 6m0-6-5 6"/> : <><path d="M15 8a6 6 0 0 1 0 8"/><path d="M18 5a10 10 0 0 1 0 14"/></>}</svg>
-        </span>
-      </button>
-      <div className="ap-popup-reveal"><div className="ap-popup-volume"><input aria-label="Music volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => { setVolume(Number(event.target.value)); if (Number(event.target.value) > 0) setMuted(false); }} /></div></div>
-    </div>;
   }
 
   if (style === "pill") {

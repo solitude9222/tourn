@@ -6,7 +6,7 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
    its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { createProfileSection, defaultMetadata, type AboutLayout, type JoinPosition, type ProfileSection, type ProfileSectionKind, type ViewPosition } from "../../lib/about";
+import { createProfileSection, type AboutLayout, type ProfileSection, type ProfileSectionKind } from "../../lib/about";
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
@@ -25,133 +25,38 @@ const PAGE_LAYOUTS: {
   id: AboutLayout;
   name: string;
   description: string;
-  viewPosition: ViewPosition;
-  joinPosition: JoinPosition;
 }[] = [
   {
     id: "stacked",
     name: "Stacked",
     description:
       "Your profile first, then separate widget cards and music below.",
-    viewPosition: "footer",
-    joinPosition: "under-name",
   },
   {
     id: "left",
     name: "Left aligned",
     description:
       "Avatar, text and links aligned left inside the centred card, with widgets kept inside.",
-    viewPosition: "footer",
-    joinPosition: "under-name",
   },
   {
     id: "centered",
     name: "Centered",
     description: "Picture and name centred, with the widget and link blocks below.",
-    viewPosition: "footer",
-    joinPosition: "under-name",
   },
 ];
 
-/* One draggable detail. Dropping it on a corner of the preview writes the
-   matching design position, so the preview and the saved page never drift. */
-type DropId = "views" | "location" | "join" | "audio" | "likes";
-
-const DROPPABLE: { id: DropId; label: string; hint: string }[] = [
-  { id: "views", label: "Profile Views", hint: "where the eye count sits" },
-  { id: "location", label: "Location", hint: "your place on the card" },
-  { id: "join", label: "Join Date", hint: "when the account started" },
-  { id: "audio", label: "Audio Player", hint: "inside or under the card" },
-  { id: "likes", label: "Likes", hint: "fixed reaction dock" },
-];
-
-const ZONES: { id: string; position: "inside-top-left" | "inside-top-right" | "inside-bottom-left" | "inside-bottom-right" | "footer" }[] = [
-  { id: "top-left", position: "inside-top-left" },
-  { id: "top-right", position: "inside-top-right" },
-  { id: "bottom-left", position: "inside-bottom-left" },
-  { id: "bottom-right", position: "inside-bottom-right" },
-  { id: "footer", position: "footer" },
-];
-
 function LayoutPreview() {
-  const { user, about, widgets, badges, links, setAbout, notify } = useDash();
-  const [dragging, setDragging] = useState<DropId | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-
-  const stageZone = (event: { clientX: number; clientY: number }) => {
-    const rect = stageRef.current?.getBoundingClientRect();
-    if (!rect) return null;
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    if (y > 0.8) return "footer";
-    return `${y < 0.5 ? "top" : "bottom"}-${x < 0.5 ? "left" : "right"}`;
-  };
-
-  const drop = (zone: string | null) => {
-    const widget = dragging;
-    setDragging(null);
-    setHovered(null);
-    if (!widget || !zone) return;
-    const target = ZONES.find((entry) => entry.id === zone);
-    if (!target) return;
-    if (widget === "likes") {
-      notify("Likes", "The reaction dock always sits at the screen bottom, so it stays reachable.");
-      return;
-    }
-    if (widget === "audio") {
-      const audioPosition = zone === "footer" ? "below" : "inside";
-      setAbout((current) => ({ ...current, design: { ...current.design, audioPosition } }));
-      notify("Audio player", `Moved ${audioPosition === "below" ? "under the card" : "inside the card"}.`);
-      return;
-    }
-    const field = widget === "views" ? "viewPosition" : widget === "location" ? "locationPosition" : "joinPosition";
-    setAbout((current) => ({
-      ...current,
-      design: { ...current.design, advancedLayout: true, [field]: target.position },
-    }));
-    notify("Position updated", `${widget === "views" ? "Views" : widget === "location" ? "Location" : "Join date"} now sits ${zone.replace("-", " ")}.`);
-  };
+  const { user, about, widgets, badges, links } = useDash();
 
   return (
     <Card>
       <CardHead
         icon="move"
-        title="Layout Preview"
-        subtitle="Drag the profile widgets inside the preview. This is your real card, not a mock."
+        title="Layout preview"
+        subtitle="Your real card, drawn from the settings on this page and Appearance."
       />
 
-      <div className="tw-drag-row">
-        {DROPPABLE.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`tw-drag-chip${dragging === item.id ? " is-dragging" : ""}`}
-            title={item.hint}
-            onPointerDown={(event) => {
-              event.currentTarget.setPointerCapture(event.pointerId);
-              setDragging(item.id);
-            }}
-            onPointerMove={(event) => {
-              if (dragging !== item.id) return;
-              setHovered(stageZone(event));
-            }}
-            onPointerUp={(event) => {
-              if (dragging !== item.id) return;
-              drop(stageZone(event));
-            }}
-            onPointerCancel={() => {
-              setDragging(null);
-              setHovered(null);
-            }}
-          >
-            <Icon name="drag" size={13} />
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      <div className={`tw-layout-stage${dragging ? " is-dragging" : ""}`} ref={stageRef}>
+      <div className="tw-layout-stage">
         <div className="tw-layout-stage-scaler">
           <LinkerPreview
             user={user}
@@ -163,21 +68,12 @@ function LayoutPreview() {
             showEntry={false}
           />
         </div>
-        <div className="tw-layout-zones" aria-hidden={dragging ? undefined : true}>
-          {ZONES.map((zone) => (
-            <span
-              key={zone.id}
-              className={`tw-layout-zone tw-layout-zone--${zone.id}${hovered === zone.id ? " is-hot" : ""}`}
-            >
-              {hovered === zone.id ? "drop here" : ""}
-            </span>
-          ))}
-        </div>
       </div>
 
       <p className="tw-foot-note">
-        Visible widget means it is on. Anything switched off in Profile → Switches keeps its place but
-        stops drawing on the page.
+        The details have fixed homes: location and the account date above the card, views in the
+        bottom-left corner, likes and dislikes in the bottom-right. Profile → Switches controls
+        what shows.
       </p>
     </Card>
   );
@@ -309,7 +205,6 @@ export function LayoutPage({
               onClick={() =>
                 updateDesign({
                   layout: preset.id,
-                  ...defaultMetadata(preset.id),
                   badgePosition: "default",
                   cardPadding: 32,
                   cardWidth: 720,
@@ -354,15 +249,13 @@ export function LayoutPage({
       {section === "layout" ? <Card>
         <div className="tw-inline-toggle">
           <span>
-            <b>Advanced positioning</b>
-            <small>Off keeps the defaults: details under the card, or in the card's corners when centred.</small>
+            <b>Custom composition</b>
+            <small>Move the avatar, name and bio away from the layout default.</small>
           </span>
           <Toggle
-            label="Advanced positioning"
+            label="Custom composition"
             checked={design.advancedLayout === true}
-            onChange={(advancedLayout) =>
-              updateDesign(advancedLayout ? { advancedLayout } : { advancedLayout, ...defaultMetadata(design.layout) })
-            }
+            onChange={(advancedLayout) => updateDesign({ advancedLayout })}
           />
         </div>
       </Card> : null}
@@ -384,8 +277,8 @@ export function LayoutPage({
       {section === "layout" && design.advancedLayout === true ? <Card>
         <CardHead
           icon="grid"
-          title="Details & music"
-          subtitle="Place your profile details and audio player."
+          title="Music & widgets"
+          subtitle="Where the player and the widget cards sit, and the glow behind the details."
         />
 
 
@@ -409,7 +302,7 @@ export function LayoutPage({
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
           <Field label="Audio player" hint="Manage the track and player under Music.">
-            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "popup", label: "Popup corner" }, { value: "popup-opposite", label: "Popup · opposite corner" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
+            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
           </Field>
 
           <Field label="Widgets" hint="Keep widget cards inside the profile card or below it.">
@@ -422,7 +315,6 @@ export function LayoutPage({
             icon="refresh"
             onClick={() => {
               updateDesign({
-                ...defaultMetadata(design.layout),
                 widgetsPosition: "auto",
                 audioPosition: "auto",
               });

@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNod
 import { createPortal } from "react-dom";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
-import { DEFAULT_ABOUT_DESIGN, defaultMetadata, hexToRgba, insideMetadata, type About } from "../lib/about";
+import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
@@ -43,9 +43,10 @@ export function ProfilePreview({
   compact = false,
   views,
   joined,
-  hideViews = false,
-  hideJoined = false,
-  hideLocation = false,
+  /** Like / dislike controls, drawn in the card's bottom-right corner. */
+  reactions,
+  /** Marketing previews hide the detail corners entirely. */
+  hideDetails = false,
   /** The slideshow has its own Links page, so the card must not repeat them. */
   hideLinks = false,
   /** The entry screen is still covering the page — hold the audio. */
@@ -67,10 +68,9 @@ export function ProfilePreview({
   views?: number | null;
   /** Already-formatted join date, e.g. "Nov 2026". */
   joined?: string;
-  /** The Left layout's side rail owns these, so the card must not repeat them. */
-  hideViews?: boolean;
-  hideJoined?: boolean;
-  hideLocation?: boolean;
+  /** Like / dislike controls, drawn in the card's bottom-right corner. */
+  reactions?: ReactNode;
+  hideDetails?: boolean;
   hideLinks?: boolean;
   /** True while the entry overlay is up, so the track starts after entering. */
   entryActive?: boolean;
@@ -98,38 +98,21 @@ export function ProfilePreview({
   const uid = accountUid(user);
   const tiltEnabled = !disableTilt && (design.tilt ?? 0) > 0;
   const tilt = useTilt<HTMLElement>(disableTilt ? 0 : design.tilt ?? 0, Boolean(design.tiltInvert));
-  // Basic mode ignores saved slots entirely: each layout has one calm default.
-  const basic = defaultMetadata(design.layout);
+  // Composition is optional; the details are not. Location and the account
+  // date live above the card on the right, the view counter in the bottom-left
+  // corner and the reactions in the bottom-right. There is nothing to misplace.
   const custom = design.advancedLayout === true;
-  // Positions are honoured whether or not the advanced layout is on: picking
-  // Card top-right in the studio has to move the counter, always.
-  const viewPosition = insideMetadata(
-    design.viewPosition === "side" && design.layout !== "left"
-      ? "footer"
-      : design.viewPosition ?? basic.viewPosition,
-  );
-  // The join date is part of the identity now: display name, handle, then the
-  // date. "footer" is still accepted from older saved profiles but reads the
-  // same as "under-name" so nobody's card silently loses the date.
-  const joinPosition = insideMetadata(
-    design.joinPosition === "side" && design.layout !== "left"
-      ? "under-name"
-      : design.joinPosition ?? basic.joinPosition,
-  );
-  const locationPosition = insideMetadata(
-    design.locationPosition === "side" && design.layout !== "left"
-      ? "footer"
-      : design.locationPosition ?? basic.locationPosition,
-  );
-  // Basic mode also owns the identity block: picture on the left, name, handle
-  // and join date stacked beside it, matching the reference card.
   const pfpPosition = custom ? design.pfpPosition : design.layout === "centered" ? "above" : "left";
   const namePosition = custom ? design.namePosition : design.layout === "centered" ? "center" : "left";
   const bioPosition = custom ? design.bioPosition : design.layout === "centered" ? "center" : "left";
   // A dashboard preview has no counter to read, but the element still has to
-  // exist so its position and style are visible while editing.
+  // exist so its corner is visible while editing.
   const viewCount = typeof views === "number" ? views : 0;
-  const showViews = !hideViews && viewCount !== null && viewPosition !== "hidden";
+  const showViews = !hideDetails && design.showViews !== false;
+  const showLocation = !hideDetails && design.showLocation !== false;
+  const joinedPlacement = design.joinedPlacement ?? "corner";
+  const joinedCorner = !hideDetails && joinedPlacement === "corner" && Boolean(joined);
+  const joinedUnderName = !hideDetails && joinedPlacement === "under-name" && Boolean(joined);
   // The links row and the player are titled sections too, so the card reads as
   // labelled blocks (Connections, Links, Music) instead of one long stack.
   const visibleLinks = links.filter((link) => link.visible && link.url.trim());
@@ -137,7 +120,6 @@ export function ProfilePreview({
   // An uploaded track always shows a player; "None" just means the owner
   // never picked a style, and AudioPlayer falls back to the compact layout.
   const hasAudio = Boolean(assets.audio.fileUrl);
-  const showJoined = !hideJoined && Boolean(joined) && joinPosition !== "hidden";
   // The badge rail carries no explanation popover any more: the little arrow
   // that opened it pushed the rail away from the name. Each badge still shows
   // its own tooltip on hover.
@@ -161,7 +143,7 @@ export function ProfilePreview({
   // renders that row itself instead of using the free-floating badge slots.
   const inlineBadges = design.badgePosition === "default";
 
-  const locationPill = location && !hideLocation ? (
+  const locationPill = location && showLocation ? (
     <span className="pv-location">
       <LocationGlyph size={12} />
       {location}
@@ -175,70 +157,12 @@ export function ProfilePreview({
     </span>
   );
 
-  const viewNumber = viewCount === null ? "—" : viewCount.toLocaleString("en-US");
-  const viewStyle = design.viewStyle ?? "icon";
   const viewsNode = (
-    <span className="pv-foot-item" data-view-style={viewStyle} title={viewCount === null ? undefined : `${viewCount} views`}>
-      {viewStyle === "icon" || viewStyle === "icon-only" ? <ViewsGlyph size={viewStyle === "icon-only" ? 14 : 12} /> : null}
-      {viewStyle === "icon-only" ? null : viewStyle === "text" ? `${viewNumber} views` : viewNumber}
+    <span className="pv-foot-item pv-views" title={`${viewCount} profile views`}>
+      <ViewsGlyph size={12} />
+      {viewCount.toLocaleString("en-US")}
     </span>
   );
-
-  // Metadata can live in the new card-corner slots, in the inline identity
-  // slots, or in the original top/footer rails. The legacy rails keep their
-  // own markup below; these helpers only handle the new placements.
-  const metaPins = [
-    { kind: "location" as const, position: locationPosition, node: locationPill },
-    { kind: "views" as const, position: viewPosition, node: showViews ? viewsNode : null },
-    { kind: "joined" as const, position: joinPosition, node: showJoined ? joinedNode : null },
-  ].filter((pin) => Boolean(pin.node) && pin.position !== "hidden");
-  // Page-level details leave the card entirely: a fixed child of a tilted card
-  // would position itself against the card's transform, not the screen.
-  const pagePins = metaPins.filter((pin) => pin.position === "outside-below-left");
-  const absolutePins = metaPins.filter(
-    (pin) =>
-      pin.position !== "outside-below-left" &&
-      (pin.position.startsWith("inside-") || pin.position.startsWith("outside-")),
-  );
-  const inlinePins = (position: string) =>
-    metaPins
-      .filter((pin) => pin.position === position)
-      .map((pin) => (
-        <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
-          {pin.node}
-        </span>
-      ));
-  // Pins that share a slot sit side by side (location | views) instead of
-  // stacking on the same coordinates.
-  const pinSlots = [...new Set(absolutePins.map((pin) => pin.position))];
-  const pinnedLayer = pinSlots.length ? (
-    <>
-      {pinSlots.map((position) => (
-        <span key={position} className={`pv-pin-group pv-pin-group--${position}`}>
-          {absolutePins
-            .filter((pin) => pin.position === position)
-            .map((pin) => (
-              <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.position} pv-pin--${pin.kind}`}>
-                {pin.node}
-              </span>
-            ))}
-        </span>
-      ))}
-    </>
-  ) : null;
-  const pagePinnedLayer =
-    pagePins.length && typeof document !== "undefined"
-      ? createPortal(
-          <span className="pv-page-meta">
-            {pagePins.map((pin) => (
-              <span key={pin.kind} data-meta={pin.kind} className={`pv-pin pv-pin--inline pv-pin--${pin.kind}`}>
-                {pin.node}
-              </span>
-            ))}
-          </span>,
-          document.body,
-        )
-      : null;
 
   // Every size in the card is expressed against a 726px reference card, so a
   // narrower card shrinks its type, avatar and spacing with it instead of
@@ -317,10 +241,6 @@ export function ProfilePreview({
       data-name={namePosition}
       data-bio={bioPosition}
       data-shape={design.avatarShape}
-      data-views={viewPosition}
-      data-join={joinPosition}
-      data-location={locationPosition}
-      data-meta-style={design.metaStyle ?? "plain"}
     >
       {cardFx.id !== "none" ? <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" /> : null}
       {hasBanner ? (
@@ -336,18 +256,16 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
-      {pinnedLayer}
-      {pagePinnedLayer}
+      {locationPill || joinedCorner ? (
+        <div className="pv-corner-meta">
+          {locationPill}
+          {locationPill && joinedCorner ? (
+            <span className="pv-corner-sep" aria-hidden="true">|</span>
+          ) : null}
+          {joinedCorner ? <span className="pv-corner-joined">{joinedNode}</span> : null}
+        </div>
+      ) : null}
       <div className="pv-body">
-        {(showViews && (viewPosition === "top" || viewPosition === "top-right")) ||
-        (location && (locationPosition === "top" || locationPosition === "top-right")) ||
-        (showJoined && (joinPosition === "top" || joinPosition === "top-right")) ||
-        (badgeRow && design.badgePosition === "top-right") ? <div className="pv-meta-rail">
-          {locationPosition === "top" || locationPosition === "top-right" ? locationPill : null}
-          {design.badgePosition === "top-right" ? badgeRow : null}
-          {showJoined && (joinPosition === "top" || joinPosition === "top-right") ? joinedNode : null}
-          {showViews && (viewPosition === "top" || viewPosition === "top-right") ? <span className="pv-views" aria-label={`${viewCount} profile views`}><ViewsGlyph size={12} />{viewCount.toLocaleString("en-US")}</span> : null}
-        </div> : null}
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
             <span className="pv-avatar" aria-hidden="true">
@@ -367,13 +285,11 @@ export function ProfilePreview({
               />
             ) : null}
           </span>
-          {inlinePins("beside-avatar")}
 
           {/* The reference header: picture on the left, and everything that
               identifies the person (name, handle, badges, bio) stacked in the
               column beside it. */}
           <div className="pv-head-text">
-            {inlinePins("above-name")}
             {/* name and badges share one line, so the rail sits right beside
                 the name instead of floating to the far edge of the card */}
             <div className="pv-id">
@@ -388,7 +304,6 @@ export function ProfilePreview({
                   <EffectText text={displayName} settings={assets.effects.text.name} />
                 </Tooltip>
               </h3>
-              {inlinePins("next-to-name")}
               {inlineBadges || design.badgePosition === "default" || design.badgePosition === "above-name"
                 ? badgeRow
                 : null}
@@ -398,18 +313,11 @@ export function ProfilePreview({
               <span className="pv-handle">
                 <EffectText text={`@${user.username}`} settings={assets.effects.text.alias} />
               </span>
-              {inlinePins("next-to-handle")}
             </div>
 
-            {(showJoined && joinPosition === "under-name") ||
-            (location && locationPosition === "under-name") ||
-            (showViews && viewPosition === "under-name") ? (
+            {joinedUnderName ? (
               <div className="pv-under-name">
-                {showJoined && joinPosition === "under-name" ? (
-                  <span className="pv-joined-inline" data-meta="joined">{joinedNode}</span>
-                ) : null}
-                {location && locationPosition === "under-name" ? <span data-meta="location">{locationPill}</span> : null}
-                {showViews && viewPosition === "under-name" ? <span data-meta="views">{viewsNode}</span> : null}
+                <span className="pv-joined-inline">{joinedNode}</span>
               </div>
             ) : null}
 
@@ -428,7 +336,6 @@ export function ProfilePreview({
                 <span>A bio is on the way.</span>
               )}
             </div>
-            {inlinePins("below-bio")}
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
         </div>
@@ -459,15 +366,12 @@ export function ProfilePreview({
 
         {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
 
-        {(location && locationPosition === "footer") ||
-        (showViews && viewPosition === "footer") ||
-        (showJoined && joinPosition === "footer") ? (
-          <div className="pv-foot">
-            {locationPosition === "footer" ? locationPill : <span />}
-            {joinPosition === "footer" ? joinedNode : null}
-            {viewPosition === "footer" ? viewsNode : null}
+        {hideDetails ? null : (
+          <div className="pv-card-foot">
+            {showViews ? viewsNode : <span />}
+            {reactions ? <div className="pv-card-react">{reactions}</div> : null}
           </div>
-        ) : null}
+        )}
       </div>
     </article>
   );

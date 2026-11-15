@@ -11,10 +11,14 @@ import type { IconName } from "./ui";
 
 export type NavTab = { page: Page; label: string; icon: IconName };
 
+export type NavGroup = "CUSTOMIZE" | "ACCOUNT";
+
 export type NavItem = {
   key: string;
   label: string;
   icon: IconName;
+  /** Sidebar section heading; Dashboard sits above every group. */
+  group?: NavGroup;
   /** The first tab is where clicking the sidebar entry lands. */
   tabs: NavTab[];
 };
@@ -32,6 +36,7 @@ export const NAV: NavItem[] = [
   },
   {
     key: "appearance",
+    group: "CUSTOMIZE",
     label: "Appearance",
     icon: "palette",
     tabs: [
@@ -43,23 +48,25 @@ export const NAV: NavItem[] = [
   },
   {
     key: "profile",
+    group: "CUSTOMIZE",
     label: "Profile",
     icon: "user",
     tabs: [
       { page: "profile-main", label: "Profile", icon: "user" },
       { page: "profile-experience", label: "Entry screen", icon: "sparkles" },
       { page: "profile-switches", label: "Switches", icon: "sliders" },
-      { page: "aliases", label: "Inventory", icon: "layers" },
     ],
   },
   {
     key: "layout",
+    group: "CUSTOMIZE",
     label: "Layout",
     icon: "layout",
     tabs: [{ page: "layout", label: "Layout", icon: "layout" }],
   },
   {
     key: "portfolio",
+    group: "CUSTOMIZE",
     label: "Portfolio",
     icon: "layers",
     tabs: [
@@ -71,24 +78,35 @@ export const NAV: NavItem[] = [
   },
   {
     key: "links",
+    group: "CUSTOMIZE",
     label: "Social Links",
     icon: "link",
     tabs: [{ page: "links", label: "Links", icon: "link" }],
   },
   {
     key: "widgets",
+    group: "CUSTOMIZE",
     label: "Widgets",
     icon: "grid",
     tabs: [{ page: "widgets", label: "Widget stack", icon: "grid" }],
   },
   {
     key: "badges",
+    group: "ACCOUNT",
     label: "Badges",
     icon: "shield",
     tabs: [{ page: "badges", label: "Badges", icon: "shield" }],
   },
   {
+    key: "inventory",
+    group: "ACCOUNT",
+    label: "Inventory",
+    icon: "layers",
+    tabs: [{ page: "aliases", label: "Inventory", icon: "layers" }],
+  },
+  {
     key: "settings",
+    group: "ACCOUNT",
     label: "Settings",
     icon: "settings",
     tabs: [
@@ -99,6 +117,7 @@ export const NAV: NavItem[] = [
   },
   {
     key: "billing",
+    group: "ACCOUNT",
     label: "Billing",
     icon: "crown",
     tabs: [
@@ -108,6 +127,7 @@ export const NAV: NavItem[] = [
   },
   {
     key: "support",
+    group: "ACCOUNT",
     label: "Support",
     icon: "help",
     tabs: [{ page: "support", label: "Tickets", icon: "help" }],

@@ -184,10 +184,7 @@ export function ProfileCard() {
         // The hero is a preview: no music, no player chrome, and no footer
         // stats — location, join date and view counts belong to the real
         // profile page, not to the landing page card.
-        hideAudio
-        hideViews
-        hideJoined
-        hideLocation
+        hideAudio hideDetails
       >
         {heroCards.length ? (
           <div className="lkr-widgets-block">

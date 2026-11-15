@@ -35,7 +35,6 @@ export type AudioStyle =
   | "compact"
   | "lyrics"
   | "pill"
-  | "popup"
   | "vinyl"
   | "bars"
   | "minimal"
@@ -179,6 +178,8 @@ export type AudioSettings = {
   edgeSpeed: number;
   volume: number;
   startMuted: boolean;
+  /** The floating mute control, separate from the player itself. */
+  muteButton: boolean;
   loop: boolean;
   playbackRate: number;
   popupSide: "left" | "right" | "bottom-left" | "bottom-right";
@@ -366,7 +367,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     opacity: 0.92,
   },
   audio: {
-    volume: .7, startMuted: false, loop: true, playbackRate: 1,
+    volume: .7, startMuted: false, muteButton: false, loop: true, playbackRate: 1,
     popupSide: "left", popupSize: 42, popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
     style: "none",
     fileUrl: "",
@@ -491,7 +492,6 @@ export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
   { id: "lyrics", name: "Lyrics", hint: "Custom or auto-fetched lyrics that follow playback" },
   { id: "pill", name: "Pill", hint: "A long bar with cover art and a track name that glides back and forth" },
   { id: "vinyl", name: "Vinyl", hint: "A record in the card edge, spinning while it plays" },
-  { id: "popup", name: "Popup", hint: "A collapsible music player in the top-left corner" },
   { id: "bars", name: "Equalizer", hint: "Cover, title and live equalizer bars that dance while it plays" },
   { id: "minimal", name: "Minimal", hint: "One quiet line: play, title – artist, time, hairline progress" },
   { id: "cover", name: "Album card", hint: "A tall card with big cover art, title and transport underneath" },
@@ -581,7 +581,7 @@ function loadAudio(value: unknown): AudioSettings {
       AUDIO_STYLES.map((item) => item.id),
       DEFAULT_PROFILE_ASSETS.audio.style,
     ),
-    volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
+    volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), muteButton: boolIn(raw.muteButton, false), loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
     popupSide: choiceIn(raw.popupSide, ["left", "right", "bottom-left", "bottom-right"], "left"), popupSize: numberIn(raw.popupSize, 42, 28, 64), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
     fileUrl: textIn(raw.fileUrl, DEFAULT_PROFILE_ASSETS.audio.fileUrl, 8_500_000),
     coverUrl: textIn(raw.coverUrl, "", 2_500_000),

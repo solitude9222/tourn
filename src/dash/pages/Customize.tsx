@@ -8,7 +8,6 @@
 import { useRef, useState } from "react";
 import { uploadAudioFile } from "../../lib/audioUpload";
 import { AudioPlayer } from "../../components/AudioPlayer";
-import { PositionStudio } from "../PositionStudio";
 import { imageToDataUrl } from "../files";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { fileToDataUrl } from "../files";
@@ -77,19 +76,6 @@ const FILTERS = [
   { value: "blur", label: "Blur" },
   { value: "deep", label: "Deep blur" },
 ];
-
-const META_STYLES = [
-  { id: "plain", label: "Plain", hint: "Icon and text, split by a divider." },
-  { id: "pill", label: "Pills", hint: "Each detail in its own chip." },
-  { id: "icons", label: "Icons only", hint: "Glyphs in small circles." },
-] as const;
-
-const VIEW_STYLES = [
-  { id: "icon", label: "Icon + number", hint: "An eye, then the count." },
-  { id: "text", label: "Reads as text", hint: "1,234 views." },
-  { id: "number", label: "Number only", hint: "Bare count, no glyph." },
-  { id: "icon-only", label: "Icon only", hint: "Just the eye, no number." },
-] as const;
 
 export function AudioSettingsCard() {
   const { about, setAbout, notify } = useDash();
@@ -209,23 +195,50 @@ export function AudioSettingsCard() {
               { value: "inside", label: "Inside the card" },
               { value: "below", label: "Below the card" },
               { value: "side", label: "Beside the card" },
-              { value: "popup", label: "Popup corner" },
-              { value: "popup-opposite", label: "Popup · opposite corner" },
-              { value: "fixed-bottom", label: "Fixed to the bottom" },
+              { value: "fixed-bottom", label: "Fixed to the bottom" },              { value: "fixed-bottom", label: "Fixed to the bottom" },
             ]}
             onChange={(value) => updateDesign({ audioPosition: value as typeof about.design.audioPosition })}
           />
         </Field>
 
-      {audio.style === "popup" || audioPosition === "popup" || audioPosition === "popup-opposite" ? <div className="tw-popup-settings tw-popup-settings--inline"><h3>Popup appearance</h3><div className="tw-audio-settings-grid"><div className="tw-stack">
-        <Field label="Popup corner" hint="Where the player sits on the page."><Select value={audio.popupSide} options={[{value:"left",label:"Top left"},{value:"right",label:"Top right"},{value:"bottom-left",label:"Bottom left"},{value:"bottom-right",label:"Bottom right"}]} onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })} /></Field>
-        <Slider label="Music icon size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
 
+        <div className="tw-design-divider" role="presentation" />
 
-        <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
-        <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
-        <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
-      </div><div className="tw-stack tw-audio-colors">        <ColorField label="Music icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />        <ColorField label="Popup background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} /></div></div></div> : null}
+        <SectionLabel hint="A floating control that silences the track. It is not a player.">Mute button</SectionLabel>
+        <div className="tw-inline-toggle">
+          <span>
+            <b>Show mute button</b>
+            <small>Floats in a corner of the page and mutes the track</small>
+          </span>
+          <Toggle label="Mute button" checked={audio.muteButton} onChange={(muteButton) => updateAudio({ muteButton })} />
+        </div>
+
+        {audio.muteButton ? (
+          <div className="tw-audio-settings-grid">
+            <div className="tw-stack">
+              <Field label="Corner" hint="Where the mute button sits on the page.">
+                <Select
+                  value={audio.popupSide}
+                  options={[
+                    { value: "left", label: "Top left" },
+                    { value: "right", label: "Top right" },
+                    { value: "bottom-left", label: "Bottom left" },
+                    { value: "bottom-right", label: "Bottom right" },
+                  ]}
+                  onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })}
+                />
+              </Field>
+              <Slider label="Button size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
+              <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
+              <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
+              <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
+            </div>
+            <div className="tw-stack tw-audio-colors">
+              <ColorField label="Icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
+              <ColorField label="Button background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
+            </div>
+          </div>
+        ) : null}
 
         <Field label="Audio file" hint="MP3, WAV, OGG, M4A and other audio formats.">
           <div className="tw-row">
@@ -779,8 +792,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
   }
 
 
-  const profileViewsOn = design.viewPosition !== "hidden";
-  const joinOn = design.joinPosition !== "hidden";
+  const profileViewsOn = design.showViews !== false;
   const audioOn = about.assets.audio.style !== "none";
   const tooltips = design.tooltips;
 
@@ -851,65 +863,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
       </Card>
 
       <Card>
-        <CardHead
-          icon="pin"
-          title="Details & counter"
-          subtitle="Where location, views and the join date sit on the card, how they read, and how large."
-        />
-
-        <PositionStudio
-          viewPosition={design.viewPosition}
-          locationPosition={design.locationPosition}
-          joinPosition={design.joinPosition}
-          layout={design.layout}
-          onChange={(patch) => updateDesign(patch)}
-        />
-
-        <div className="tw-design-divider" role="presentation" />
-
-        <SectionLabel hint="Quiet text, boxed chips, or glyphs alone.">Detail style</SectionLabel>
-        <div className="tw-style-grid">
-          {META_STYLES.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={`tw-style-option${(design.metaStyle ?? "plain") === option.id ? " is-active" : ""}`}
-              aria-pressed={(design.metaStyle ?? "plain") === option.id}
-              onClick={() => updateDesign({ metaStyle: option.id })}
-            >
-              <b>{option.label}</b>
-              <small>{option.hint}</small>
-            </button>
-          ))}
-        </div>
-
-        <SectionLabel hint="The number beside the eye icon.">View counter</SectionLabel>
-        <div className="tw-style-grid">
-          {VIEW_STYLES.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={`tw-style-option${(design.viewStyle ?? "icon") === option.id ? " is-active" : ""}`}
-              aria-pressed={(design.viewStyle ?? "icon") === option.id}
-              onClick={() => updateDesign({ viewStyle: option.id })}
-            >
-              <b>{option.label}</b>
-              <small>{option.hint}</small>
-            </button>
-          ))}
-        </div>
-
-        <SectionLabel hint="How large location, views and the join date read.">Size</SectionLabel>
-        <Slider
-          label="Detail text size"
-          value={design.metaSize}
-          min={9}
-          max={22}
-          suffix="px"
-          onChange={(metaSize) => updateDesign({ metaSize })}
-        />
-      </Card>
-      <Card>
         <CardHead icon="user" title="Profile elements" subtitle="What shows on the card" />
 
         <div className="tw-grid tw-grid--3">
@@ -917,27 +870,31 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
             icon="pin"
             title="Location"
             description="Show where you are from"
-            checked={design.locationPosition !== "hidden"}
-            onChange={(checked) =>
-              updateDesign({ locationPosition: checked ? "under-name" : "hidden" })
-            }
+            checked={design.showLocation !== false}
+            onChange={(checked) => updateDesign({ showLocation: checked })}
           />
           <ToggleTile
             icon="eye"
             title="Profile Views"
             description="Show your view counter"
             checked={profileViewsOn}
-            onChange={(checked) =>
-              updateDesign({ viewPosition: checked ? "footer" : "hidden" })
-            }
+            onChange={(checked) => updateDesign({ showViews: checked })}
           />
-          <ToggleTile
-            icon="calendar"
-            title="Join Date"
-            description="Show when you joined"
-            checked={joinOn}
-            onChange={(checked) => updateDesign({ joinPosition: checked ? "under-name" : "hidden" })}
-          />
+          <div className="tw-detail-select">
+            <span>
+              <b>Account date</b>
+              <small>Sits beside the location</small>
+            </span>
+            <Select
+              value={design.joinedPlacement}
+              options={[
+                { value: "corner", label: "Next to location" },
+                { value: "under-name", label: "Inside card" },
+                { value: "hidden", label: "Hidden" },
+              ]}
+              onChange={(value) => updateDesign({ joinedPlacement: value as typeof design.joinedPlacement })}
+            />
+          </div>
           <ToggleTile
             icon="music"
             title="Audio Player"
@@ -958,6 +915,18 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               }));
               notify("Audio Player", "Audio player is off.");
             }}
+          />
+          <ToggleTile
+            icon="music"
+            title="Mute button"
+            description="Floating mute control"
+            checked={about.assets.audio.muteButton}
+            onChange={(muteButton) =>
+              setAbout((current) => ({
+                ...current,
+                assets: { ...current.assets, audio: { ...current.assets.audio, muteButton } },
+              }))
+            }
           />
         </div>
       </Card>

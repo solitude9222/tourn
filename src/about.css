@@ -6591,3 +6591,105 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   width: calc(var(--pv-meta-size, 12px) * 1.05);
   height: calc(var(--pv-meta-size, 12px) * 1.05);
 }
+
+/* ── fixed detail homes ────────────────────────────────────────────────────
+   Location and the account date sit above the card on the right, views in the
+   bottom-left corner and reactions in the bottom-right. No backgrounds, no
+   position settings: the same three places on every layout. */
+.pv-corner-meta {
+  position: absolute;
+  top: calc(-20px * var(--pv-scale, 1));
+  right: calc(16px * var(--pv-scale, 1));
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(8px * var(--pv-scale, 1));
+  color: var(--pv-muted);
+  font-size: calc(11px * var(--pv-scale, 1));
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.pv-corner-meta .pv-location,
+.pv-corner-meta .pv-foot-item,
+.pv-corner-joined .pv-foot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: inherit;
+  font-size: inherit;
+}
+.pv-corner-meta svg {
+  width: calc(12px * var(--pv-scale, 1));
+  height: calc(12px * var(--pv-scale, 1));
+  opacity: 0.8;
+}
+.pv-corner-sep {
+  font-style: normal;
+  color: color-mix(in srgb, var(--pv-muted) 45%, transparent);
+}
+.pv-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: calc(12px * var(--pv-scale, 1));
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.pv-card-foot .pv-foot-item,
+.pv-card-foot .pv-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--pv-muted);
+  font-size: calc(11px * var(--pv-scale, 1));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.pv-card-foot .pv-foot-item svg {
+  width: calc(13px * var(--pv-scale, 1));
+  height: calc(13px * var(--pv-scale, 1));
+  opacity: 0.85;
+}
+.pv-card-react {
+  display: flex;
+  min-width: 0;
+}
+.pv-react--card {
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.pv-react--card .pv-react-btn {
+  padding: 2px 6px;
+  font-size: calc(11px * var(--pv-scale, 1));
+}
+.pv-react--card .pv-react-btn.is-on {
+  background: color-mix(in srgb, var(--pv-accent) 16%, transparent);
+  border-color: transparent;
+}
+
+.pv-react--ghost {
+  opacity: 0.55;
+  pointer-events: none;
+}
+.pv-react--ghost .pv-react-btn {
+  color: var(--pv-muted);
+}

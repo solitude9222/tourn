@@ -17,7 +17,8 @@ import { AudioPlayer } from "./AudioPlayer";
 import { ProfileSections } from "./ProfileSections";
 import { BadgeRow } from "./BadgeRow";
 import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
-import { ReactionBar } from "./Reactions";
+import { ReactionBar, ReactionGhost } from "./Reactions";
+import { MuteButton } from "./MuteButton";
 import "../about.css";
 
 export function EntryOverlay({
@@ -198,13 +199,7 @@ function PageSection({
   );
 }
 
-/** The corner across the page from a popup corner. */
-const OPPOSITE_CORNER: Record<string, string> = {
-  left: "right",
-  right: "left",
-  "bottom-left": "bottom-right",
-  "bottom-right": "bottom-left",
-};
+
 
 export function LinkerPreview({
   user,
@@ -315,7 +310,6 @@ export function LinkerPreview({
     "--pv-about-bw": `${design.surfaces.about.container.borderWidth}px`,
     "--pv-about-blur": `${design.surfaces.about.container.blur}px`,
     "--pv-about-max": design.surfaces.about.container.width ? `${design.surfaces.about.container.width}px` : "none",
-    "--pv-meta-size": `${design.metaSize ?? 12}px`,
     "--pv-about-radius": `${design.surfaces.about.container.radius}px`,
     "--pv-about-pill-bg": hexToRgba(design.surfaces.about.pill.background, design.surfaces.about.pill.backgroundOpacity),
     "--pv-about-pill-border": hexToRgba(design.surfaces.about.pill.border, design.surfaces.about.pill.borderOpacity),
@@ -374,7 +368,7 @@ export function LinkerPreview({
   );
 
   // An explicit position wins over the style, so the opposite corner is reachable.
-  const requestedAudioPosition = design.audioPosition !== "auto" ? design.audioPosition : assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
+  const requestedAudioPosition = design.audioPosition !== "auto" ? design.audioPosition : design.layout === "stacked" ? "below" : "inside";
   // A slideshow replaces the card body on every slide, so a player living
   // inside the card would only exist on the first one. Lift it under the card
   // instead and it stays on screen across slides.
@@ -397,9 +391,7 @@ export function LinkerPreview({
       className="profile-preview--with-widgets"
       views={views}
       joined={joined}
-      hideViews={design.layout === "left" && design.viewPosition === "side"}
-      hideJoined={design.layout === "left" && design.joinPosition === "side"}
-      hideLocation={design.layout === "left" && design.locationPosition === "side"}
+      reactions={interactive ? <ReactionBar handle={user.username} variant="card" /> : <ReactionGhost />}
       entryActive={entryOpen}
       disableTilt={sharedTilt}
       hideAudio={hideAudio || audioPosition !== "inside"}
@@ -417,21 +409,9 @@ export function LinkerPreview({
   const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
   const showAudioSide = design.layout === "left" && audioPosition === "side" && hasTrack;
   const showAudioBelow = audioPosition === "below" && hasTrack;
-  const sideViews = design.layout === "left" && design.viewPosition === "side";
-  const sideJoined = design.layout === "left" && design.joinPosition === "side";
-  const sideLocation = design.layout === "left" && design.locationPosition === "side";
-  const hasSideMeta = sideViews || sideJoined || sideLocation;
-  const sideMeta = hasSideMeta ? (
-    <div className="lkr-side-meta" data-meta-style={design.metaStyle ?? "plain"}>
-      {sideViews ? <span className="lkr-side-pill"><EyeIcon size={12} />{typeof views === "number" ? views.toLocaleString("en-US") : "—"}</span> : null}
-      {sideJoined ? <span className="lkr-side-pill"><CalendarIcon size={12} />Joined {joined ?? "—"}</span> : null}
-      {sideLocation && about.location.trim() ? <span className="lkr-side-pill"><PinIcon size={12} />{about.location.trim()}</span> : null}
-    </div>
-  ) : null;
-  const hasSide = hasSideMeta || showAudioSide;
+  const hasSide = showAudioSide;
   const sideRail = hasSide ? (
     <aside className="lkr-side" aria-label="Profile extras">
-      {sideMeta}
       {showAudioSide ? <div className="lkr-side-audio"><AudioPlayer settings={about.assets.audio} enabled={!entryOpen} /></div> : null}
     </aside>
   ) : null;
@@ -665,10 +645,9 @@ export function LinkerPreview({
           ))}
         </nav>
       ) : null}
-      {hasTrack && (audioPosition === "popup" || audioPosition === "popup-opposite") ? <aside className={`lkr-popup-audio lkr-popup-audio--${audioPosition === "popup-opposite" ? OPPOSITE_CORNER[assets.audio.popupSide] : assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Popup audio player"><AudioPlayer settings={{ ...assets.audio, style: "popup" }} enabled={!entryOpen} /></aside> : null}
+      {hasTrack && assets.audio.muteButton ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
       {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
-      {interactive ? <ReactionBar handle={user.username} /> : null}
       <ProfileCursor settings={assets.cursor} />
       {entryOpen ? (
         <EntryOverlay

@@ -196,9 +196,6 @@ export function DesignPage() {
   const patchDesign = (next: Partial<typeof about.design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...next } }));
 
-  const metaStyle = about.design.metaStyle ?? "plain";
-  const viewStyle = about.design.viewStyle ?? "icon";
-  const viewCount = "12,480";
 
   /** Inline style for one surface container. */
   /** One surface, painted exactly as the public profile paints it. */
@@ -223,16 +220,10 @@ export function DesignPage() {
             ))}
           </div>
           {key === "about" ? (
-            <div className={`tw-design-live-meta is-${metaStyle}`} style={{ fontSize: `${about.design.metaSize}px` }}>
+            <div className="tw-design-live-meta">
               <span><Icon name="pin" size={12} />Berlin</span>
-              {viewStyle === "text" ? (
-                <span>{viewCount} views</span>
-              ) : viewStyle === "number" ? (
-                <span>{viewCount}</span>
-              ) : (
-                <span><Icon name="eye" size={12} />{viewCount}</span>
-              )}
               <span><Icon name="calendar" size={12} />Sep 2026</span>
+              <span><Icon name="eye" size={12} />12,480</span>
             </div>
           ) : null}
         </div>

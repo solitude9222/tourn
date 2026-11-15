@@ -28,12 +28,29 @@ function ThumbIcon({ down = false, size = 15 }: { down?: boolean; size?: number 
   );
 }
 
+/** The same shape with no numbers, so a dashboard preview still shows where
+    the like and dislike buttons live. */
+export function ReactionGhost() {
+  return (
+    <span className="pv-react pv-react--card pv-react--ghost" aria-hidden="true">
+      <span className="pv-react-btn">
+        <ThumbIcon />
+        <b>—</b>
+      </span>
+      <span className="pv-react-btn">
+        <ThumbIcon down />
+        <b>—</b>
+      </span>
+    </span>
+  );
+}
+
 export function ReactionBar({
   handle,
   variant = "dock",
 }: {
   handle: string;
-  variant?: "dock" | "inline";
+  variant?: "dock" | "inline" | "card";
 }) {
   const [state, setState] = useState<ReactionState | null>(null);
   const [busy, setBusy] = useState(false);

@@ -45,12 +45,6 @@ export type MetadataPosition =
   | "beside-avatar"
   | "above-name"
   | "below-bio";
-/** Where the profile view counter sits. */
-export type ViewPosition = MetadataPosition;
-/** Where the “joined” date sits. */
-export type JoinPosition = MetadataPosition;
-/** Where the location pill sits. */
-export type LocationPosition = MetadataPosition;
 /** Where the widget cards sit relative to the profile card. */
 export type WidgetsPosition = "auto" | "inside" | "below";
 
@@ -284,18 +278,18 @@ export type AboutDesign = {
   metaGlowStrength?: number;
   /** The "About me" slideshow page: its own copy and speciality tags. */
   aboutSlide: { title: string; subtitle: string; text: string; tags: string[]; showProjects?: boolean };
-  /** Off keeps each layout's own detail positions and hides position controls. */
+  /** Move the avatar, name and bio away from the layout's default composition. */
   advancedLayout?: boolean;
-  /** How the view counter reads. */
-  viewStyle?: "icon" | "text" | "number" | "icon-only";
-  /** Location / views / joined: quiet text with a divider (plain), boxed chips (pill) or icons only. */
-  metaStyle?: "plain" | "pill" | "icons";
-  /** Detail row text size in px. */
-  metaSize: number;
+  /** The location pill, above the card on the right, beside the account date. */
+  showLocation: boolean;
+  /** The view counter, in the card's bottom-left corner. */
+  showViews: boolean;
+  /** Account date: next to the location, under the handle, or nowhere. */
+  joinedPlacement: "corner" | "under-name" | "hidden";
   /** One Interests list for animes and games instead of two separate kinds. */
   groupInterests?: boolean;
   skills?: string[];
-  audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "popup-opposite" | "fixed-bottom";
+  audioPosition: "auto" | "inside" | "below" | "side" | "fixed-bottom";
   widgetsPosition: WidgetsPosition;
   customFontUrl: string;
   theme: AboutTheme;
@@ -342,9 +336,6 @@ export type AboutDesign = {
   namePosition: TextAlignPosition;
   bioPosition: TextAlignPosition;
   avatarShape: AvatarShape;
-  viewPosition: ViewPosition;
-  joinPosition: JoinPosition;
-  locationPosition: LocationPosition;
   entry: EntrySettings;
   colors: ProfileColors;
   pills: PillStyle;
@@ -457,13 +448,10 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   bioPosition: "center",
   avatarShape: "circle",
   advancedLayout: false,
-  viewStyle: "icon",
-  metaStyle: "plain",
-  metaSize: 12,
+  showLocation: true,
+  showViews: true,
+  joinedPlacement: "corner",
   groupInterests: false,
-  viewPosition: "outside-below-left",
-  joinPosition: "under-name",
-  locationPosition: "outside-below-left",
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
   pills: DEFAULT_PILL_STYLE,
@@ -531,7 +519,7 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
 }
 
 const PFP_POSITIONS: readonly PfpPosition[] = ["default", "center", "top-right", "left", "right", "above"];
-const METADATA_POSITIONS: readonly MetadataPosition[] = [
+const UNUSED_METADATA_POSITIONS: readonly MetadataPosition[] = [
   "top",
   "top-right",
   "under-name",
@@ -557,52 +545,7 @@ const METADATA_POSITIONS: readonly MetadataPosition[] = [
   "above-name",
   "below-bio",
 ];
-const VIEW_POSITIONS = METADATA_POSITIONS;
 
-/** Outside slots belong to links, not to the card's own details. Older
- *  profiles can still hold one, so map it back inside the card. */
-export function insideMetadata(position: MetadataPosition): MetadataPosition {
-  // The one outside slot that is still used sits below the card, not on its edge.
-  if (position === "outside-below-left") return position;
-  switch (position) {
-    case "outside-top-left":
-    case "outside-left":
-      return "inside-top-left";
-    case "outside-top-right":
-    case "outside-above":
-      return "inside-top-right";
-    case "outside-bottom-left":
-      return "inside-bottom-left";
-    case "outside-bottom-right":
-    case "outside-below":
-    case "outside-right":
-      return "inside-bottom-right";
-    default:
-      return position;
-  }
-}
-
-/** The detail positions every layout uses until advanced positioning is on. */
-export function defaultMetadata(layout: AboutLayout): {
-  locationPosition: MetadataPosition;
-  viewPosition: MetadataPosition;
-  joinPosition: MetadataPosition;
-} {
-  if (layout === "centered") {
-    return {
-      locationPosition: "inside-bottom-left",
-      viewPosition: "inside-bottom-right",
-      joinPosition: "under-name",
-    };
-  }
-  return {
-    locationPosition: "outside-below-left",
-    viewPosition: "outside-below-left",
-    joinPosition: "under-name",
-  };
-}
-const JOIN_POSITIONS = METADATA_POSITIONS;
-const LOCATION_POSITIONS = METADATA_POSITIONS;
 const BADGE_POSITIONS: readonly BadgePosition[] = [
   "default",
   "above-name",
@@ -773,7 +716,11 @@ function loadDesignRaw(input: unknown): AboutDesign {
     },
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     // "hidden" is retired: a saved profile that used it comes back as automatic.
-    audioPosition: oneOf((raw.audioPosition as string | undefined) === "hidden" ? "auto" : raw.audioPosition, ["auto", "inside", "below", "side", "popup", "popup-opposite", "fixed-bottom"] as const, "auto"),
+    audioPosition: oneOf(
+      (raw.audioPosition as string | undefined) === "hidden" ? "auto" : raw.audioPosition,
+      ["auto", "inside", "below", "side", "fixed-bottom"] as const,
+      "auto",
+    ),
     widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
       const item = section as Partial<ProfileSection>;
@@ -862,17 +809,14 @@ function loadDesignRaw(input: unknown): AboutDesign {
     namePosition: oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
     bioPosition: oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
     avatarShape: oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
-    viewPosition: oneOf(raw.viewPosition, VIEW_POSITIONS, DEFAULT_ABOUT_DESIGN.viewPosition),
-    joinPosition: oneOf(raw.joinPosition, JOIN_POSITIONS, DEFAULT_ABOUT_DESIGN.joinPosition),
-    locationPosition: oneOf(
-      raw.locationPosition,
-      LOCATION_POSITIONS,
-      DEFAULT_ABOUT_DESIGN.locationPosition,
-    ),
     advancedLayout: boolIn(raw.advancedLayout, false),
-    viewStyle: oneOf(raw.viewStyle, ["icon", "text", "number", "icon-only"] as const, "icon"),
-    metaSize: numberIn(raw.metaSize, DEFAULT_ABOUT_DESIGN.metaSize, 9, 22),
-    metaStyle: oneOf(raw.metaStyle, ["plain", "pill", "icons"] as const, "plain"),
+    showLocation: boolIn(raw.showLocation, DEFAULT_ABOUT_DESIGN.showLocation),
+    showViews: boolIn(raw.showViews, DEFAULT_ABOUT_DESIGN.showViews),
+    joinedPlacement: oneOf(
+      raw.joinedPlacement,
+      ["corner", "under-name", "hidden"] as const,
+      DEFAULT_ABOUT_DESIGN.joinedPlacement,
+    ),
     groupInterests: boolIn(raw.groupInterests, false),
     entry: loadEntry(raw.entry),
     colors: {

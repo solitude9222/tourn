@@ -266,18 +266,21 @@ export function Shell({
             placeholder="search dashboard..."
             aria-label="Search dashboard"
           />
+          <kbd>⌘K</kbd>
         </label>
 
         <div className="tw-rail-scroll">
           <nav className="tw-nav" aria-label="Dashboard">
-            {NAV.map((item) => {
+            {NAV.map((item, index) => {
               const active = item.tabs.some((tab) => tab.page === page);
+              const heading = item.group && item.group !== NAV[index - 1]?.group ? item.group : null;
               const tabs = item.tabs.filter(
                 (tab) => !searching || matches(item.label) || matches(tab.label),
               );
               if (searching && !tabs.length) return null;
               return (
                 <div className="tw-nav-block" key={item.key}>
+                  {heading ? <span className="tw-nav-group">{heading}</span> : null}
                   <button
                     type="button"
                     className={`tw-nav-item${active ? " is-active" : ""}`}
@@ -554,6 +557,10 @@ export function Shell({
 
           <div className="tw-row">
             {actions}
+            <a className="tw-view-profile" href={`/${encodeURIComponent(user.username)}`}>
+              View profile
+              <Icon name="external" size={12} />
+            </a>
             <a
               className="tw-eye-btn"
               href={`/${encodeURIComponent(user.username)}`}
