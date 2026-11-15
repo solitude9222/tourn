@@ -87,6 +87,15 @@ function ContainerControls({
           suffix="px"
           onChange={(radius) => onChange({ radius })}
         />
+        <Slider
+          label="Card width (0 = full)"
+          value={value.width}
+          min={0}
+          max={1400}
+          step={20}
+          suffix="px"
+          onChange={(width) => onChange({ width })}
+        />
       </div>
     </>
   );
@@ -203,6 +212,45 @@ export function DesignPage() {
   const viewCount = "12,480";
 
   /** Inline style for one surface container. */
+  /** One surface, painted exactly as the public profile paints it. */
+  const surfacePreview = (key: SurfaceKey) => {
+    const { container } = surfaces[key];
+    const tags = key === "about" ? ["TypeScript", "React", "Node"] : ["Next.js", "Postgres"];
+    return (
+      <div className="tw-design-preview" key={key}>
+        <div
+          className="tw-design-preview-card"
+          style={{
+            ...containerStyle(key),
+            width: "100%",
+            maxWidth: container.width ? `${container.width}px` : "none",
+          }}
+        >
+          <b>{key === "about" ? "Your name" : "Project card"}</b>
+          <p>{key === "about" ? "Designer, builder, night owl." : "A showcase entry with its stack."}</p>
+          <div className="tw-design-preview-pills">
+            {tags.map((tag) => (
+              <span key={tag} style={pillStyle(key)}>{tag}</span>
+            ))}
+          </div>
+          {key === "about" ? (
+            <div className={`tw-design-live-meta is-${metaStyle}`} style={{ fontSize: `${about.design.metaSize}px` }}>
+              <span><Icon name="pin" size={12} />Berlin</span>
+              {viewStyle === "text" ? (
+                <span>{viewCount} views</span>
+              ) : viewStyle === "number" ? (
+                <span>{viewCount}</span>
+              ) : (
+                <span><Icon name="eye" size={12} />{viewCount}</span>
+              )}
+              <span><Icon name="calendar" size={12} />Sep 2026</span>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
+
   const containerStyle = (key: SurfaceKey) => {
     const { container } = surfaces[key];
     return {
@@ -243,9 +291,8 @@ export function DesignPage() {
     }));
 
   return (
-    <div className="tw-design-split">
-      <div className="tw-design-cards">
-        {SURFACES.map((surface) => (
+    <>
+      {SURFACES.map((surface) => (
         <Card key={surface.key}>
           <CardHead
             icon={surface.icon}
@@ -284,6 +331,11 @@ export function DesignPage() {
             value={surfaces[surface.key].pill}
             onChange={(next) => patch(surface.key, "pill", next)}
           />
+
+          <SectionLabel hint="Exactly how this surface appears on your profile.">
+            Live preview
+          </SectionLabel>
+          {surfacePreview(surface.key)}
         </Card>
       ))}
 
@@ -315,6 +367,16 @@ export function DesignPage() {
           ))}
         </div>
 
+        <SectionLabel hint="How large location, views and the join date read.">Size</SectionLabel>
+        <Slider
+          label="Detail text size"
+          value={about.design.metaSize}
+          min={9}
+          max={22}
+          suffix="px"
+          onChange={(metaSize) => patchDesign({ metaSize })}
+        />
+
         <SectionLabel hint="The number beside the eye icon.">View counter</SectionLabel>
         <div className="tw-style-grid">
           {VIEW_STYLES.map((option) => (
@@ -338,47 +400,9 @@ export function DesignPage() {
       <Card>
         <CardHead
           icon="palette"
-          title="Preview"
-          subtitle="Your surfaces, painted with the values above."
+          title="Publish"
+          subtitle="Each surface above shows the change as you make it."
         />
-        <div className="tw-design-preview">
-          {(["about", "project"] as SurfaceKey[]).map((key) => {
-            const { container, pill } = surfaces[key];
-            return (
-              <div
-                key={key}
-                className="tw-design-preview-card"
-                style={{
-                  background: withAlpha(container.background, container.backgroundOpacity),
-                  borderColor: withAlpha(container.border, container.borderOpacity),
-                  borderWidth: container.borderWidth,
-                  borderRadius: container.radius,
-                  backdropFilter: `blur(${container.blur}px)`,
-                }}
-              >
-                <b>{key === "about" ? "About" : "Project card"}</b>
-                <p>{key === "about" ? "Designer, builder, night owl." : "A showcase entry with its stack."}</p>
-                <div className="tw-design-preview-pills">
-                  {(key === "about" ? ["TypeScript", "React", "Node"] : ["Next.js", "Postgres"]).map((tag) => (
-                    <span
-                      key={tag}
-                      style={{
-                        background: withAlpha(pill.background, pill.backgroundOpacity),
-                        borderColor: withAlpha(pill.border, pill.borderOpacity),
-                        borderWidth: pill.borderWidth,
-                        borderRadius: pill.radius,
-                        color: pill.text,
-                        backdropFilter: `blur(${pill.blur}px)`,
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
         <p className="tw-foot-note">
           The public profile uses these values as soon as the change is saved with the button in the
           top bar.
@@ -387,46 +411,6 @@ export function DesignPage() {
           Save publishes it
         </Button>
       </Card>
-      </div>
-
-      <aside className="tw-design-live" aria-label="Live preview">
-        <div className="tw-design-live-inner">
-          <span className="tw-design-live-label">Live preview</span>
-
-          <div className="tw-design-live-about" style={containerStyle("about")}>
-            <b>Your name</b>
-            <p>Designer, builder, night owl.</p>
-            <div className="tw-design-live-tags">
-              {["TypeScript", "React", "Node"].map((tag) => (
-                <span key={tag} style={pillStyle("about")}>{tag}</span>
-              ))}
-            </div>
-            <div className={`tw-design-live-meta is-${metaStyle}`}>
-              <span><Icon name="pin" size={12} />Berlin</span>
-              {viewStyle === "text" ? (
-                <span>{viewCount} views</span>
-              ) : viewStyle === "number" ? (
-                <span>{viewCount}</span>
-              ) : (
-                <span><Icon name="eye" size={12} />{viewCount}</span>
-              )}
-              <span><Icon name="calendar" size={12} />Sep 2026</span>
-            </div>
-          </div>
-
-          <div className="tw-design-live-card" style={containerStyle("project")}>
-            <b>Project card</b>
-            <p>A showcase entry with its stack.</p>
-            <div className="tw-design-live-tags">
-              {["Next.js", "Postgres"].map((tag) => (
-                <span key={tag} style={pillStyle("project")}>{tag}</span>
-              ))}
-            </div>
-          </div>
-
-          <p className="tw-design-live-note">Edits appear here as you move a control.</p>
-        </div>
-      </aside>
-    </div>
+    </>
   );
 }

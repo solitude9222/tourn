@@ -173,6 +173,8 @@ export type ContainerStyle = {
   borderWidth: number;
   blur: number;
   radius: number;
+  /** Card width in px; 0 fills the column. */
+  width: number;
 };
 
 export type SurfacePill = ContainerStyle & { text: string };
@@ -191,9 +193,11 @@ export const DEFAULT_CONTAINER_STYLE: ContainerStyle = {
   borderWidth: 2,
   blur: 14,
   radius: 24,
+  width: 0,
 };
 
 export const DEFAULT_SURFACE_PILL: SurfacePill = {
+  width: 0,
   background: "#ffffff",
   border: "#ffffff",
   text: "#ffffff",
@@ -286,6 +290,8 @@ export type AboutDesign = {
   viewStyle?: "icon" | "text" | "number";
   /** Location / views / joined: quiet text with a divider (plain), boxed chips (pill) or icons only. */
   metaStyle?: "plain" | "pill" | "icons";
+  /** Detail row text size in px. */
+  metaSize: number;
   /** One Interests list for animes and games instead of two separate kinds. */
   groupInterests?: boolean;
   skills?: string[];
@@ -453,6 +459,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   advancedLayout: false,
   viewStyle: "icon",
   metaStyle: "plain",
+  metaSize: 12,
   groupInterests: false,
   viewPosition: "outside-below-left",
   joinPosition: "under-name",
@@ -714,6 +721,7 @@ function loadContainer(input: unknown, fallback: ContainerStyle): ContainerStyle
     borderWidth: numberIn(raw.borderWidth, fallback.borderWidth, 0, 12),
     blur: numberIn(raw.blur, fallback.blur, 0, 40),
     radius: numberIn(raw.radius, fallback.radius, 0, 999),
+    width: numberIn(raw.width, fallback.width ?? 0, 0, 1400),
   };
 }
 
@@ -862,6 +870,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     ),
     advancedLayout: boolIn(raw.advancedLayout, false),
     viewStyle: oneOf(raw.viewStyle, ["icon", "text", "number"] as const, "icon"),
+    metaSize: numberIn(raw.metaSize, DEFAULT_ABOUT_DESIGN.metaSize, 9, 22),
     metaStyle: oneOf(raw.metaStyle, ["plain", "pill", "icons"] as const, "plain"),
     groupInterests: boolIn(raw.groupInterests, false),
     entry: loadEntry(raw.entry),

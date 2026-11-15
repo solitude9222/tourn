@@ -85,6 +85,9 @@ export function AudioSettingsCard() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const updateDesign = (patch: Partial<typeof about.design>) =>
+    setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
+
   const updateAudio = (patch: Partial<typeof audio>) =>
     setAbout((current) => ({
       ...current,
@@ -104,6 +107,9 @@ export function AudioSettingsCard() {
         style: audio.style === "none" ? "compact" : audio.style,
         title: audio.title || file.name.replace(/\.[^.]+$/, ""),
       });
+      // A freshly uploaded track must be visible somewhere: a profile left on
+      // "hidden" would swallow the player the upload just made.
+      if (about.design.audioPosition === "hidden") updateDesign({ audioPosition: "auto" });
       notify("Audio", "Track added. Changes save automatically.");
     } catch (error) {
       notify("Upload failed", error instanceof Error ? error.message : "That audio file could not be read.");
@@ -144,7 +150,22 @@ export function AudioSettingsCard() {
         subtitle="Upload a track, choose a player and preview it here."
       />
 
-      {audio.fileUrl && audio.style !== "none" ? <div className="tw-audio-live-preview"><AudioPlayer settings={{ ...audio, autoplay: false }} /></div> : <p className="tw-foot-note">Add an audio file to preview your player.</p>}
+      {audio.fileUrl && audio.style !== "none" && audio.cardOpacity > 0.005 ? (
+        <div className="tw-audio-live-preview"><AudioPlayer settings={{ ...audio, autoplay: false }} /></div>
+      ) : (
+        <p className="tw-foot-note">
+          {!audio.fileUrl
+            ? "Add an audio file to preview your player."
+            : audio.style === "none"
+              ? "Player style is None, so nothing is drawn. Choose a style above."
+              : "Player opacity is 0%, so the player is invisible. Raise it above."}
+        </p>
+      )}
+      {audio.fileUrl ? (
+        <p className="tw-foot-note">
+          Track attached · position: {about.design.audioPosition}
+        </p>
+      ) : null}
       <div className="tw-audio-settings-grid"><div className="tw-stack">
         <Field label="Border animation"><Select value={audio.edgeEffect} options={[{value:"none",label:"None"},{value:"trace",label:"Travelling light"},{value:"pulse",label:"Soft pulse"}]} onChange={edgeEffect=>updateAudio({edgeEffect:edgeEffect as typeof audio.edgeEffect})}/></Field><Slider label="Border animation duration" value={audio.edgeSpeed} min={1} max={15} step={.5} suffix="s" onChange={edgeSpeed=>updateAudio({edgeSpeed})}/>
         <div className="tw-stack"><Slider label="Border alpha" value={Math.round(audio.borderOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ borderOpacity: value / 100 })} /></div>
@@ -160,6 +181,22 @@ export function AudioSettingsCard() {
             value={audio.style}
             options={AUDIO_STYLES.map((entry) => ({ value: entry.id, label: entry.name }))}
             onChange={(value) => updateAudio({ style: value as typeof audio.style })}
+          />
+        </Field>
+
+        <Field label="Player position" hint="Where the player sits on your profile. Hidden means nowhere.">
+          <Select
+            value={about.design.audioPosition}
+            options={[
+              { value: "auto", label: "Automatic" },
+              { value: "inside", label: "Inside the card" },
+              { value: "below", label: "Below the card" },
+              { value: "side", label: "Beside the card" },
+              { value: "popup", label: "Popup corner" },
+              { value: "fixed-bottom", label: "Fixed to the bottom" },
+              { value: "hidden", label: "Hidden" },
+            ]}
+            onChange={(value) => updateDesign({ audioPosition: value as typeof about.design.audioPosition })}
           />
         </Field>
 

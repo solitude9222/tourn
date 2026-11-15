@@ -6524,3 +6524,21 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .lkr-about-projects--full .lkr-showcase {
   width: 100%;
 }
+
+/* Surface sizing and detail text size, both authored in Portfolio > Design. */
+.lkr-about {
+  width: 100%;
+  max-width: var(--pv-about-max, none);
+  margin-inline: auto;
+}
+
+.lkr-showcase {
+  width: 100%;
+  max-width: var(--pv-project-max, none);
+  margin-inline: auto;
+}
+
+.lkr-side-meta,
+.lkr-about-meta {
+  font-size: var(--pv-meta-size, 12px);
+}
