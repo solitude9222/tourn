@@ -6508,3 +6508,19 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   width: 13px;
   height: 13px;
 }
+
+/* Projects inside the About page are the normal cards at full width. */
+.lkr-about-projects--full {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.lkr-about-projects--full .lkr-sections {
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 0;
+}
+
+.lkr-about-projects--full .lkr-showcase {
+  width: 100%;
+}

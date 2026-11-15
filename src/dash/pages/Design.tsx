@@ -5,7 +5,7 @@
    --------------------------------------------------------------------------- */
 
 import { useDash } from "../context";
-import { Button, Card, CardHead, ColorField, IconButton, SectionLabel, Slider } from "../ui";
+import { Button, Card, CardHead, ColorField, Icon, IconButton, SectionLabel, Slider } from "../ui";
 import {
   DEFAULT_SURFACES,
   type ContainerStyle,
@@ -200,7 +200,7 @@ export function DesignPage() {
 
   const metaStyle = about.design.metaStyle ?? "plain";
   const viewStyle = about.design.viewStyle ?? "icon";
-  const viewPreview = viewStyle === "text" ? "12,480 views" : viewStyle === "number" ? "12,480" : "◉ 12,480";
+  const viewCount = "12,480";
 
   /** Inline style for one surface container. */
   const containerStyle = (key: SurfaceKey) => {
@@ -402,9 +402,15 @@ export function DesignPage() {
               ))}
             </div>
             <div className={`tw-design-live-meta is-${metaStyle}`}>
-              <span>Berlin</span>
-              <span>{viewPreview}</span>
-              <span>Joined Sep 2026</span>
+              <span><Icon name="pin" size={12} />Berlin</span>
+              {viewStyle === "text" ? (
+                <span>{viewCount} views</span>
+              ) : viewStyle === "number" ? (
+                <span>{viewCount}</span>
+              ) : (
+                <span><Icon name="eye" size={12} />{viewCount}</span>
+              )}
+              <span><Icon name="calendar" size={12} />Sep 2026</span>
             </div>
           </div>
 

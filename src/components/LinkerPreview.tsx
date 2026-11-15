@@ -444,8 +444,14 @@ export function LinkerPreview({
   );
   const slidesRef=useRef<HTMLDivElement>(null);
   const dragRef=useRef<{y:number;scroll:number}|null>(null);
+  const aboutProjects = (design.sections ?? []).filter(
+    (section) => section.kind === "project" && ((section.title ?? "").trim() || section.image),
+  );
+  // Projects listed inside the About page leave the slide rotation: they are
+  // the same cards, shown full size in About, not a second small copy.
+  const projectsInAbout = new Set(design.aboutSlide?.showProjects ? aboutProjects.map((project) => project.id) : []);
   const groupedSections:typeof design.sections[]=[];
-  for(const section of design.sections){const last=groupedSections[groupedSections.length-1];if(last && last[0].kind===section.kind)last.push(section);else groupedSections.push([section]);}
+  for(const section of design.sections){if(projectsInAbout.has(section.id))continue;const last=groupedSections[groupedSections.length-1];if(last && last[0].kind===section.kind)last.push(section);else groupedSections.push([section]);}
   const skills=(design.skills||[]).flatMap(id=>{const item=TECH_BY_ID.get(id);return item?[item]:[];});
   const skillPills=skills.length?<section className="lkr-skills-section"><h2>Skills</h2><div className="lkr-tech-row">{skills.map(item=><span key={item.id} className="lkr-tech"><img src={techIconUrl(item)} alt=""/>{item.name}</span>)}</div></section>:null;
   const sectionsVisible = design.sectionsEnabled === true || design.cardStyle === "slide";
@@ -477,9 +483,6 @@ export function LinkerPreview({
   const showLinksSlide = slideshowActive && design.slideshowLinks && links.links.some((link) => link.visible && link.url.trim());
   const showBadgesSlide = slideshowActive && design.slideshowBadges && badges.equipped.length > 0;
   const aboutSlide = design.aboutSlide ?? { title: "About me", subtitle: "", text: "", tags: [] };
-  const aboutProjects = (design.sections ?? []).filter(
-    (section) => section.kind === "project" && ((section.title ?? "").trim() || section.image),
-  );
   // The About page is authored entirely in the editor now: its own title,
   // subtitle, writing and tags. The profile bio no longer leaks in here, so
   // leaving the slide empty really does leave the page blank.
@@ -508,27 +511,8 @@ export function LinkerPreview({
             {aboutSlide.subtitle ? <p className="lkr-about-sub">{aboutSlide.subtitle}</p> : null}
             {aboutSlide.text.trim() ? <p className="lkr-about-text">{aboutSlide.text}</p> : null}
             {aboutSlide.showProjects && aboutProjects.length ? (
-              <div className="lkr-about-projects">
-                {aboutProjects.map((project) => {
-                  const body = (
-                    <>
-                      {project.image ? <img src={project.image} alt="" loading="lazy" /> : null}
-                      <span className="lkr-about-project-copy">
-                        <b>{project.title || "Untitled project"}</b>
-                        {project.subtitle ? <small>{project.subtitle}</small> : null}
-                      </span>
-                    </>
-                  );
-                  return (project.url ?? "").trim() ? (
-                    <a className="lkr-about-project" key={project.id} href={project.url} target="_blank" rel="noreferrer">
-                      {body}
-                    </a>
-                  ) : (
-                    <div className="lkr-about-project" key={project.id}>
-                      {body}
-                    </div>
-                  );
-                })}
+              <div className="lkr-about-projects lkr-about-projects--full">
+                <ProfileSections sections={aboutProjects} />
               </div>
             ) : null}
             {aboutSlide.tags.length ? (

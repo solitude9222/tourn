@@ -3254,23 +3254,21 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.tw-design-live-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .tw-design-live-meta.is-icons span {
-  display: grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
-  font-size: 0;
-}
-
-.tw-design-live-meta.is-icons span::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
 }
 
 .tw-design-live-note {
