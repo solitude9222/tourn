@@ -631,7 +631,8 @@ export function WidgetsPage() {
               onChange={(value) => setDesign({ borderOpacity: value })}
             />
 
-            <div className="tw-subhead">Edge animation</div>
+            <details className="tw-advanced">
+              <summary>Edge animation<small>effect, colour, speed, hover lift</small></summary>
             <Field label="Effect">
               <Select
                 value={design.outlineEffect}
@@ -674,6 +675,8 @@ export function WidgetsPage() {
                 label="Lift on hover"
               />
             </div>
+
+            </details>
 
             <div className="tw-subhead">Stack</div>
             <Slider

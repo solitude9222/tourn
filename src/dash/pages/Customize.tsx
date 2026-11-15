@@ -763,13 +763,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
     );
   }
 
-  if (tab === "integrations") {
-    return (
-      <>
-        <AudioSettingsCard />
-      </>
-    );
-  }
 
   const profileViewsOn = design.viewPosition !== "hidden";
   const joinOn = design.joinPosition !== "hidden";

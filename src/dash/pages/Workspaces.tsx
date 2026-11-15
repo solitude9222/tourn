@@ -9,7 +9,7 @@
 import { Card, CardHead, EmptyState, Icon, type IconName } from "../ui";
 import { useDash } from "../context";
 import { AccountProfilePage } from "./Account";
-import { CustomizeProfilePage } from "./Customize";
+import { AudioPage, CustomizeProfilePage } from "./Customize";
 import { LayoutPage } from "./Layout";
 import { AssetBrowserPage } from "./Community";
 import { DesignPage } from "./Design";
@@ -35,7 +35,7 @@ export const PROFILE_TABS: { id: ProfileWorkspaceTab; label: string; icon: IconN
   { id: "profile", label: "Profile", icon: "user" },
   { id: "appearance", label: "Appearance", icon: "palette" },
   { id: "experience", label: "Experience", icon: "sparkles" },
-  { id: "integrations", label: "Integrations", icon: "link" },
+  { id: "integrations", label: "Audio", icon: "music" },
   { id: "switches", label: "Switches", icon: "sliders" },
 ];
 
@@ -98,7 +98,7 @@ export function PortfolioPage({ tab }: { tab: PortfolioTab }) {
     case "gallery":
       return <AssetBrowserPage />;
     case "audio":
-      return <CustomizeProfilePage tab="integrations" />;
+      return <AudioPage />;
     case "design":
       return <DesignPage />;
     default:
@@ -113,7 +113,7 @@ export function ProfileWorkspacePage({ tab }: { tab: ProfileWorkspaceTab }) {
     case "experience":
       return <CustomizeProfilePage tab="experience" />;
     case "integrations":
-      return <CustomizeProfilePage tab="integrations" />;
+      return <AudioPage />;
     case "switches":
       return <CustomizeProfilePage tab="switches" />;
     default:
