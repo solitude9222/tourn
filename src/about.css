@@ -6842,3 +6842,27 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .lkr-page .lkr-flow.lkr-flow--left > .profile-preview { width: 100%; max-width: 100%; }
 .lkr-page .lkr-flow.lkr-flow--left > .lkr-stack,
 .lkr-page .lkr-flow.lkr-flow--left > .lkr-stacked-widgets { width: 100%; }
+
+/* The left layout used to reserve a second grid column for a side rail that
+   no longer exists, which squeezed the card into the leftover space. Every
+   layout is now one centred column of exactly the card width. */
+.lkr-page .lkr-flow { width: min(100%, calc(var(--pv-width) + 140px)); max-width: calc(var(--pv-width) + 140px); }
+.lkr-page .lkr-flow.lkr-flow--left { max-width: calc(var(--pv-width) + 140px); }
+.lkr-page .lkr-primary,
+.lkr-page .lkr-primary--left,
+.lkr-page .lkr-slide {
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+  align-items: stretch;
+  width: min(100%, var(--pv-width));
+  max-width: min(100%, var(--pv-width));
+  margin-inline: auto;
+  gap: 22px;
+}
+.lkr-page .lkr-primary > .profile-preview,
+.lkr-page .lkr-primary--left > .profile-preview {
+  width: 100%;
+  max-width: var(--pv-width);
+  margin-inline: auto;
+}
