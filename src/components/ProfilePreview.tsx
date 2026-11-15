@@ -169,8 +169,8 @@ export function ProfilePreview({
   const viewStyle = design.viewStyle ?? "icon";
   const viewsNode = (
     <span className="pv-foot-item" data-view-style={viewStyle} title={viewCount === null ? undefined : `${viewCount} views`}>
-      {viewStyle === "icon" ? <ViewsGlyph size={12} /> : null}
-      {viewStyle === "text" ? `${viewNumber} views` : viewNumber}
+      {viewStyle === "icon" || viewStyle === "icon-only" ? <ViewsGlyph size={viewStyle === "icon-only" ? 14 : 12} /> : null}
+      {viewStyle === "icon-only" ? null : viewStyle === "text" ? `${viewNumber} views` : viewNumber}
     </span>
   );
 

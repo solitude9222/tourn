@@ -5617,7 +5617,7 @@
    real row (one | two), never two pins stacked on the same spot. */
 .profile-preview .pv-pin-group--outside-below-left {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   right: auto;
   bottom: auto;
   left: 0;
@@ -5625,16 +5625,33 @@
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 13px;
+  gap: 18px;
   max-width: 100%;
   padding: 0;
   white-space: nowrap;
+  /* A shared row under the card is the most readable slot, so it reads at
+     body size rather than at caption size. */
+  font-size: calc(16px * var(--pv-scale, 1));
+  line-height: 1.3;
 }
 .profile-preview .pv-pin-group--outside-below-left > .pv-pin {
   position: static;
+  font-size: inherit;
+}
+
+.profile-preview .pv-pin-group--outside-below-left .pv-foot-item,
+.profile-preview .pv-pin-group--outside-below-left .pv-location,
+.profile-preview .pv-pin-group--outside-below-left .pv-joined,
+.profile-preview .pv-pin-group--outside-below-left [data-meta] {
+  font-size: inherit;
+}
+
+.profile-preview .pv-pin-group--outside-below-left svg {
+  width: calc(15px * var(--pv-scale, 1));
+  height: calc(15px * var(--pv-scale, 1));
 }
 .profile-preview:has(.pv-pin-group--outside-below-left) {
-  margin-bottom: 34px;
+  margin-bottom: 52px;
 }
 /* A shared slot always reads left to right, never on top of each other. */
 .profile-preview .pv-pin-group {
@@ -6541,4 +6558,12 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .lkr-side-meta,
 .lkr-about-meta {
   font-size: var(--pv-meta-size, 12px);
+}
+
+/* Keep the shared detail row on one line and at the larger size, after the
+   generic pin-group rules. */
+.profile-preview .pv-pin-group--outside-below-left {
+  flex-wrap: nowrap;
+  column-gap: 18px;
+  font-size: calc(16px * var(--pv-scale, 1));
 }

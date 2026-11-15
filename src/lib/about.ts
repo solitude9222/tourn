@@ -287,7 +287,7 @@ export type AboutDesign = {
   /** Off keeps each layout's own detail positions and hides position controls. */
   advancedLayout?: boolean;
   /** How the view counter reads. */
-  viewStyle?: "icon" | "text" | "number";
+  viewStyle?: "icon" | "text" | "number" | "icon-only";
   /** Location / views / joined: quiet text with a divider (plain), boxed chips (pill) or icons only. */
   metaStyle?: "plain" | "pill" | "icons";
   /** Detail row text size in px. */
@@ -870,7 +870,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
       DEFAULT_ABOUT_DESIGN.locationPosition,
     ),
     advancedLayout: boolIn(raw.advancedLayout, false),
-    viewStyle: oneOf(raw.viewStyle, ["icon", "text", "number"] as const, "icon"),
+    viewStyle: oneOf(raw.viewStyle, ["icon", "text", "number", "icon-only"] as const, "icon"),
     metaSize: numberIn(raw.metaSize, DEFAULT_ABOUT_DESIGN.metaSize, 9, 22),
     metaStyle: oneOf(raw.metaStyle, ["plain", "pill", "icons"] as const, "plain"),
     groupInterests: boolIn(raw.groupInterests, false),

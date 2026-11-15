@@ -198,6 +198,7 @@ const VIEW_STYLES = [
   { id: "icon", label: "Icon + number", hint: "An eye, then the count." },
   { id: "text", label: "Reads as text", hint: "1,234 views." },
   { id: "number", label: "Number only", hint: "Bare count, no glyph." },
+  { id: "icon-only", label: "Icon only", hint: "Just the eye, no number." },
 ] as const;
 
 export function DesignPage() {
@@ -388,7 +389,16 @@ export function DesignPage() {
               onClick={() => patchDesign({ viewStyle: option.id })}
             >
               <span className="tw-meta-demo tw-meta-demo--views" aria-hidden="true">
-                {option.id === "icon" ? "◉ 12,480" : option.id === "text" ? "12,480 views" : "12,480"}
+                {option.id === "icon" || option.id === "icon-only" ? (
+                  <>
+                    <Icon name="eye" size={12} />
+                    {option.id === "icon" ? "12,480" : null}
+                  </>
+                ) : option.id === "text" ? (
+                  "12,480 views"
+                ) : (
+                  "12,480"
+                )}
               </span>
               <b>{option.label}</b>
               <small>{option.hint}</small>
