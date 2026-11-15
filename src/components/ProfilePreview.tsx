@@ -394,7 +394,7 @@ export function ProfilePreview({
         ) : null}
 
         {hideAudio || !hasAudio ? null : (
-          <div className="pv-audio-block">
+          <div className="pv-audio-block" data-detail="audio">
             <AudioPlayer
               settings={assets.audio}
               enabled={!entryActive}

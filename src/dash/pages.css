@@ -3466,8 +3466,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 150px;
-  height: 36px;
+  width: 158px;
+  height: 40px;
   padding: 0 12px;
   border: 1px dashed rgba(255, 255, 255, 0.28);
   border-radius: 10px;
@@ -3548,9 +3548,10 @@
 .tw-layout-stage.is-dragging [data-detail] { cursor: grabbing; }
 
 /* Ghost widgets inside the drop targets: the same shape as the real pin. */
-.tw-ghost { display: inline-flex; align-items: center; gap: 7px; min-width: 0; opacity: 0.7; }
+.tw-ghost { display: inline-flex; align-items: center; gap: 9px; min-width: 0; opacity: 0.72; font-size: 14px; }
 .tw-ghost b { font-weight: 600; }
-.tw-ghost--likes { gap: 10px; }
+.tw-ghost--likes { gap: 12px; }
+.tw-ghost-word { display: block; width: 58px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.42); }
 .tw-ghost--audio { gap: 9px; width: 100%; }
 .tw-ghost-cover { width: 26px; height: 26px; border-radius: 7px; background: rgba(255, 255, 255, 0.18); }
 .tw-ghost-lines { display: flex; flex-direction: column; gap: 4px; }

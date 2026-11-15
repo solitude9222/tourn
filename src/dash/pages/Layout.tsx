@@ -48,14 +48,6 @@ const PAGE_LAYOUTS: {
 
 type DragKind = "views" | "likes" | "location" | "joined" | "audio";
 
-const DRAG_CHIPS: { id: DragKind; label: string }[] = [
-  { id: "location", label: "Location" },
-  { id: "joined", label: "Account date" },
-  { id: "views", label: "Views" },
-  { id: "likes", label: "Likes" },
-  { id: "audio", label: "Audio" },
-];
-
 const DETAIL_ZONES: { id: string; label: string }[] = [
   { id: "page-tr", label: "Page top right" },
   { id: "card-tr", label: "Card top right" },
@@ -142,39 +134,8 @@ function LayoutPreview() {
       <CardHead
         icon="move"
         title="Layout preview"
-        subtitle="Drag a chip onto a highlighted corner. This is your real card, not a mock."
+        subtitle="Press and hold a detail on the card, then drop it on one of the ghost copies."
       />
-
-      <div className="tw-drag-row">
-        {DRAG_CHIPS.map((chip) => (
-          <button
-            key={chip.id}
-            type="button"
-            className={`tw-drag-chip${dragging === chip.id ? " is-dragging" : ""}`}
-            onPointerDown={(event) => {
-              event.currentTarget.setPointerCapture(event.pointerId);
-              measure();
-              setDragging(chip.id);
-            }}
-            onPointerMove={(event) => {
-              if (dragging !== chip.id) return;
-              const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-slot]") as HTMLElement | null;
-              setHover(target?.dataset.slot ?? null);
-            }}
-            onPointerUp={(event) => {
-              if (dragging !== chip.id) return;
-              const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-slot]") as HTMLElement | null;
-              const slot = target?.dataset.slot;
-              if (slot) place(chip.id, slot);
-              else { setDragging(null); setHover(null); }
-            }}
-            onPointerCancel={() => { setDragging(null); setHover(null); }}
-          >
-            <Icon name="drag" size={13} />
-            {chip.label}
-          </button>
-        ))}
-      </div>
 
       <div
         className={`tw-layout-stage${dragging ? " is-dragging" : ""}`}
@@ -240,22 +201,20 @@ function LayoutPreview() {
                   ) : (
                     <>
                       {dragging === "views" ? (
-                        <ViewsGlyph size={14} />
+                        <ViewsGlyph size={17} />
                       ) : dragging === "location" ? (
-                        <LocationGlyph size={13} />
+                        <LocationGlyph size={16} />
                       ) : dragging === "likes" ? (
-                        <ThumbIcon size={14} />
+                        <ThumbIcon size={17} />
                       ) : (
-                        <Icon name="calendar" size={13} />
+                        <Icon name="calendar" size={16} />
                       )}
                       {dragging === "likes" ? (
                         <><b>19</b><b>5</b></>
                       ) : dragging === "views" ? (
                         <b>1</b>
-                      ) : dragging === "location" ? (
-                        "Location"
                       ) : (
-                        "Joined"
+                        <i className="tw-ghost-word" />
                       )}
                     </>
                   )}

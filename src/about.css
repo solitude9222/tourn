@@ -1513,7 +1513,8 @@
 }
 
 .lkr-audio {
-  width: min(var(--pv-width), 100%);
+  width: min(500px, 100%);
+  margin-inline: auto;
 }
 
 .lkr-audio .ap {
@@ -6655,7 +6656,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   background: none;
   box-shadow: none;
   color: var(--pv-muted);
-  font-size: calc(13px * var(--pv-scale, 1));
+  font-size: calc(14.5px * var(--pv-scale, 1));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -6774,7 +6775,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   color: inherit;
   font-size: inherit;
 }
-.pv-slot svg { width: calc(14px * var(--pv-scale, 1)); height: calc(14px * var(--pv-scale, 1)); opacity: 0.85; }
+.pv-slot svg { width: calc(18px * var(--pv-scale, 1)); height: calc(18px * var(--pv-scale, 1)); opacity: 0.92; }
 .pv-slot .pv-react { gap: 2px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
 .pv-slot .pv-react-btn { padding: 2px 5px; font-size: inherit; }
 
@@ -6791,14 +6792,14 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .pv-slot--page-tr { top: 18px; right: 22px; }
 .pv-slot--page-bl { bottom: 18px; left: 22px; }
 .pv-slot--page-br { bottom: 18px; right: 22px; }
-.pv-page-slots svg { width: 13px; height: 13px; opacity: 0.85; }
+.pv-page-slots svg { width: 17px; height: 17px; opacity: 0.92; }
 
 /* ── page-level audio ─────────────────────────────────────────────────── */
 .lkr-page-audio {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: min(560px, calc(100vw - 44px));
+  width: min(500px, calc(100vw - 44px));
   z-index: 32;
 }
 .lkr-page-audio--page-top { top: 22px; }
@@ -6827,3 +6828,17 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .lkr-widgets .widget-card[data-platform="discord"] .widget-card-meta {
   font-size: 12px;
 }
+
+/* Left aligned is about text, not about pushing the card left. */
+.lkr-page .lkr-flow.lkr-flow--left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: calc(var(--pv-width) + 32px);
+  margin-inline: auto;
+  gap: 22px;
+}
+.lkr-page .lkr-flow.lkr-flow--left > .profile-preview { width: 100%; max-width: 100%; }
+.lkr-page .lkr-flow.lkr-flow--left > .lkr-stack,
+.lkr-page .lkr-flow.lkr-flow--left > .lkr-stacked-widgets { width: 100%; }
