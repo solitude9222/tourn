@@ -230,8 +230,8 @@ export const DEFAULT_PILL_STYLE: PillStyle = {
   blur: 6,
 };
 
-/** Profile sections share one editor, with specialist cards for projects, interests and PC builds. */
-export type ProfileSectionKind = "project" | "interest" | "pc-build";
+/** Profile sections share one editor for projects and interests. */
+export type ProfileSectionKind = "project" | "interest";
 
 /** A named link inside a project/media section. */
 export type ProfileSectionLink = { label: string; url: string };
@@ -260,10 +260,8 @@ export type ProfileSection = {
   status: string;
   /** Tech stack ids from lib/techStack. */
   stack: string[];
-  /** Interests and PC builds: selected media or user-entered components. */
+  /** Selected media inside an Interests section. */
   items: SectionPick[];
-  /** PC-build preview layout. */
-  pcView?: "grid" | "list" | "stage";
   /** Extra links shown beside the main one. */
   links: ProfileSectionLink[];
   /** Year, score, genre or other short metadata. */
@@ -780,11 +778,11 @@ function loadDesignRaw(input: unknown): AboutDesign {
     // "hidden" is retired: a saved profile that used it comes back as automatic.
     audioPosition: oneOf((raw.audioPosition as string | undefined) === "hidden" ? "auto" : raw.audioPosition, ["auto", "inside", "below", "side", "popup", "popup-opposite", "fixed-bottom"] as const, "auto"),
     widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),
-    sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
+    sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object" && (section as { kind?: string }).kind !== "pc-build").map((section, index) => {
       const item = section as Partial<ProfileSection>;
       // Older documents had text, anime and game sections; they all become
       // Interests, which is the single library-backed kind now.
-      const kind: ProfileSectionKind = item.kind === "project" || item.kind === "pc-build" ? item.kind : "interest";
+      const kind: ProfileSectionKind = item.kind === "project" ? item.kind : "interest";
       const links = Array.isArray(item.links)
         ? item.links
             .filter((link) => link && typeof link.url === "string" && /^https?:\/\//i.test(link.url))
@@ -808,11 +806,10 @@ function loadDesignRaw(input: unknown): AboutDesign {
           : [],
         links,
         meta: typeof item.meta === "string" ? item.meta.slice(0, 80) : "",
-        pcView: item.pcView === "list" || item.pcView === "stage" ? item.pcView : "grid",
         items: Array.isArray(item.items)
           ? item.items
               .filter((pick) => pick && typeof pick === "object")
-              .slice(0, kind === "pc-build" ? 150 : 12)
+              .slice(0, 12)
               .map((pick, pickIndex) => ({
                 id: typeof pick.id === "string" ? pick.id.slice(0, 80) : `pick-${index}-${pickIndex}`,
                 title: typeof pick.title === "string" ? pick.title.slice(0, 100) : "",

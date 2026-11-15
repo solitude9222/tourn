@@ -18,7 +18,6 @@ import { FileUpload, Button, Card, CardHead, ColorField, Field, Icon, Select, Sl
 const SECTION_KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
   { id: "project", label: "Projects", hint: "Artwork, stack and links" },
   { id: "interest", label: "Interests", hint: "Anime and games" },
-  { id: "pc-build", label: "PC build", hint: "Parts, specs and previews" },
 ];
 
 /** The three page layouts and the positions each one starts with. */

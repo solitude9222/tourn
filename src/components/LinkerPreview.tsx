@@ -458,7 +458,6 @@ export function LinkerPreview({
   const dragRef=useRef<{y:number;scroll:number}|null>(null);
   const visibleSections = (design.sections ?? []).filter((section) => {
     if (section.kind === "project") return Boolean(section.title.trim() || section.image || section.text.trim());
-    if (section.kind === "pc-build") return Boolean(section.title.trim() || section.items?.length || section.subtitle.trim());
     return Boolean(section.title.trim() || section.items?.length || section.text.trim());
   });
   const aboutProjects = visibleSections.filter((section) => section.kind === "project");

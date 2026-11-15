@@ -9,7 +9,6 @@ import "../aboutSections.css";
 const KIND_LABEL: Record<ProfileSection["kind"], string> = {
   project: "Project",
   interest: "Interest",
-  "pc-build": "PC build",
 };
 
 function safeUrl(url: string): string | null {
@@ -46,40 +45,6 @@ export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
 
         // Several animes in one section: a single card holding the whole set.
         const picks = section.items ?? [];
-        if (section.kind === "pc-build") {
-          return (
-            <article className={`lkr-pc-build lkr-pc-build--${section.pcView ?? "grid"}`} key={section.id}>
-              <header className="lkr-pc-build-head">
-                <div>
-                  <span className="lkr-pc-build-eyebrow">PC BUILD</span>
-                  <h2>{section.title || "My PC"}</h2>
-                  {section.subtitle ? <p>{section.subtitle}</p> : null}
-                </div>
-                <span className="lkr-pc-build-count">{picks.length} component{picks.length === 1 ? "" : "s"}</span>
-              </header>
-              {section.text ? <p className="lkr-pc-build-note">{section.text}</p> : null}
-              <div className="lkr-pc-parts">
-                {picks.map((part) => {
-                  const content = (
-                    <>
-                      <span className="lkr-pc-part-image">
-                        {part.image ? <img src={part.image} alt={`${[part.meta, part.title].filter(Boolean).join(" ")} product view`} loading="lazy" /> : <span aria-hidden="true">{part.category?.slice(0, 1) || "P"}</span>}
-                      </span>
-                      <span className="lkr-pc-part-copy">
-                        <small>{part.category || "Component"}</small>
-                        <b>{part.title}</b>
-                        {part.subtitle ? <span>{part.subtitle}</span> : null}
-                        {part.meta ? <em>{part.meta}</em> : null}
-                      </span>
-                      {safeUrl(part.url) ? <span className="lkr-pc-part-arrow" aria-hidden="true">↗</span> : null}
-                    </>
-                  );
-                  return safeUrl(part.url) ? <a className="lkr-pc-part" href={safeUrl(part.url)!} target="_blank" rel="noreferrer" key={part.id}>{content}</a> : <div className="lkr-pc-part" key={part.id}>{content}</div>;
-                })}
-              </div>
-            </article>
-          );
-        }
         if (section.kind === "interest" && picks.length) {
           return (
             <article className="lkr-interest-set" key={section.id}>

@@ -253,32 +253,9 @@
   opacity: 0.45;
 }
 
-/* ── PC build editor ───────────────────────────────────────────────────── */
-.tw-section-editor--pc-build { --section-accent: #82a9ff; }
-.tw-section-kind-dot--pc-build { background: #82a9ff; box-shadow: 0 0 0 3px rgba(130, 169, 255, 0.14); }
-.tw-section-add-btn--pc-build .tw-section-kind-dot { background: #82a9ff; box-shadow: 0 0 0 3px rgba(130, 169, 255, 0.14); }
+/* Section type controls adapt to the available kinds. */
 .tw-section-kind-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .tw-section-add-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-.tw-pc-builder { display: grid; gap: 12px; margin-top: 4px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.015); }
-.tw-pc-builder-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.tw-pc-builder-head > span:first-child { display: grid; gap: 3px; }
-.tw-pc-builder-head b { color: var(--title); font-size: 12.5px; }
-.tw-pc-builder-head small { color: var(--nav); font-size: 11px; }
-.tw-pc-add-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.tw-pc-add-action { justify-content: flex-end; }
-.tw-pc-parts-editor { display: grid; gap: 8px; }
-.tw-pc-part-editor { padding: 9px; border: 1px solid var(--border); border-radius: 10px; background: #0c0c0f; }
-.tw-pc-part-top { display: grid; grid-template-columns: 48px minmax(0, 1.2fr) minmax(120px, .9fr); align-items: start; gap: 9px; }
-.tw-pc-part-image { display: grid; width: 48px; height: 48px; place-items: center; overflow: hidden; border-radius: 8px; background: var(--tile); color: var(--nav); font-size: 13px; font-weight: 700; }
-.tw-pc-part-image img { width: 100%; height: 100%; object-fit: cover; }
-.tw-pc-part-fields, .tw-pc-part-actions { display: grid; min-width: 0; gap: 6px; }
-.tw-pc-part-actions .tw-btn { justify-self: start; }
-@media (max-width: 760px) {
-  .tw-pc-add-grid { grid-template-columns: minmax(0, 1fr); }
-  .tw-pc-part-top { grid-template-columns: 40px minmax(0, 1fr); }
-  .tw-pc-part-image { width: 40px; height: 40px; }
-  .tw-pc-part-actions { grid-column: 2; }
-}
 
 /* ── tech picker ──────────────────────────────────────────────────────── */
 

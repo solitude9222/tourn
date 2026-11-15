@@ -1,5 +1,4 @@
 import { SkillPicker } from "./SkillPicker";
-import { PcBuildEditor } from "./PcBuildEditor";
 import { useState, type ReactNode } from "react";
 import { type ProfileSection, type ProfileSectionKind } from "../lib/about";
 import { imageToDataUrl } from "./files";
@@ -11,7 +10,6 @@ import "./sections.css";
 const KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
   { id: "project", label: "Project", hint: "Something you built" },
   { id: "interest", label: "Interests", hint: "One section, many animes" },
-  { id: "pc-build", label: "PC build", hint: "Parts and specs" },
 ];
 
 const PICK_LIMIT = 12;
@@ -38,7 +36,6 @@ export function SectionEditor({
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [libraryKind, setLibraryKind] = useState<"anime" | "game">("anime");
   const project = section.kind === "project";
-  const pcBuild = section.kind === "pc-build";
   const picks = Array.isArray(section.items) ? section.items : [];
 
   const upload = async (file: File | undefined) => {
@@ -77,7 +74,7 @@ export function SectionEditor({
         {handle}
         <span className="tw-section-number">{String(index + 1).padStart(2, "0")}</span>
         <span className="tw-section-editor-title">
-          <b>{section.title || (project ? "Untitled project" : pcBuild ? "Untitled PC build" : `${picks.length || ""} interest${picks.length === 1 ? "" : "s"}`.trim() || "Interests")}</b>
+          <b>{section.title || (project ? "Untitled project" : `${picks.length || ""} interest${picks.length === 1 ? "" : "s"}`.trim() || "Interests")}</b>
           <small>{KINDS.find((kind) => kind.id === section.kind)?.label} section</small>
         </span>
         <span className="tw-section-editor-actions" onClick={(event) => event.stopPropagation()}>
@@ -208,8 +205,6 @@ export function SectionEditor({
             </div>
           </details>
         </div>
-      ) : pcBuild ? (
-        <PcBuildEditor section={section} onChange={onChange} />
       ) : (
         <div className="tw-form-grid">
           <Field label="Section heading" hint="Optional — e.g. “Anime I like”.">
