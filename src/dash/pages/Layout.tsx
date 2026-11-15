@@ -1,4 +1,3 @@
-import {ProfileHistory} from "../ProfileHistory";
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 /* ---------------------------------------------------------------------------
    Customize > Card — the card layout, the widget positions and the card's
@@ -274,58 +273,6 @@ export function LayoutPage({
           <Slider label="Card padding" value={design.cardPadding} min={0} max={64} suffix="px" onChange={(cardPadding) => updateDesign({ cardPadding })} />
         </div>
       </Card> : null}
-      {section === "layout" && design.advancedLayout === true ? <Card>
-        <CardHead
-          icon="grid"
-          title="Music & widgets"
-          subtitle="Where the player and the widget cards sit, and the glow behind the details."
-        />
-
-
-        <div className="tw-form-grid" style={{ marginTop: 16 }}>
-          <Field label="Detail glow" hint="Glow behind the location, view and join icons.">
-            <ColorField
-              value={design.metaGlowColor ?? "#ff8f92"}
-              onChange={(metaGlowColor) => updateDesign({ metaGlowColor })}
-            />
-          </Field>
-          <Slider
-            label="Glow strength"
-            value={Math.round((design.metaGlowStrength ?? 0) * 100)}
-            min={0}
-            max={100}
-            step={5}
-            suffix="%"
-            onChange={(value) => updateDesign({ metaGlowStrength: value / 100 })}
-          />
-        </div>
-
-        <div className="tw-form-grid" style={{ marginTop: 16 }}>
-          <Field label="Audio player" hint="Manage the track and player under Music.">
-            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
-          </Field>
-
-          <Field label="Widgets" hint="Keep widget cards inside the profile card or below it.">
-            <Select value={design.widgetsPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }]} onChange={(widgetsPosition) => updateDesign({ widgetsPosition: widgetsPosition as typeof design.widgetsPosition })} />
-          </Field>
-        </div>
-
-        <div className="tw-row" style={{ marginTop: 16, justifyContent: "flex-end" }}>
-          <Button
-            icon="refresh"
-            onClick={() => {
-              updateDesign({
-                widgetsPosition: "auto",
-                audioPosition: "auto",
-              });
-              notify("Widget positions", "Reset to the defaults — save to publish it.");
-            }}
-          >
-            Reset positions
-          </Button>
-        </div>
-      </Card> : null}
-
       {section === "style" ? <Card>
         <CardHead
           icon="palette"
@@ -615,7 +562,6 @@ export function LayoutPage({
           </div>
         </div>
       </Card> : null}
-      <ProfileHistory/>
       </div>
     </div>
   );

@@ -6693,3 +6693,56 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .pv-react--ghost .pv-react-btn {
   color: var(--pv-muted);
 }
+
+/* ── page-level details: top right of the viewport ───────────────────────── */
+.pv-page-meta {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Lexend", "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.pv-page-meta .pv-location,
+.pv-page-meta .pv-foot-item,
+.pv-page-meta .pv-corner-joined {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: inherit;
+  font-size: inherit;
+}
+.pv-page-meta svg {
+  width: 13px;
+  height: 13px;
+  opacity: 0.8;
+}
+
+/* ── mute button: top left of the page, icon filling its circle ──────────── */
+.lkr-popup-audio {
+  position: fixed;
+  top: var(--popup-offset, 20px);
+  left: var(--popup-offset, 20px);
+  right: auto;
+  bottom: auto;
+}
+.ap-popup--mute .ap-popup-glyph {
+  width: 100%;
+  height: 100%;
+}
+.ap-popup--mute .ap-popup-glyph svg {
+  width: 46%;
+  height: 46%;
+}

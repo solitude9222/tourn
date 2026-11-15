@@ -6625,3 +6625,25 @@
 .tw-detail-select select {
   min-width: 140px;
 }
+
+/* ── colour fields: swatch + code, no plate ─────────────────────────────── */
+.tw-dash .tw-color,
+.tw-color,
+.tw-dash .tw-color-hex,
+.tw-color-hex {
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.tw-dash .tw-color {
+  padding: 0 !important;
+}
+.tw-color-hex {
+  padding: 0 2px !important;
+}
+
+/* ── example text is the red accent ─────────────────────────────────────── */
+.tw-dash :is(input, textarea)::placeholder {
+  color: #ff4d55;
+  opacity: 1;
+}

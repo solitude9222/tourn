@@ -157,6 +157,23 @@ export function ProfilePreview({
     </span>
   );
 
+  // Location and the account date belong to the page, not the card: top right
+  // of the viewport. Portalled, so the card's tilt transform can never drag
+  // them back inside its own box.
+  const cornerMeta =
+    (locationPill || joinedCorner) && typeof document !== "undefined"
+      ? createPortal(
+          <div className="pv-page-meta" style={{ color: design.colors.muted }}>
+            {locationPill}
+            {locationPill && joinedCorner ? (
+              <span className="pv-corner-sep" aria-hidden="true">|</span>
+            ) : null}
+            {joinedCorner ? <span className="pv-corner-joined">{joinedNode}</span> : null}
+          </div>,
+          document.body,
+        )
+      : null;
+
   const viewsNode = (
     <span className="pv-foot-item pv-views" title={`${viewCount} profile views`}>
       <ViewsGlyph size={12} />
@@ -256,15 +273,7 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
-      {locationPill || joinedCorner ? (
-        <div className="pv-corner-meta">
-          {locationPill}
-          {locationPill && joinedCorner ? (
-            <span className="pv-corner-sep" aria-hidden="true">|</span>
-          ) : null}
-          {joinedCorner ? <span className="pv-corner-joined">{joinedNode}</span> : null}
-        </div>
-      ) : null}
+      {cornerMeta}
       <div className="pv-body">
         <div className="pv-topline">
           <span className="pv-avatar-wrap">

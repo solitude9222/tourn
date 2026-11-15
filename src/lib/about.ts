@@ -363,7 +363,7 @@ export const DEFAULT_METADATA: AboutMetadata = {
 export const MAX_BIO_LENGTH = 800;
 
 export const DEFAULT_PROFILE_COLORS: ProfileColors = {
-  accent: "#ff8f92",
+  accent: "#0a0a0c",
   text: "#fbf4f4",
   muted: "#98a2b3",
   background: "#07070a",
@@ -820,7 +820,14 @@ function loadDesignRaw(input: unknown): AboutDesign {
     groupInterests: boolIn(raw.groupInterests, false),
     entry: loadEntry(raw.entry),
     colors: {
-      accent: validColor(rawColors.accent, DEFAULT_PROFILE_COLORS.accent),
+      // The old default accents were a pale pink and a pale blue; the profile
+      // main colour is the deep black the console uses now.
+      accent: validColor(
+        rawColors.accent === "#ff8f92" || rawColors.accent === "#b4bffa"
+          ? "#0a0a0c"
+          : rawColors.accent,
+        DEFAULT_PROFILE_COLORS.accent,
+      ),
       text: validColor(rawColors.text, DEFAULT_PROFILE_COLORS.text),
       muted: validColor(rawColors.muted, DEFAULT_PROFILE_COLORS.muted),
       background: validColor(rawColors.background, DEFAULT_PROFILE_COLORS.background),

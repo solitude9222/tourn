@@ -30,7 +30,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
 
   return (
     <div
-      className={`ap-popup${settings.edgeEffect !== "none" ? ` ap-edge-${settings.edgeEffect}` : ""}`}
+      className="ap-popup ap-popup--mute"
       style={
         {
           "--ap-edge-color": settings.edgeColor,
