@@ -314,7 +314,7 @@ export function AudioSettingsCard() {
           onChange={(checked) => updateAudio({ autoLyrics: checked })}
           label="Auto-fetch lyrics"
         />
-      </div></div><div className="tw-stack tw-audio-colors">        <div className="tw-subhead tw-span-2">Colours &amp; transparency</div>
+      </div></div><details className="tw-advanced"><summary>Colours &amp; transparency<small>10 colours, all optional</small></summary><div className="tw-stack tw-audio-colors">
         <ColorField label="Border animation colour" value={audio.edgeColor} onChange={edgeColor=>updateAudio({edgeColor})}/><ColorField label="Player accent" value={audio.accentColor} onChange={(value) => updateAudio({ accentColor: value })} />
         <Slider label="Accent opacity" value={Math.round(audio.accentOpacity * 100)} min={0} max={100} suffix="%" onChange={(value) => updateAudio({ accentOpacity: value / 100 })} />
         <ColorField label="Player background" value={audio.playerColor} onChange={(value) => updateAudio({ playerColor: value })} />
@@ -327,7 +327,7 @@ export function AudioSettingsCard() {
 
         <ColorField label="Play button" value={audio.buttonColor} onChange={(value) => updateAudio({ buttonColor: value })} />
         <ColorField label="Play icon" value={audio.buttonIconColor} onChange={(value) => updateAudio({ buttonIconColor: value })} />
-</div></div>
+</div></details></div>
 
 
       <input

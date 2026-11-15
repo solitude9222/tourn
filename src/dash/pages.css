@@ -3307,3 +3307,47 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* Advanced blocks stay out of the way until they are wanted. */
+.tw-advanced {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.tw-advanced > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 0;
+  color: var(--title);
+  font-size: 12.5px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.tw-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tw-advanced > summary::after {
+  content: "";
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--nav);
+  border-bottom: 1.5px solid var(--nav);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 160ms ease;
+}
+
+.tw-advanced[open] > summary::after {
+  transform: rotate(225deg) translateY(-2px);
+}
+
+.tw-advanced > summary small {
+  color: var(--nav);
+  font-size: 11px;
+  font-weight: 400;
+}
