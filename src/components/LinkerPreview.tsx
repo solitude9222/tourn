@@ -365,7 +365,7 @@ export function LinkerPreview({
     <p className="lkr-empty">No widgets yet.</p>
   );
 
-  const requestedAudioPosition = design.audioPosition === "hidden" ? "hidden" : assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
+  const requestedAudioPosition = assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
   // A slideshow replaces the card body on every slide, so a player living
   // inside the card would only exist on the first one. Lift it under the card
   // instead and it stays on screen across slides.
@@ -403,7 +403,7 @@ export function LinkerPreview({
   // rearrange what is inside it. `stacked` is the exception: it lifts the
   // player out under the card so the track has its own titled panel.
   const hasTrack =
-    !hideAudio && audioPosition !== "hidden" && Boolean(about.assets.audio.fileUrl);
+    !hideAudio && Boolean(about.assets.audio.fileUrl);
 
   const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
   const showAudioSide = design.layout === "left" && audioPosition === "side" && hasTrack;

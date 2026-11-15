@@ -1025,7 +1025,7 @@
 
 .tw-part input {
   margin-top: 2px;
-  accent-color: var(--accent);
+  accent-color: #f5f5f7;
 }
 
 .tw-part-copy b {
@@ -2974,11 +2974,17 @@
 
 .tw-layout-stage {
   position: relative;
-  height: 430px;
+  height: 620px;
   overflow: hidden;
   border: 1px solid #23232a;
   border-radius: 16px;
   background: #101014;
+}
+
+@media (max-width: 900px) {
+  .tw-layout-stage {
+    height: 520px;
+  }
 }
 
 .tw-layout-stage.is-dragging {
@@ -2988,9 +2994,9 @@
 .tw-layout-stage-scaler {
   position: absolute;
   inset: 0;
-  width: 192%;
-  height: 192%;
-  transform: scale(0.52);
+  width: 139%;
+  height: 139%;
+  transform: scale(0.72);
   transform-origin: top left;
   pointer-events: none;
 }

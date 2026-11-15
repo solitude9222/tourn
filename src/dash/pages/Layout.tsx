@@ -161,6 +161,7 @@ function LayoutPreview() {
             badges={badges}
             links={links}
             interactive={false}
+            showEntry={false}
           />
         </div>
         <div className="tw-layout-zones" aria-hidden={dragging ? undefined : true}>
@@ -413,7 +414,7 @@ export function LayoutPage({
 
         <div className="tw-form-grid" style={{ marginTop: 16 }}>
           <Field label="Audio player" hint="Manage the track and player under Music.">
-            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "popup", label: "Popup · top left" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }, { value: "hidden", label: "Hidden" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
+            <Select value={design.audioPosition} options={[{ value: "auto", label: "Follow layout" }, { value: "inside", label: "Inside card" }, { value: "below", label: "Below card" }, { value: "side", label: "Beside card" }, { value: "popup", label: "Popup · top left" }, { value: "fixed-bottom", label: "Fixed at screen bottom" }]} onChange={(audioPosition) => updateDesign({ audioPosition: audioPosition as typeof design.audioPosition })} />
           </Field>
 
           <Field label="Widgets" hint="Keep widget cards inside the profile card or below it.">

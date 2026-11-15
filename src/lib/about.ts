@@ -295,7 +295,7 @@ export type AboutDesign = {
   /** One Interests list for animes and games instead of two separate kinds. */
   groupInterests?: boolean;
   skills?: string[];
-  audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "fixed-bottom" | "hidden";
+  audioPosition: "auto" | "inside" | "below" | "side" | "popup" | "fixed-bottom";
   widgetsPosition: WidgetsPosition;
   customFontUrl: string;
   theme: AboutTheme;
@@ -772,7 +772,8 @@ function loadDesignRaw(input: unknown): AboutDesign {
       showProjects: raw.aboutSlide?.showProjects === true,
     },
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
-    audioPosition: oneOf(raw.audioPosition, ["auto", "inside", "below", "side", "popup", "fixed-bottom", "hidden"] as const, "auto"),
+    // "hidden" is retired: a saved profile that used it comes back as automatic.
+    audioPosition: oneOf((raw.audioPosition as string | undefined) === "hidden" ? "auto" : raw.audioPosition, ["auto", "inside", "below", "side", "popup", "fixed-bottom"] as const, "auto"),
     widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
       const item = section as Partial<ProfileSection>;

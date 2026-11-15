@@ -109,7 +109,7 @@ export function AudioSettingsCard() {
       });
       // A freshly uploaded track must be visible somewhere: a profile left on
       // "hidden" would swallow the player the upload just made.
-      if (about.design.audioPosition === "hidden") updateDesign({ audioPosition: "auto" });
+      // Nothing to reveal any more: there is no hidden position.
       notify("Audio", "Track added. Changes save automatically.");
     } catch (error) {
       notify("Upload failed", error instanceof Error ? error.message : "That audio file could not be read.");
@@ -194,7 +194,6 @@ export function AudioSettingsCard() {
               { value: "side", label: "Beside the card" },
               { value: "popup", label: "Popup corner" },
               { value: "fixed-bottom", label: "Fixed to the bottom" },
-              { value: "hidden", label: "Hidden" },
             ]}
             onChange={(value) => updateDesign({ audioPosition: value as typeof about.design.audioPosition })}
           />
