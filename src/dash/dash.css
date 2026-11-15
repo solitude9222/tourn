@@ -6339,9 +6339,14 @@
 }
 
 .tw-dash .tw-nav-item.is-active {
-  background: var(--accent-soft);
+  background: color-mix(in srgb, var(--accent) 17%, var(--tile));
   background-image: none;
-  box-shadow: none;
+  color: #ffffff;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.tw-dash .tw-nav-item.is-active svg {
+  color: var(--accent-text);
 }
 
 .tw-dash .tw-tab.is-active {
@@ -6418,8 +6423,7 @@
   background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 64px);
 }
 
-.tw-dash .tw-chip--accent,
-.tw-dash .tw-active-count {
+.tw-dash .tw-chip--accent {
   background-image: linear-gradient(
     180deg,
     color-mix(in srgb, var(--accent) 22%, transparent),
@@ -6467,4 +6471,43 @@
 
 .tw-dash .tw-tabs::-webkit-scrollbar {
   display: none;
+}
+
+/* ── motion: swapping pages and rail entries ───────────────────────────────
+   Short and directional, so a tab change reads as movement rather than a
+   flicker. The rail pill keeps its own colour transition. */
+
+@keyframes twPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tw-page-swap {
+  animation: twPageIn 190ms cubic-bezier(0.22, 0.72, 0.2, 1) both;
+}
+
+.tw-dash .tw-nav-item,
+.tw-dash .tw-tab {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.tw-dash .tw-nav-item:active,
+.tw-dash .tw-tab:active {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-page-swap {
+    animation: none;
+  }
 }

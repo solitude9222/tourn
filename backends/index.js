@@ -1986,14 +1986,20 @@ app.get("/api/stats", async (_req, res) => {
   res.json({ users: users.rows[0].count, views: Number(views.rows[0].total) });
 });
 
-/* Public leaderboard: top profiles by lifetime views. */
-app.get("/api/leaderboard", async (_req, res) => {
+/* Public leaderboard: top profiles by lifetime views or by likes. */
+app.get("/api/leaderboard", async (req, res) => {
   try {
+    const order = req.query.sort === "likes" ? "likes desc, views desc" : "views desc, u.created_at asc";
     const { rows } = await pool.query(
-      `select u.username, u.alias, u.avatar_url, coalesce(v.views, 0)::int as views
+      `select u.username, u.alias, u.avatar_url, coalesce(v.views, 0)::int as views,
+              coalesce(r.likes, 0)::int as likes
        from users u
        left join profile_views v on v.username = u.username
-       order by views desc, u.created_at asc
+       left join (
+         select username, count(*) filter (where kind = 'like')::int as likes
+         from profile_reactions group by username
+       ) r on r.username = u.username
+       order by ${order}
        limit 25`,
     );
     res.set("Cache-Control", "public, max-age=60");
@@ -2003,6 +2009,7 @@ app.get("/api/leaderboard", async (_req, res) => {
         displayName: row.alias ?? null,
         avatarUrl: row.avatar_url ?? null,
         views: Number(row.views) || 0,
+        likes: Number(row.likes) || 0,
       })),
     });
   } catch {

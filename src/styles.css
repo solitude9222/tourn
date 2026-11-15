@@ -22,7 +22,9 @@
   --spotify: #1db954;
   --steam: #66c0f4;
   /* Lexend: geometric, round letterforms, open even spacing. */
-  --font: "Lexend", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font: "Lexend", "Segoe UI", ui-sans-serif, system-ui, -apple-system, "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "Apple Symbols", sans-serif;
+  /* Purchasable one-character handles include astral symbols (⛧ ✞ ♱ ☿). */
+  --font-symbol: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "Apple Symbols", "DejaVu Sans", sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   /* Controls sit above the page instead of being punched out in black. */
   --field-bg: #1a1a1f;

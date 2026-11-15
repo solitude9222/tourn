@@ -590,7 +590,7 @@ export function Shell({
           </div>
         ) : null}
 
-        <div key={`${page}-${activeTab ?? ""}`}>{children}</div>
+        <div className="tw-page-swap" key={`${page}-${activeTab ?? ""}`}>{children}</div>
       </main>
 
       {dirty ? (

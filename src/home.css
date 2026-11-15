@@ -1424,3 +1424,12 @@ button.hm-metric:focus-visible {
 .hm-claim--cta input::placeholder { color:#808080; }
 .hm-btn--claim { border-radius:10px; padding:0 20px; background:#ed5055; color:white; }
 @media(max-width:800px){ .hm-pages-grid--live { grid-template-columns:1fr; max-width:480px; margin-inline:auto; } .hm-pages-grid--live .hm-page-preview:first-child,.hm-pages-grid--live .hm-page-preview:last-child,.hm-pages-grid--live .hm-page-preview:nth-child(2){transform:none;} }
+
+/* The three profile previews are a look at the card, not a reading sample. */
+.hm-live-profile .pv-bio,
+.hm-live-profile .pv-about,
+.hm-live-profile .lkr-about-slide,
+.hm-live-profile .lkr-stacked-widgets,
+.hm-live-profile .lkr-tech-row {
+  display: none;
+}

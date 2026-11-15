@@ -254,3 +254,37 @@
 .board-podium-card.is-2{order:1}.board-podium-card.is-3{order:3}.board-podium-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover}.board-podium-id{display:grid;gap:6px}.board-podium-id b{font-size:19px}.board-podium-id small{font-size:12px;color:#919191}.board-podium-views{display:grid;gap:4px;margin-top:auto;padding-top:4px}.board-podium-views b{font-size:28px;letter-spacing:-.04em}.board-podium-views small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#919191}.board-podium-bar,.board-row-bar{display:none}.board-row{padding:18px 22px;border-bottom:1px solid #2c2526}.board-row:hover{background:#241e1f}.board-rank{border:0;background:transparent;color:#797979;font-size:13px;width:35px}.board-views{margin-left:auto}.board{border-radius:18px;overflow:hidden;border-color:#322a2b}
 .tw-lb-podium-card{padding:22px;border-radius:18px;background:radial-gradient(ellipse at top,#5d343555,transparent 75%),var(--bar)}.tw-lb-podium-avatar{width:58px;height:58px;border-radius:50%}.tw-lb-row{padding:16px;margin-top:7px}.tw-lb-podium-bar{display:none}
 @media(max-width:640px){.board-podium{gap:10px;margin-top:22px}.board-podium-card{padding:18px 8px;min-height:230px;border-radius:16px}.board-podium-card.is-1{min-height:260px}.board-podium-avatar{width:48px;height:48px}.board-podium-id b{font-size:13px}.board-podium-id small{font-size:10px}.board-podium-views b{font-size:21px}.board-podium-rank{font-size:9px}.board-row{padding:14px 12px}}
+
+/* ── ranking switch ─────────────────────────────────────────────────────── */
+.board-sort {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 18px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.board-sort button {
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.board-sort button:hover {
+  color: var(--text);
+}
+
+.board-sort button.is-active {
+  background: var(--ice-2);
+  color: #fff;
+}

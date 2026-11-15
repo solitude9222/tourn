@@ -14,6 +14,7 @@ type BoardRow = {
   displayName: string | null;
   avatarUrl: string | null;
   views: number | null;
+  likes?: number | null;
 };
 
 const profileHrefFor = (handle: string) => `#/profile/${encodeURIComponent(handle)}`;
@@ -23,6 +24,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
   const [rows, setRows] = useState<BoardRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(18);
+  const [sort, setSort] = useState<"views" | "likes">("views");
 
   useEffect(() => {
     let active = true;
@@ -32,11 +34,11 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
       if (!active) return;
       if (board.ok && board.data.profiles.length) {
         setRows(
-          sorted(
-            board.data.profiles.map((row) => ({ ...row, views: Number(row.views) || 0 })),
-            // Rank by views, then name, so ties never swap places between loads.
-            (a, b) => numberCompare(a.views, b.views, "desc") || naturalCompare(a.username, b.username),
-          ),
+          board.data.profiles.map((row) => ({
+            ...row,
+            views: Number(row.views) || 0,
+            likes: Number(row.likes) || 0,
+          })),
         );
       } else {
         // Older/offline backend: still show the claimed handles, just without
@@ -55,6 +57,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
             displayName: null,
             avatarUrl: row.avatarUrl,
             views: null,
+            likes: null,
           })),
         );
       }
@@ -67,10 +70,15 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
     };
   }, [first]);
 
-  const podium = rows.slice(0, 3);
-  const rest = rows.slice(3, visible);
-  const maxViews = rows.reduce((top, row) => Math.max(top, row.views ?? 0), 0);
-  const share = (views: number | null) => `${maxViews ? Math.max(4, ((views ?? 0) / maxViews) * 100) : 0}%`;
+  const metric = (row: BoardRow) => (sort === "likes" ? row.likes ?? 0 : row.views ?? 0);
+  const ranked = [...rows].sort(
+    (a, b) => numberCompare(metric(a), metric(b), "desc") || naturalCompare(a.username, b.username),
+  );
+  const podium = ranked.slice(0, 3);
+  const rest = ranked.slice(3, visible);
+  const maxViews = ranked.reduce((top, row) => Math.max(top, metric(row)), 0);
+  const share = (value: number | null) => `${maxViews ? Math.max(4, ((value ?? 0) / maxViews) * 100) : 0}%`;
+  const metricLabel = sort === "likes" ? "likes" : "views";
 
   return (
     <section className="page">
@@ -78,8 +86,12 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
         <span className="eyebrow eyebrow--sm">leaderboard</span>
         <h1 className="page-title">The board.</h1>
         <p className="page-sub">
-          Every published page, ranked by profile views. Open any name to visit that profile.
+          Every published page, ranked by views or by likes. Open any name to visit that profile.
         </p>
+        <div className="board-sort" role="tablist" aria-label="Rank the board by">
+          <button type="button" role="tab" aria-selected={sort === "views"} className={sort === "views" ? "is-active" : ""} onClick={() => setSort("views")}>Most viewed</button>
+          <button type="button" role="tab" aria-selected={sort === "likes"} className={sort === "likes" ? "is-active" : ""} onClick={() => setSort("likes")}>Most liked</button>
+        </div>
       </div>
 
       <div className="wrap">
@@ -131,11 +143,11 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                     <small>@{row.username}</small>
                   </span>
                   <span className="board-podium-views">
-                    <b>{row.views === null ? "—" : row.views.toLocaleString()}</b>
-                    <small>views</small>
+                    <b>{metric(row).toLocaleString()}</b>
+                    <small>{metricLabel}</small>
                   </span>
                   <span className="board-podium-bar" aria-hidden="true">
-                    <i style={{ width: share(row.views) }} />
+                    <i style={{ width: share(metric(row)) }} />
                   </span>
                 </a>
               ))}
@@ -158,13 +170,13 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                       <span>tourn.lol/{row.username}</span>
                     </div>
                     <span className="board-row-bar" aria-hidden="true">
-                      <i style={{ width: share(row.views) }} />
+                      <i style={{ width: share(metric(row)) }} />
                     </span>
                     <span className="board-views">
                       {row.views === null ? null : (
                         <>
-                          <b>{row.views.toLocaleString()}</b>
-                          <small>views</small>
+                          <b>{metric(row).toLocaleString()}</b>
+                          <small>{metricLabel}</small>
                         </>
                       )}
                     </span>
