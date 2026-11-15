@@ -98,7 +98,15 @@ function WidgetInfoDialog({
   }, [onClose]);
 
   const title = live?.title?.trim() || content || platform.name;
-  const rows = live?.details?.filter((row) => row.value.trim()) ?? [];
+  const detailed = live?.details?.filter((row) => row.value.trim()) ?? [];
+  // Platforms without a detail payload still get a useful panel instead of an
+  // empty one.
+  const rows: { label: string; value: string }[] = detailed.length
+    ? detailed
+    : [
+        { label: "Platform", value: platform.name },
+        ...(content.trim() ? [{ label: platform.contentLabel, value: content.trim() }] : []),
+      ];
 
   return createPortal(
     <div
