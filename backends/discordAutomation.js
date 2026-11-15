@@ -1,7 +1,13 @@
-import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { ActivityType, Client, Events, GatewayIntentBits, Partials } from "discord.js";
+import { buildDmPanel, buildLeaderboardMessage, buildWelcomeMessage, discordAvatar, LEADERBOARD_CHANNEL_ID, SITE_URL, WELCOME_CHANNEL_ID } from "./discordCommunity.js";
+
+const PRESENCE={status:"online",activities:[{name:"working on tourn...",state:"working on tourn...",type:ActivityType.Custom}]};
 export const DISCORD_AUTOMATION_SCHEMA=`create table if not exists discord_badge_awards (
  user_id uuid not null references users(id) on delete cascade,
  badge_id text not null,auto_equip boolean not null default true,verified_at timestamptz not null default now(),primary key(user_id,badge_id)
+);
+create table if not exists discord_dm_intros (
+ discord_id text primary key,replied_at timestamptz not null default now()
 );`;
 /* The bot only ever works in the tourn.lol server. Every guild selector is gone:
    other servers the bot happens to be in are ignored entirely. */
@@ -10,7 +16,7 @@ export const ROLE_BADGE_IDS=['owner','staff','verified','partner','donator','cod
 const snowflake=id=>typeof id==='string' && /^\d{16,20}$/.test(id);
 export function normalizeAutomation(raw={}){
  const board=raw.leaderboard && typeof raw.leaderboard==='object'?raw.leaderboard:{};
-   return {enabled:raw.enabled!==false,guildId:snowflake(raw.guildId)?raw.guildId:'',rules:Array.isArray(raw.rules)?raw.rules.slice(0,50).map((rule,index)=>({id:String(rule.id||`rule-${index}`).slice(0,80),roleId:String(rule.roleId||''),badgeId:String(rule.badgeId||''),enabled:rule.enabled!==false,autoEquip:rule.autoEquip!==false})):[],leaderboard:{enabled:board.enabled===true,channelId:snowflake(board.channelId)?board.channelId:'',messageId:snowflake(board.messageId)?board.messageId:'',intervalMinutes:Math.min(1440,Math.max(15,Number(board.intervalMinutes)||60))}};
+   return {enabled:raw.enabled!==false,guildId:snowflake(raw.guildId)?raw.guildId:'',rules:Array.isArray(raw.rules)?raw.rules.slice(0,50).map((rule,index)=>({id:String(rule.id||`rule-${index}`).slice(0,80),roleId:String(rule.roleId||''),badgeId:String(rule.badgeId||''),enabled:rule.enabled!==false,autoEquip:rule.autoEquip!==false})):[],leaderboard:{enabled:board.enabled!==false,channelId:snowflake(board.channelId)?board.channelId:LEADERBOARD_CHANNEL_ID,messageId:snowflake(board.messageId)?board.messageId:'',intervalMinutes:Math.min(1440,Math.max(15,Number(board.intervalMinutes)||60))}};
 }
 export function matchedRoleBadges(config,member,guildId){
  if(!config.enabled || !member?.present)return {eligible:[],equip:[]};
@@ -20,8 +26,8 @@ export function matchedRoleBadges(config,member,guildId){
 }
 export function createDiscordAutomation({pool,readSetting,writeSetting,token,defaultGuildId='',applicationId='',request:injectedRequest,gatewayFactory,onChange=()=>{}}){
  token=String(token || '').trim();defaultGuildId=String(defaultGuildId || '').trim();
- let client=null,lastError=null,configCache=null,configAt=0,syncing=false,lastSync=null,lastSyncCount=0,timer=null,reconnect=null,leaderTimer=null,lastLeaderboardAt=0;
- const members=new Map(),awards=new Map();
+ let client=null,lastError=null,configCache=null,configAt=0,syncing=false,lastSync=null,lastSyncCount=0,timer=null,reconnect=null,leaderTimer=null,bioTimer=null,lastLeaderboardAt=0;
+ const members=new Map(),awards=new Map(),identities=new Map();
  /* Plain REST over fetch. The gateway is a websocket, so it can be down (or
      still logging in) while the token itself is perfectly good — everything
      that only reads or posts should still work in that state. */
@@ -44,70 +50,97 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   if(!client || !client.isReady())return rawRest('GET',path);
   try{return await client.rest.get(path);}catch(error){const failure=new Error(error.status===401?'Discord rejected the bot token.':error.status===403?'The bot does not have access to this server.':error.status===404?'The server or member was not found.':error.message || 'Discord is temporarily unavailable.');failure.status=error.status;failure.discordCode=error.code;throw failure;}
  });
- async function postLeaderboard(force=false,channelOverride=''){
-  const saved=await config();
-  if(!saved.leaderboard.enabled && !force) return {posted:false,reason:'Leaderboard posting is off.'};
-  // "Post now" can carry the channel the admin just picked, before saving.
-  const channelId=snowflake(String(channelOverride||''))?String(channelOverride):saved.leaderboard.channelId;
-  if(!snowflake(channelId)) return {posted:false,reason:'Choose a channel for the leaderboard first.'};
-  if(!token) return {posted:false,reason:'DISCORD_BOT_TOKEN is not set on the backend.'};
-  let rows=[];
-  try{({rows}=await pool.query(`select u.username,u.alias,coalesce(v.views,0)::int as views from users u left join profile_views v on v.username=u.username order by views desc, u.created_at asc limit 10`));}
-  catch(error){throw new Error(`Leaderboard query failed: ${error.message}`);}
-  if(!rows.length) return {posted:false,reason:'There is nobody on the leaderboard yet.'};
-  // A leaderboard is only useful when it is the current one: remove the last
-  // message this bot posted in that channel before adding the new board.
-  if(snowflake(saved.leaderboard.messageId)){
-    try{await rawRest('DELETE',`/channels/${channelId}/messages/${saved.leaderboard.messageId}`);}
-    catch(error){if(error?.status!==404)console.warn('[discord] could not delete the old leaderboard',error?.status,error?.message);}
+ async function sendToChannel(channelId,payload){
+  try{return await rawRest("POST","/channels/"+channelId+"/messages",payload);}
+  catch(error){
+   if(!client?.isReady())throw error;
+   const channel=await client.channels.fetch(channelId).catch(()=>null);
+   if(!channel || typeof channel.isTextBased!=="function" || !channel.isTextBased())throw error;
+   return channel.send(payload);
   }
-  const medals=['🥇','🥈','🥉'];
-  const link=row=>`[${row.alias || row.username}](https://tourn.lol/${encodeURIComponent(row.username)})`;
-  const podium=rows.slice(0,3).map((row,index)=>({
-    name:`${medals[index]} ${row.alias || row.username}`.slice(0,256),
-    value:`**${Number(row.views).toLocaleString('en-US')}** views`.slice(0,1024),
-    inline:true,
-  }));
-  const rest=rows.slice(3).map((row,index)=>`\`${String(index+4).padStart(2,'0')}\`  ${link(row)}  ·  **${Number(row.views).toLocaleString('en-US')}** views`).join('\n');
-  const totalViews=rows.reduce((sum,row)=>sum+Number(row.views||0),0);
-  const embed={
-    title:'🏆 tourn.lol leaderboard',
-    description:rest ? `**The rest of the board**\n${rest}` : 'Top three take the board.',
-    url:'https://tourn.lol/leaderboard',
-    color:0x7d9bf5,
-    fields:podium,
-    thumbnail:{url:'https://tourn.lol/logo.png'},
-    footer:{text:`Ranked by profile views · ${rows.length} profiles · ${totalViews.toLocaleString('en-US')} views`},
-    timestamp:new Date().toISOString(),
-  };
-  let messageId='';
+ }
+ async function identityFor(discordId){
+  const id=String(discordId||"");
+  if(!snowflake(id))return null;
+  const cached=identities.get(id);
+  if(cached && Date.now()-cached.at<3600000)return cached.value;
   try{
-    // Post over REST directly: this works whether or not the gateway socket is
-    // currently up, which is the usual reason a scheduled post looked dead.
-    const created=await rawRest('POST',`/channels/${channelId}/messages`,{embeds:[embed]});
-    messageId=created?.id ? String(created.id) : '';
+   const data=await rawRest("GET","/users/"+id);
+   const value={id:String(data.id),username:String(data.username||""),avatar:discordAvatar(data)};
+   identities.set(id,{at:Date.now(),value});
+   if(identities.size>500)identities.clear();
+   return value;
+  }catch{return null;}
+ }
+ async function welcomeMember(member){
+  const user=member?.user || {};
+  const avatar=typeof user.displayAvatarURL==="function"?user.displayAvatarURL({size:128}):discordAvatar(user);
+  try{await sendToChannel(WELCOME_CHANNEL_ID,buildWelcomeMessage({id:String(member?.id||""),avatar}));}
+  catch(error){lastError="Welcome message: "+error.message;console.warn("[discord] welcome failed",error?.status,error?.message);}
+ }
+ async function replyOnce(message){
+  const id=String(message?.author?.id||"");
+  if(!snowflake(id))return;
+  // Claim the sender first: the primary key is what makes this once ever,
+  // even across restarts or two messages arriving together.
+  const claim=await pool.query("insert into discord_dm_intros(discord_id) values($1) on conflict (discord_id) do nothing",[id]).catch(()=>null);
+  if(!claim || claim.rowCount!==1)return;
+  try{await sendToChannel(String(message.channelId || message.channel?.id || ""),buildDmPanel());}
+  catch(error){
+   await pool.query("delete from discord_dm_intros where discord_id=$1",[id]).catch(()=>{});
+   lastError="DM panel: "+error.message;
+  }
+ }
+ async function updateBotBio(){
+  try{
+   const {rows}=await pool.query("select u.username, coalesce(u.alias,u.username) as alias from users u left join profile_views v on v.username=u.username order by coalesce(v.views,0) desc, u.created_at asc limit 3");
+   if(!rows.length)return null;
+   const lines=rows.map((row,index)=>(index+1)+". "+row.alias+" — "+SITE_URL+"/"+encodeURIComponent(row.username));
+   const description=("top 3 on "+SITE_URL+":\n"+lines.join("\n")).slice(0,400);
+   await rawRest("PATCH","/applications/@me",{description});
+   return description;
+  }catch(error){lastError="Bot bio: "+error.message;return null;}
+ }
+ async function postLeaderboard(force=false,channelOverride=""){
+  const saved=await config();
+  if(!saved.leaderboard.enabled && !force)return {posted:false,reason:"Leaderboard posting is off."};
+  const channelId=snowflake(String(channelOverride||""))?String(channelOverride):(saved.leaderboard.channelId || LEADERBOARD_CHANNEL_ID);
+  if(!snowflake(channelId))return {posted:false,reason:"Choose a channel for the leaderboard first."};
+  if(!token)return {posted:false,reason:"DISCORD_BOT_TOKEN is not set on the backend."};
+  let rows=[];
+  try{
+   ({rows}=await pool.query("select u.username,u.alias,u.avatar_url,u.discord_id,coalesce(v.views,0)::int as views,coalesce(r.likes,0)::int as likes from users u left join profile_views v on v.username=u.username left join (select username,count(*) filter (where kind='like')::int as likes from profile_reactions group by username) r on r.username=u.username order by views desc, likes desc, u.created_at asc limit 10"));
+  }catch(error){throw new Error("Leaderboard query failed: "+error.message);}
+  if(!rows.length)return {posted:false,reason:"There is nobody on the leaderboard yet."};
+  const identitiesForBoard={};
+  await Promise.all(rows.map(async row=>{
+   if(!row.discord_id)return;
+   const identity=await identityFor(row.discord_id);
+   if(identity)identitiesForBoard[row.discord_id]=identity;
+  }));
+  const payload=buildLeaderboardMessage(rows,identitiesForBoard);
+  if(!payload)return {posted:false,reason:"There is nobody on the leaderboard yet."};
+  // A leaderboard is only useful when it is the current one.
+  if(snowflake(saved.leaderboard.messageId)){
+   try{await rawRest("DELETE","/channels/"+channelId+"/messages/"+saved.leaderboard.messageId);}
+   catch(error){if(error?.status!==404)console.warn("[discord] could not delete the old leaderboard",error?.status,error?.message);}
+  }
+  let messageId="";
+  try{
+   const created=await sendToChannel(channelId,payload);
+   messageId=created?.id?String(created.id):"";
   }catch(error){
-    console.error('[discord] leaderboard post failed',error?.status,error?.message);
-    try{
-      if(!client?.isReady())throw error;
-      const channel=await client.channels.fetch(channelId);
-      if(!channel?.isTextBased())throw error;
-      const sent=await channel.send({embeds:[embed]});
-      messageId=sent?.id ? String(sent.id) : '';
-    }catch(fallbackError){
-      const status=error?.status ?? fallbackError?.status;
-      if(status===403||status===401||status===50001)throw new Error('The bot cannot post in that channel. Give it Send Messages and Embed Links, and make sure it can see the channel.');
-      if(status===404)throw new Error('That channel no longer exists — pick another leaderboard channel.');
-      throw new Error(`Discord rejected the leaderboard: ${fallbackError?.message || error?.message || 'unknown error'}`);
-    }
+   const status=error?.status;
+   if(status===403||status===401||status===50001)throw new Error("The bot cannot post in that channel. Give it Send Messages and Embed Links, and make sure it can see the channel.");
+   if(status===404)throw new Error("That channel no longer exists — pick another leaderboard channel.");
+   throw new Error("Discord rejected the leaderboard: "+(error?.message||"unknown error"));
   }
   lastLeaderboardAt=Date.now();
-  // Remember the message so the next post can replace it.
   if(messageId){
-    const next={...saved,leaderboard:{...saved.leaderboard,messageId}};
-    await writeSetting('discord_automation',JSON.stringify(next));configCache=next;configAt=Date.now();
+   const next={...saved,leaderboard:{...saved.leaderboard,messageId}};
+   await writeSetting("discord_automation",JSON.stringify(next));configCache=next;configAt=Date.now();
   }
-  return {posted:true,count:rows.length,messageId};
+  return {posted:true,count:Math.min(rows.length,10),messageId};
  }
  async function config(){if(configCache && Date.now()-configAt<15000)return configCache;let raw={};try{raw=JSON.parse(await readSetting('discord_automation','{}'));}catch{}configCache=normalizeAutomation(raw);configAt=Date.now();return configCache;}
  async function guildId(){return TOURN_GUILD_ID;}
@@ -150,16 +183,38 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
  }
  function start(){
   if(!token)return;
-  client=gatewayFactory?gatewayFactory():new Client({intents:[GatewayIntentBits.Guilds],rest:{timeout:15000},presence:{status:'online'}});
-  client.once(Events.ClientReady,()=>{lastError=null;void syncAll().catch(error=>{lastError=error.message;});});
-  client.on(Events.Error,error=>{lastError=String(error.message).replaceAll(token,'[redacted]');});
-  for(const event of [Events.GuildRoleCreate,Events.GuildRoleDelete,Events.GuildRoleUpdate])client.on(event,()=>{members.clear();awards.clear();onChange();});
-  client.on(Events.ShardDisconnect,()=>{lastError='Discord Gateway disconnected; reconnecting.';});
-  const login=()=>void client.login(token).catch(error=>{lastError=String(error.message).replaceAll(token,'[redacted]');reconnect=setTimeout(login,60000);reconnect.unref?.();});login();
+  const base=[GatewayIntentBits.Guilds,GatewayIntentBits.DirectMessages];
+  const withMembers=[...base,GatewayIntentBits.GuildMembers];
+  const attach=instance=>{
+   instance.once(Events.ClientReady,()=>{lastError=null;void syncAll().catch(error=>{lastError=error.message;});void updateBotBio();void (async()=>{const saved=await config();if(saved.leaderboard.enabled&&saved.leaderboard.channelId)await postLeaderboard();})().catch(error=>{lastError=error.message;});});
+   instance.on(Events.Error,error=>{lastError=String(error.message).replaceAll(token,"[redacted]");});
+   instance.on(Events.GuildMemberAdd,member=>{if(String(member?.guild?.id||"")!==TOURN_GUILD_ID)return;void welcomeMember(member);});
+   instance.on(Events.MessageCreate,message=>{if(!message || message.guild || message.author?.bot)return;void replyOnce(message);});
+   for(const event of [Events.GuildRoleCreate,Events.GuildRoleDelete,Events.GuildRoleUpdate])instance.on(event,()=>{members.clear();awards.clear();onChange();});
+   instance.on(Events.ShardDisconnect,()=>{lastError="Discord Gateway disconnected; reconnecting.";});
+   return instance;
+  };
+  const connect=(intents,allowFallback)=>{
+   client=attach(gatewayFactory?gatewayFactory():new Client({intents,partials:[Partials.Channel],rest:{timeout:15000},presence:PRESENCE}));
+   void client.login(token).catch(error=>{
+    const reason=String(error?.message||error).replaceAll(token,"[redacted]");
+    lastError=reason;
+    // GuildMembers is privileged. If it is not enabled the bot must still
+    // post the leaderboard and answer DMs, so reconnect without welcomes.
+    if(allowFallback && /disallowed intent/i.test(reason)){
+     lastError="Server Members intent is off in the Discord developer portal; welcomes are paused.";
+     connect(base,false);
+     return;
+    }
+    reconnect=setTimeout(()=>connect(intents,allowFallback),60000);reconnect.unref?.();
+   });
+  };
+  connect(withMembers,true);
   timer=setInterval(()=>{void syncAll().catch(error=>{lastError=error.message;});},60000);timer.unref?.();
   leaderTimer=setInterval(()=>{void (async()=>{const saved=await config();if(!saved.leaderboard.enabled||!saved.leaderboard.channelId)return;if(Date.now()-lastLeaderboardAt<saved.leaderboard.intervalMinutes*60000)return;await postLeaderboard();})().catch(error=>{lastError=error.message;});},60000);leaderTimer.unref?.();
+  bioTimer=setInterval(()=>{void updateBotBio();},21600000);bioTimer.unref?.();
  }
- function stop(){if(timer)clearInterval(timer);if(leaderTimer)clearInterval(leaderTimer);if(reconnect)clearTimeout(reconnect);client?.destroy();}
+ function stop(){if(timer)clearInterval(timer);if(leaderTimer)clearInterval(leaderTimer);if(bioTimer)clearInterval(bioTimer);if(reconnect)clearTimeout(reconnect);client?.destroy();}
  function connection(){return {configured:Boolean(token),gatewayConnected:Boolean(client?.isReady()),serverConnected:Boolean(client?.isReady() && (defaultGuildId || configCache?.guildId ? client.guilds.cache.has(configCache?.guildId || defaultGuildId):client.guilds.cache.size===1))};}
  /* Effective permissions in one channel: @everyone, the bot's roles, then the
      channel overwrites in Discord's own order. ADMINISTRATOR wins outright. */
@@ -224,7 +279,7 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   const data=await rawRest('GET',`/users/${id}`);
   return data?{id:String(data.id),username:data.username,globalName:data.global_name||null}:null;
  }
- return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser};
+ return {config,guildId,member,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser,updateBotBio};
 }
 export function registerDiscordAutomation(app,service,requireAdmin){
  app.get('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{res.json({...(await service.inspect(req.query.guildId)),config:await service.config()});}catch(error){res.status(503).json({error:error.message});}});
