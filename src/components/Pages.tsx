@@ -302,7 +302,7 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
     <section className="page marketplace-page">
       <div className="wrap mkt-head" data-reveal>
         <h1 className="mkt-title">Marketplace</h1>
-        <p className="mkt-sub">A small selection of usernames and seasonal badges.</p>
+        <p className="mkt-sub">Single-character handles and seasonal badges, delivered straight to your account.</p>
         <div className="mkt-tabs" role="tablist" aria-label="Marketplace catalog">
           <button
             type="button"
@@ -332,24 +332,28 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
             <div className="mkt-grid">
               {SHOP_CHARACTERS.map((card) => (
                 <article className="mkt-card" key={card.id}>
-                  <div className="mkt-card-top">
-                    <span className="mkt-icon">{card.glyph}</span>
-                    <CardGridDots />
+                  <div className="mkt-thumb">
+                    <span className="mkt-glyph">{card.preview}</span>
+                    <span className="mkt-thumb-tag">{card.caption}</span>
                   </div>
-                  <span className="mkt-label">{card.label}</span>
-                  <b className="mkt-name">{card.preview}</b>
-                  <span className="mkt-caption">{card.caption}</span>
-                  <div className="mkt-price">
-                    <span className="mkt-label">Price</span>
-                    <b>At checkout</b>
+                  <div className="mkt-card-body">
+                    <span className="mkt-label">{card.label}</span>
+                    <b className="mkt-name">{card.preview}</b>
+                    <span className="mkt-caption">Pick a single {card.caption.toLowerCase()} or let us roll one.</span>
                   </div>
-                  <div className="mkt-actions">
-                    <button type="button" className="mkt-btn" onClick={() => openPicker(card.id, "specific")}>
-                      Add to cart
-                    </button>
-                    <button type="button" className="mkt-btn mkt-btn--primary" onClick={() => openPicker(card.id, "random")}>
-                      Buy now
-                    </button>
+                  <div className="mkt-card-foot">
+                    <div className="mkt-price">
+                      <span className="mkt-label">Price</span>
+                      <b>At checkout</b>
+                    </div>
+                    <div className="mkt-actions">
+                      <button type="button" className="mkt-btn" onClick={() => openPicker(card.id, "specific")}>
+                        Add to cart
+                      </button>
+                      <button type="button" className="mkt-btn mkt-btn--primary" onClick={() => openPicker(card.id, "random")}>
+                        Buy now
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -361,20 +365,21 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
             <div className="mkt-grid">
               {BUYABLE_BADGES.map((badge) => (
                 <article className="mkt-card" key={badge.id}>
-                  <div className="mkt-card-top">
-                    <span className="mkt-icon mkt-icon--art">
-                      <img src={badge.art} alt="" width={24} height={24} loading="lazy" />
-                    </span>
-                    <CardGridDots />
+                  <div className="mkt-thumb mkt-thumb--badge">
+                    <img src={badge.art} alt="" width={64} height={64} loading="lazy" />
+                    <span className="mkt-thumb-tag">Seasonal</span>
                   </div>
-                  <span className="mkt-label">BADGES</span>
-                  <b className="mkt-name">{badge.name}</b>
-                  <span className="mkt-caption">{badge.description}</span>
-                  <div className="mkt-price">
-                    <span className="mkt-label">Price</span>
-                    <b>At checkout</b>
+                  <div className="mkt-card-body">
+                    <span className="mkt-label">BADGE</span>
+                    <b className="mkt-name">{badge.name}</b>
+                    <span className="mkt-caption">{badge.description}</span>
                   </div>
-                  <div className="mkt-actions">
+                  <div className="mkt-card-foot">
+                    <div className="mkt-price">
+                      <span className="mkt-label">Price</span>
+                      <b>At checkout</b>
+                    </div>
+                    <div className="mkt-actions">
                     <button
                       type="button"
                       className="mkt-btn"
@@ -400,6 +405,7 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
                     >
                       {buyingBadge === badge.id ? "Opening…" : "Buy now"}
                     </button>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -409,24 +415,28 @@ export function ShopPage({ onSignUp }: { onSignUp: () => void }) {
           <section className="mkt-section">
             <h2>Collectables</h2>
             <div className="mkt-grid">
-              <article className="mkt-card is-soon">
-                <div className="mkt-card-top">
-                  <span className="mkt-icon">?</span>
-                  <CardGridDots />
-                </div>
-                <span className="mkt-label">COLLECTABLES</span>
-                <b className="mkt-name">Coming soon</b>
-                <span className="mkt-caption">Trading cards, animated drops</span>
-                <div className="mkt-price">
-                  <span className="mkt-label">Status</span>
-                  <b>Not released</b>
-                </div>
-                <div className="mkt-actions">
-                  <button type="button" className="mkt-btn" disabled>
-                    COMING SOON
-                  </button>
-                </div>
-              </article>
+                <article className="mkt-card is-soon">
+                  <div className="mkt-thumb">
+                    <span className="mkt-glyph">?</span>
+                    <span className="mkt-thumb-tag">Soon</span>
+                  </div>
+                  <div className="mkt-card-body">
+                    <span className="mkt-label">COLLECTABLES</span>
+                    <b className="mkt-name">Coming soon</b>
+                    <span className="mkt-caption">Trading cards, animated drops</span>
+                  </div>
+                  <div className="mkt-card-foot">
+                    <div className="mkt-price">
+                      <span className="mkt-label">Status</span>
+                      <b>Not released</b>
+                    </div>
+                    <div className="mkt-actions">
+                      <button type="button" className="mkt-btn" disabled>
+                        COMING SOON
+                      </button>
+                    </div>
+                  </div>
+                </article>
             </div>
           </section>
 

@@ -114,9 +114,8 @@ export function BackgroundEffectLayer({
 
 export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettings }) {
   const opacity = Math.min(0.9, Math.max(0, settings.opacity));
-  if (settings.id === "custom") return settings.imageUrl ? <span className="profile-overlay profile-overlay--custom" style={{ "--overlay-opacity": opacity, "--overlay-strength": settings.intensity / 100 } as CSSProperties}><img src={settings.imageUrl} alt="" /></span> : null;
-  if (["dotted", "grain", "scanlines", "vignette", "bloom", "fog", "chromatic"].includes(settings.id)) {
-    return <span className={`profile-overlay profile-overlay--${settings.id}`} style={{ "--overlay-opacity": opacity, "--overlay-color": settings.color, "--overlay-speed": `${settings.speed}s`, "--overlay-strength": settings.intensity / 100 } as CSSProperties} aria-hidden="true" />;
+  if (settings.id === "dotted") {
+    return <span className="profile-overlay profile-overlay--dotted" style={{ "--overlay-opacity": opacity, "--overlay-color": settings.color, "--overlay-speed": `${settings.speed}s`, "--overlay-strength": settings.intensity / 100 } as CSSProperties} aria-hidden="true" />;
   }
   return (
     <span className="profile-fx-overlay profile-fx-overlay--canvas" style={{ "--fx-opacity": opacity } as CSSProperties} aria-hidden="true">
@@ -283,10 +282,19 @@ export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
 
 /* -------------------------------------------------------------------- cursor */
 
+const PARTICLE_TRAILS = new Set(["fairy", "snow", "bubbles", "emoji", "characters", "sparkler"]);
+
+function splitGlyphs(text: string): string[] {
+  const glyphs = Array.from(text.trim());
+  return glyphs.length ? glyphs : ["✨"];
+}
+
 export function ProfileCursor({ settings }: { settings: CursorSettings }) {
   const layerRef = useRef<HTMLSpanElement>(null);
   const trailRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const particlesRef = useRef<HTMLSpanElement>(null);
   const dots = settings.trailLength;
+  const particleTrail = settings.trail && PARTICLE_TRAILS.has(settings.trailType);
   // The system cursor (and a custom image, which the page sets itself) has no
   // marker of its own, but it can still leave a trail.
   const showPoint = settings.style !== "default" && settings.style !== "custom";
@@ -300,7 +308,9 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
     const positions: { x: number; y: number }[] = [];
     let frame = 0;
     let idleTimer = 0;
+    let lastSpawn = 0;
     let next = { x: 0, y: 0 };
+    const alive = new Set<HTMLElement>();
 
     const paint = () => {
       frame = 0;
@@ -310,7 +320,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       layer.style.setProperty("--fx-cx", `${x}px`);
       layer.style.setProperty("--fx-cy", `${y}px`);
 
-      if (!settings.trail) return;
+      if (!settings.trail || settings.trailType !== "trailing") return;
       positions.unshift({ x, y });
       positions.splice(dots + 1);
       trailRef.current.forEach((dot, index) => {
@@ -327,12 +337,117 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       });
     };
 
+    /**
+     * One burst of a particle trail. Each particle is a throw-away span with a
+     * WAAPI animation, so a fast pointer never leaves thousands of nodes behind:
+     * the browser composites them and they remove themselves when finished.
+     */
+    const burst = (x: number, y: number) => {
+      const bucket = particlesRef.current;
+      if (!bucket) return;
+      const type = settings.trailType;
+      const amount = Math.max(1, Math.round(settings.trailAmount));
+      const speed = Math.max(0.2, settings.trailSpeed);
+      const size = settings.size;
+      const glyphs = splitGlyphs(settings.trailText);
+
+      for (let index = 0; index < amount; index += 1) {
+        const node = document.createElement("span");
+        node.className = `fx-cursor-particle fx-cursor-particle--${type}`;
+        node.style.left = `${x + (Math.random() - 0.5) * 18}px`;
+        node.style.top = `${y + (Math.random() - 0.5) * 18}px`;
+        node.style.setProperty("--fx-p-color", settings.color);
+        const scale = type === "emoji" || type === "characters" ? 1.35 : type === "snow" ? 0.95 : 0.42;
+        node.style.setProperty("--fx-p-size", `${Math.round(size * scale)}px`);
+
+        if (type === "snow") node.textContent = Math.random() > 0.5 ? "❄" : "❅";
+        if (type === "emoji" || type === "characters") {
+          node.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+        }
+
+        bucket.appendChild(node);
+        alive.add(node);
+
+        const drift = (Math.random() - 0.5) * 70;
+        const fall = 60 + Math.random() * 90;
+        const spin = (Math.random() - 0.5) * 200;
+        let frames: Keyframe[];
+        let duration: number;
+
+        if (type === "snow") {
+          duration = 1200 / speed;
+          frames = [
+            { opacity: 0, transform: "translate(-50%, -50%) scale(.6) rotate(0deg)" },
+            { opacity: 0.95, offset: 0.15, transform: "translate(-50%, -50%) scale(1)" },
+            { opacity: 0, transform: `translate(calc(-50% + ${drift}px), calc(-50% + ${fall}px)) scale(.9) rotate(${180 + spin}deg)` },
+          ];
+        } else if (type === "bubbles") {
+          duration = 1300 / speed;
+          frames = [
+            { opacity: 0, transform: "translate(-50%, -50%) scale(.5)" },
+            { opacity: 0.7, offset: 0.2, transform: "translate(-50%, -50%) scale(1)" },
+            { opacity: 0, transform: `translate(calc(-50% + ${drift}px), calc(-50% - ${fall}px)) scale(1.25)` },
+          ];
+        } else if (type === "emoji" || type === "characters") {
+          duration = 1400 / speed;
+          frames = [
+            { opacity: 0, transform: "translate(-50%, -50%) scale(.7)" },
+            { opacity: 1, offset: 0.12, transform: "translate(-50%, -50%) scale(1)" },
+            { opacity: 0, transform: `translate(calc(-50% + ${drift}px), calc(-50% + ${fall * 1.6}px)) scale(.9) rotate(${spin}deg)` },
+          ];
+        } else if (type === "sparkler") {
+          const angle = Math.random() * Math.PI * 2;
+          const reach = 34 + Math.random() * 64;
+          duration = 520 / speed;
+          frames = [
+            { opacity: 1, transform: "translate(-50%, -50%) scale(1)" },
+            {
+              opacity: 0,
+              transform: `translate(calc(-50% + ${Math.cos(angle) * reach}px), calc(-50% + ${Math.sin(angle) * reach}px)) scale(.2)`,
+            },
+          ];
+        } else {
+          duration = 900 / speed;
+          frames = [
+            { opacity: 0, transform: "translate(-50%, -50%) scale(.4)" },
+            { opacity: 1, offset: 0.2, transform: "translate(-50%, -50%) scale(1)" },
+            { opacity: 0, transform: `translate(calc(-50% + ${drift}px), calc(-50% + ${fall * 0.5}px)) scale(.2)` },
+          ];
+        }
+
+        const animation = node.animate(frames, {
+          duration,
+          easing: "cubic-bezier(.22,.61,.36,1)",
+          fill: "forwards",
+        });
+        const drop = () => {
+          alive.delete(node);
+          node.remove();
+        };
+        animation.onfinish = drop;
+        window.setTimeout(drop, duration + 200);
+      }
+    };
+
     const onMove = (event: PointerEvent) => {
       next = { x: event.clientX, y: event.clientY };
+      // The pointer marker and the ghost follow the raw position immediately;
+      // rAF only drives the bead trail, so a throttled frame never freezes
+      // them in place.
+      const offset = layer.getBoundingClientRect();
+      layer.style.setProperty("--fx-cx", `${next.x - offset.left}px`);
+      layer.style.setProperty("--fx-cy", `${next.y - offset.top}px`);
       layer.classList.remove("is-idle");
       window.clearTimeout(idleTimer);
       idleTimer = window.setTimeout(() => layer.classList.add("is-idle"), 180);
       layer.classList.add("is-active");
+      if (particleTrail) {
+        const now = performance.now();
+        if (now - lastSpawn > 52) {
+          lastSpawn = now;
+          burst(next.x - layer.getBoundingClientRect().left, next.y - layer.getBoundingClientRect().top);
+        }
+      }
       if (frame) return;
       frame = window.requestAnimationFrame(paint);
     };
@@ -349,12 +464,25 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
     host.addEventListener("pointermove", onMove, { passive: true });
     return () => {
       window.clearTimeout(idleTimer);
+      alive.forEach((node) => node.remove());
+      alive.clear();
       host.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("blur", onLeave);
       host.removeEventListener("pointermove", onMove);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [settings.style, settings.size, settings.color, settings.trail, settings.trailLength]);
+  }, [
+    dots,
+    particleTrail,
+    settings.color,
+    settings.size,
+    settings.style,
+    settings.trail,
+    settings.trailAmount,
+    settings.trailSpeed,
+    settings.trailText,
+    settings.trailType,
+  ]);
 
   if (!showPoint && !settings.trail) return null;
 
@@ -367,18 +495,19 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
           "--fx-cursor-color": settings.color,
           "--fx-cursor-size": `${settings.size}px`,
           "--fx-cursor-speed": `${Math.max(0.08, settings.trailLength * 0.025)}s`,
+          "--fx-ghost-size": `${Math.round(settings.size * 2.4)}px`,
         } as CSSProperties
       }
       aria-hidden="true"
     >
-      {settings.trail
+      {settings.trail && settings.trailType === "trailing"
         ? Array.from({ length: dots }, (_, index) => (
             <span
               key={index}
               ref={(node) => {
                 trailRef.current[index] = node;
               }}
-              className={`profile-cursor-trail profile-cursor-trail--${settings.trailType}`}
+              className="profile-cursor-trail profile-cursor-trail--trailing"
               style={
                 {
                   "--fx-dot": Math.max(0.18, 1 - index / (dots + 1)),
@@ -388,6 +517,10 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
             />
           ))
         : null}
+      {particleTrail ? <span className="fx-cursor-particles" ref={particlesRef} /> : null}
+      {settings.trail && settings.trailType === "ghost" ? (
+        <span className="fx-cursor-ghost">{splitGlyphs(settings.trailText)[0]}</span>
+      ) : null}
       {showPoint ? <span className="profile-cursor-point" /> : null}
     </span>
   );

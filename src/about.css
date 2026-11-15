@@ -6866,3 +6866,49 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   max-width: var(--pv-width);
   margin-inline: auto;
 }
+
+/* Particle pointer trails (Effects › Cursor). */
+.fx-cursor-particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.fx-cursor-particle {
+  position: absolute;
+  width: var(--fx-p-size, 12px);
+  height: var(--fx-p-size, 12px);
+  color: var(--fx-p-color, #fff);
+  font-size: var(--fx-p-size, 12px);
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+}
+.fx-cursor-particle--fairy {
+  border-radius: 50%;
+  background: var(--fx-p-color, #fff);
+  box-shadow: 0 0 6px var(--fx-p-color, #fff), 0 0 14px color-mix(in srgb, var(--fx-p-color, #fff) 55%, transparent);
+}
+.fx-cursor-particle--bubbles {
+  border: 1px solid color-mix(in srgb, var(--fx-p-color, #fff) 70%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.55), color-mix(in srgb, var(--fx-p-color, #fff) 18%, transparent) 62%, transparent 70%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--fx-p-color, #fff) 35%, transparent);
+}
+.fx-cursor-particle--sparkler {
+  width: 2px;
+  height: calc(var(--fx-p-size, 12px) * 0.9);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff, var(--fx-p-color, #fff));
+  box-shadow: 0 0 8px var(--fx-p-color, #fff);
+}
+.fx-cursor-particle--snow { text-shadow: 0 0 8px color-mix(in srgb, var(--fx-p-color, #fff) 60%, transparent); }
+.fx-cursor-particle--emoji, .fx-cursor-particle--characters { filter: drop-shadow(0 0 6px rgba(0,0,0,.35)); }
+.fx-cursor-ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: var(--fx-ghost-size, 28px);
+  line-height: 1;
+  transform: translate3d(var(--fx-cx, 0px), var(--fx-cy, 0px), 0) translate(18px, 10px);
+  transition: transform 160ms cubic-bezier(.3,.7,.4,1);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--fx-cursor-color, #fff) 55%, transparent));
+  pointer-events: none;
+}

@@ -1,22 +1,13 @@
 import { uploadAudioFile } from "../../lib/audioUpload";
 import { useState } from "react";
-import { BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type BackgroundEffectSettings, type OverlayEffectSettings, type TextEffectId, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
+import { CURSOR_TRAILS, BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type BackgroundEffectSettings, type OverlayEffectSettings, type TextEffectId, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
 import { EffectBrowser, type EffectKind } from "../EffectBrowser";
 import { FontPicker } from "../../components/FontPicker";
 import { playInteractionSound } from "../../components/ProfileInteractions";
 import { useDash } from "../context";
-import { FileUpload, Button, Card, CardHead, ColorField, Field, MultiSelect, Select, Slider, Toggle } from "../ui";
+import { FileUpload, Button, Card, CardHead, ColorField, Field, MultiSelect, Select, Slider, TextInput, Toggle } from "../ui";
 
-const TRAILS = [
-  { id: "dots", name: "Dots", hint: "Soft fading beads" },
-  { id: "line", name: "Line", hint: "A clean directional streak" },
-  { id: "glow", name: "Glow", hint: "A blurred light wake" },
-  { id: "comet", name: "Comet", hint: "A tapered comet tail" },
-  { id: "sparkle", name: "Sparkle", hint: "Tiny four-point stars" },
-  { id: "ribbon", name: "Ribbon", hint: "A smooth silk ribbon" },
-  { id: "stars", name: "Stardust", hint: "Tiny glowing stars" },
-  { id: "smoke", name: "Smoke", hint: "A soft drifting haze" },
-];
+const TRAILS = CURSOR_TRAILS;
 
 type ChooserKind = Exclude<EffectKind, "cursor">;
 
@@ -54,11 +45,12 @@ export function EffectsPage() {
     {browser === "background" ? <Card><CardHead icon="sparkles" title="Background effects" subtitle="Choose an atmosphere. Hover a tile to see its motion." />{chooser("background")}
       {effects.background.id !== "none" ? <div className="tw-form-grid"><ColorField label="Particle colour" value={effects.background.color} onChange={(color) => setBackground({ color })} /><Slider label="Intensity" value={effects.background.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setBackground({ intensity })} /><Slider label="Motion duration" value={effects.background.speed} min={2} max={24} suffix="s" onChange={(speed) => setBackground({ speed })} /><Parameter spec={BACKGROUND_EFFECT_PARAM[effects.background.id]} value={effects.background.params} onChange={(params) => setBackground({ params })} /></div> : null}
     </Card> : null}
-    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlays" subtitle="Textures and edge treatments layered over your page." />{chooser("overlay")}
+    {browser === "overlay" ? <Card><CardHead icon="layers" title="Background filters" subtitle="A filter over your whole page — blur, CRT, night, snow or dots." />{chooser("overlay")}
       {effects.overlay.id !== "none" ? <div className="tw-form-grid">
         <Slider label="Opacity" value={Math.round(effects.overlay.opacity * 100)} min={0} max={90} suffix="%" onChange={(opacity) => setOverlay({ opacity: opacity / 100 })} />
-        {effects.overlay.id === "bloom" ? <ColorField label="Light tint" value={effects.overlay.color} onChange={(color) => setOverlay({ color })} /> : null}
-        {effects.overlay.id === "fog" ? <Slider label="Drift duration" value={effects.overlay.speed} min={2} max={24} suffix="s" onChange={(speed) => setOverlay({ speed })} /> : null}
+        <ColorField label="Filter tint" value={effects.overlay.color} onChange={(color) => setOverlay({ color })} />
+        <Slider label="Filter strength" value={effects.overlay.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setOverlay({ intensity })} />
+        <Slider label="Animation speed" value={effects.overlay.speed} min={2} max={24} suffix="s" onChange={(speed) => setOverlay({ speed })} />
       </div> : null}
     </Card> : null}
     {browser === "text" ? <Card><CardHead icon="edit" title="Text effects" subtitle="Choose a target, then browse animated lettering. Sparkle adds twinkling stars around the letters." />
@@ -74,7 +66,7 @@ export function EffectsPage() {
         <div className="fx-trail-column">
           <div className="fx-trail-head"><span className="fx-subheading">Pointer trail</span><Toggle label="Show cursor trail" checked={assets.cursor.trail} onChange={(trail) => setCursor({ trail })} /></div>
           {chooser("trail")}
-          <div className="tw-form-grid"><ColorField label="Trail colour" value={assets.cursor.color} onChange={(color) => setCursor({ color })} /><Slider label="Trail size" value={assets.cursor.size} min={4} max={32} suffix="px" onChange={(size) => setCursor({ size })} /><Slider label="Trail length" value={assets.cursor.trailLength} min={1} max={24} onChange={(trailLength) => setCursor({ trailLength })} /></div>
+          <div className="tw-form-grid"><ColorField label="Trail colour" value={assets.cursor.color} onChange={(color) => setCursor({ color })} /><Slider label="Particle size" value={assets.cursor.size} min={4} max={32} suffix="px" onChange={(size) => setCursor({ size })} /><Slider label="Density" value={assets.cursor.trailAmount} min={1} max={12} onChange={(trailAmount) => setCursor({ trailAmount })} /><Slider label="Speed" value={assets.cursor.trailSpeed} min={0.4} max={2.5} step={0.1} suffix="×" onChange={(trailSpeed) => setCursor({ trailSpeed })} />{assets.cursor.trailType === "trailing" ? <Slider label="Trail length" value={assets.cursor.trailLength} min={1} max={24} onChange={(trailLength) => setCursor({ trailLength })} /> : null}{["emoji", "characters", "ghost"].includes(assets.cursor.trailType) ? <Field label="Characters" hint="Emoji or letters used by this trail."><TextInput maxLength={24} value={assets.cursor.trailText} onChange={(event) => setCursor({ trailText: event.target.value })} /></Field> : null}</div>
         </div>
       </div>
     </Card> : null}

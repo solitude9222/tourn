@@ -123,13 +123,22 @@ button {
 
 /* ---------------------------------------------------------------- backdrop */
 
-/* Plain black. Nothing animates behind the site pages any more. */
+/* The skull field behind every site page. It fades to black at the bottom
+   so the marks never compete with the footer. */
 .site-backdrop {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background: #000;
+}
+.site-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 58%;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 58%, #000 100%);
+  pointer-events: none;
 }
 
 /* ----------------------------------------------------------------- head */

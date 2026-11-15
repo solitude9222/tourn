@@ -29,7 +29,7 @@
 }
 
 .app.app--home .site-backdrop .site-mark {
-  display: none;
+  opacity: calc(var(--mark-opacity) * 0.72);
 }
 
 /* Nav: transparent over the hero, a floating pill once the page scrolls. */

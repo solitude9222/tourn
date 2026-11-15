@@ -28,7 +28,7 @@ import { FileUpload,
 import { AnalyticsPanel } from "../Analytics";
 
 const BIO_LIMIT = 800;
-/** Presets mount a page at a time: the full set is ~200 animated PNGs. */
+/** Presets mount a page at a time: the full set is ~700 animated PNGs. */
 const DECO_PAGE = 36;
 
 export function AccountProfilePage() {
@@ -70,8 +70,13 @@ export function AccountProfilePage() {
 
   // Decoration carousel: index 0 is "none", the rest are Discord's presets.
   const decoOptions = [
-    { id: "none", label: "No decoration", url: "" },
-    ...decorations.map((entry) => ({ id: entry.id, label: entry.label, url: entry.url })),
+    { id: "none", label: "No decoration", url: "", category: "" },
+    ...decorations.map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      url: entry.url,
+      category: entry.category ?? "",
+    })),
   ];
   const decoIndex = Math.max(
     0,
@@ -90,7 +95,9 @@ export function AccountProfilePage() {
         decoOptions[0],
         ...decoOptions
           .slice(1)
-          .filter((entry) => entry.label.toLowerCase().includes(decoQuery.trim().toLowerCase())),
+          .filter((entry) =>
+            `${entry.label} ${entry.category}`.toLowerCase().includes(decoQuery.trim().toLowerCase()),
+          ),
       ]
     : decoOptions;
   const decoVisible = decoResults.slice(0, decoLimit);

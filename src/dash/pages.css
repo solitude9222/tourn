@@ -3715,3 +3715,14 @@
   background-size: 256px 128px;
   background-position: -96px -96px;
 }
+
+/* Pointer-trail tiles in the effects browser. */
+.fx-mini-cursor--none { box-shadow: none; opacity: .3; }
+.fx-mini-cursor--fairy { width: 6px; height: 6px; box-shadow: 0 0 12px 3px #fff, -18px 9px 0 -1px #fff9, -34px 15px 0 -2px #fff6; }
+.fx-mini-cursor--snow::before { content: "❄"; position: absolute; inset: -6px; display: grid; place-items: center; font-size: 15px; color: #fff; }
+.fx-mini-cursor--bubbles { background: transparent; border: 1px solid #ffffffb0; box-shadow: -18px 9px 0 2px #ffffff12, -32px 16px 0 3px #ffffff0a; }
+.fx-mini-cursor--trailing { width: 8px; height: 8px; box-shadow: -12px 5px 0 -1px #ffffffcc, -24px 9px 0 -2px #ffffff88, -36px 13px 0 -3px #ffffff44; }
+.fx-mini-cursor--emoji::after { content: "✨"; position: absolute; inset: -8px; display: grid; place-items: center; font-size: 16px; }
+.fx-mini-cursor--ghost::after { content: "👻"; position: absolute; inset: -9px; display: grid; place-items: center; font-size: 18px; }
+.fx-mini-cursor--characters::after { content: "Aa"; position: absolute; inset: -8px; display: grid; place-items: center; font: 700 13px/1 inherit; color: #fff; }
+.fx-mini-cursor--sparkler { width: 4px; height: 4px; background: #fff; box-shadow: 0 0 10px 4px #fff8, 10px -8px 0 -1px #fff, -9px -9px 0 -2px #fff9, 12px 9px 0 -2px #fff7; }
