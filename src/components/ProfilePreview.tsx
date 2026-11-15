@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNod
 import { createPortal } from "react-dom";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
-import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About } from "../lib/about";
+import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About, type DetailSlot } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/links";
@@ -110,9 +110,7 @@ export function ProfilePreview({
   const viewCount = typeof views === "number" ? views : 0;
   const showViews = !hideDetails && design.showViews !== false;
   const showLocation = !hideDetails && design.showLocation !== false;
-  const joinedPlacement = design.joinedPlacement ?? "corner";
-  const joinedCorner = !hideDetails && joinedPlacement === "corner" && Boolean(joined);
-  const joinedUnderName = !hideDetails && joinedPlacement === "under-name" && Boolean(joined);
+  const showJoined = !hideDetails && design.showJoined !== false && Boolean(joined);
   // The links row and the player are titled sections too, so the card reads as
   // labelled blocks (Connections, Links, Music) instead of one long stack.
   const visibleLinks = links.filter((link) => link.visible && link.url.trim());
@@ -157,29 +155,62 @@ export function ProfilePreview({
     </span>
   );
 
-  // Location and the account date belong to the page, not the card: top right
-  // of the viewport. Portalled, so the card's tilt transform can never drag
-  // them back inside its own box.
-  const cornerMeta =
-    (locationPill || joinedCorner) && typeof document !== "undefined"
-      ? createPortal(
-          <div className="pv-page-meta" style={{ color: design.colors.muted }}>
-            {locationPill}
-            {locationPill && joinedCorner ? (
-              <span className="pv-corner-sep" aria-hidden="true">|</span>
-            ) : null}
-            {joinedCorner ? <span className="pv-corner-joined">{joinedNode}</span> : null}
-          </div>,
-          document.body,
-        )
-      : null;
-
   const viewsNode = (
     <span className="pv-foot-item pv-views" title={`${viewCount} profile views`}>
       <ViewsGlyph size={12} />
       {viewCount.toLocaleString("en-US")}
     </span>
   );
+
+  // Six slots: three corners of the page (fixed, outside the card) and three
+  // of the card itself. Grouping by slot means two details dropped on the
+  // same corner sit side by side instead of stacking on one point.
+  const viewSlot = design.viewSlot ?? "card-bl";
+  const likeSlot = design.likeSlot ?? "card-br";
+  const locationSlot = design.locationSlot ?? "page-tr";
+  const joinedSlot = design.joinedSlot ?? "page-tr";
+  const slots: { key: string; slot: DetailSlot; node: ReactNode }[] = [
+    { key: "location", slot: locationSlot, node: locationPill },
+    { key: "joined", slot: joinedSlot, node: showJoined ? joinedNode : null },
+    { key: "views", slot: viewSlot, node: showViews ? viewsNode : null },
+    { key: "likes", slot: likeSlot, node: reactions ?? null },
+  ];
+  const nodesFor = (slot: DetailSlot) =>
+    slots
+      .filter((entry) => entry.slot === slot && entry.node)
+      .map((entry) => (
+        <span key={entry.key} data-detail={entry.key} className={`pv-slot-item pv-slot-item--${entry.key}`}>
+          {entry.node}
+        </span>
+      ));
+  const CARD_SLOTS: DetailSlot[] = ["card-tr", "card-bl", "card-br"];
+  const PAGE_SLOTS: DetailSlot[] = ["page-tr", "page-bl", "page-br"];
+  const cardSlotLayer = (
+    <>
+      {CARD_SLOTS.map((slot) => {
+        const nodes = nodesFor(slot);
+        return nodes.length ? (
+          <div key={slot} className={`pv-slot pv-slot--${slot}`}>{nodes}</div>
+        ) : null;
+      })}
+    </>
+  );
+  const pageSlotLayer =
+    typeof document !== "undefined" &&
+    PAGE_SLOTS.some((slot) => slots.some((entry) => entry.slot === slot && entry.node))
+      ? createPortal(
+          <div className="pv-page-slots" style={{ color: design.colors.muted }}>
+            {PAGE_SLOTS.map((slot) => {
+              const nodes = nodesFor(slot);
+              return nodes.length ? (
+                <div key={slot} className={`pv-slot pv-slot--${slot}`}>{nodes}</div>
+              ) : null;
+            })}
+          </div>,
+          document.body,
+        )
+      : null;
+  const hasCardSlot = slots.some((entry) => entry.node && entry.slot.startsWith("card-"));
 
   // Every size in the card is expressed against a 726px reference card, so a
   // narrower card shrinks its type, avatar and spacing with it instead of
@@ -258,6 +289,7 @@ export function ProfilePreview({
       data-name={namePosition}
       data-bio={bioPosition}
       data-shape={design.avatarShape}
+      data-card-slots={hasCardSlot ? "yes" : undefined}
     >
       {cardFx.id !== "none" ? <span className={`pv-card-fx pv-card-fx--${cardFx.id}`} aria-hidden="true" /> : null}
       {hasBanner ? (
@@ -273,7 +305,7 @@ export function ProfilePreview({
           aria-hidden="true"
         />
       ) : null}
-      {cornerMeta}
+      {pageSlotLayer}
       <div className="pv-body">
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
@@ -324,11 +356,6 @@ export function ProfilePreview({
               </span>
             </div>
 
-            {joinedUnderName ? (
-              <div className="pv-under-name">
-                <span className="pv-joined-inline">{joinedNode}</span>
-              </div>
-            ) : null}
 
             <div
               className={`pv-bio${bio ? "" : " is-empty"}${
@@ -375,13 +402,8 @@ export function ProfilePreview({
 
         {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
 
-        {hideDetails ? null : (
-          <div className="pv-card-foot">
-            {showViews ? viewsNode : <span />}
-            {reactions ? <div className="pv-card-react">{reactions}</div> : null}
-          </div>
-        )}
       </div>
+      {cardSlotLayer}
     </article>
   );
 }

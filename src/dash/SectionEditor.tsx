@@ -156,10 +156,7 @@ export function SectionEditor({
           <details className="tw-section-more tw-span-2">
             <summary>Artwork and extra links</summary>
             <div className="tw-form-grid">
-              <Field label="Artwork URL">
-                <TextInput value={section.image.startsWith("data:") ? "" : section.image} placeholder="https://…/cover.jpg" onChange={(event) => onChange({ image: event.target.value })} />
-              </Field>
-              <Field label="Artwork upload" hint="Any image — large photos are resized automatically.">
+              <Field label="Artwork" hint="Any image — large photos are resized automatically." className="tw-span-2">
                 <FileUpload aria-label={`Section ${index + 1} artwork upload`} accept="image/*" onChange={(event) => void upload(event.target.files?.[0])} />
               </Field>
               <Field label="Extra links" hint="GitHub, demo, docs — up to six." className="tw-span-2">

@@ -85,20 +85,31 @@ export function AudioPlayer({
   tilt?: number;
 }) {
   const musicTilt = useTilt<HTMLDivElement>(tilt);
-  const title = settings.title.trim() || "Untitled track";
+  // The manager can hold three songs. Shuffle picks one per page load;
+  // otherwise the main file plays and the queue is a fallback.
+  const pool = [
+    { id: "main", url: settings.fileUrl, title: settings.title },
+    ...(settings.queue ?? []),
+  ].filter((item) => item.url.trim());
+  const [queuePick] = useState(() =>
+    settings.shuffle && pool.length > 1 ? Math.floor(Math.random() * pool.length) : 0,
+  );
+  const active = pool.length ? pool[Math.min(queuePick, pool.length - 1)] : null;
+  const fileUrl = (active?.url ?? settings.fileUrl).trim();
+  const title = (active?.title ?? settings.title).trim() || "Untitled track";
   const artist = settings.artist.trim();
   const cover = settings.coverUrl.trim() || null;
-  const hasTrack = Boolean(settings.fileUrl);
+  const hasTrack = Boolean(fileUrl);
   // "None" only means "no style picked" — with a track uploaded it should still
   // play, so it renders as the compact player instead of vanishing.
   const style = settings.style === "none" ? "compact" : settings.style;
   // Saved uploads can hold a relative /api path; resolve it so the audio
   // element can actually fetch the file.
-  const trackSrc = !settings.fileUrl
+  const trackSrc = !fileUrl
     ? ""
-    : /^(https?:|data:|blob:)/i.test(settings.fileUrl)
-      ? settings.fileUrl
-      : `${apiBase()}${settings.fileUrl}`;
+    : /^(https?:|data:|blob:)/i.test(fileUrl)
+      ? fileUrl
+      : `${apiBase()}${fileUrl}`;
   // A track can outlive its upload (re-deploy, deleted row). Say so instead of
   // presenting a play button that silently does nothing.
   const [loadFailed, setLoadFailed] = useState(false);
@@ -130,7 +141,7 @@ export function AudioPlayer({
   const [muted, setMuted] = useState(settings.startMuted);
   useEffect(() => { setVolume(settings.volume); }, [settings.volume]);
   useEffect(() => { setMuted(settings.startMuted); }, [settings.startMuted]);
-  useEffect(() => { const el = audioRef.current; if (el) { el.volume = volume; el.muted = muted; el.playbackRate = settings.playbackRate; } }, [volume, muted, settings.playbackRate, settings.fileUrl, settings.style]);
+  useEffect(() => { const el = audioRef.current; if (el) { el.volume = volume; el.muted = muted; el.playbackRate = settings.playbackRate; } }, [volume, muted, settings.playbackRate, fileUrl, settings.style]);
   // The mute button is a separate control on the page; it drives this player
   // through the bus so there is never a second <audio> playing the same track.
   const playsRef = useRef(0);
@@ -158,7 +169,7 @@ export function AudioPlayer({
     setPlaying(false);
     setPosition(0);
     setDuration(0);
-  }, [settings.fileUrl]);
+  }, [fileUrl]);
 
   // Measure the pill's title strip after layout and fonts settle. The shift
   // and duration are CSS variables, so the back-and-forth marquee runs on the
@@ -188,7 +199,7 @@ export function AudioPlayer({
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [style, settings.fileUrl, title, artist, hasTrack]);
+  }, [style, fileUrl, title, artist, hasTrack]);
 
   // Autoplay is held while the entry screen is up: the song starts when the
   // visitor actually enters, not while the intro is still covering the page.
@@ -196,7 +207,7 @@ export function AudioPlayer({
   const retryCleanup = useRef<(() => void) | null>(null);
   useEffect(() => {
     const el = audioRef.current;
-    if (!el || !settings.fileUrl || !settings.autoplay) return;
+    if (!el || !fileUrl || !settings.autoplay) return;
 
     if (!enabled) {
       el.pause();
@@ -229,7 +240,7 @@ export function AudioPlayer({
       cancelled = true;
       retryCleanup.current?.();
     };
-  }, [settings.fileUrl, settings.autoplay, enabled]);
+  }, [fileUrl, settings.autoplay, enabled]);
 
   const togglePlay = () => {
     const el = audioRef.current;
@@ -309,7 +320,14 @@ export function AudioPlayer({
       onPlay={() => setPlaying(true)}
       onPause={() => setPlaying(false)}
       onEnded={() => setPlaying(false)}
-      onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
+      onLoadedMetadata={(event) => {
+        const el = event.currentTarget;
+        setDuration(el.duration || 0);
+        // Start at the owner's chosen second, clamped inside the track.
+        if (settings.startAt > 0 && el.currentTime < settings.startAt) {
+          el.currentTime = Math.min(settings.startAt, Math.max(0, (el.duration || 0) - 1));
+        }
+      }}
       onTimeUpdate={(event) => setPosition(event.currentTarget.currentTime || 0)}
       style={{ display: "none" }}
     />

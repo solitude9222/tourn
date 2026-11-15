@@ -11,7 +11,7 @@ import type { IconName } from "./ui";
 
 export type NavTab = { page: Page; label: string; icon: IconName };
 
-export type NavGroup = "CUSTOMIZE" | "ACCOUNT";
+export type NavGroup = "PROFILE" | "ASSETS" | "ACCOUNT";
 
 export type NavItem = {
   key: string;
@@ -36,19 +36,18 @@ export const NAV: NavItem[] = [
   },
   {
     key: "appearance",
-    group: "CUSTOMIZE",
+    group: "PROFILE",
     label: "Appearance",
     icon: "palette",
     tabs: [
       { page: "profile-appearance", label: "Card", icon: "palette" },
       { page: "effects", label: "Effects", icon: "sparkles" },
       { page: "music", label: "Audio", icon: "music" },
-      { page: "templates", label: "Templates", icon: "grid" },
     ],
   },
   {
     key: "profile",
-    group: "CUSTOMIZE",
+    group: "PROFILE",
     label: "Profile",
     icon: "user",
     tabs: [
@@ -59,14 +58,14 @@ export const NAV: NavItem[] = [
   },
   {
     key: "layout",
-    group: "CUSTOMIZE",
+    group: "PROFILE",
     label: "Layout",
     icon: "layout",
     tabs: [{ page: "layout", label: "Layout", icon: "layout" }],
   },
   {
     key: "portfolio",
-    group: "CUSTOMIZE",
+    group: "PROFILE",
     label: "Portfolio",
     icon: "layers",
     tabs: [
@@ -78,28 +77,35 @@ export const NAV: NavItem[] = [
   },
   {
     key: "links",
-    group: "CUSTOMIZE",
+    group: "PROFILE",
     label: "Social Links",
     icon: "link",
     tabs: [{ page: "links", label: "Links", icon: "link" }],
   },
   {
     key: "widgets",
-    group: "CUSTOMIZE",
+    group: "PROFILE",
     label: "Widgets",
     icon: "grid",
     tabs: [{ page: "widgets", label: "Widget stack", icon: "grid" }],
   },
   {
+    key: "templates",
+    group: "ASSETS",
+    label: "Templates",
+    icon: "grid",
+    tabs: [{ page: "templates", label: "Templates", icon: "grid" }],
+  },
+  {
     key: "badges",
-    group: "ACCOUNT",
+    group: "ASSETS",
     label: "Badges",
     icon: "shield",
     tabs: [{ page: "badges", label: "Badges", icon: "shield" }],
   },
   {
     key: "inventory",
-    group: "ACCOUNT",
+    group: "ASSETS",
     label: "Inventory",
     icon: "layers",
     tabs: [{ page: "aliases", label: "Inventory", icon: "layers" }],

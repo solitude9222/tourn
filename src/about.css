@@ -6746,3 +6746,65 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   width: 46%;
   height: 46%;
 }
+
+/* ── the six detail slots ────────────────────────────────────────────── */
+.pv-slot { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pv-slot-item { display: inline-flex; align-items: center; pointer-events: auto; }
+.pv-slot--card-tr, .pv-slot--card-bl, .pv-slot--card-br {
+  position: absolute;
+  z-index: 6;
+  color: var(--pv-muted);
+  font-size: calc(11px * var(--pv-scale, 1));
+  font-weight: 600;
+}
+.pv-slot--card-tr { top: calc(12px * var(--pv-scale, 1)); right: calc(16px * var(--pv-scale, 1)); }
+.pv-slot--card-bl { bottom: calc(12px * var(--pv-scale, 1)); left: calc(16px * var(--pv-scale, 1)); }
+.pv-slot--card-br { bottom: calc(12px * var(--pv-scale, 1)); right: calc(16px * var(--pv-scale, 1)); }
+[data-card-slots] .pv-body { padding-bottom: calc(30px * var(--pv-scale, 1)); }
+.pv-slot .pv-location, .pv-slot .pv-foot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: inherit;
+  font-size: inherit;
+}
+.pv-slot svg { width: calc(13px * var(--pv-scale, 1)); height: calc(13px * var(--pv-scale, 1)); opacity: 0.85; }
+.pv-slot .pv-react { gap: 2px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+.pv-slot .pv-react-btn { padding: 2px 5px; font-size: inherit; }
+
+.pv-page-slots {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  font-family: "Lexend", "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+.pv-page-slots .pv-slot { position: absolute; gap: 12px; }
+.pv-slot--page-tr { top: 18px; right: 22px; }
+.pv-slot--page-bl { bottom: 18px; left: 22px; }
+.pv-slot--page-br { bottom: 18px; right: 22px; }
+.pv-page-slots svg { width: 13px; height: 13px; opacity: 0.85; }
+
+/* ── page-level audio ─────────────────────────────────────────────────── */
+.lkr-page-audio {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 44px));
+  z-index: 32;
+}
+.lkr-page-audio--page-top { top: 22px; }
+.lkr-page-audio--page-bottom { bottom: 22px; }
+
+/* Uploaded pointer cursor for links and buttons. */
+.lkr-page :is(a, button, [role="button"], input[type="range"]) {
+  cursor: var(--lkr-pointer-cursor, inherit);
+}

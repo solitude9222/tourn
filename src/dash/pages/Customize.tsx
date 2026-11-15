@@ -19,6 +19,7 @@ import { DEFAULT_LINK_DESIGN } from "../../lib/links";
 import { formatJoinDate } from "../../lib/format";
 import { PlatformIcon } from "../../components/PlatformIcons";
 import { useDash, type ProfileTab } from "../context";
+import { MediaCard } from "../MediaCard";
 import { FileUpload,
   Button,
   Card,
@@ -82,11 +83,11 @@ export function AudioSettingsCard() {
   const audio = about.assets.audio;
   const audioInput = useRef<HTMLInputElement>(null);
   const lyricsInput = useRef<HTMLInputElement>(null);
+  const queueInput = useRef<HTMLInputElement>(null);
   const coverInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const audioPosition = about.design.audioPosition;
 
   const updateDesign = (patch: Partial<typeof about.design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
@@ -118,6 +119,22 @@ export function AudioSettingsCard() {
       notify("Upload failed", error instanceof Error ? error.message : "That audio file could not be read.");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const uploadQueueSong = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const url = await uploadAudioFile(file);
+      updateAudio({
+        queue: [
+          ...audio.queue,
+          { id: globalThis.crypto?.randomUUID?.() ?? `q-${Date.now()}`, url, title: file.name.replace(/\.[^.]+$/, "") },
+        ].slice(0, 2),
+      });
+      notify("Playlist", "Song added. Save to publish it.");
+    } catch (error) {
+      notify("Upload failed", error instanceof Error ? error.message : "That audio file could not be read.");
     }
   };
 
@@ -166,7 +183,7 @@ export function AudioSettingsCard() {
       )}
       {audio.fileUrl ? (
         <p className="tw-foot-note">
-          Track attached · position: {about.design.audioPosition}
+          Track attached · placed {about.design.audioSlot.replace("-", " ")}
         </p>
       ) : null}
       <div className="tw-audio-settings-grid"><div className="tw-stack">
@@ -176,8 +193,10 @@ export function AudioSettingsCard() {
         <Slider label="Default volume" value={Math.round(audio.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAudio({ volume: volume / 100 })} />
         <Slider label="Player opacity" value={Math.round(audio.cardOpacity * 100)} min={0} max={100} suffix="%" onChange={(cardOpacity) => updateAudio({ cardOpacity: cardOpacity / 100 })} />
         <Slider label="Playback speed" value={audio.playbackRate} min={.5} max={2} step={.05} suffix="×" onChange={(playbackRate) => updateAudio({ playbackRate })} />
+        <Slider label="Start at" value={audio.startAt} min={0} max={300} suffix="s" onChange={(startAt) => updateAudio({ startAt })} />
         <div className="tw-inline-toggle"><b>Loop track</b><Toggle label="Loop track" checked={audio.loop} onChange={(loop) => updateAudio({ loop })} /></div>
         <div className="tw-inline-toggle"><b>Start muted</b><Toggle label="Start muted" checked={audio.startMuted} onChange={(startMuted) => updateAudio({ startMuted })} /></div>
+        <div className="tw-inline-toggle"><span><b>Shuffle</b><small>Pick a random song when the page loads</small></span><Toggle label="Shuffle" checked={audio.shuffle} onChange={(shuffle) => updateAudio({ shuffle })} /></div>
 
         <Field label="Player style" hint="How the player looks on your profile.">
           <Select
@@ -187,17 +206,16 @@ export function AudioSettingsCard() {
           />
         </Field>
 
-        <Field label="Player position" hint="Where the player sits on your profile.">
+        <Field label="Player placement" hint="Or drag it in Layout to any of these.">
           <Select
-            value={about.design.audioPosition}
+            value={about.design.audioSlot}
             options={[
-              { value: "auto", label: "Automatic" },
-              { value: "inside", label: "Inside the card" },
-              { value: "below", label: "Below the card" },
-              { value: "side", label: "Beside the card" },
-              { value: "fixed-bottom", label: "Fixed to the bottom" },              { value: "fixed-bottom", label: "Fixed to the bottom" },
+              { value: "card-bottom", label: "Bottom of card" },
+              { value: "below-card", label: "Below card" },
+              { value: "page-top", label: "Top of page" },
+              { value: "page-bottom", label: "Bottom of page" },
             ]}
-            onChange={(value) => updateDesign({ audioPosition: value as typeof about.design.audioPosition })}
+            onChange={(value) => updateDesign({ audioSlot: value as typeof about.design.audioSlot })}
           />
         </Field>
 
@@ -261,6 +279,26 @@ export function AudioSettingsCard() {
           </div>
         </Field>
 
+        <Field label="Playlist" hint="The main file plus up to two more songs — three in total. Shuffle picks one.">
+          <div className="tw-stack">
+            {audio.queue.map((song, index) => (
+              <div className="tw-queue-row" key={song.id}>
+                <span>
+                  <b>{song.title || `Song ${index + 2}`}</b>
+                  <small>{Math.round(song.url.length / 14000)} KB uploaded</small>
+                </span>
+                <Button icon="trash" variant="danger" onClick={() => updateAudio({ queue: audio.queue.filter((item) => item.id !== song.id) })}>Remove</Button>
+              </div>
+            ))}
+            <div className="tw-row">
+              <Button icon="upload" onClick={() => queueInput.current?.click()} disabled={audio.queue.length >= 2}>
+                Add another song
+              </Button>
+              <small className="tw-foot-note">{audio.queue.length + 1} of 3</small>
+            </div>
+          </div>
+        </Field>
+
         <Field label="Cover art" hint="Square image shown on the player.">
           <div className="tw-row">
             {audio.coverUrl ? (
@@ -278,7 +316,6 @@ export function AudioSettingsCard() {
         </Field>
 
         <div className="tw-inline-toggle"><span><b>Play after entry</b><small>Playback starts after the visitor enters your profile.</small></span><Toggle label="Autoplay audio" checked={audio.autoplay} onChange={(checked) => updateAudio({ autoplay: checked })} /></div>
-        <Field label="Hosted audio URL" hint="Or use a direct link to an audio file."><TextInput value={audio.fileUrl.startsWith("data:") ? "" : audio.fileUrl} placeholder="https://.../track.mp3" onChange={(event) => updateAudio({ fileUrl: event.target.value, style: audio.style === "none" ? "compact" : audio.style })} /></Field>
         <Field label="Track title">
           <TextInput
             value={audio.title}
@@ -369,6 +406,16 @@ export function AudioSettingsCard() {
         }}
       />
       <input
+        ref={queueInput}
+        type="file"
+        accept="audio/*"
+        hidden
+        onChange={(event) => {
+          void uploadQueueSong(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
+      <input
         ref={lyricsInput}
         type="file"
         accept=".lrc,.txt,text/plain"
@@ -445,6 +492,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
   if (tab === "profile") {
     return (
       <>
+        <MediaCard />
         <Card>
           <CardHead
             icon="sliders"
@@ -588,7 +636,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
         </div>
 
         <section className="tw-entry-media"><h3>Entry image and transition</h3><div className="tw-form-grid">
-          <Field label="Entry image URL" hint="Images and animated GIFs are supported."><TextInput value={entry.imageUrl} onChange={(event) => updateEntry({ imageUrl: event.target.value })} /></Field>
           <Field label="Entry image upload"><FileUpload aria-label="Entry image upload" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Entry image", "Choose an image or GIF under 500 KB."); return; } updateEntry({ imageUrl: await fileToDataUrl(file) }); }} /></Field>
           <Field label="Entry image style" hint="Background makes the image fill the whole entry screen instead of sitting in a small frame."><Select value={entry.imageMode ?? "inline"} options={[{ value: "inline", label: "Inline image" }, { value: "background", label: "Full-screen background" }]} onChange={(value) => updateEntry({ imageMode: value as "inline" | "background" })} /></Field>
           <Slider label="Entry image size" value={entry.imageSize} min={24} max={250} suffix="px" onChange={(imageSize) => updateEntry({ imageSize })} />
@@ -880,21 +927,13 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
             checked={profileViewsOn}
             onChange={(checked) => updateDesign({ showViews: checked })}
           />
-          <div className="tw-detail-select">
-            <span>
-              <b>Account date</b>
-              <small>Sits beside the location</small>
-            </span>
-            <Select
-              value={design.joinedPlacement}
-              options={[
-                { value: "corner", label: "Next to location" },
-                { value: "under-name", label: "Inside card" },
-                { value: "hidden", label: "Hidden" },
-              ]}
-              onChange={(value) => updateDesign({ joinedPlacement: value as typeof design.joinedPlacement })}
-            />
-          </div>
+          <ToggleTile
+            icon="calendar"
+            title="Account date"
+            description="Place it in Layout"
+            checked={design.showJoined !== false}
+            onChange={(checked) => updateDesign({ showJoined: checked })}
+          />
           <ToggleTile
             icon="music"
             title="Audio Player"

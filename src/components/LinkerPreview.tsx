@@ -18,6 +18,7 @@ import { ProfileSections } from "./ProfileSections";
 import { BadgeRow } from "./BadgeRow";
 import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
 import { ReactionBar, ReactionGhost } from "./Reactions";
+import { createPortal } from "react-dom";
 import { MuteButton } from "./MuteButton";
 import "../about.css";
 
@@ -342,6 +343,9 @@ export function LinkerPreview({
     cursor: assets.cursor.style === "custom" && assets.cursor.imageUrl.trim()
       ? `url("${assets.cursor.imageUrl.trim().replace(/"/g, '\\"')}") 4 4, auto`
       : assets.cursor.style !== "default" && assets.cursor.style !== "custom" ? "none" : undefined,
+    ...(assets.cursor.pointerImageUrl.trim()
+      ? { "--lkr-pointer-cursor": `url(${assets.cursor.pointerImageUrl.trim()}) 4 4, pointer` }
+      : {}),
   } as CSSProperties;
 
   const visibleWidgets = widgets.widgets.filter((widget) => widget.visible !== false);
@@ -367,13 +371,10 @@ export function LinkerPreview({
     <p className="lkr-empty">No widgets yet.</p>
   );
 
-  // An explicit position wins over the style, so the opposite corner is reachable.
-  const requestedAudioPosition = design.audioPosition !== "auto" ? design.audioPosition : design.layout === "stacked" ? "below" : "inside";
-  // A slideshow replaces the card body on every slide, so a player living
-  // inside the card would only exist on the first one. Lift it under the card
-  // instead and it stays on screen across slides.
-  const slideshowCards = design.slideshow === true || design.cardStyle === "slide";
-  const audioPosition = (design.layout === "stacked" || slideshowCards) && requestedAudioPosition === "inside" ? "below" : design.layout !== "left" && requestedAudioPosition === "side" ? "below" : requestedAudioPosition;
+  // The player has four homes: inside the card's bottom edge, under the
+  // card, or fixed at the top / bottom of the page with a small offset.
+  const audioSlot = design.audioSlot ?? "below-card";
+
   const requestedWidgetsPosition = design.widgetsPosition ?? "auto";
   const widgetsPosition = requestedWidgetsPosition === "auto" ? (design.layout === "stacked" ? "below" : "inside") : requestedWidgetsPosition;
   // Stacked has always kept widgets under the card; preserve that even when a
@@ -394,7 +395,7 @@ export function LinkerPreview({
       reactions={interactive ? <ReactionBar handle={user.username} variant="card" /> : <ReactionGhost />}
       entryActive={entryOpen}
       disableTilt={sharedTilt}
-      hideAudio={hideAudio || audioPosition !== "inside"}
+      hideAudio={hideAudio || audioSlot !== "card-bottom"}
     >
       {includeWidgets && orderedWidgets.length ? widgetStack : null}
     </ProfilePreview>
@@ -407,20 +408,14 @@ export function LinkerPreview({
     !hideAudio && Boolean(about.assets.audio.fileUrl);
 
   const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
-  const showAudioSide = design.layout === "left" && audioPosition === "side" && hasTrack;
-  const showAudioBelow = audioPosition === "below" && hasTrack;
-  const hasSide = showAudioSide;
-  const sideRail = hasSide ? (
-    <aside className="lkr-side" aria-label="Profile extras">
-      {showAudioSide ? <div className="lkr-side-audio"><AudioPlayer settings={about.assets.audio} enabled={!entryOpen} /></div> : null}
-    </aside>
-  ) : null;
+  const showAudioBelow = audioSlot === "below-card" && hasTrack;
+  const showAudioPage = (audioSlot === "page-top" || audioSlot === "page-bottom") && hasTrack;
   const belowStack = (
     <>
       {showWidgetsBelow ? <div className="lkr-stacked-widgets">{widgetStack}</div> : null}
       {showAudioBelow ? (
         <div className="lkr-stack">
-          <div className="lkr-audio">
+          <div className="lkr-audio" data-detail="audio">
             <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
           </div>
         </div>
@@ -430,7 +425,6 @@ export function LinkerPreview({
   const primaryCards = (
     <>
       {profileCard(effectiveWidgetsPosition === "inside")}
-      {sideRail}
       {belowStack}
     </>
   );
@@ -603,7 +597,7 @@ export function LinkerPreview({
   };
   const page = (
     <div ref={slidesRef} className={`lkr-flow lkr-flow--${design.layout}${slideshowActive?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!slideshowActive || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType="";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType="";}}>
-      <div className={`${slideshowActive?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}${design.layout==="left"&&!hasSide?" lkr-primary--left--empty":""}`}>
+      <div className={`${slideshowActive?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}`}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
       </div>
       {slideshowActive ? sectionContent : null}
@@ -645,8 +639,15 @@ export function LinkerPreview({
           ))}
         </nav>
       ) : null}
+      {showAudioPage && typeof document !== "undefined"
+        ? createPortal(
+            <div data-detail="audio" className={`lkr-page-audio lkr-page-audio--${audioSlot}`}>
+              <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
+            </div>,
+            document.body,
+          )
+        : null}
       {hasTrack && assets.audio.muteButton ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
-      {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       <ProfileCursor settings={assets.cursor} />
       {entryOpen ? (

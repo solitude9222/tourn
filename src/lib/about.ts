@@ -45,6 +45,18 @@ export type MetadataPosition =
   | "beside-avatar"
   | "above-name"
   | "below-bio";
+/** One of the six fixed corners a detail can live in. */
+export type DetailSlot =
+  | "card-tr"
+  | "card-bl"
+  | "card-br"
+  | "page-tr"
+  | "page-bl"
+  | "page-br";
+
+/** Where the audio player sits. */
+export type AudioSlot = "card-bottom" | "below-card" | "page-top" | "page-bottom";
+
 /** Where the widget cards sit relative to the profile card. */
 export type WidgetsPosition = "auto" | "inside" | "below";
 
@@ -284,12 +296,17 @@ export type AboutDesign = {
   showLocation: boolean;
   /** The view counter, in the card's bottom-left corner. */
   showViews: boolean;
-  /** Account date: next to the location, under the handle, or nowhere. */
-  joinedPlacement: "corner" | "under-name" | "hidden";
+  /** Account date is drawn at all. */
+  showJoined: boolean;
+  /** Where each detail sits: three corners of the page, three of the card. */
+  viewSlot: DetailSlot;
+  likeSlot: DetailSlot;
+  locationSlot: DetailSlot;
+  joinedSlot: DetailSlot;
   /** One Interests list for animes and games instead of two separate kinds. */
   groupInterests?: boolean;
   skills?: string[];
-  audioPosition: "auto" | "inside" | "below" | "side" | "fixed-bottom";
+  audioSlot: AudioSlot;
   widgetsPosition: WidgetsPosition;
   customFontUrl: string;
   theme: AboutTheme;
@@ -415,7 +432,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
 export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   sections: [],
   aboutSlide: { title: "About me", subtitle: "", text: "", tags: [], showProjects: false },
-  audioPosition: "auto",
+  audioSlot: "below-card",
   widgetsPosition: "auto",
   customFontUrl: "",
   theme: "default",
@@ -450,7 +467,11 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   advancedLayout: false,
   showLocation: true,
   showViews: true,
-  joinedPlacement: "corner",
+  showJoined: true,
+  viewSlot: "card-bl",
+  likeSlot: "card-br",
+  locationSlot: "page-tr",
+  joinedSlot: "page-tr",
   groupInterests: false,
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
@@ -546,6 +567,14 @@ const UNUSED_METADATA_POSITIONS: readonly MetadataPosition[] = [
   "below-bio",
 ];
 
+const DETAIL_SLOTS: readonly DetailSlot[] = [
+  "card-tr",
+  "card-bl",
+  "card-br",
+  "page-tr",
+  "page-bl",
+  "page-br",
+];
 const BADGE_POSITIONS: readonly BadgePosition[] = [
   "default",
   "above-name",
@@ -716,10 +745,10 @@ function loadDesignRaw(input: unknown): AboutDesign {
     },
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     // "hidden" is retired: a saved profile that used it comes back as automatic.
-    audioPosition: oneOf(
-      (raw.audioPosition as string | undefined) === "hidden" ? "auto" : raw.audioPosition,
-      ["auto", "inside", "below", "side", "fixed-bottom"] as const,
-      "auto",
+    audioSlot: oneOf(
+      raw.audioSlot,
+      ["card-bottom", "below-card", "page-top", "page-bottom"] as const,
+      DEFAULT_ABOUT_DESIGN.audioSlot,
     ),
     widgetsPosition: oneOf(raw.widgetsPosition, ["auto", "inside", "below"] as const, "auto"),
     sections: Array.isArray(raw.sections) ? raw.sections.slice(0, 24).filter((section) => section && typeof section === "object").map((section, index) => {
@@ -812,11 +841,11 @@ function loadDesignRaw(input: unknown): AboutDesign {
     advancedLayout: boolIn(raw.advancedLayout, false),
     showLocation: boolIn(raw.showLocation, DEFAULT_ABOUT_DESIGN.showLocation),
     showViews: boolIn(raw.showViews, DEFAULT_ABOUT_DESIGN.showViews),
-    joinedPlacement: oneOf(
-      raw.joinedPlacement,
-      ["corner", "under-name", "hidden"] as const,
-      DEFAULT_ABOUT_DESIGN.joinedPlacement,
-    ),
+    showJoined: boolIn(raw.showJoined, DEFAULT_ABOUT_DESIGN.showJoined),
+    viewSlot: oneOf(raw.viewSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.viewSlot),
+    likeSlot: oneOf(raw.likeSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.likeSlot),
+    locationSlot: oneOf(raw.locationSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.locationSlot),
+    joinedSlot: oneOf(raw.joinedSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.joinedSlot),
     groupInterests: boolIn(raw.groupInterests, false),
     entry: loadEntry(raw.entry),
     colors: {

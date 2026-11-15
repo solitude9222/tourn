@@ -450,13 +450,12 @@ export function AccountProfilePage() {
           </Field>
 
           {assets.background.style === "video" ? <div className="tw-stack">
-            <Field label="Background video URL" hint="Use a direct MP4 or WebM URL. Video plays behind the whole page."><TextInput value={assets.background.videoUrl} placeholder="https://.../background.mp4" onChange={(event) => updateAssets({ background: { ...assets.background, videoUrl: event.target.value } })} /></Field>
             <Field
               label="Background video"
               hint={
                 isPremium
-                  ? "Up to 100 MB — uploaded in chunks, so long clips are fine. A hosted URL works too."
-                  : "Up to 4 MB on the free plan. Premium lifts the cap to 100 MB, or use a hosted URL."
+                  ? "Up to 100 MB — uploaded in chunks, so long clips are fine."
+                  : "Up to 4 MB on the free plan. Premium lifts the cap to 100 MB."
               }
             >
               <FileUpload

@@ -150,6 +150,8 @@ export type CursorSettings = {
   trailType: CursorTrailType;
   trailLength: number;
   imageUrl: string;
+  /** The clickable (pointer) cursor, uploaded on its own. */
+  pointerImageUrl: string;
 };
 
 export type BackgroundSettings = {
@@ -180,6 +182,12 @@ export type AudioSettings = {
   startMuted: boolean;
   /** The floating mute control, separate from the player itself. */
   muteButton: boolean;
+  /** Pick a random song from the queue on each page load. */
+  shuffle: boolean;
+  /** Seconds into the song where playback starts. */
+  startAt: number;
+  /** Extra songs beyond the main file; three playable tracks in total. */
+  queue: { id: string; url: string; title: string }[];
   loop: boolean;
   playbackRate: number;
   popupSide: "left" | "right" | "bottom-left" | "bottom-right";
@@ -341,6 +349,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     trailType: "dots",
     trailLength: 5,
     imageUrl: "",
+    pointerImageUrl: "",
   },
   background: {
     style: "solid",
@@ -367,7 +376,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     opacity: 0.92,
   },
   audio: {
-    volume: .7, startMuted: false, muteButton: false, loop: true, playbackRate: 1,
+    volume: .7, startMuted: false, muteButton: false, shuffle: false, startAt: 0, queue: [], loop: true, playbackRate: 1,
     popupSide: "left", popupSize: 42, popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
     style: "none",
     fileUrl: "",
@@ -581,7 +590,7 @@ function loadAudio(value: unknown): AudioSettings {
       AUDIO_STYLES.map((item) => item.id),
       DEFAULT_PROFILE_ASSETS.audio.style,
     ),
-    volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), muteButton: boolIn(raw.muteButton, false), loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
+    volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), muteButton: boolIn(raw.muteButton, false), shuffle: boolIn(raw.shuffle, false), startAt: numberIn(raw.startAt, 0, 0, 600), queue: Array.isArray(raw.queue) ? raw.queue.filter((item) => item && typeof item.url === "string" && item.url).slice(0, 2).map((item, index) => ({ id: typeof item.id === "string" ? item.id : "q" + index, url: item.url.slice(0, 8_500_000), title: typeof item.title === "string" ? item.title.slice(0, 80) : "" })) : [], loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
     popupSide: choiceIn(raw.popupSide, ["left", "right", "bottom-left", "bottom-right"], "left"), popupSize: numberIn(raw.popupSize, 42, 28, 64), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
     fileUrl: textIn(raw.fileUrl, DEFAULT_PROFILE_ASSETS.audio.fileUrl, 8_500_000),
     coverUrl: textIn(raw.coverUrl, "", 2_500_000),
@@ -667,6 +676,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       ),
       trailLength: numberIn(cursor.trailLength, DEFAULT_PROFILE_ASSETS.cursor.trailLength, 1, 24),
       imageUrl: cursorImage,
+      pointerImageUrl: textIn(cursor.pointerImageUrl, "", 750_000),
     },
     background: {
       style: choiceIn(
