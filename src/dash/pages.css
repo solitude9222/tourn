@@ -3291,3 +3291,19 @@
     position: static;
   }
 }
+
+/* Inline popup settings: a labelled group, not a card at the bottom. */
+.tw-popup-settings--inline {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tw-popup-settings--inline h3 {
+  margin: 0 0 12px;
+  color: var(--title);
+  font-size: 13px;
+  font-weight: 600;
+}

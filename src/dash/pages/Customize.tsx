@@ -85,6 +85,8 @@ export function AudioSettingsCard() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const audioPosition = about.design.audioPosition;
+
   const updateDesign = (patch: Partial<typeof about.design>) =>
     setAbout((current) => ({ ...current, design: { ...current.design, ...patch } }));
 
@@ -184,7 +186,7 @@ export function AudioSettingsCard() {
           />
         </Field>
 
-        <Field label="Player position" hint="Where the player sits on your profile. Hidden means nowhere.">
+        <Field label="Player position" hint="Where the player sits on your profile.">
           <Select
             value={about.design.audioPosition}
             options={[
@@ -193,11 +195,22 @@ export function AudioSettingsCard() {
               { value: "below", label: "Below the card" },
               { value: "side", label: "Beside the card" },
               { value: "popup", label: "Popup corner" },
+              { value: "popup-opposite", label: "Popup · opposite corner" },
               { value: "fixed-bottom", label: "Fixed to the bottom" },
             ]}
             onChange={(value) => updateDesign({ audioPosition: value as typeof about.design.audioPosition })}
           />
         </Field>
+
+      {audio.style === "popup" || audioPosition === "popup" || audioPosition === "popup-opposite" ? <div className="tw-popup-settings tw-popup-settings--inline"><h3>Popup appearance</h3><div className="tw-audio-settings-grid"><div className="tw-stack">
+        <Field label="Popup corner" hint="Where the player sits on the page."><Select value={audio.popupSide} options={[{value:"left",label:"Top left"},{value:"right",label:"Top right"},{value:"bottom-left",label:"Bottom left"},{value:"bottom-right",label:"Bottom right"}]} onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })} /></Field>
+        <Slider label="Music icon size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
+
+
+        <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
+        <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
+        <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
+      </div><div className="tw-stack tw-audio-colors">        <ColorField label="Music icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />        <ColorField label="Popup background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} /></div></div></div> : null}
 
         <Field label="Audio file" hint="MP3, WAV, OGG, M4A and other audio formats.">
           <div className="tw-row">
@@ -316,15 +329,6 @@ export function AudioSettingsCard() {
         <ColorField label="Play icon" value={audio.buttonIconColor} onChange={(value) => updateAudio({ buttonIconColor: value })} />
 </div></div>
 
-      {audio.style === "popup" || about.design.audioPosition === "popup" ? <div className="tw-popup-settings"><h3>Popup appearance</h3><div className="tw-audio-settings-grid"><div className="tw-stack">
-        <Field label="Popup corner" hint="Where the player sits on the page."><Select value={audio.popupSide} options={[{value:"left",label:"Top left"},{value:"right",label:"Top right"},{value:"bottom-left",label:"Bottom left"},{value:"bottom-right",label:"Bottom right"}]} onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })} /></Field>
-        <Slider label="Music icon size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
-
-
-        <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
-        <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
-        <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
-      </div><div className="tw-stack tw-audio-colors">        <ColorField label="Music icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />        <ColorField label="Popup background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} /></div></div></div> : null}
 
       <input
         ref={audioInput}

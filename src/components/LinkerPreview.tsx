@@ -198,6 +198,14 @@ function PageSection({
   );
 }
 
+/** The corner across the page from a popup corner. */
+const OPPOSITE_CORNER: Record<string, string> = {
+  left: "right",
+  right: "left",
+  "bottom-left": "bottom-right",
+  "bottom-right": "bottom-left",
+};
+
 export function LinkerPreview({
   user,
   about,
@@ -365,7 +373,8 @@ export function LinkerPreview({
     <p className="lkr-empty">No widgets yet.</p>
   );
 
-  const requestedAudioPosition = assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
+  // An explicit position wins over the style, so the opposite corner is reachable.
+  const requestedAudioPosition = design.audioPosition !== "auto" ? design.audioPosition : assets.audio.style === "popup" ? "popup" : design.audioPosition === "auto" ? design.layout === "stacked" ? "below" : "inside" : design.audioPosition;
   // A slideshow replaces the card body on every slide, so a player living
   // inside the card would only exist on the first one. Lift it under the card
   // instead and it stays on screen across slides.
@@ -656,7 +665,7 @@ export function LinkerPreview({
           ))}
         </nav>
       ) : null}
-      {hasTrack && audioPosition === "popup" ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Popup audio player"><AudioPlayer settings={{ ...assets.audio, style: "popup" }} enabled={!entryOpen} /></aside> : null}
+      {hasTrack && (audioPosition === "popup" || audioPosition === "popup-opposite") ? <aside className={`lkr-popup-audio lkr-popup-audio--${audioPosition === "popup-opposite" ? OPPOSITE_CORNER[assets.audio.popupSide] : assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Popup audio player"><AudioPlayer settings={{ ...assets.audio, style: "popup" }} enabled={!entryOpen} /></aside> : null}
       {hasTrack && audioPosition === "fixed-bottom" ? <div className="lkr-fixed-audio"><AudioPlayer settings={assets.audio} enabled={!entryOpen} /></div> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       {interactive ? <ReactionBar handle={user.username} /> : null}
