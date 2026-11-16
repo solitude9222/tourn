@@ -6988,3 +6988,18 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-projects--full {
   width: 100%;
 }
+
+/* A slideshow page is the scroll column, not a card-sized box. The generic
+   `.lkr-page .lkr-slide` sizing below caps it at the card width, which pins
+   every page (and its centred grid) to the left padding. Let the slide span
+   the column and centre its own children. */
+.lkr-page .lkr-flow--slideshow > .lkr-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  gap: 18px;
+}
