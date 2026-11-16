@@ -9,7 +9,7 @@ import {readDurableDraft,writeDurableDraft} from "./draftStorage";
    --------------------------------------------------------------------------- */
 
 import type { Account } from "./auth";
-import { api } from "./backend";
+import { api, apiBase } from "./backend";
 import { normalizeAbout, type About } from "./about";
 import { normalizeWidgetStore, type WidgetStore } from "./widgets";
 import { normalizeBadgeStore, type BadgeStore } from "./badges";
@@ -75,12 +75,23 @@ type PublicProfileResult =
   | { ok: true; data: ProfilePayload }
   | { ok: false; notFound: boolean; error: string };
 
+declare global {
+  interface Window {
+    __TOURN_PROFILE_REQUEST__?: { handle: string; promise: Promise<{ ok: boolean; status: number; data: ProfilePayload } | null> };
+  }
+}
 const inflight = new Map<string, Promise<PublicProfileResult>>();
 /** Finished reads stay usable for a short window. Before this, a hover/idle
  *  preload that had already finished was thrown away, so the page fetched the
  *  same profile a second time and the preload helped nobody. */
 const PROFILE_TTL_MS = 20_000;
 const recent = new Map<string, { at: number; result: PublicProfileResult }>();
+
+/** Synchronous first-paint access to a completed, short-lived preload. */
+export function peekPublicProfile(handle: string): ProfilePayload | null {
+  const hit = recent.get(handle.trim().toLowerCase());
+  return hit && Date.now() - hit.at < PROFILE_TTL_MS && hit.result.ok ? hit.result.data : null;
+}
 
 /** Start the images a profile will paint the moment its document arrives, so
  *  they download while React is still rendering instead of after it. */
@@ -128,7 +139,10 @@ export async function fetchPublicProfile(
     if (hit && Date.now() - hit.at < PROFILE_TTL_MS) return hit.result;
   }
   const request = (async (): Promise<PublicProfileResult> => {
-    const result = await api<ProfilePayload>(`/api/profile/${encodeURIComponent(handle)}`);
+    const bootstrap = typeof window !== "undefined" ? window.__TOURN_PROFILE_REQUEST__ : undefined;
+    if (bootstrap?.handle === key) delete window.__TOURN_PROFILE_REQUEST__;
+    const early = !options.force && !apiBase() && bootstrap?.handle === key ? await bootstrap.promise : null;
+    const result = early ? (early.ok ? { ok: true as const, data: early.data } : { ok: false as const, status: early.status, error: "Could not load this profile." }) : await api<ProfilePayload>(`/api/profile/${encodeURIComponent(handle)}`);
     if (!result.ok) {
       return { ok: false, notFound: result.status === 404, error: result.error };
     }
@@ -140,6 +154,7 @@ export async function fetchPublicProfile(
     // Only successful documents are cached; errors and 404s are always retried.
     if (result.ok) {
       recent.set(key, { at: Date.now(), result });
+      if (recent.size > 24) recent.delete(recent.keys().next().value!);
       try { warmAssets(result.data); } catch { /* optional */ }
     }
     else recent.delete(key);

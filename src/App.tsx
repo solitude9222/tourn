@@ -29,17 +29,15 @@ import { formatJoinDate } from "./lib/format";
 import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
-import {
-  Hero,
-  StatsBand,
-  BentoSection,
-  AudioSection,
-  BadgesSection,
-  PagesSection,
-  CtaBanner,
-  FaqSection,
-  Footer,
-} from "./components/Sections";
+const Hero = lazy(() => import("./components/Sections").then(module => ({ default: module.Hero })));
+const StatsBand = lazy(() => import("./components/Sections").then(module => ({ default: module.StatsBand })));
+const BentoSection = lazy(() => import("./components/Sections").then(module => ({ default: module.BentoSection })));
+const AudioSection = lazy(() => import("./components/Sections").then(module => ({ default: module.AudioSection })));
+const BadgesSection = lazy(() => import("./components/Sections").then(module => ({ default: module.BadgesSection })));
+const PagesSection = lazy(() => import("./components/Sections").then(module => ({ default: module.PagesSection })));
+const CtaBanner = lazy(() => import("./components/Sections").then(module => ({ default: module.CtaBanner })));
+const FaqSection = lazy(() => import("./components/Sections").then(module => ({ default: module.FaqSection })));
+const Footer = lazy(() => import("./components/Sections").then(module => ({ default: module.Footer })));
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
 import { SiteBackdrop } from "./components/Chrome";
 import { Oneko } from "./components/Oneko";
@@ -76,10 +74,10 @@ import {
   clearPendingDocument,
   fetchOwnProfile,
   fetchPublicProfile,
+  peekPublicProfile,
   loadPendingDocument,
   loadPendingDocumentDurable,
   PROFILE_SECTIONS,
-  preloadProfile,
   savePendingDocument,
   mergeProfileDraft,
   profileFingerprint,
@@ -91,49 +89,7 @@ import {
 } from "./lib/serverProfile";
 import { getViewCount, recordView } from "./lib/views";
 
-/* Route names that are never a handle, so hovering the nav never fires a
-   pointless profile request. */
-const RESERVED_PATHS = new Set([
-  "",
-  "dashboard",
-  "leaderboard",
-  "shop",
-  "premium",
-  "legal",
-  "demo",
-  "settings",
-  "admin",
-]);
-
-function handleFromHref(href: string): string | null {
-  const hashAt = href.indexOf("#");
-  if (hashAt === -1) return null;
-  const path = href.slice(hashAt + 1).replace(/^\/+/, "").split(/[?#]/)[0];
-  const first = path.split("/")[0]?.toLowerCase() ?? "";
-  if (!first || RESERVED_PATHS.has(first) || first.includes(".")) return null;
-  return first;
-}
-
 export default function App() {
-  // Warm the profile the pointer is heading for. By the time the click lands
-  // the document is already in memory, so the page paints on its first frame.
-  useEffect(() => {
-    const warm = (event: Event) => {
-      const target = event.target as HTMLElement | null;
-      const anchor = target?.closest?.("a[href]") as HTMLAnchorElement | null;
-      if (!anchor) return;
-      const handle = handleFromHref(anchor.getAttribute("href") ?? "");
-      if (handle) preloadProfile(handle);
-    };
-    document.addEventListener("pointerover", warm, { passive: true });
-    document.addEventListener("pointerdown", warm, { passive: true });
-    document.addEventListener("focusin", warm);
-    return () => {
-      document.removeEventListener("pointerover", warm);
-      document.removeEventListener("pointerdown", warm);
-      document.removeEventListener("focusin", warm);
-    };
-  }, []);
 
   return (
     <AuthProvider>
@@ -335,16 +291,14 @@ function ProfilePage({
   onSignIn: () => void;
 }) {
   const isOwn = Boolean(handle && user && user.username.toLowerCase() === handle);
-  // Loading your own page used to paint the public copy first and swap to the
-  // live local card the moment the session check landed — that swap is the
-  // flash on a cold load. Hold the page while we find out who is signed in.
-  const mayBeOwn = Boolean(handle && savedHandles.includes(handle));
-  const holdForAuth = !user && authLoading && mayBeOwn;
+  // A verified public document can paint while account/draft hydration runs.
+  // Never substitute unverified local defaults for the published profile.
+
   // Always start from the network document. Never paint an older localStorage
   // copy while the newest one is loading.
   const [remote, setRemote] = useState<
     { status: "loading" } | { status: "ok"; data: ProfilePayload } | { status: "missing" } | { status: "error"; error: string }
-  >({ status: "loading" });
+  >(() => { const data = handle ? peekPublicProfile(handle) : null; return data ? { status: "ok", data } : { status: "loading" }; });
   const [attempt, setAttempt] = useState(0);
   const [views, setViews] = useState<number | null>(null);
 
@@ -362,7 +316,7 @@ function ProfilePage({
   }, [handle]);
 
   useEffect(() => {
-    if (!handle || isOwn) return;
+    if (!handle || (isOwn && !authLoading)) return;
     let active = true;
     // Keep an already-painted page on screen while revalidating.
     setRemote((current) => (current.status === "ok" ? current : { status: "loading" }));
@@ -370,7 +324,7 @@ function ProfilePage({
       if (!active) return;
       if (result.ok) {
         setRemote({ status: "ok", data: result.data });
-        if (result.data.profile) {
+        if (result.data.profile && !authLoading && !isOwn) {
           void recordView(result.data.account.username).then((count) => {
             if (active && count !== null && count > 0) setViews(count);
           });
@@ -384,22 +338,13 @@ function ProfilePage({
     return () => {
       active = false;
     };
-  }, [handle, isOwn, attempt]);
+  }, [handle, isOwn, authLoading, attempt]);
 
   if (!handle) {
     return <ProfileNotice handle={null} kind="nohandle" />;
   }
 
-  if (isOwn && user) {
-    if (authLoading) {
-      return (
-        <section
-          className="profile-page profile-page--loading"
-          aria-busy="true"
-          aria-label={`Loading tourn.lol/${handle}`}
-        />
-      );
-    }
+  if (isOwn && user && !authLoading) {
     if (profileLoadFailed) {
       return (
         <ProfileNotice
@@ -437,7 +382,7 @@ function ProfilePage({
 
   // Nothing to paint yet: a plain black screen, never a skeleton flash. The
   // entry screen (or the page itself) replaces it as soon as data is ready.
-  if (holdForAuth || remote.status === "loading") {
+  if (remote.status === "loading") {
     return (
       <section
         className="profile-page profile-page--loading"
@@ -580,6 +525,7 @@ function Site() {
   // Site-wide totals for the landing page — public data, independent of
   // whichever account (if any) is signed in.
   useEffect(() => {
+    if (route !== "") return;
     let active = true;
     void getSiteStats().then((next) => {
       if (active) setSiteStats(next);
@@ -587,25 +533,28 @@ function Site() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [route]);
 
   // Warm the route bundles in the background. Without this the first click on
   // "Dashboard" had to wait for the chunk, so the click looked ignored and
   // people pressed twice.
   useEffect(() => {
+    if (route === "profile") return;
+    let active = true;
     const preload = () => {
+      if (!active) return;
       void import("./dash/DashboardApp");
-            void import("./components/Pages");
+      void import("./components/Pages");
     };
     const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number })
       .requestIdleCallback;
     if (idle) {
-      idle(preload);
-      return;
+      const id = idle(preload);
+      return () => { active = false; window.cancelIdleCallback?.(id); };
     }
     const timer = window.setTimeout(preload, 900);
-    return () => window.clearTimeout(timer);
-  }, []);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [route]);
 
   // Landing pages should always open at the top, not at a restored scroll offset.
   useEffect(() => {
@@ -1035,7 +984,7 @@ function Site() {
         />
       ) : (
         <>
-          <main key={route} className="page-enter">
+          <Suspense fallback={null}><main key={route} className="page-enter">
             {route === "leaderboard" ? (
               <LeaderboardPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "shop" ? (
@@ -1070,7 +1019,7 @@ function Site() {
             onSignIn={() => setAuthMode("signin")}
             onSignUp={() => setAuthMode("signup")}
             onFaq={openFaq}
-          />
+          /></Suspense>
         </>
       )}
       </Suspense>

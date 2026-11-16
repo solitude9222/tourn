@@ -105,7 +105,6 @@ export function BackgroundEffectLayer({
       amount={settings.params.amount}
       flag={settings.params.flag}
       hostClass="profile-fx-bg profile-fx-canvas"
-      maxFps={45}
     />
   );
 }
@@ -129,7 +128,6 @@ export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettin
         amount={settings.params.amount}
         flag={settings.params.flag}
         hostClass="profile-fx-canvas profile-fx-canvas--fill"
-        maxFps={20}
       />
     </span>
   );

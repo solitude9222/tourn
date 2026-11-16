@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Start public profile data before the application bundle is downloaded. -->
+    <script>
+      (() => {
+        try {
+          const hash = location.hash.replace(/^#\/?/, "");
+          const raw = hash.startsWith("profile/") ? hash.split(/[/?]/)[1] : !location.hash ? location.pathname.split("/").filter(Boolean)[0] : "";
+          const reserved = new Set(["dashboard", "admin", "shop", "cart", "premium", "leaderboard", "legal", "demo", "about", "profile", "login", "signin", "signup", "help", "support", "api", "assets", "badges"]);
+          const handle = decodeURIComponent(raw || "").trim().toLowerCase();
+          if (!handle || reserved.has(handle) || /\.[a-z0-9]+$/i.test(handle)) return;
+          window.__TOURN_PROFILE_REQUEST__ = { handle, promise: fetch("/api/profile/" + encodeURIComponent(handle), { credentials: "include", cache: "no-store", headers: { Accept: "application/json" } }).then(async response => ({ ok: response.ok, status: response.status, data: await response.json() })).catch(() => null) };
+        } catch { /* A malformed URL must not prevent application startup. */ }
+      })();
+    </script>
     <title>tourn.lol — one link for everything you play</title>
     <meta
       name="description"

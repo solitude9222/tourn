@@ -14,8 +14,7 @@
    --------------------------------------------------------------------------- */
 
 export type BgFxInput = {
-  /** Cap the canvas refresh — the overlay layer uses 30 so the page keeps its
-   *  frame budget while the wash still reads as moving. */
+  /** Optional explicit cap. Omit to follow the display refresh rate. */
   maxFps?: number;
   effect: string;
   /** 0–100 */
@@ -606,16 +605,13 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     last = now;
     // The clock always advances; only the paint is throttled.
     clock += dt * speedMul;
-    const noise = mode === "tv" || mode === "fuzzy" || mode === "dither";
-    const limited = window.matchMedia("(max-width: 640px)").matches || navigator.hardwareConcurrency <= 4;
-    const deviceCap = limited ? 24 : 45;
-    const fps = noise ? Math.min(s.maxFps || deviceCap, 15) : Math.min(s.maxFps || deviceCap, deviceCap);
-    const budget = 1000 / fps;
+    const fps = Number.isFinite(s.maxFps) && (s.maxFps ?? 0) > 0 ? Math.min(240, Math.max(1, s.maxFps!)) : 0;
+    const budget = fps ? 1000 / fps : 0;
     if (budget && lastDrawn && now - lastDrawn < budget - 1) {
       raf = requestAnimationFrame(loop);
       return;
     }
-    lastDrawn = lastDrawn
+    lastDrawn = budget && lastDrawn
       ? lastDrawn + budget * Math.max(1, Math.floor((now - lastDrawn + 1) / budget))
       : now;
     // Preserve the old 30 FPS particle pace while making speed independent
@@ -668,7 +664,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   let pointerAt = 0;
   const pt = (e: PointerEvent) => {
     const now = performance.now();
-    if (now - pointerAt < 50) return;
+    if (now - pointerAt < 8) return;
     pointerAt = now;
     if (!visible || document.hidden) return;
     const r = container.getBoundingClientRect();
@@ -722,6 +718,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   mode = s.effect;
   speedMul = 9 / Math.min(24, Math.max(2, s.speed));
   init();
+  draw(0);
   start();
 
   return api;

@@ -17,20 +17,23 @@ const RESERVED = new Set([
   "faq",
   "about",
   "login",
-  "signup",
+  "signup", "cart", "help", "support", "signin", "api", "assets", "badges", "profile",
 ]);
 
-const warmed = new Set<string>();
 
 function handleFrom(anchor: HTMLAnchorElement): string | null {
   try {
     const url = new URL(anchor.href, window.location.origin);
     if (url.origin !== window.location.origin) return null;
+    const hash = url.hash.replace(/^#\/?/, "");
+    if (hash.startsWith("profile/")) return decodeURIComponent(hash.split(/[/?]/)[1] || "") || null;
+    if (url.hash) return null;
     const parts = url.pathname.split("/").filter(Boolean);
     if (parts.length !== 1) return null;
     const handle = parts[0];
     if (!handle || RESERVED.has(handle.toLowerCase())) return null;
-    return handle;
+    if (/\.[a-z0-9]+$/i.test(handle)) return null;
+    return decodeURIComponent(handle);
   } catch {
     return null;
   }
@@ -43,9 +46,6 @@ function warm(target: EventTarget | null): void {
   if (!anchor) return;
   const handle = handleFrom(anchor);
   if (!handle) return;
-  const key = handle.toLowerCase();
-  if (warmed.has(key)) return;
-  warmed.add(key);
   preloadProfile(handle);
 }
 
@@ -63,7 +63,7 @@ function connectionAllowsWarming(): boolean {
 function warmVisibleLinks(): void {
   if (!connectionAllowsWarming()) return;
   const seen = new Set<string>();
-  document.querySelectorAll<HTMLAnchorElement>('a[href^="/"]').forEach((anchor) => {
+  document.querySelectorAll<HTMLAnchorElement>('a[href^="/"],a[href^="#/profile/"]').forEach((anchor) => {
     const handle = handleFrom(anchor);
     if (!handle || seen.has(handle.toLowerCase())) return;
     seen.add(handle.toLowerCase());
@@ -74,6 +74,7 @@ function warmVisibleLinks(): void {
 
 if (typeof document !== "undefined") {
   document.addEventListener("pointerover", (event) => warm(event.target), { passive: true });
+  document.addEventListener("pointerdown", (event) => warm(event.target), { passive: true });
   document.addEventListener("focusin", (event) => warm(event.target));
 
   const start = () => warmVisibleLinks();

@@ -3727,22 +3727,9 @@
 .fx-mini-cursor--characters::after { content: "Aa"; position: absolute; inset: -8px; display: grid; place-items: center; font: 700 13px/1 inherit; color: #fff; }
 .fx-mini-cursor--sparkler { width: 4px; height: 4px; background: #fff; box-shadow: 0 0 10px 4px #fff8, 10px -8px 0 -1px #fff, -9px -9px 0 -2px #fff9, 12px 9px 0 -2px #fff7; }
 
-/* Placement inspector and a single, stable page canvas. */
-.tw-placement-editor { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 20px; align-items: start; }
-.tw-placement-inspector { display: flex; flex-direction: column; gap: 12px; }
-.tw-placement-pieces, .tw-placement-options { display: grid; gap: 6px; }
-.tw-placement-inspector .tw-section-label { margin: 4px 0 0; color: var(--sub); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
-.tw-placement-pieces button, .tw-placement-options button { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--sub); text-align: left; cursor: pointer; }
-.tw-placement-inspector button[aria-pressed="true"] { background: var(--tile); border-color: #696970; color: var(--title); }
-.tw-placement-stage { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: #09090b; touch-action: pan-y; }
-.tw-placement-stage.is-dragging { touch-action: none; }
-.tw-placement-canvas { position: absolute; left: 0; top: 0; transform-origin: top left; }
-.tw-placement-canvas > .lkr-page { width: 100%; height: 100%; }
-.tw-placement-canvas [data-detail] { cursor: grab; touch-action: none; }
-.tw-placement-canvas .lkr-flow { height: 100%; max-height: 100%; }
-.tw-placement-targets { position: absolute; inset: 0; pointer-events: none; }
-.tw-placement-targets button { position: absolute; pointer-events: auto; z-index: 50; max-width: 150px; padding: 9px 10px; border: 1px dashed #9a9aa4; border-radius: 8px; background: #17171bea; color: #eee; font: inherit; font-size: 11px; cursor: pointer; }
-.tw-placement-targets button.is-hot { border-style: solid; border-color: #fff; background: #36363e; }
-@media (max-width: 1000px) { .tw-placement-editor { grid-template-columns: minmax(0,1fr); } .tw-placement-pieces, .tw-placement-options { display: flex; flex-wrap: wrap; } .tw-placement-inspector .tw-foot-note { margin: 0; } }
-
-.tw-placement-canvas { left: 50%; margin-left: calc(-560px * var(--placement-scale, 1)); }
+/* Original direct drag/ghost sorter, sized as one stable canvas. */
+.tw-layout-stage { touch-action: pan-y; }
+.tw-layout-stage.is-dragging, .tw-layout-stage [data-detail] { touch-action: none; }
+.tw-layout-stage .tw-layout-stage-scaler > .lkr-page { height: 100%; }
+.tw-layout-stage .tw-layout-stage-scaler .lkr-flow { height: 100%; max-height: 100%; }
+.tw-layout-stage .tw-drop-zone:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
