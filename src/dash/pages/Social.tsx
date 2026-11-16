@@ -478,6 +478,8 @@ export function SocialPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
+  const [chatSearch, setChatSearch] = useState("");
+  const [messagesVersion, setMessagesVersion] = useState(0);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [openTabs, setOpenTabs] = useState<SocialTab[]>([]);
 
@@ -721,12 +723,13 @@ export function SocialPage() {
       alive = false;
       window.clearInterval(timer);
     };
-  }, [activeChannelId]);
+  }, [activeChannelId, messagesVersion]);
 
   useEffect(() => {
     setReplyTarget(null);
     setEmbedOpen(false);
     setContextMenu(null);
+    setChatSearch("");
   }, [activeChannelId]);
 
   useEffect(() => {
@@ -1246,6 +1249,11 @@ export function SocialPage() {
     return detail.channels.filter((channel) => !query || channel.name.toLowerCase().includes(query));
   }, [detail, query]);
 
+  const visibleServers = useMemo(() => {
+    if (!servers) return null;
+    return servers.filter((server) => !query || server.name.toLowerCase().includes(query));
+  }, [servers, query]);
+
   const visibleMembers = useMemo(() => {
     if (!detail) return [];
     return detail.members.filter((member) => {
@@ -1272,6 +1280,16 @@ export function SocialPage() {
     }
     return [...groups.values()].sort((a, b) => b.position - a.position);
   }, [visibleMembers]);
+
+  const displayedMessages = useMemo(() => {
+    const text = chatSearch.trim().toLowerCase();
+    if (!text) return messages;
+    return messages.filter((message) =>
+      message.content.toLowerCase().includes(text) ||
+      nameOf(message.author).toLowerCase().includes(text) ||
+      message.author.username.toLowerCase().includes(text),
+    );
+  }, [messages, chatSearch]);
 
   if (!isAdmin) {
     return (
@@ -1417,7 +1435,7 @@ export function SocialPage() {
           <b>social</b>
         </div>
         <div className="soc-crumbs">
-          Admin <span>/</span> <strong>Social</strong>
+          Dashboard <span>/</span> <strong>Social</strong>
         </div>
         <label className="soc-search">
           <Icon name="search" size={14} />
@@ -1425,8 +1443,8 @@ export function SocialPage() {
             ref={searchRef}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search channels, members, roles"
-            aria-label="Search channels, members, roles"
+            placeholder="Search servers, people, messages"
+            aria-label="Search servers, people, messages"
           />
           <kbd>⌘K</kbd>
         </label>
@@ -1482,7 +1500,7 @@ export function SocialPage() {
       <div className="soc-shell">
         <nav className="soc-server-rail" aria-label="Servers">
           {servers === null ? <span className="soc-rail-loading" /> : null}
-          {servers?.map((server) => (
+          {visibleServers?.map((server) => (
             <button
               key={server.id}
               type="button"
@@ -1513,27 +1531,30 @@ export function SocialPage() {
             className="soc-server-head"
             onContextMenu={(event) => activeServer && openContextMenu(event, { kind: "server", server: activeServer })}
           >
-            <div>
+            <div className="soc-server-title">
               <strong>{activeServer?.name ?? "No server selected"}</strong>
+              {activeServer ? <Icon name="chevron-down" size={11} /> : null}
               {activeServer ? <small>{activeServer.memberCount} members · {activeServer.channelCount} channels</small> : null}
             </div>
             {activeServer ? (
               <div className="soc-server-head-actions">
-                {canModerateMessages || canManageMembers ? (
-                  <button type="button" className="soc-icon-button" onClick={() => void openModeration()} aria-label="Moderation log" title="Moderation log">
-                    <Icon name="clock" size={14} />
-                  </button>
-                ) : null}
-                {canManageRoles ? (
-                  <button type="button" className="soc-icon-button" onClick={() => openRolesModal()} aria-label="Manage roles">
-                    <Icon name="shield" size={14} />
-                  </button>
-                ) : null}
                 {canManageChannels ? (
                   <button type="button" className="soc-icon-button" onClick={() => openChannelModal()} aria-label="Create channel">
                     <Icon name="plus" size={15} />
                   </button>
                 ) : null}
+                <button
+                  type="button"
+                  className="soc-icon-button"
+                  onClick={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    openContextMenuAt(rect.right - 210, rect.bottom + 6, { kind: "server", server: activeServer });
+                  }}
+                  aria-label="Server menu"
+                  title="Server menu"
+                >
+                  <Icon name="dots" size={15} />
+                </button>
               </div>
             ) : null}
           </div>
@@ -1596,15 +1617,6 @@ export function SocialPage() {
             ) : null}
           </div>
 
-          <button type="button" className="soc-inventory-peek" onClick={openSettings} title="Open your inventory preview">
-            <span className="soc-inventory-peek-icon"><Icon name="layers" size={13} /></span>
-            <span>
-              <b>Your inventory</b>
-              <small>{inventoryHandles.length || "—"} handles · {inventoryBadges.length} badges</small>
-            </span>
-            <Icon name="chevron-right" size={11} />
-          </button>
-
           <div className="soc-user-panel">
             <button type="button" className="soc-user-identity" onClick={() => openProfile(memberFromUser(user))}>
               <span className="soc-user-avatar">
@@ -1660,12 +1672,33 @@ export function SocialPage() {
                   <span className="soc-channel-rule"><Icon name="lock" size={11} /> {activeChannel.sendRole.name} only</span>
                 ) : null}
                 <div className="soc-chat-head-actions">
-                  {canManageMembers ? (
-                    <button type="button" className="soc-soft-button" onClick={openMemberModal}>
-                      <Icon name="users" size={13} /> Add member
-                    </button>
-                  ) : null}
-                  <span className="soc-member-count">{detail?.members.length ?? 0} members</span>
+                  <label className="soc-chat-search">
+                    <Icon name="search" size={12} />
+                    <input
+                      value={chatSearch}
+                      onChange={(event) => setChatSearch(event.target.value)}
+                      placeholder="Search"
+                      aria-label={`Search messages in #${activeChannel.name}`}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="soc-icon-button"
+                    onClick={() => setMessagesVersion((value) => value + 1)}
+                    title="Refresh messages"
+                    aria-label="Refresh messages"
+                  >
+                    <Icon name="refresh" size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className={`soc-icon-button${settings.showMembers ? " is-on" : ""}`}
+                    onClick={() => updateSetting("showMembers", !settings.showMembers)}
+                    title={settings.showMembers ? "Hide members" : "Show members"}
+                    aria-label={settings.showMembers ? "Hide members" : "Show members"}
+                  >
+                    <Icon name="users" size={13} />
+                  </button>
                 </div>
               </header>
 
@@ -1685,8 +1718,11 @@ export function SocialPage() {
                     </div>
                   </div>
                 ) : null}
-                {messages.map((message, index) => {
-                  const previous = messages[index - 1];
+                {!messagesLoading && messages.length > 0 && displayedMessages.length === 0 ? (
+                  <p className="soc-message-note">No messages match “{chatSearch.trim()}”.</p>
+                ) : null}
+                {displayedMessages.map((message, index) => {
+                  const previous = displayedMessages[index - 1];
                   const divider = !previous || dayOf(previous.createdAt) !== dayOf(message.createdAt);
                   const topRole = message.author.roles?.[0];
                   return (
@@ -1849,12 +1885,15 @@ export function SocialPage() {
                     </div>
                   ) : null}
                   <form className="soc-composer" onSubmit={sendMessage}>
-                    <div className="soc-composer-tools">
-                      <button type="button" className={embedOpen ? "is-on" : ""} onClick={() => setEmbedOpen((open) => !open)}>
-                        <Icon name="layers" size={12} /> Embed
-                      </button>
-                      <span>{settings.enterToSend ? "Enter to send · Shift+Enter for a new line" : "Ctrl+Enter to send"}</span>
-                    </div>
+                    <button
+                      type="button"
+                      className={`soc-composer-plus${embedOpen ? " is-on" : ""}`}
+                      onClick={() => setEmbedOpen((open) => !open)}
+                      title="Add a rich embed"
+                      aria-label="Add a rich embed"
+                    >
+                      <Icon name="plus" size={15} />
+                    </button>
                     <textarea
                       ref={composerRef}
                       value={draft}
@@ -1869,8 +1908,16 @@ export function SocialPage() {
                       rows={1}
                       aria-label={`Message #${activeChannel.name}`}
                     />
-                    <div className="soc-composer-foot">
-                      <span>{draft.length ? `${draft.length}/2000` : "Shift+Enter for a new line"}</span>
+                    <div className="soc-composer-actions">
+                      <button
+                        type="button"
+                        className={`soc-composer-tool${embedOpen ? " is-on" : ""}`}
+                        onClick={() => setEmbedOpen((open) => !open)}
+                        title="Rich embed"
+                        aria-label="Toggle rich embed builder"
+                      >
+                        <Icon name="layers" size={14} />
+                      </button>
                       <button type="submit" className="soc-send" disabled={!draft.trim() || sending} aria-label="Send message">
                         <Icon name="arrow-right" size={15} />
                       </button>

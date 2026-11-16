@@ -6953,3 +6953,38 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   justify-content: flex-end;
   text-align: right;
 }
+
+/* ── slideshow content is centred against the card ────────────────────────
+   Interests, projects and the About page were laid out against the wider
+   1120px slide track, so they visually started at the left of the page while
+   the profile card was centred. Keep every extra slide inside the same
+   centred column as the card, and centre the About copy itself. */
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections,
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-about-slide,
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-slide-panel {
+  width: min(100%, var(--pv-width, 720px));
+  max-width: min(100%, var(--pv-width, 720px));
+  margin-inline: auto;
+}
+
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections {
+  justify-items: center;
+  align-content: center;
+}
+
+.lkr-page .lkr-flow--slideshow .lkr-about-slide {
+  justify-items: center;
+  text-align: center;
+}
+
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-text {
+  margin-inline: auto;
+}
+
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-tags {
+  justify-content: center;
+}
+
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-projects--full {
+  width: 100%;
+}
