@@ -72,6 +72,11 @@ await context.route('**/*',async route=>{
 
 
 await page.goto('http://127.0.0.1:5180/#/dashboard/portfolio-gallery');
+await page.locator('.tw-gallery-layouts').waitFor();
+const galleryLayouts=await page.locator('.tw-gallery-layouts > button').evaluateAll(buttons=>buttons.map(button=>{const style=getComputedStyle(button);return{pressed:button.getAttribute('aria-pressed')==='true',background:style.backgroundColor,border:style.borderTopWidth,thumbnail:Boolean(button.querySelector('.tw-gallery-layout-thumb'))};}));
+assert.equal(galleryLayouts.length,4);
+assert.equal(galleryLayouts.filter(item=>item.pressed).length,1);
+assert(galleryLayouts.every(item=>item.thumbnail&&item.border==='2px'&&item.background!=='rgba(0, 0, 0, 0)'),JSON.stringify(galleryLayouts));
 await page.getByRole('textbox',{name:'Direct gallery media URL'}).fill('http://127.0.0.1:5180/favicon-rounded.png');
 await page.getByRole('button',{name:'Import URL',exact:true}).click();
 await page.getByRole('textbox',{name:'Caption 1'}).fill('First image');

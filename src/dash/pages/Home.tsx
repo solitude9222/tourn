@@ -190,7 +190,7 @@ export function HomePage() {
           <div className="tw-docs-list">
             {[
               ["Build your profile", "portfolio-general"],
-              ["Style every surface", "portfolio-design"],
+              ["Style every surface", "profile-appearance"],
               ["Add a widget", "widgets"],
               ["Account and security", "settings"],
             ].map(([label, page]) => (

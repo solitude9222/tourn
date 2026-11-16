@@ -34,6 +34,7 @@ const ProfileGeneralPage = lazyPage(() => import("./pages/Studio"), "ProfileGene
 const PortfolioGeneralPage = lazyPage(() => import("./pages/PortfolioStudio"), "PortfolioGeneralPage");
 const PortfolioAboutPage = lazyPage(() => import("./pages/PortfolioStudio"), "PortfolioAboutPage");
 const GalleryPage = lazyPage(() => import("./pages/Gallery"), "GalleryPage");
+const DesignPage = lazyPage(() => import("./pages/Design"), "DesignPage");
 const HomePage = lazyPage(() => import("./pages/Home"), "HomePage");
 const AccountProfilePage = lazyPage(() => import("./pages/Account"), "AccountProfilePage");
 const AffiliatesPage = lazyPage(() => import("./pages/Account"), "AffiliatesPage");
@@ -272,7 +273,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
   },
   "profile-appearance": {
     title: "Profile",
-    subtitle: "Card surface, colours, borders and decoration.",
+    subtitle: "Card, About and project surfaces in one design system.",
     icon: "palette",
     crumb: "Profile",
   },
@@ -739,7 +740,7 @@ export function Dashboard(props: DashboardProps) {
       content = <ProfileGeneralPage />;
       break;
     case "profile-appearance":
-      content = <LayoutPage section="style" />;
+      content = <div className="tw-studio-page"><LayoutPage section="style" /><DesignPage /></div>;
       break;
     case "profile-experience":
       content = <ProfileWorkspacePage tab="experience" />;

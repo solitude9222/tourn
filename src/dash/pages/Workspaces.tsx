@@ -14,7 +14,7 @@ import { LayoutPage } from "./Layout";
 import { AssetBrowserPage } from "./Community";
 import { DesignPage } from "./Design";
 
-export type PortfolioTab = "general" | "about" | "sections" | "gallery" | "audio" | "design";
+export type PortfolioTab = "general" | "about" | "sections" | "gallery" | "design";
 export type ProfileWorkspaceTab =
   | "profile"
   | "appearance"
@@ -27,8 +27,6 @@ export const PORTFOLIO_TABS: { id: PortfolioTab; label: string; icon: IconName }
   { id: "about", label: "About", icon: "user" },
   { id: "sections", label: "Sections", icon: "layers" },
   { id: "gallery", label: "Gallery", icon: "image" },
-  { id: "audio", label: "Audio player", icon: "music" },
-  { id: "design", label: "Design", icon: "palette" },
 ];
 
 export const PROFILE_TABS: { id: ProfileWorkspaceTab; label: string; icon: IconName }[] = [
@@ -66,8 +64,8 @@ function GeneralPortfolio() {
           ))}
         </div>
         <p className="tw-foot-note">
-          Pick a subtab to edit a piece of it. Design holds the shared surface and pill styles, so
-          the About block and every project card can match without repeating yourself.
+          Pick a subtab to edit a piece of it. Profile → Appearance holds the shared card, surface
+          and pill styles, so the About block and every project card can match the card itself.
         </p>
       </Card>
 
@@ -77,7 +75,7 @@ function GeneralPortfolio() {
           <button type="button" className="tw-quick-link" onClick={() => go("portfolio-sections")}>
             <Icon name="layers" size={15} /> Edit projects
           </button>
-          <button type="button" className="tw-quick-link" onClick={() => go("portfolio-design")}>
+          <button type="button" className="tw-quick-link" onClick={() => go("profile-appearance")}>
             <Icon name="palette" size={15} /> Style every surface
           </button>
           <button type="button" className="tw-quick-link" onClick={() => go("portfolio-gallery")}>
@@ -97,8 +95,6 @@ export function PortfolioPage({ tab }: { tab: PortfolioTab }) {
       return <LayoutPage />;
     case "gallery":
       return <AssetBrowserPage />;
-    case "audio":
-      return <AudioPage />;
     case "design":
       return <DesignPage />;
     default:

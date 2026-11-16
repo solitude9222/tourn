@@ -86,6 +86,14 @@ for(const viewport of [{width:1920,height:1080},{width:1440,height:1000},{width:
   if(viewport.width===390&&['appearance','profile-main','portfolio-gallery','home'].includes(route))await page.screenshot({path:'.tmp/dashboard-mobile-'+route+'.png'});
  }
 }
+await page.setViewportSize({width:1440,height:1000});
+await page.goto('http://127.0.0.1:5180/#/dashboard/portfolio-general');
+await page.locator('.tw-page-swap').waitFor();
+const portfolioTabs=await page.locator('.tw-tabs .tw-tab').allTextContents();
+assert(!portfolioTabs.includes('Audio player')&&!portfolioTabs.includes('Design'),JSON.stringify(portfolioTabs));
+await page.goto('http://127.0.0.1:5180/#/dashboard/profile-appearance');
+await page.getByRole('heading',{name:'Card style',exact:true}).waitFor();
+await page.getByRole('heading',{name:'About section',exact:true}).waitFor();
 assert.deepEqual(errors,[]);
 const {writeFile}=await import('node:fs/promises');await mkdir('docs',{recursive:true});await writeFile('docs/dashboard-sizing.json',JSON.stringify({units:'CSS pixels',note:'Measured with a premium fixture account, default Tourn theme, Chromium. Content-dependent heights vary with profile content. x/y are viewport coordinates, potentially outside the scrolled viewport.',measurements},null,2));
 console.log('PASS 25 dashboard routes at 1920, 1440 and 390 widths; no horizontal overflow or runtime errors; exact dimensions recorded');

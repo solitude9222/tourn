@@ -55,7 +55,25 @@
 .tw-dash .tw-home-stat { height:132px; border:2px solid var(--border); border-radius:16px; background:var(--card); }
 .tw-dash .tw-home-split { grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:18px; }
 .tw-gallery-layouts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-.tw-gallery-layouts > button { min-height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; }
+.tw-gallery-layouts > button { min-width:0; min-height:128px; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:10px; padding:10px; border:2px solid var(--border); border-radius:12px; background:var(--page); color:var(--title); text-align:left; cursor:pointer; transition:border-color .16s ease,background .16s ease,transform .16s ease; }
+.tw-gallery-layouts > button:hover { border-color:var(--sub); background:var(--tile); transform:translateY(-1px); }
+.tw-gallery-layouts > button[aria-pressed="true"] { border-color:var(--accent); background:var(--tile); box-shadow:inset 0 0 0 1px var(--accent); }
+.tw-gallery-layout-thumb { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(2,minmax(0,1fr)); gap:4px; height:54px; padding:5px; border:1px solid var(--border); border-radius:8px; background:var(--card); }
+.tw-gallery-layout-thumb i { display:block; min-width:0; min-height:0; border-radius:3px; background:var(--sub); opacity:.58; }
+.tw-gallery-layouts > button[aria-pressed="true"] .tw-gallery-layout-thumb { border-color:var(--accent); }
+.tw-gallery-layouts > button[aria-pressed="true"] .tw-gallery-layout-thumb i { background:var(--accent); opacity:.8; }
+.tw-gallery-layout-thumb[data-layout="masonry"] i:nth-child(1) { grid-row:span 2; }
+.tw-gallery-layout-thumb[data-layout="masonry"] i:nth-child(2) { grid-row:span 1; }
+.tw-gallery-layout-thumb[data-layout="masonry"] i:nth-child(3) { grid-row:span 1; }
+.tw-gallery-layout-thumb[data-layout="masonry"] i:nth-child(4) { display:none; }
+.tw-gallery-layout-thumb[data-layout="carousel"] { grid-template-columns:repeat(4,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); }
+.tw-gallery-layout-thumb[data-layout="carousel"] i:nth-child(n+3) { display:none; }
+.tw-gallery-layout-thumb[data-layout="filmstrip"] { grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); align-items:center; }
+.tw-gallery-layout-thumb[data-layout="filmstrip"] i { height:22px; }
+.tw-gallery-layout-thumb[data-layout="filmstrip"] i:nth-child(4) { display:none; }
+.tw-gallery-layout-copy { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.tw-gallery-layout-copy b { font-size:12px; line-height:18px; font-weight:600; }
+.tw-gallery-layout-copy small { font-size:11px; line-height:16px; color:var(--sub); }
 .tw-gallery-items { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:20px; }
 .tw-gallery-item { display:flex; flex-direction:column; gap:12px; padding:14px; border:1px solid var(--border); border-radius:12px; min-width:0; }
 .tw-gallery-item > :is(img,video) { width:100%; height:180px; object-fit:cover; border-radius:8px; }
@@ -99,6 +117,8 @@
 .tw-section-order-row > b { flex:1; font-size:12px; }
 .tw-about-widget-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 .tw-about-widget-choices label { display:flex; gap:10px; align-items:center; background:var(--tile); padding:14px; border-radius:10px; }
+.tw-audio-modal > .tw-card { padding:0; border:0; background:transparent; }
+.tw-audio-modal > .tw-card > .tw-card-head { display:none; }
 @media(max-width:1100px) { .tw-dash .tw-toggle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:900px) { .tw-dash .tw-tab { flex:1 0 110px; } }
 @media(max-width:600px) { .tw-dash .tw-toggle-grid,.tw-about-widget-choices { grid-template-columns:minmax(0,1fr); } .tw-dash .tw-overview { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .tw-dash .tw-overview-card { padding:14px; } .tw-dash .tw-home-setup { grid-template-columns:minmax(0,1fr); } }
