@@ -1,3 +1,4 @@
+import { contrastRatio } from "../appearance";
 import { useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 /* ---------------------------------------------------------------------------
    Customize > Card — the card layout, the widget positions and the card's
@@ -433,6 +434,7 @@ export function LayoutPage({
           title="Card style"
           subtitle="Colours, surface and size of the card itself."
         />
+        <p className="tw-foot-note">Text/card contrast: {contrastRatio(design.colors.text, design.colors.card).toFixed(1)}:1. {contrastRatio(design.colors.text, design.colors.card) < 4.5 ? "Increase contrast for small text." : "Good contrast on an opaque card."} Transparent cards also depend on the background image; increase opacity or dim the background for readability.</p>
 
         <div className="tw-split" style={{ marginTop: 20 }}>
           <div className="tw-split-col">

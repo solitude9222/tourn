@@ -741,6 +741,7 @@ function Site() {
     let retryTimer = 0;
     let conflictRetries = 0;
 
+    const status = (state: "saving" | "saved" | "retrying") => window.dispatchEvent(new CustomEvent("tourn:publish-status", { detail: { userId: user.id, state } }));
     const publish = async (document: ProfileDocument) => {
       const serialized = profileFingerprint(document);
       if (serialized === lastSaved.current) return;
@@ -781,6 +782,7 @@ function Site() {
         // and IndexedDB draft copies; a large profile often cannot fit in
         // localStorage, and that used to leave the durable draft behind forever.
         clearPendingDocument(user.id);
+        status("saved");
         window.dispatchEvent(new CustomEvent("tourn:toast", { detail: {
           title: "Profile published", message: "Your changes are live.",
         } }));
@@ -810,6 +812,7 @@ function Site() {
           }),
         );
       }
+      status("retrying");
       retryRef.current += 1;
       retryTimer = window.setTimeout(() => void publish(document), delay);
     };
@@ -817,10 +820,12 @@ function Site() {
     const document = { about, widgets, badges, links: profileLinks };
     const serialized = profileFingerprint(document);
     if (serialized === lastSaved.current) {
+      status("saved");
       const pending=loadPendingDocument(user.id);if(pending && profileFingerprint(pending.document)===serialized)clearPendingDocument(user.id);
       return;
     }
     savePendingDocument(user.id, document, revision.current, lastSaved.current ? JSON.parse(lastSaved.current) : null);
+    status("saving");
     const timer = window.setTimeout(() => void publish(document), 700);
     return () => {
       cancelled = true;

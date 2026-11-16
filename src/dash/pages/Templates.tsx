@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { styleFrom } from "../appearance";
+import { usePreference } from "../preferences";
 import { useDash } from "../context";
 import { Button, Card, CardHead, Icon, Modal, SortSelect, TextInput } from "../ui";
 import { chain, naturalCompare, numberCompare, sorted, timeOf } from "../../lib/sort";
@@ -34,7 +36,7 @@ function TemplateStage({ snapshot }: { snapshot: TemplateSnapshot }) {
       <div className="tw-template-stage-inner">
         <LinkerPreview
           user={{ id: user.id, username: user.username, avatarUrl: about.assets.avatarUrl || user.avatarUrl }}
-          about={{ ...EMPTY_ABOUT, design: snapshot.design, assets: { ...about.assets, ...snapshot.assets, avatarUrl: about.assets.avatarUrl } }}
+          about={{ ...EMPTY_ABOUT, design: { ...about.design, ...styleFrom(snapshot.design) }, assets: { ...about.assets, ...snapshot.assets, avatarUrl: about.assets.avatarUrl } }}
           links={{ links: links.links, design: snapshot.links.design }}
           widgets={{ widgets: widgets.widgets, design: snapshot.widgets.design }}
           badges={{ equipped: badges.equipped, style: snapshot.badges.style }}
@@ -53,7 +55,8 @@ export function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState<MarketTemplate | null>(null);
   const [publishing, setPublishing] = useState(false);
-  const [order, setOrder] = useState("popular");
+  const [order, setOrder] = usePreference("template-sort", "popular");
+  const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -80,21 +83,22 @@ export function TemplatesPage() {
   }, [load]);
 
   const ordered = useMemo(() => {
+    const filtered = items.filter(item => `${item.name} ${item.note} ${item.author}`.toLowerCase().includes(query.trim().toLowerCase()));
     const byName = (a: MarketTemplate, b: MarketTemplate) => naturalCompare(a.name, b.name);
     const mineFirst = (a: MarketTemplate, b: MarketTemplate) => Number(b.mine) - Number(a.mine);
-    if (order === "newest") return sorted(items, chain((a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "desc"), byName));
-    if (order === "oldest") return sorted(items, chain((a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "asc"), byName));
-    if (order === "az") return sorted(items, byName);
-    if (order === "za") return sorted(items, (a, b) => byName(b, a));
-    if (order === "mine") return sorted(items, chain(mineFirst, (a, b) => numberCompare(a.uses, b.uses, "desc"), byName));
-    return sorted(items, chain((a, b) => numberCompare(a.uses, b.uses, "desc"), (a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "desc"), byName));
-  }, [items, order]);
+    if (order === "newest") return sorted(filtered, chain((a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "desc"), byName));
+    if (order === "oldest") return sorted(filtered, chain((a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "asc"), byName));
+    if (order === "az") return sorted(filtered, byName);
+    if (order === "za") return sorted(filtered, (a, b) => byName(b, a));
+    if (order === "mine") return sorted(filtered, chain(mineFirst, (a, b) => numberCompare(a.uses, b.uses, "desc"), byName));
+    return sorted(filtered, chain((a, b) => numberCompare(a.uses, b.uses, "desc"), (a, b) => numberCompare(timeOf(a.createdAt), timeOf(b.createdAt), "desc"), byName));
+  }, [items, order, query]);
 
   const apply = async (template: MarketTemplate) => {
     const snapshot = template.snapshot;
     setAbout((current) => ({
       ...current,
-      design: { ...snapshot.design },
+      design: { ...current.design, ...styleFrom(snapshot.design) },
       assets: {
         ...current.assets,
         card: { ...snapshot.assets.card },
@@ -146,6 +150,7 @@ export function TemplatesPage() {
           subtitle="Looks published by members. Applying one changes styling only — your links, widgets and badges stay exactly yours."
         />
         <div className="tw-tpl-toolbar">
+          <TextInput aria-label="Search templates" placeholder="Search templates or creators…" value={query} onChange={event => setQuery(event.target.value)} />
           <p className="tw-foot-note">
             {items.length} template{items.length === 1 ? "" : "s"} live · previews render with your own content
           </p>
@@ -175,7 +180,7 @@ export function TemplatesPage() {
 
       {loading ? (
         <p className="tw-foot-note">Loading templates…</p>
-      ) : items.length ? (
+      ) : ordered.length ? (
         <div className="tw-tpl-grid">
           {ordered.map((template) => (
             <article className="tw-tpl-card" key={template.id}>
@@ -209,8 +214,8 @@ export function TemplatesPage() {
           <span className="tw-tpl-empty-icon">
             <Icon name="layers" size={20} />
           </span>
-          <b>No templates yet</b>
-          <p>The gallery was cleared. Publish your current card and it becomes the first one everyone can use.</p>
+          <b>{items.length ? "No matching templates" : "No templates yet"}</b>
+          <p>{items.length ? "Try a different name or creator." : "Publish your current card to share a look with the community."}</p>
           <Button variant="primary" icon="upload" onClick={() => setPublishing(true)}>
             Publish this look
           </Button>

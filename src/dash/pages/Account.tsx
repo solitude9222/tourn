@@ -548,6 +548,11 @@ export function AccountProfilePage() {
 
           <Slider label="Background saturation" value={Math.round(assets.background.saturation * 100)} min={0} max={200} suffix="%" onChange={(value) => updateAssets({ background: { ...assets.background, saturation: value / 100 } })} />
           <Slider label="Background contrast" value={Math.round(assets.background.contrast * 100)} min={50} max={200} suffix="%" onChange={(value) => updateAssets({ background: { ...assets.background, contrast: value / 100 } })} />
+          {assets.background.style === "image" ? <>
+            <Field label="Image fit" hint="Cover fills the screen; Contain keeps the entire image visible."><Select value={assets.background.fit || "cover"} options={[{ value: "cover", label: "Cover" }, { value: "contain", label: "Contain" }]} onChange={fit => updateAssets({ background: { ...assets.background, fit: fit as "cover" | "contain" } })} /></Field>
+            <Slider label="Image horizontal position" value={assets.background.positionX ?? 50} min={0} max={100} suffix="%" onChange={positionX => updateAssets({ background: { ...assets.background, positionX } })} />
+            <Slider label="Image vertical position" value={assets.background.positionY ?? 50} min={0} max={100} suffix="%" onChange={positionY => updateAssets({ background: { ...assets.background, positionY } })} />
+          </> : null}
           <Slider label="Background brightness" value={Math.round(assets.background.brightness * 100)} min={30} max={200} suffix="%" onChange={(value) => updateAssets({ background: { ...assets.background, brightness: value / 100 } })} />
           <Slider
             label="Background blur"

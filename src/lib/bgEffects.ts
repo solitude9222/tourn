@@ -607,7 +607,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     // The clock always advances; only the paint is throttled.
     clock += dt * speedMul;
     const noise = mode === "tv" || mode === "fuzzy" || mode === "dither";
-    const fps = noise ? Math.min(s.maxFps || 45, 15) : (s.maxFps || 45);
+    const limited = window.matchMedia("(max-width: 640px)").matches || navigator.hardwareConcurrency <= 4;
+    const deviceCap = limited ? 24 : 45;
+    const fps = noise ? Math.min(s.maxFps || deviceCap, 15) : Math.min(s.maxFps || deviceCap, deviceCap);
     const budget = 1000 / fps;
     if (budget && lastDrawn && now - lastDrawn < budget - 1) {
       raf = requestAnimationFrame(loop);
@@ -621,7 +623,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     motionStep = Math.min(4, Math.max(0, (clock - paintedClock) / (1000 / 30)));
     paintedClock = clock;
     draw(clock);
-    if (mode === "blur") return;
+    if (mode === "blur" || reducedMotion.matches) return;
     raf = requestAnimationFrame(loop);
   }
 

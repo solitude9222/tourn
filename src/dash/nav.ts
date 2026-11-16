@@ -11,7 +11,7 @@ import type { IconName } from "./ui";
 
 export type NavTab = { page: Page; label: string; icon: IconName };
 
-export type NavGroup = "PROFILE" | "ASSETS" | "ACCOUNT";
+export type NavGroup = "CONTENT" | "APPEARANCE" | "ASSETS" | "ACCOUNT";
 
 export type NavItem = {
   key: string;
@@ -37,19 +37,8 @@ export const NAV: NavItem[] = [
     ],
   },
   {
-    key: "appearance",
-    group: "PROFILE",
-    label: "Appearance",
-    icon: "palette",
-    tabs: [
-      { page: "profile-appearance", label: "Card", icon: "palette" },
-      { page: "effects", label: "Effects", icon: "sparkles" },
-      { page: "music", label: "Audio", icon: "music" },
-    ],
-  },
-  {
     key: "profile",
-    group: "PROFILE",
+    group: "CONTENT",
     label: "Profile",
     icon: "user",
     tabs: [
@@ -59,15 +48,22 @@ export const NAV: NavItem[] = [
     ],
   },
   {
-    key: "layout",
-    group: "PROFILE",
-    label: "Layout",
-    icon: "layout",
-    tabs: [{ page: "layout", label: "Layout", icon: "layout" }],
+    key: "links",
+    group: "CONTENT",
+    label: "Social Links",
+    icon: "link",
+    tabs: [{ page: "links", label: "Links", icon: "link" }],
+  },
+  {
+    key: "widgets",
+    group: "CONTENT",
+    label: "Widgets",
+    icon: "grid",
+    tabs: [{ page: "widgets", label: "Widget stack", icon: "grid" }],
   },
   {
     key: "portfolio",
-    group: "PROFILE",
+    group: "CONTENT",
     label: "Portfolio",
     icon: "layers",
     tabs: [
@@ -78,18 +74,22 @@ export const NAV: NavItem[] = [
     ],
   },
   {
-    key: "links",
-    group: "PROFILE",
-    label: "Social Links",
-    icon: "link",
-    tabs: [{ page: "links", label: "Links", icon: "link" }],
+    key: "appearance",
+    group: "APPEARANCE",
+    label: "Appearance",
+    icon: "palette",
+    tabs: [
+      { page: "profile-appearance", label: "Card", icon: "palette" },
+      { page: "effects", label: "Effects", icon: "sparkles" },
+      { page: "music", label: "Audio", icon: "music" },
+    ],
   },
   {
-    key: "widgets",
-    group: "PROFILE",
-    label: "Widgets",
-    icon: "grid",
-    tabs: [{ page: "widgets", label: "Widget stack", icon: "grid" }],
+    key: "layout",
+    group: "APPEARANCE",
+    label: "Layout",
+    icon: "layout",
+    tabs: [{ page: "layout", label: "Layout", icon: "layout" }],
   },
   {
     key: "templates",

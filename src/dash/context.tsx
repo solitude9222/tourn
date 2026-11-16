@@ -65,6 +65,11 @@ export type DashContextValue = {
   earned: string[];
   profileViews: number | null;
   dirty: boolean;
+  publishStatus: "saving" | "saved" | "retrying";
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   setAbout: (updater: (current: About) => About) => void;
   setWidgets: (updater: (current: WidgetStore) => WidgetStore) => void;
   setBadges: (updater: (current: BadgeStore) => BadgeStore) => void;

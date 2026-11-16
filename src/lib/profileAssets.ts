@@ -184,6 +184,9 @@ export type CursorSettings = {
 };
 
 export type BackgroundSettings = {
+  positionX?: number;
+  positionY?: number;
+  fit?: "cover" | "contain";
   style: ProfileBackgroundStyle;
   color: string;
   from: string;
@@ -725,6 +728,9 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       videoVolume: numberIn(background.videoVolume, 0.5, 0, 1),
       saturation: numberIn(background.saturation, 1, 0, 2),
       contrast: numberIn(background.contrast, 1, .5, 2),
+      positionX: numberIn(background.positionX, 50, 0, 100),
+      positionY: numberIn(background.positionY, 50, 0, 100),
+      fit: background.fit === "contain" ? "contain" : "cover",
       brightness: numberIn(background.brightness, 1, .3, 2),
       gradientAnim: choiceIn(background.gradientAnim, ["none", "shift", "pulse", "aurora", "sweep"] as const, "none"),
       angle: numberIn(background.angle, 160, 0, 360),

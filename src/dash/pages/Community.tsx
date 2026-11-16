@@ -8,6 +8,7 @@
    --------------------------------------------------------------------------- */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePreference } from "../preferences";
 import { useDash } from "../context";
 import {
   fileToDataUrl,
@@ -51,48 +52,61 @@ export function AssetBrowserPage() {
   const { user, about, setAbout, notify } = useDash();
   const [library, setLibrary] = useState<LibraryAsset[]>(() => loadLibrary(user.id));
   const [mode, setMode] = useState("uploads");
-  const [type, setType] = useState("all");
-  const [sort, setSort] = useState("newest");
+  const [type, setType] = usePreference(`asset-type/${user.id}`, "all");
+  const [query, setQuery] = useState("");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState<LibraryAsset[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [sort, setSort] = usePreference(`asset-sort/${user.id}`, "newest");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadType, setUploadType] = useState<LibraryAssetType>("Avatar");
   const [viewing, setViewing] = useState<LibraryAsset | null>(null);
   const [busy, setBusy] = useState(false);
   const [visible, setVisible] = useState(15);
   const fileInput = useRef<HTMLInputElement>(null);
+  const libraryRef = useRef(library); libraryRef.current = library;
 
   const persist = (next: LibraryAsset[]) => {
-    setLibrary(next);
-    saveLibrary(user.id, next);
+    if (!saveLibrary(user.id, next)) { notify("Library not saved", "Browser storage is full or unavailable. Download important files, then remove older uploads and retry. Maximum 60 assets."); return false; }
+    setLibrary(next); return true;
   };
 
   const shown = useMemo(() => {
-    const list = library.filter((asset) => type === "all" || asset.type === type);
+    const list = library.filter((asset) => (type === "all" || asset.type === type) && (!favoritesOnly || asset.favorite) && asset.name.toLowerCase().includes(query.trim().toLowerCase()));
     return sorted(list, (a, b) => {
+      if (sort === "popular") return numberCompare(a.downloads, b.downloads, "desc");
       if (sort === "oldest") return numberCompare(a.createdAt, b.createdAt, "asc");
       if (sort === "name") return naturalCompare(a.name, b.name);
       if (sort === "name-desc") return naturalCompare(b.name, a.name);
       if (sort === "type") return naturalCompare(a.type, b.type) || naturalCompare(a.name, b.name);
       return numberCompare(a.createdAt, b.createdAt, "desc");
     });
-  }, [library, type, sort]);
+  }, [library, type, sort, query, favoritesOnly]);
+  useEffect(() => setVisible(15), [type, sort, query, favoritesOnly]);
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
-    setBusy(true);
+    setBusy(true); setProgress(0);
     try {
+      if (!file.type.startsWith("audio/") && !file.type.startsWith("image/")) throw new Error("Choose an image or audio file.");
+      if (file.size > 12_000_000) throw new Error("Choose a file under 12 MB. Trim audio or resize the image first.");
+      if (file.type.startsWith("image/") && uploadType === "Audio") throw new Error("Choose Avatar, Background or Cursor for an image file.");
       const type: LibraryAssetType = file.type.startsWith("audio/")
         ? "Audio"
         : file.type.startsWith("image/")
           ? uploadType
           : uploadType;
-      const url = type === "Audio" ? await fileToDataUrl(file) : await imageToDataUrl(file, 1400, 1400);
+      const url = type === "Audio" ? await fileToDataUrl(file, setProgress) : await imageToDataUrl(file, 1400, 1400);
       const asset = newAsset(type, file.name.replace(/\.[^.]+$/, ""), url);
-      persist([asset, ...library]);
+      if (libraryRef.current.some(entry => entry.type === asset.type && entry.url === asset.url)) { notify("Already in your library", "This file is already saved under the same asset type."); return; }
+      if (!persist([asset, ...libraryRef.current])) return;
+      setProgress(100);
       setUploadOpen(false);
       setMode("uploads");
       notify("Asset uploaded", `${asset.name} is in My Uploads.`);
-    } catch {
-      notify("Upload failed", "That file could not be read.");
+    } catch (error) {
+      notify("Upload failed", error instanceof Error ? error.message : "That file could not be read. Try a different image or audio file.");
     } finally {
       setBusy(false);
     }
@@ -147,9 +161,7 @@ export function AssetBrowserPage() {
   };
 
   const remove = (asset: LibraryAsset) => {
-    persist(library.filter((entry) => entry.id !== asset.id));
-    setViewing(null);
-    notify("Asset deleted", `${asset.name} was removed from My Uploads.`);
+    setDeleting([asset]);
   };
 
   const grid = (assets: LibraryAsset[]) => (
@@ -158,7 +170,7 @@ export function AssetBrowserPage() {
         <article className="tw-asset-card" key={asset.id}>
           <div className="tw-asset-preview">
             {asset.type === "Avatar" || asset.type === "Background" ? (
-              <img src={asset.url} alt={asset.name} />
+              <img src={asset.url} alt={asset.name} loading="lazy" decoding="async" />
             ) : (
               iconFor(asset)
             )}
@@ -181,6 +193,8 @@ export function AssetBrowserPage() {
             </div>
           </div>
           <div className="tw-asset-actions">
+            <input type="checkbox" aria-label={`Select ${asset.name}`} checked={selected.includes(asset.id)} onChange={event => setSelected(current => event.target.checked ? [...current, asset.id] : current.filter(id => id !== asset.id))} />
+            <button type="button" className="tw-favorite" aria-label={`Favorite ${asset.name}`} aria-pressed={Boolean(asset.favorite)} onClick={() => persist(library.map(item => item.id === asset.id ? { ...item, favorite: !item.favorite } : item))}><Icon name="star" size={15} /></button>
             <IconButton label="Preview asset" icon="expand" onClick={() => setViewing(asset)} />
             <IconButton
               label="Use on profile"
@@ -204,6 +218,8 @@ export function AssetBrowserPage() {
     <>
       <Card>
         <div className="tw-toolbar">
+          <TextInput aria-label="Search uploads" placeholder="Search uploads…" value={query} onChange={e => setQuery(e.target.value)} />
+          <TextInput aria-label="Search uploads" placeholder="Search uploads…" value={query} onChange={e => setQuery(e.target.value)} />
           <Segmented
             value={mode}
             onChange={setMode}
@@ -234,6 +250,7 @@ export function AssetBrowserPage() {
                 <option value="name">Name (A–Z)</option>
                 <option value="name-desc">Name (Z–A)</option>
                 <option value="type">Type</option>
+                <option value="popular">Most downloaded</option>
               </select>
               <Icon name="chevron-down" size={14} className="tw-select-chevron" />
             </span>
@@ -246,13 +263,21 @@ export function AssetBrowserPage() {
       </Card>
 
       <Card>
+        <div className="tw-toolbar tw-library-tools">
+          <Button onClick={() => setFavoritesOnly(value => !value)} aria-pressed={favoritesOnly}>Favorites {favoritesOnly ? "only" : ""}</Button>
+          <Button onClick={() => setSelected(shown.map(asset => asset.id))}>Select filtered ({shown.length})</Button>
+          <Button disabled={!selected.length} onClick={() => setSelected([])}>Clear selection</Button>
+          <Button variant="danger" disabled={!selected.length} onClick={() => setDeleting(library.filter(asset => selected.includes(asset.id)))}>Delete selected ({selected.length})</Button>
+          <Button onClick={() => { const profile = JSON.stringify(about); const unused = library.filter(asset => !profile.includes(JSON.stringify(asset.url).slice(1, -1))); if (unused.length) setDeleting(unused); else notify("All assets are in use", "Every library file is referenced by your current profile draft."); }}>Review unused</Button>
+          <Button onClick={() => { const seen = new Set<string>(); const duplicates = library.filter(asset => { const key = asset.type + ":" + asset.url; if (seen.has(key)) return true; seen.add(key); return false; }); if (duplicates.length) setDeleting(duplicates); else notify("No duplicates found", "No identical files of the same type are saved twice."); }}>Review duplicates</Button>
+        </div>
         <CardHead
           icon="image"
           title={mode === "library" ? "Shared library" : "My uploads"}
           subtitle={
             mode === "library"
               ? "Community uploads appear here once the shared library is connected."
-              : `${library.length} upload${library.length === 1 ? "" : "s"} stored on this account.`
+              : `${shown.length} of ${library.length} uploads · stored on this browser for this account.`
           }
         />
 
@@ -273,8 +298,8 @@ export function AssetBrowserPage() {
         ) : (
           <EmptyState
             icon="upload"
-            title="No uploads yet"
-            message="Upload an avatar, background, cursor or audio file to reuse it later."
+            title={library.length ? "No matching uploads" : "No uploads yet"}
+            message={library.length ? "Try another search, type, or turn off Favorites only." : "Upload an avatar, background, cursor or audio file to reuse it later."}
             action={
               <Button variant="primary" icon="upload" onClick={() => setUploadOpen(true)}>
                 Upload your first asset
@@ -285,6 +310,7 @@ export function AssetBrowserPage() {
         )}
       </Card>
 
+      <Modal open={deleting.length > 0} title={`Delete ${deleting.length} asset(s)?`} subtitle="This removes library copies from this browser. Files already applied to your profile stay in place." onClose={() => setDeleting([])} footer={<><Button onClick={() => setDeleting([])}>Cancel</Button><Button variant="danger" onClick={() => { const ids = new Set(deleting.map(asset => asset.id)); if (persist(library.filter(asset => !ids.has(asset.id)))) { setDeleting([]); setSelected([]); setViewing(null); notify("Assets deleted", "The selected library copies were removed."); } }}>Delete library copies</Button></>}><ul>{deleting.map(asset => <li key={asset.id}>{asset.name} · {asset.type}</li>)}</ul></Modal>
       <Modal
         open={uploadOpen}
         title="Upload asset"
@@ -299,6 +325,7 @@ export function AssetBrowserPage() {
           </>
         }
       >
+        {busy ? <progress max={100} value={progress || undefined} aria-label="Processing upload" /> : null}
         <Field label="Asset type">
           <Select
             icon="grid"
@@ -371,10 +398,17 @@ export function LeaderboardPage() {
   const [total, setTotal] = useState(0);
   const [failed, setFailed] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [query, setQuery] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const [sort, setSort] = usePreference<"views" | "likes">("leaderboard-sort", "views");
+  const [moreError, setMoreError] = useState("");
+  const boardRequest = useRef(0);
 
   useEffect(() => {
     let alive = true;
-    fetchLeaderboard()
+    ++boardRequest.current; setLoadingMore(false);
+    setRows(null); setFailed(false); setMoreError("");
+    fetchLeaderboard(sort)
       .then((result) => {
         if (!alive) return;
         setRows(result.entries);
@@ -389,13 +423,15 @@ export function LeaderboardPage() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [sort, attempt]);
 
   const loadMore = async () => {
     if (!rows || loadingMore) return;
-    setLoadingMore(true);
+    const request = boardRequest.current;
+    setLoadingMore(true); setMoreError("");
     try {
-      const result = await fetchLeaderboard("views", 25, rows.length);
+      const result = await fetchLeaderboard(sort, 25, rows.length);
+      if (request !== boardRequest.current) return;
       setTotal(result.total);
       setRows((current) => {
         if (!current) return result.entries;
@@ -403,13 +439,16 @@ export function LeaderboardPage() {
         return [...current, ...result.entries.filter((row) => !seen.has(row.username))];
       });
     } catch {
-      /* keep the rows already on screen */
+      if (request === boardRequest.current) setMoreError("Could not load the next rankings. Try Load more again.");
     } finally {
-      setLoadingMore(false);
+      if (request === boardRequest.current) setLoadingMore(false);
     }
   };
 
-  const max = rows?.reduce((top, row) => Math.max(top, row.views), 0) ?? 0;
+  const metric = (row: LeaderboardEntry) => row[sort];
+  const max = rows?.reduce((top, row) => Math.max(top, metric(row)), 0) ?? 0;
+  const ownRank = rows?.findIndex(row => row.username === user.username) ?? -1;
+  const match = (row: LeaderboardEntry) => `${row.username} ${row.handle} ${row.displayName || ""}`.toLowerCase().includes(query.trim().toLowerCase());
   const podium = rows?.slice(0, 3) ?? [];
   const listed = rows?.slice(3) ?? [];
 
@@ -418,15 +457,18 @@ export function LeaderboardPage() {
       <CardHead
         icon="chart"
         title="Leaderboard"
-        subtitle="Most viewed profiles on tourn.lol. Open a row to visit the page."
+        subtitle="Live profile rankings. Open a row to visit the page."
         actions={<Chip>{rows ? `${total || rows.length} profiles` : "Loading…"}</Chip>}
       />
 
+      <div className="tw-toolbar"><TextInput aria-label="Search loaded rankings" value={query} placeholder="Search loaded rankings…" onChange={event => setQuery(event.target.value)} /><Select ariaLabel="Rank profiles by" value={sort} onChange={value => setSort(value as "views" | "likes")} options={[{ value: "views", label: "Most views" }, { value: "likes", label: "Most likes" }]} /><Button disabled={ownRank < 0} onClick={() => { setQuery(""); requestAnimationFrame(() => { const row = document.getElementById("tw-own-rank"); row?.scrollIntoView({ block: "center", behavior: "smooth" }); row?.focus({ preventScroll: true }); }); }}>Your rank{ownRank >= 0 ? ` · #${ownRank + 1}` : " not loaded"}</Button></div>
+      {query && rows ? <p className="tw-foot-note">Searching {rows.length} loaded profiles. Original ranks are preserved; load more to search further.</p> : null}
       {failed ? (
         <EmptyState
           icon="chart"
           title="Leaderboard unavailable"
-          message="The rankings are read from the live site; they will show once the backend answers."
+          message="The rankings could not be loaded. Check your connection and try again."
+          action={<Button onClick={() => setAttempt(value => value + 1)}>Retry rankings</Button>}
           dashed
         />
       ) : rows === null ? (
@@ -438,9 +480,10 @@ export function LeaderboardPage() {
       ) : rows.length ? (
         <>
           <div className="tw-lb-podium">
-            {podium.map((row, index) => (
+            {podium.map((row, index) => match(row) ? (
               <a
                 key={row.username}
+                id={row.username === user.username ? "tw-own-rank" : undefined}
                 className={`tw-lb-podium-card is-${index + 1}${row.username === user.username ? " is-you" : ""}`}
                 href={boardHref(row.handle)}
                 aria-label={`Rank ${index + 1}, ${row.displayName || row.username}`}
@@ -455,23 +498,24 @@ export function LeaderboardPage() {
                   <b>{row.displayName || row.username}</b>
                 </span>
                 <span className="tw-lb-podium-views">
-                  {row.views.toLocaleString()} <small>views</small>
+                  {metric(row).toLocaleString()} <small>{sort}</small>
                 </span>
                 <span className="tw-lb-podium-bar" aria-hidden="true">
-                  <span style={{ width: `${max ? Math.max(4, (row.views / max) * 100) : 0}%` }} />
+                  <span style={{ width: `${max ? Math.max(4, (metric(row) / max) * 100) : 0}%` }} />
                 </span>
                 <span className="tw-lb-podium-open">
                   View profile
                   <Icon name="arrow-right" size={12} />
                 </span>
               </a>
-            ))}
+            ) : null)}
           </div>
 
           <div className="tw-lb">
-            {listed.map((row, index) => (
+            {listed.map((row, index) => match(row) ? (
               <a
                 key={row.username}
+                id={row.username === user.username ? "tw-own-rank" : undefined}
                 className={`tw-lb-row${row.username === user.username ? " is-you" : ""}`}
                 href={boardHref(row.handle)}
                 aria-label={`Rank ${index + 4}, ${row.displayName || row.username}`}
@@ -484,14 +528,14 @@ export function LeaderboardPage() {
                   <b>{row.displayName || row.username}</b>
                 </span>
                 <span className="tw-lb-bar" aria-hidden="true">
-                  <span style={{ width: `${max ? Math.max(4, (row.views / max) * 100) : 0}%` }} />
+                  <span style={{ width: `${max ? Math.max(4, (metric(row) / max) * 100) : 0}%` }} />
                 </span>
                 <span className="tw-lb-views">
-                  {row.views.toLocaleString()} <small>views</small>
+                  {metric(row).toLocaleString()} <small>{sort}</small>
                 </span>
                 <Icon name="chevron-right" size={14} className="tw-lb-chev" />
               </a>
-            ))}
+            ) : null)}
             {rows.length < total ? (
               <button
                 type="button"
@@ -513,6 +557,8 @@ export function LeaderboardPage() {
         />
       )}
 
+      {moreError ? <p role="alert" className="tw-foot-note">{moreError}</p> : null}
+      {rows?.length && !rows.some(match) ? <p role="status" className="tw-foot-note">No loaded profiles match that search.</p> : null}
       <p className="tw-foot-note">
         Your profile has {profileViews === null ? "no" : profileViews.toLocaleString()} views
         {profileViews ? " — keep sharing your link." : "."}

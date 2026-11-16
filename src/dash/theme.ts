@@ -93,3 +93,34 @@ export function useDashTheme(): [DashTheme, (theme: DashTheme) => void] {
 
   return [theme, setDashTheme];
 }
+
+const ACCENT_KEY = "tourn.dashAccent";
+export function readDashAccent(): string {
+  try { const value = localStorage.getItem(ACCENT_KEY) || ""; return /^#[0-9a-f]{6}$/i.test(value) ? value : ""; } catch { return ""; }
+}
+export function setDashAccent(color: string) {
+  try { color ? localStorage.setItem(ACCENT_KEY, color) : localStorage.removeItem(ACCENT_KEY); } catch { /* optional */ }
+  window.dispatchEvent(new CustomEvent("tourn:dash-accent", { detail: color }));
+}
+export function useDashAccent(): [string, (color: string) => void] {
+  const [color, setColor] = useState(readDashAccent);
+  useEffect(() => {
+    const sync = () => setColor(readDashAccent());
+    const change = (event: Event) => { const value = (event as CustomEvent<string>).detail; if (value === "" || /^#[0-9a-f]{6}$/i.test(value)) setColor(value); };
+    window.addEventListener("tourn:dash-accent", change);
+    window.addEventListener("storage", sync);
+    return () => { window.removeEventListener("tourn:dash-accent", change); window.removeEventListener("storage", sync); };
+  }, []);
+  return [color, setDashAccent];
+}
+
+/** Choose the higher-contrast foreground for any custom accent. */
+export function accentForeground(color: string): string {
+  const parts = color.slice(1).match(/../g)?.map(part => {
+    const value = parseInt(part, 16) / 255;
+    return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+  });
+  if (!parts || parts.length !== 3) return "#ffffff";
+  const luminance = .2126 * parts[0] + .7152 * parts[1] + .0722 * parts[2];
+  return luminance > .179 ? "#09090b" : "#ffffff";
+}

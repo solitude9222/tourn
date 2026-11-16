@@ -591,6 +591,16 @@ export function Textarea({
 
 export type Option = { value: string; label: string };
 
+function navigateOptions(event: React.KeyboardEvent<HTMLElement>) {
+  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+  const root = event.currentTarget;
+  const items = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="option"]'));
+  if (!items.length) { root.querySelector<HTMLButtonElement>('.tw-select-btn')?.click(); event.preventDefault(); requestAnimationFrame(() => { const opened = root.querySelectorAll<HTMLButtonElement>('[role="option"]'); (event.key === "ArrowUp" || event.key === "End" ? opened[opened.length - 1] : opened[0])?.focus(); }); return; }
+  const current = items.indexOf(document.activeElement as HTMLButtonElement);
+  const index = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : current < 0 ? (event.key === "ArrowUp" ? items.length - 1 : 0) : (current + (event.key === "ArrowUp" ? -1 : 1) + items.length) % items.length;
+  event.preventDefault(); items[index].focus();
+}
+
 export function Select({
   value,
   onChange,
@@ -632,6 +642,7 @@ export function Select({
   return (
     <span
       ref={rootRef}
+      onKeyDown={navigateOptions}
       className={`tw-control tw-select${icon ? " tw-control--icon" : ""}${open ? " is-open" : ""}`}
     >
       {icon ? <Icon name={icon} size={15} className="tw-control-icon" /> : null}
@@ -741,7 +752,8 @@ export function MultiSelect({
   }, [open]);
 
   return (
-    <span ref={rootRef} className={`tw-control tw-select tw-multi-select${open ? " is-open" : ""}`}>
+    <span ref={rootRef} onKeyDown={navigateOptions}
+      className={`tw-control tw-select tw-multi-select${open ? " is-open" : ""}`}>
       <button
         type="button"
         className="tw-select-btn"
@@ -1322,6 +1334,15 @@ export function Chip({
 
 /* ------------------------------------------------------------- composites */
 
+export function navigateTabs(event: React.KeyboardEvent<HTMLElement>) {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+  if (!tabs.length) return;
+  const current = tabs.indexOf(document.activeElement as HTMLButtonElement);
+  const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (current + (event.key === "ArrowLeft" ? -1 : 1) + tabs.length) % tabs.length;
+  event.preventDefault(); tabs[next].focus(); tabs[next].click();
+}
+
 export function Segmented({
   options,
   value,
@@ -1334,7 +1355,7 @@ export function Segmented({
   wide?: boolean;
 }) {
   return (
-    <div className={`tw-segmented${wide ? " is-wide" : ""}`} role="tablist">
+    <div className={`tw-segmented${wide ? " is-wide" : ""}`} role="tablist" onKeyDown={navigateTabs}>
       {options.map((option) => (
         <button
           key={option.value}
@@ -1414,15 +1435,36 @@ export function Modal({
   width?: number;
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    if (!open || !panel.current) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const root = panel.current;
+    const focusable = () => Array.from(root.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
+    (focusable()[0] || root).focus();
+    const trap = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      // Only the topmost dialog traps focus when a picker opens a second dialog.
+      const dialogs = document.querySelectorAll('.tw-modal');
+      if (dialogs[dialogs.length - 1] !== root) return;
+      const items = focusable(), first = items[0], last = items[items.length - 1];
+      if (!first) { event.preventDefault(); root.focus(); return; }
+      if (event.shiftKey && (document.activeElement === first || !root.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || !root.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", trap);
+    return () => { document.removeEventListener("keydown", trap); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && document.querySelectorAll(".tw-modal")[document.querySelectorAll(".tw-modal").length - 1] === panel.current) { event.stopImmediatePropagation(); closeRef.current(); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -1430,7 +1472,7 @@ export function Modal({
     <div className="tw-modal-layer" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
-      <div className="tw-modal" role="dialog" aria-modal="true" aria-label={typeof title === "string" ? title : "Dialog"} ref={panel} style={{ width }}>
+      <div className="tw-modal" role="dialog" aria-modal="true" tabIndex={-1} aria-label={typeof title === "string" ? title : "Dialog"} ref={panel} style={{ width }}>
         <header className="tw-modal-head">
           <div>
             <h2>{title}</h2>

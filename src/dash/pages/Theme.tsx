@@ -6,9 +6,9 @@
    what visitors see.
    --------------------------------------------------------------------------- */
 
-import { Card, CardHead, Icon } from "../ui";
+import { Button, ColorField, Card, CardHead, Icon } from "../ui";
 import { useDash } from "../context";
-import { DASH_THEMES, useDashTheme } from "../theme";
+import { DASH_THEMES, useDashTheme, useDashAccent } from "../theme";
 
 const TONES = [
   { name: "Surface", token: "card" },
@@ -19,6 +19,7 @@ const TONES = [
 
 export function ThemePage() {
   const [theme, setTheme] = useDashTheme();
+  const [accent, setAccent] = useDashAccent();
   const { go } = useDash();
 
   return (
@@ -68,6 +69,7 @@ export function ThemePage() {
         </div>
       </Card>
 
+      <Card><CardHead icon="palette" title="Custom accent" subtitle="Preview an accent instantly across buttons, selected tabs and focus rings." /><ColorField label="Accent color" value={accent || DASH_THEMES.find(item => item.id === theme)!.swatch[2]} onChange={setAccent} /><Button disabled={!accent} onClick={() => setAccent("")}>Use theme accent</Button></Card>
       <Card>
         <CardHead
           icon="sliders"

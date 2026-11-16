@@ -3,14 +3,16 @@
    bar and toasts. The nav structure and measurements follow the reference.
    --------------------------------------------------------------------------- */
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type CSSProperties } from "react";
 import { useAuth } from "../lib/auth";
 import { forgetAccount, loadAccounts, switchSession, type StoredAccount } from "../lib/accounts";
 import { useDash, type Page, type ProfileTab, type TabDef } from "./context";
-import { Button, Icon, IconButton, type IconName } from "./ui";
+import { Button, Icon, IconButton, navigateTabs, type IconName } from "./ui";
 import { api, post } from "../lib/backend";
 import { TradeThread } from "./Trades";
-import { useDashTheme } from "./theme";
+import { useDashTheme, useDashAccent, accentForeground } from "./theme";
+import { EditorTools } from "./EditorTools";
+import { usePreference } from "./preferences";
 import { NAV, navHome } from "./nav";
 
 type ShellTrade = {
@@ -98,11 +100,14 @@ export function Shell({
   onSignOut,
   children,
 }: ShellProps) {
-  const { user, about, settings, dirty, save, discard, isPremium, isAdmin, profileViews, go, notify } =
+  const { user, about, settings, dirty, save, discard, undo, redo, isPremium, isAdmin, profileViews, go, notify } =
     useDash();
   const { accounts, retryAuth } = useAuth();
   useDashTheme();
+  const [accent] = useDashAccent();
   const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [collapsed, setCollapsed] = usePreference<string[]>("collapsed-nav", []);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notes, setNotes] = useState(false);
@@ -245,6 +250,20 @@ export function Shell({
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    const key = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      if (event.key.toLowerCase() === "k") { event.preventDefault(); setMobileOpen(true); searchRef.current?.focus(); }
+      if (event.key.toLowerCase() === "s") { event.preventDefault(); if (dirty) save(); }
+      const target = event.target as HTMLElement;
+      if (target.closest("input, textarea, [contenteditable=true]")) return;
+      if (event.key.toLowerCase() === "z") { event.preventDefault(); event.shiftKey ? redo() : undo(); }
+      if (event.key.toLowerCase() === "y") { event.preventDefault(); redo(); }
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [save, dirty, undo, redo]);
+
   const searching = query.trim().length > 0;
 
   const matches = (label: string) => label.toLowerCase().includes(query.trim().toLowerCase());
@@ -252,7 +271,7 @@ export function Shell({
   const showSectionCrumb = crumb !== (breadcrumbLabel ?? title);
 
   return (
-    <div className={`tw-dash${mobileOpen ? " is-menu-open" : ""}`}>
+    <div className={`tw-dash${mobileOpen ? " is-menu-open" : ""}`} style={accent ? { "--accent": accent, "--accent-on": accentForeground(accent), "--accent-bright": accent, "--accent-text": accent, "--accent-soft": `color-mix(in srgb, ${accent} 16%, var(--page))`, "--accent-border": `color-mix(in srgb, ${accent} 45%, var(--border))` } as CSSProperties : undefined}>
       <aside className="tw-rail" aria-label="Dashboard navigation">
         <a className="tw-brand" href="#/" aria-label="tourn.lol home">
           <img src="/logo.png" alt="" width={37} height={37} />
@@ -264,13 +283,14 @@ export function Shell({
         <label className="tw-search">
           <Icon name="search" size={16} />
           <input
+            ref={searchRef}
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="search dashboard..."
             aria-label="Search dashboard"
           />
-          <kbd>⌘K</kbd>
+          <kbd>Ctrl K</kbd>
         </label>
 
         <div className="tw-rail-scroll">
@@ -282,23 +302,26 @@ export function Shell({
                 (tab) => !searching || matches(item.label) || matches(tab.label),
               );
               if (searching && !tabs.length) return null;
+              const hidden = !searching && item.group && collapsed.includes(item.group);
               return (
                 <div className="tw-nav-block" key={item.key}>
-                  {heading ? <span className="tw-nav-group">{heading}</span> : null}
-                  <button
+                  {heading ? <button type="button" className="tw-nav-group tw-nav-collapse" aria-expanded={!collapsed.includes(heading)} onClick={() => setCollapsed(current => current.includes(heading) ? current.filter(group => group !== heading) : [...current, heading])}>{heading}<Icon name="chevron-down" size={12} /></button> : null}
+                  {!hidden ? <button
                     type="button"
                     className={`tw-nav-item${active ? " is-active" : ""}`}
-                    onClick={() => onNavigate(navHome(item))}
+                    onClick={() => onNavigate(searching ? tabs[0].page : navHome(item))}
                     onPointerEnter={() => onPrefetchPage?.(navHome(item))}
                     onFocus={() => onPrefetchPage?.(navHome(item))}
                     aria-current={active ? "page" : undefined}
                   >
                     <Icon name={item.icon} size={18} />
                     {item.label}
-                  </button>
+                  </button> : null}
+                  {searching ? tabs.map(tab => <button className="tw-nav-search-result" type="button" key={tab.page} onClick={() => { onNavigate(tab.page); setQuery(""); }}><Icon name={tab.icon} size={14} />{tab.label}</button>) : null}
                 </div>
               );
             })}
+            {searching && !navItems.some(item => matches(item.label) || item.tabs.some(tab => matches(tab.label))) ? <p className="tw-foot-note" role="status">No matching settings. Try “Audio”, “Card”, or “Links”.</p> : null}
           </nav>
         </div>
 
@@ -540,7 +563,8 @@ export function Shell({
         Menu
       </button>
 
-      <main className="tw-main">
+      <a className="tw-skip-link" href="#dash-main" onClick={event => { event.preventDefault(); document.getElementById("dash-main")?.focus(); }}>Skip to editor</a>
+      <main className="tw-main" id="dash-main" tabIndex={-1}>
         <div className="tw-topline">
           <div className="tw-crumbs" aria-label="Breadcrumb">
             <button
@@ -586,7 +610,7 @@ export function Shell({
         </header>
 
         {tabs && activeTab && onTab ? (
-          <div className="tw-tabs" role="tablist" aria-label={`${title} sections`}>
+          <div className="tw-tabs" role="tablist" onKeyDown={navigateTabs} aria-label={`${title} sections`}>
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -605,6 +629,7 @@ export function Shell({
           </div>
         ) : null}
 
+        <EditorTools key={user.id} page={page} />
         <div className="tw-page-swap" key={`${page}-${activeTab ?? ""}`}>{children}</div>
       </main>
 

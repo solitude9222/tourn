@@ -32,10 +32,10 @@ export function ViewsChart({ daily, days = 7 }: { daily: AnalyticsData["daily"];
   return (
     <svg className="tw-chart" viewBox="0 0 650 190" role="img" aria-label={`Daily profile views: ${points.map((p) => `${p.date}: ${p.views}`).join(", ")}`}>
       {[0, .25, .5, .75, 1].map((ratio) => <g key={ratio}><line className="tw-chart-grid" x1="40" x2="630" y1={y(max * ratio)} y2={y(max * ratio)} /><text x="30" y={y(max * ratio) + 4} textAnchor="end">{Math.round(max * ratio)}</text></g>)}
-      <polygon points={`${x(0)},156 ${coordinates} ${x(points.length - 1)},156`} fill="rgba(255, 143, 146,.1)" />
+      <polygon points={`${x(0)},156 ${coordinates} ${x(points.length - 1)},156`} fill="var(--accent-soft)" />
       <polyline className="tw-chart-line" points={coordinates} />
       {points.map((point, index) => <g key={point.date}>
-        <circle cx={x(index)} cy={y(point.views)} r={points.length > 40 ? 1.5 : 3} fill="#ff8f92"><title>{point.date}: {point.views} views</title></circle>
+        <circle cx={x(index)} cy={y(point.views)} r={points.length > 40 ? 1.5 : 3} fill="var(--accent-bright, var(--accent))"><title>{point.date}: {point.views} views</title></circle>
         {(index % Math.max(1, Math.ceil(points.length / 6)) === 0 || index === points.length - 1) && <text x={x(index)} y="180" textAnchor="middle">{formatter.format(new Date(point.date + "T00:00:00Z"))}</text>}
       </g>)}
     </svg>
@@ -44,7 +44,20 @@ export function ViewsChart({ daily, days = 7 }: { daily: AnalyticsData["daily"];
 
 function Breakdown({ title, rows }: { title: string; rows: AnalyticsData["devices"] }) {
   const total = rows.reduce((sum, row) => sum + row.views, 0);
-  return <div className="tw-stat-panel"><h3>{title}</h3>{rows.length ? <div className="tw-analytics-breakdown">{rows.map((row) => <div key={row.label}><div><span>{row.label}</span><b>{row.views.toLocaleString()} <small>({Math.round(row.views / total * 100)}%)</small></b></div><span className="tw-analytics-bar"><i style={{ width: `${row.views / total * 100}%` }} /></span></div>)}</div> : <EmptyState icon="chart" title="No recorded visits in this period" message="New visits will appear here after someone opens your public page." />}</div>;
+  return <div className="tw-stat-panel"><h3>{title}</h3>{rows.length ? <div className="tw-analytics-breakdown">{rows.map((row) => <div key={row.label}><div><span>{row.label}</span><b>{row.views.toLocaleString()} <small>({Math.round(total ? row.views / total * 100 : 0)}%)</small></b></div><span className="tw-analytics-bar"><i style={{ width: `${total ? row.views / total * 100 : 0}%` }} /></span></div>)}</div> : <EmptyState icon="chart" title="No recorded visits in this period" message="New visits will appear here after someone opens your public page." />}</div>;
+}
+
+function PeriodComparison({ data, days }: { data: AnalyticsData; days: number }) {
+  const length = Math.min(14, Math.floor((days - 1) / 2));
+  if (!length) return null;
+  const today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  const day = (offset: number) => new Date(today.getTime() - offset * 86400000).toISOString().slice(0, 10);
+  if (!data.historySince || data.historySince > day(length * 2)) return <p className="tw-chart-note">More complete daily history is needed for a comparison.</p>;
+  const values = new Map(data.daily.map(point => [point.date, point.views]));
+  const sum = (start: number) => Array.from({ length }, (_, index) => values.get(day(start + index)) || 0).reduce((a, b) => a + b, 0);
+  const recent = sum(1), previous = sum(length + 1);
+  const change = previous ? `${recent >= previous ? "+" : ""}${Math.round((recent - previous) / previous * 100)}%` : recent ? "First recorded visits" : "No change";
+  return <div className="tw-stat-panel"><h3>Complete UTC days · {change}</h3><p className="tw-chart-note">{day(length)} – {day(1)}: {recent.toLocaleString()} visits · {day(length * 2)} – {day(length + 1)}: {previous.toLocaleString()} visits. Today is excluded.</p></div>;
 }
 
 export function AnalyticsPanel({ compact = false }: { compact?: boolean }) {
@@ -75,7 +88,9 @@ export function AnalyticsPanel({ compact = false }: { compact?: boolean }) {
     <div className="tw-periods tw-analytics-periods" aria-label="Analytics period">{PERIODS.map((entry) => <button key={entry.value} type="button" className={`tw-period${period === entry.value ? " is-active" : ""}`} aria-pressed={period === entry.value} onClick={() => setPeriod(entry.value)}>{entry.label}</button>)}</div>
     {error ? <div className="tw-analytics-error" role="alert"><p>{error}</p><Button icon="refresh" onClick={() => setAttempt((n) => n + 1)}>Retry analytics</Button></div> : !data ? <p className="tw-chart-note" role="status">Loading analytics…</p> : <>
       <div className="tw-analytics-totals"><span><b>{data.periodViews.toLocaleString()}</b> recorded visits in this period</span><span><b>{data.total.toLocaleString()}</b> lifetime views</span></div>
+      <p className="tw-analytics-range">{new Date(today.getTime() - (days - 1) * 86400000).toISOString().slice(0, 10)} – {today.toISOString().slice(0, 10)} (UTC) · {(data.periodViews / Math.max(1, days)).toFixed(1)} visits/day</p>
       <ViewsChart daily={data.daily} days={days} />
+      {!compact ? <PeriodComparison data={data} days={days} /> : null}
       <p className="tw-chart-note">{data.historySince ? `Daily history available since ${data.historySince}.` : "Daily history begins with the first recorded visit."} Older lifetime views are kept; their dates and sources cannot be reconstructed.</p>
       <div className="tw-stat-panels"><Breakdown title="Visitor Devices" rows={data.devices} /><Breakdown title="Traffic Sources" rows={data.sources} /></div>
     </>}

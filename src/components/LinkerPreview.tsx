@@ -642,7 +642,7 @@ export function LinkerPreview({
         {assets.background.style === "image" && assets.background.imageUrl ? (
           <span
             className="lkr-bg-image"
-            style={{ backgroundImage: `url("${assets.background.imageUrl.replace(/"/g, '\\"')}")` }}
+            style={{ backgroundImage: `url("${assets.background.imageUrl.replace(/"/g, '\\"')}")`, backgroundPosition: `${assets.background.positionX ?? 50}% ${assets.background.positionY ?? 50}%`, backgroundSize: assets.background.fit || "cover", backgroundRepeat: "no-repeat" }}
           />
         ) : null}
         {assets.background.style === "video" && assets.background.videoUrl ? <video ref={videoRef} className="lkr-bg-video" src={assets.background.videoUrl} autoPlay muted loop playsInline preload="metadata" /> : null}

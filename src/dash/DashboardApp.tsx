@@ -344,13 +344,47 @@ export function Dashboard(props: DashboardProps) {
   const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(widgets);
   const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(badges);
   const [linksDraft, setLinksDraft] = useState<LinkStore>(profileLinks);
+  const [publishStatus, setPublishStatus] = useState<"saving" | "saved" | "retrying">("saved");
+  useEffect(() => {
+    setPublishStatus("saved");
+    const update = (event: Event) => { const detail = (event as CustomEvent).detail; if (detail?.userId === user?.id) setPublishStatus(detail.state); };
+    window.addEventListener("tourn:publish-status", update);
+    return () => window.removeEventListener("tourn:publish-status", update);
+  }, [user?.id]);
   const [profileViews, setProfileViews] = useState<number | null>(null);
 
   const draftRef=useRef({about:aboutDraft,widgets:widgetsDraft,badges:badgesDraft,links:linksDraft});
   useLayoutEffect(()=>{draftRef.current={about:aboutDraft,widgets:widgetsDraft,badges:badgesDraft,links:linksDraft};},[aboutDraft,widgetsDraft,badgesDraft,linksDraft]);
+  const history = useRef<{ past: ProfileDocument[]; future: ProfileDocument[]; at: number; section: string }>({ past: [], future: [], at: 0, section: "" });
+  const [historyVersion, setHistoryVersion] = useState(0);
+  const restoreDraft = useCallback((next: ProfileDocument) => {
+    draftRef.current = next;
+    setAboutDraft(next.about); setWidgetsDraft(next.widgets); setBadgesDraft(next.badges); setLinksDraft(next.links);
+    onDraftChange(next);
+  }, [onDraftChange]);
+  const undo = useCallback(() => {
+    if (!user || authLoading) return;
+    const previous = history.current.past.pop();
+    if (!previous) return;
+    history.current.future.push(draftRef.current); history.current.at = 0;
+    restoreDraft(previous); setHistoryVersion(v => v + 1);
+  }, [restoreDraft, user, authLoading]);
+  const redo = useCallback(() => {
+    if (!user || authLoading) return;
+    const next = history.current.future.pop();
+    if (!next) return;
+    history.current.past.push(draftRef.current); history.current.at = 0;
+    restoreDraft(next); setHistoryVersion(v => v + 1);
+  }, [restoreDraft, user, authLoading]);
   const changeDraft=(section:keyof ProfileDocument,updater:(value:any)=>any)=>{
     if(!user || authLoading)return;
-    const next={...draftRef.current,[section]:updater(draftRef.current[section])};draftRef.current=next;
+    const next={...draftRef.current,[section]:updater(draftRef.current[section])};
+    if (serialized(next) === serialized(draftRef.current)) return;
+    const h = history.current, now = Date.now();
+    // Coalesce typing and slider gestures, retaining the state before the gesture.
+    if (h.section !== section || now - h.at > 600 || !h.past.length) h.past = [...h.past.slice(-39), draftRef.current];
+    h.at = now; h.section = section; h.future = [];
+    setHistoryVersion(v => v + 1); draftRef.current=next;
     onDraftChange(next);
     if(section==='about')setAboutDraft(next.about);if(section==='widgets')setWidgetsDraft(next.widgets);if(section==='badges')setBadgesDraft(next.badges);if(section==='links')setLinksDraft(next.links);
   };
@@ -361,6 +395,8 @@ export function Dashboard(props: DashboardProps) {
   // showing the pre-hydration local draft indefinitely.
   useLayoutEffect(() => {
     if (authLoading) return;
+    history.current = { past: [], future: [], at: 0, section: "" };
+    setHistoryVersion(v => v + 1);
     setAboutDraft(about);
     setWidgetsDraft(widgets);
     setBadgesDraft(badges);
@@ -369,7 +405,7 @@ export function Dashboard(props: DashboardProps) {
     // This intentionally runs only when hydration finishes. Later prop changes
     // are merged by the per-store effects below without discarding edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading]);
+  }, [authLoading, user?.id]);
 
   useEffect(() => {
     setAboutDraft((current) =>
@@ -444,6 +480,13 @@ export function Dashboard(props: DashboardProps) {
     serialized(badgesDraft) !== serialized(badges) ||
     serialized(linksDraft) !== serialized(profileLinks);
 
+  useEffect(() => {
+    if (!dirty && publishStatus === "saved") return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty, publishStatus]);
+
   const notify = useCallback((title: string, message: string) => {
     window.dispatchEvent(new CustomEvent("tourn:toast", { detail: { title, message } }));
   }, []);
@@ -474,12 +517,12 @@ export function Dashboard(props: DashboardProps) {
 
 
   const discard = useCallback(() => {
-    setAboutDraft(about);
-    setWidgetsDraft(widgets);
-    setBadgesDraft(badges);
-    setLinksDraft(profileLinks);
+    history.current.past.push(draftRef.current);
+    history.current.future = []; history.current.at = 0;
+    restoreDraft({ about, widgets, badges, links: profileLinks });
+    setHistoryVersion(v => v + 1);
     notify("Changes discarded", "Your profile is back to the saved version.");
-  }, [about, widgets, badges, profileLinks, notify]);
+  }, [about, widgets, badges, profileLinks, notify, restoreDraft]);
 
   const go = useCallback((next: Page, tab?: ProfileTab, section?: string) => {
     setPage(next);
@@ -504,7 +547,8 @@ export function Dashboard(props: DashboardProps) {
       isAdmin,
       earned: ownedWithAdmin(earned, isAdmin),
       profileViews,
-      dirty,
+      dirty, publishStatus,
+      undo, redo, canUndo: history.current.past.length > 0, canRedo: history.current.future.length > 0,
       setAbout: (updater: (current: About) => About) => changeDraft("about",updater),
       setWidgets: (updater: (current: WidgetStore) => WidgetStore) => changeDraft("widgets",updater),
       setBadges: (updater: (current: BadgeStore) => BadgeStore) => changeDraft("badges",updater),
@@ -534,6 +578,7 @@ export function Dashboard(props: DashboardProps) {
       go,
       profileTab,
       changeProfileTab,
+      historyVersion, undo, redo, publishStatus,
       authLoading,
       onDraftChange,
     ],
@@ -700,7 +745,7 @@ export function Dashboard(props: DashboardProps) {
         onAddAccount={onAddAccount}
         onSignOut={onSignOut}
       >
-        <Suspense fallback={null}>{content}</Suspense>
+        <Suspense fallback={<div className="tw-page-loading" role="status" aria-label="Loading editor"><div /><div /><div /></div>}>{content}</Suspense>
       </Shell>
     </DashContext.Provider>
   );

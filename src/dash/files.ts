@@ -16,6 +16,7 @@ export type LibraryAsset = {
   createdAt: number;
   downloads: number;
   likes: number;
+  favorite?: boolean;
 };
 
 const MAX_LIBRARY_BYTES = 3_500_000;
@@ -45,11 +46,13 @@ export function loadLibrary(userId: string): LibraryAsset[] {
   }
 }
 
-export function saveLibrary(userId: string, assets: LibraryAsset[]): void {
+export function saveLibrary(userId: string, assets: LibraryAsset[]): boolean {
   try {
-    localStorage.setItem(key(userId), JSON.stringify(assets.slice(0, 60)));
+    if (assets.length > 60) return false;
+    localStorage.setItem(key(userId), JSON.stringify(assets));
+    return true;
   } catch {
-    /* storage full — the upload still applies to the profile for this session */
+    return false;
   }
 }
 
@@ -72,9 +75,10 @@ export function newAsset(
   };
 }
 
-export function fileToDataUrl(file: File): Promise<string> {
+export function fileToDataUrl(file: File, onProgress?: (percent: number) => void): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onprogress = event => { if (event.lengthComputable) onProgress?.(Math.round(event.loaded / event.total * 100)); };
     reader.onload = () => resolve(String(reader.result ?? ""));
     reader.onerror = () => reject(reader.error ?? new Error("Could not read that file"));
     reader.readAsDataURL(file);

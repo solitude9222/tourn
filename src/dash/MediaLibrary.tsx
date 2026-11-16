@@ -1,3 +1,4 @@
+import { usePreference } from "./preferences";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadCatalog, type CatalogItem, type CatalogKind } from "../lib/mediaCatalog";
 import { naturalCompare, sorted } from "../lib/sort";
@@ -22,7 +23,8 @@ export function MediaLibrary({
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [order, setOrder] = useState("popular");
+  const [order, setOrder] = usePreference(`catalog-sort/${kind}`, "popular");
+  const [attempt, setAttempt] = useState(0);
   const request = useRef(0);
   const ordered = useMemo(
     () =>
@@ -53,7 +55,7 @@ export function MediaLibrary({
       loadCatalog(kind, query, page, controller.signal)
         .then((result) => {
           if (id !== request.current) return;
-          setItems((current) => (page === 1 ? result.items : [...current, ...result.items]));
+          setItems((current) => { const seen = new Set<string>(); return (page === 1 ? result.items : [...current, ...result.items]).filter(item => { if (seen.has(item.id)) return false; seen.add(item.id); return true; }); });
           setHasMore(result.hasMore);
         })
         .catch((reason) => {
@@ -68,7 +70,7 @@ export function MediaLibrary({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [open, kind, query, page]);
+  }, [open, kind, query, page, attempt]);
 
   const changeQuery = (value: string) => {
     setQuery(value);
@@ -91,6 +93,7 @@ export function MediaLibrary({
       <div className="tw-media-library">
         <div className="tw-media-search">
           <TextInput
+            aria-label="Search library"
             value={query}
             placeholder={kind === "anime" ? "Search anime…" : "Search games…"}
             onChange={(event) => changeQuery(event.target.value)}
@@ -110,7 +113,7 @@ export function MediaLibrary({
         </div>
 
         {error ? (
-          <p className="tw-media-error">{error}</p>
+          <div role="alert"><p className="tw-media-error">{error}</p><Button onClick={() => setAttempt(value => value + 1)}>Retry library</Button></div>
         ) : items.length === 0 && loading ? (
           <div className="tw-media-grid">
             {Array.from({ length: 8 }, (_, index) => (
