@@ -28,6 +28,7 @@ import "dotenv/config";
 import { registerDataTransfer } from "./dataTransfer.js";
 import { AUDIO_SCHEMA, registerAudioRoutes } from "./audio.js";
 import { SUPPORT_SCHEMA, registerSupportRoutes } from "./support.js";
+import { SOCIAL_SCHEMA, registerSocialRoutes } from "./social.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -150,6 +151,8 @@ create table if not exists users (
   discord_id text unique,
   alias text unique,
   alias2 text unique,
+  alias_updated_at timestamptz,
+  alias2_updated_at timestamptz,
   premium boolean not null default false,
   stripe_customer_id text,
   stripe_subscription_id text,
@@ -235,6 +238,9 @@ create table if not exists invite_codes (
 
 async function initDb() {
   await pool.query(SCHEMA);
+  // Claim cooldowns for databases created before the columns existed.
+  await pool.query("alter table users add column if not exists alias_updated_at timestamptz");
+  await pool.query("alter table users add column if not exists alias2_updated_at timestamptz");
   await pool.query(MARKET_SCHEMA);
   await pool.query(COMMERCE_SCHEMA);
   await pool.query(TRADE_SCHEMA);
@@ -242,6 +248,7 @@ async function initDb() {
   startUsernameReconciliation(pool,stripe);
   await pool.query(AUDIO_SCHEMA);
   await pool.query(SUPPORT_SCHEMA);
+  await pool.query(SOCIAL_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
   // Trim history created before the limit existed, and keep the table small on
   // every boot as well as after each save.
@@ -342,6 +349,8 @@ function accountOf(row) {
     username: row.username,
     alias: row.alias ?? null,
     alias2: row.alias2 ?? null,
+    aliasUpdatedAt: row.alias_updated_at ?? null,
+    alias2UpdatedAt: row.alias2_updated_at ?? null,
     email: row.email ?? null,
     avatarUrl: row.avatar_url ?? null,
     joinedAt: row.created_at,
@@ -424,6 +433,32 @@ async function currentUser(req) {
 
 const cleanHandle = (input) =>
   String(input ?? "").trim().toLowerCase();
+
+/* Both claim slots can change once every 48 hours. The timestamp is written
+   on every real change (including releasing a name), so a claim cannot be
+   hopped repeatedly to reserve handles. */
+const CLAIM_COOLDOWN_MS = 2 * 24 * 60 * 60 * 1000;
+function claimCooldownMs(updatedAt) {
+  const changed = Date.parse(updatedAt ?? "");
+  if (!Number.isFinite(changed)) return 0;
+  return Math.max(0, changed + CLAIM_COOLDOWN_MS - Date.now());
+}
+function formatCooldown(ms) {
+  const totalMinutes = Math.max(1, Math.ceil(ms / 60000));
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h`;
+  return `${totalMinutes}m`;
+}
+function cooldownResponse(res, label, updatedAt) {
+  const remaining = claimCooldownMs(updatedAt);
+  const changed = Date.parse(updatedAt ?? "");
+  return res.status(429).json({
+    error: `${label} can change again in ${formatCooldown(remaining)}. Claims have a 2-day cooldown.`,
+    retryAt: Number.isFinite(changed) ? new Date(changed + CLAIM_COOLDOWN_MS).toISOString() : null,
+  });
+}
 
 /* The public shape of an account — never includes email, password, MFA or
    Discord ids. Used by every profile page read. */
@@ -764,6 +799,7 @@ const PROFILE_DOCUMENT_LIMIT = 32_000_000;
 
 registerAudioRoutes(app, pool, requireAuth);
 registerSupportRoutes(app, { pool, requireAuth, requireAdmin, limiter: billingLimiter, env: process.env });
+registerSocialRoutes(app, { pool, requireAdmin });
 registerDataTransfer(app,pool,requireOwner,()=>profilePageCache.clear());
 
 app.put("/api/profile", express.json({ limit: PROFILE_JSON_LIMIT }), requireAuth, async (req, res) => {
@@ -1564,8 +1600,6 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     const avatar = me.avatar
       ? `https://cdn.discordapp.com/avatars/${discordId}/${me.avatar}.png?size=256`
       : null;
-    const displayName = me.global_name || me.username || "player";
-
     // Discord identity is authoritative. Email equality alone must never link accounts.
     let { rows } = await pool.query("select * from users where discord_id = $1", [discordId]);
     let user = rows[0] ?? null;
@@ -1644,7 +1678,10 @@ app.get("/api/auth/discord/callback", async (req, res) => {
         }
       }
 
-      const username = await uniqueUsername(displayName);
+      // The account keeps an email-derived internal handle. A Discord display
+      // name is not an identity here; people choose their public name as an
+      // alias, so the auto handle must not become a Discord username.
+      const username = await uniqueUsername(email ? email.split("@")[0] : "player");
       const rainGift = await premiumRainEnabled();
       const inserted = await pool.query(
         `insert into users (username, email, discord_id, avatar_url, is_owner, is_admin, premium, invited_by)
@@ -1846,23 +1883,37 @@ app.post("/api/security/confirm-code", requireAuth, async (req, res) => {
 
 app.post("/api/profile/alias", requireAuth, async (req, res) => {
   try {
+    const user = await currentUser(req);
+    if (!user) return res.status(401).json({ error: "Sign in again." });
     const clean = cleanHandle(req.body?.alias);
+    const next = clean || null;
+    if (next === (user.alias ?? null)) return res.json({ account: accountOf(user) });
     if (clean && !freeHandleValid(clean)) {
       // One character and symbols are stock, not a free choice: only the
       // account that bought this exact handle may put it on their profile.
-      if (!(await handleOwned(pool, req.auth.sub, clean)))
+      if (!(await handleOwned(pool, user.id, clean)))
         return res.status(400).json({ error: "Single characters and symbols have to be bought from the store first." });
     }
     if (clean && clean.length < 3 && freeHandleValid(clean)) return res.status(400).json({ error: "Aliases need at least 3 characters." });
     if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
     if (RESERVED.has(clean)) return res.status(400).json({ error: `"${clean}" is reserved by the site.` });
-    if (clean && (await claimTaken(clean, req.auth.sub))) {
+    if (clean && (await claimTaken(clean, user.id))) {
       return res.status(400).json({ error: `@${clean} is already claimed — try another.` });
     }
+    if (claimCooldownMs(user.alias_updated_at)) {
+      return cooldownResponse(res, "Your primary claim", user.alias_updated_at);
+    }
     const { rows } = await pool.query(
-      "update users set alias = $1 where id = $2 returning *",
-      [clean || null, req.auth.sub],
+      `update users set alias = $1, alias_updated_at = now()
+       where id = $2 and (alias_updated_at is null or alias_updated_at <= now() - interval '2 days')
+       returning *`,
+      [next, user.id],
     );
+    if (!rows[0]) {
+      const fresh = await pool.query("select alias_updated_at from users where id = $1", [user.id]);
+      if (!fresh.rows[0]) return res.status(401).json({ error: "Sign in again." });
+      return cooldownResponse(res, "Your primary claim", fresh.rows[0].alias_updated_at);
+    }
     res.json({ account: accountOf(rows[0]) });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1874,30 +1925,37 @@ app.post("/api/profile/alias2", requireAuth, async (req, res) => {
     const user = await currentUser(req);
     if (!user) return res.status(401).json({ error: "Sign in again." });
     const clean = cleanHandle(req.body?.alias2);
-    if (!clean) {
-      const { rows } = await pool.query(
-        "update users set alias2 = null where id = $1 returning *",
-        [user.id],
-      );
-      return res.json({ account: accountOf(rows[0]) });
+    const next = clean || null;
+    if (clean && !user.premium) {
+      return res.status(403).json({ error: "A second claim is Premium only." });
     }
-    if (!freeHandleValid(clean) && !(await handleOwned(pool, user.id, clean)))
-      return res.status(400).json({ error: "Single characters and symbols have to be bought from the store first." });
-    if (clean.length < 3 && freeHandleValid(clean)) return res.status(400).json({ error: "Aliases need at least 3 characters." });
-    if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
-    if (RESERVED.has(clean) || clean === user.username) {
-      return res.status(400).json({ error: `"${clean}" is already taken.` });
+    if (next === (user.alias2 ?? null)) return res.json({ account: accountOf(user) });
+    if (clean) {
+      if (!freeHandleValid(clean) && !(await handleOwned(pool, user.id, clean)))
+        return res.status(400).json({ error: "Single characters and symbols have to be bought from the store first." });
+      if (clean.length < 3 && freeHandleValid(clean)) return res.status(400).json({ error: "Aliases need at least 3 characters." });
+      if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
+      if (RESERVED.has(clean) || clean === user.username) {
+        return res.status(400).json({ error: `"${clean}" is already taken.` });
+      }
+      if (await claimTaken(clean, user.id)) {
+        return res.status(400).json({ error: `@${clean} is already claimed — try another.` });
+      }
     }
-    if (!user.premium && !user.is_owner) {
-      return res.status(403).json({ error: "A second alias is part of Premium." });
-    }
-    if (await claimTaken(clean, user.id)) {
-      return res.status(400).json({ error: `@${clean} is already claimed — try another.` });
+    if (claimCooldownMs(user.alias2_updated_at)) {
+      return cooldownResponse(res, "Your second claim", user.alias2_updated_at);
     }
     const { rows } = await pool.query(
-      "update users set alias2 = $1 where id = $2 returning *",
-      [clean, user.id],
+      `update users set alias2 = $1, alias2_updated_at = now()
+       where id = $2 and (alias2_updated_at is null or alias2_updated_at <= now() - interval '2 days')
+       returning *`,
+      [next, user.id],
     );
+    if (!rows[0]) {
+      const fresh = await pool.query("select alias2_updated_at from users where id = $1", [user.id]);
+      if (!fresh.rows[0]) return res.status(401).json({ error: "Sign in again." });
+      return cooldownResponse(res, "Your second claim", fresh.rows[0].alias2_updated_at);
+    }
     res.json({ account: accountOf(rows[0]) });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1998,7 +2056,13 @@ app.get("/api/stats", async (_req, res) => {
 /* Public leaderboard: top profiles by lifetime views or by likes. */
 app.get("/api/leaderboard", async (req, res) => {
   try {
-    const order = req.query.sort === "likes" ? "likes desc, views desc" : "views desc, u.created_at asc";
+    const order = req.query.sort === "likes"
+      ? "likes desc, views desc, u.created_at asc"
+      : "views desc, u.created_at asc";
+    // Paged so the dashboard can keep loading until every registered profile
+    // is on screen instead of silently stopping at 25.
+    const limit = Math.min(100, Math.max(1, Number.parseInt(String(req.query.limit ?? ""), 10) || 25));
+    const offset = Math.max(0, Number.parseInt(String(req.query.offset ?? ""), 10) || 0);
     const { rows } = await pool.query(
       `select u.username, u.alias, u.avatar_url, coalesce(v.views, 0)::int as views,
               coalesce(r.likes, 0)::int as likes
@@ -2009,20 +2073,24 @@ app.get("/api/leaderboard", async (req, res) => {
          from profile_reactions group by username
        ) r on r.username = u.username
        order by ${order}
-       limit 25`,
+       limit $1 offset $2`,
+      [limit, offset],
     );
+    const counted = await pool.query("select count(*)::int as total from users");
     res.set("Cache-Control", "public, max-age=60");
     res.json({
       profiles: rows.map((row) => ({
         username: row.username,
+        handle: row.alias ?? row.username,
         displayName: row.alias ?? null,
         avatarUrl: row.avatar_url ?? null,
         views: Number(row.views) || 0,
         likes: Number(row.likes) || 0,
       })),
+      total: Number(counted.rows[0]?.total) || 0,
     });
   } catch {
-    res.json({ profiles: [] });
+    res.json({ profiles: [], total: 0 });
   }
 });
 

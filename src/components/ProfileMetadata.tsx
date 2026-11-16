@@ -13,10 +13,12 @@ export function ProfileMetadata({
   user,
 }: {
   about: About;
-  user: Pick<Account, "username" | "avatarUrl">;
+  user: Pick<Account, "username" | "alias" | "avatarUrl">;
 }) {
   const meta = about.metadata;
-  const baseTitle = meta.title.trim() || `${about.displayName.trim() || user.username} · tourn.lol`;
+  const baseTitle =
+    meta.title.trim() ||
+    `${about.displayName.trim() || user.alias?.trim() || user.username} · tourn.lol`;
   const favicon =
     meta.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
 

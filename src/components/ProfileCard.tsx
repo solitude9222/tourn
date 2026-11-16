@@ -46,6 +46,7 @@ type LiveCard = {
   linkDesign: typeof FALLBACK_LINK_DESIGN | LinkStore["design"];
   widgets: WidgetStore;
   username: string;
+  alias: string | null;
   id: string;
   uid?: number | null;
   avatar: string;
@@ -66,6 +67,7 @@ function toLiveCard(data: ProfilePayload): LiveCard | null {
     linkDesign: document.links.design ?? DEFAULT_LINK_DESIGN,
     widgets: document.widgets,
     username: data.account.username,
+    alias: data.account.alias ?? null,
     id: data.account.id,
     uid: data.account.uid,
     avatar: data.account.avatarUrl || "/logo.png",
@@ -172,6 +174,7 @@ export function ProfileCard() {
           id: live?.id || "demo",
           uid: live?.uid || 1,
           username: live?.username ?? "tourn",
+          alias: live?.alias ?? "tourn",
           avatarUrl: live?.avatar ?? "/logo.png",
         }}
         about={about}

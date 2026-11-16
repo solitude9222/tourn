@@ -49,6 +49,7 @@ const PortfolioPage = lazyPage(() => import("./pages/Workspaces"), "PortfolioPag
 const ProfileWorkspacePage = lazyPage(() => import("./pages/Workspaces"), "ProfileWorkspacePage");
 const ThemePage = lazyPage(() => import("./pages/Theme"), "ThemePage");
 const SupportPage = lazyPage(() => import("./pages/Support"), "SupportPage");
+const SocialPage = lazyPage(() => import("./pages/Social"), "SocialPage");
 
 const AccountSettingsPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AccountSettingsPage })),
@@ -57,6 +58,41 @@ const InventoryPage = lazyPage(() => import("./pages/Inventory"), "InventoryPage
 const AdminPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AdminPage })),
 );
+/* Warm a page chunk when its navigation entry is hovered or focused, so the
+   click does not sit through a cold dynamic import. */
+const PAGE_PRELOADS: Partial<Record<Page, () => Promise<unknown>>> = {
+  home: () => import("./pages/Home"),
+  "account-profile": () => import("./pages/Account"),
+  affiliates: () => import("./pages/Account"),
+  analytics: () => import("./pages/Account"),
+  badges: () => import("./pages/Badges"),
+  music: () => import("./pages/Customize"),
+  "customize-profile": () => import("./pages/Customize"),
+  layout: () => import("./pages/Layout"),
+  "profile-appearance": () => import("./pages/Layout"),
+  "portfolio-sections": () => import("./pages/Layout"),
+  effects: () => import("./pages/Effects"),
+  links: () => import("./pages/Links"),
+  widgets: () => import("./pages/Widgets"),
+  assets: () => import("./pages/Community"),
+  leaderboard: () => import("./pages/Community"),
+  templates: () => import("./pages/Templates"),
+  aliases: () => import("./pages/Inventory"),
+  billing: () => import("./pages/Plan"),
+  premium: () => import("./pages/Plan"),
+  support: () => import("./pages/Support"),
+  social: () => import("./pages/Social"),
+  settings: () => import("./pages/Embedded"),
+  admin: () => import("./pages/Embedded"),
+  theme: () => import("./pages/Theme"),
+  "portfolio-general": () => import("./pages/Workspaces"),
+  "portfolio-gallery": () => import("./pages/Workspaces"),
+  "portfolio-design": () => import("./pages/Workspaces"),
+  "profile-main": () => import("./pages/Workspaces"),
+  "profile-experience": () => import("./pages/Workspaces"),
+  "profile-switches": () => import("./pages/Workspaces"),
+};
+
 import "./dash.css";
 import "./pages.css";
 
@@ -170,6 +206,12 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     icon: "help",
     crumb: "Dashboard",
   },
+  social: {
+    title: "Social",
+    subtitle: "Admin-only servers, channels and real member profiles.",
+    icon: "comment",
+    crumb: "Admin",
+  },
   settings: {
     title: "Account",
     subtitle: "Your claims, account security and plan.",
@@ -263,7 +305,12 @@ function readDashboardLocation(isAdmin: boolean): { page: Page; tab: ProfileTab 
     ? "portfolio-sections"
     : parts[1];
   const candidate = parts[0] === "admin" ? "admin" : requested || "home";
-  const page = Object.hasOwn(META, candidate) && (candidate !== "admin" || isAdmin) ? candidate as Page : "home";
+  const page =
+    Object.hasOwn(META, candidate) &&
+    (candidate !== "admin" || isAdmin) &&
+    (candidate !== "social" || isAdmin)
+      ? (candidate as Page)
+      : "home";
   const tab = ["profile", "experience", "integrations", "switches"].includes(parts[2]) ? parts[2] as ProfileTab : "profile";
   return { page, tab };
 }
@@ -299,6 +346,9 @@ export function Dashboard(props: DashboardProps) {
 
   const [page, setPage] = useState<Page>(() => readDashboardLocation(isAdmin).page);
   const [profileTab, setProfileTab] = useState<ProfileTab>(() => readDashboardLocation(isAdmin).tab);
+  const prefetchPage = useCallback((next: Page) => {
+    void PAGE_PRELOADS[next]?.();
+  }, []);
   const [aboutDraft, setAboutDraft] = useState<About>(about);
   const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(widgets);
   const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(badges);
@@ -606,6 +656,9 @@ export function Dashboard(props: DashboardProps) {
     case "support":
       content = <SupportPage />;
       break;
+    case "social":
+      content = isAdmin ? <SocialPage /> : <HomePage />;
+      break;
     case "settings":
       content = <AccountSettingsPage />;
       break;
@@ -648,6 +701,7 @@ export function Dashboard(props: DashboardProps) {
       <Shell
         page={page}
         onNavigate={go}
+        onPrefetchPage={prefetchPage}
         title={meta.title}
         subtitle={meta.subtitle}
         icon={meta.icon}

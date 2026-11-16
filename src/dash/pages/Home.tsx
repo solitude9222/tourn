@@ -100,7 +100,11 @@ export function HomePage() {
             <Button
               icon="eye"
               onClick={() =>
-                window.open(`/${encodeURIComponent(user.username)}`, "_blank", "noopener,noreferrer")
+                window.open(
+                  `/${encodeURIComponent(user.alias?.trim() || user.username)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
               }
             >
               View profile
@@ -108,22 +112,22 @@ export function HomePage() {
           }
         />
         <div className="tw-overview">
-          <div className="tw-overview-row">
-            <span>Username</span>
-            <b>{user.username}</b>
-            <small>can be changed anytime</small>
-          </div>
-          <div className="tw-overview-row">
+          <div className="tw-overview-card">
             <span>Alias</span>
-            <b>{user.alias?.trim() || "N/A"}</b>
-            <small>{user.alias?.trim() ? "1 / 1 aliases available" : "claim one in settings"}</small>
+            <b>{user.alias?.trim() || "Not claimed"}</b>
+            <small>{user.alias?.trim() ? "2-day cooldown between changes" : "claim one in settings"}</small>
           </div>
-          <div className="tw-overview-row">
+          <div className="tw-overview-card">
+            <span>Second claim</span>
+            <b>{isPremium && user.alias2 ? user.alias2 : "Premium only"}</b>
+            <small>{isPremium ? "2-day cooldown between changes" : "unlock with Premium"}</small>
+          </div>
+          <div className="tw-overview-card">
             <span>User ID</span>
             <b>{uid}</b>
             <small>joined after {joinedPercent}% of all users</small>
           </div>
-          <div className="tw-overview-row">
+          <div className="tw-overview-card">
             <span>Profile Views</span>
             <b>{profileViews ?? 0}</b>
             <small>{profileViews ? "total since launch" : "0 views since last week"}</small>
@@ -131,7 +135,9 @@ export function HomePage() {
         </div>
       </Card>
 
-      <Card>
+      <div className="tw-home-setup">
+
+      <Card className="tw-setup-card">
         <CardHead
           icon="check"
           title="Profile Setup"
@@ -159,7 +165,7 @@ export function HomePage() {
         </div>
       </Card>
 
-      <div className="tw-home-top">
+      <div className="tw-home-setup-side">
         <Card className="tw-home-actions">
           <CardHead icon="bolt" title="Quick Actions" subtitle="The shortcuts worth knowing." />
           <div className="tw-home-actions-buttons">
@@ -179,10 +185,8 @@ export function HomePage() {
               ? "Discord is linked to this account, so widgets and the server can find you."
               : "Link Discord to turn on the Discord widget, server tools and DM verification."}
           </p>
-        </Card>
 
-        <Card>
-          <CardHead icon="help" title="Documentation" subtitle="Setup guides and common questions." />
+          <span className="tw-home-guides-label">Guides</span>
           <div className="tw-docs-list">
             {[
               ["Build your profile", "portfolio-general"],
@@ -193,7 +197,7 @@ export function HomePage() {
               <button
                 key={label}
                 type="button"
-                className="tw-check-row"
+                className="tw-check-row tw-guide-row"
                 onClick={() => go(page as Parameters<typeof go>[0])}
               >
                 <span className="tw-check-mark is-done">
@@ -205,6 +209,7 @@ export function HomePage() {
             ))}
           </div>
         </Card>
+      </div>
       </div>
 
       <div className="tw-home-stats">

@@ -65,6 +65,8 @@ function ping() {
 export type ShellProps = {
   page: Page;
   onNavigate: (page: Page, tab?: ProfileTab) => void;
+  /** Warm the next page's chunk before the click commits. */
+  onPrefetchPage?: (page: Page) => void;
   title: string;
   subtitle: string;
   icon: IconName;
@@ -82,6 +84,7 @@ export type ShellProps = {
 export function Shell({
   page,
   onNavigate,
+  onPrefetchPage,
   title,
   subtitle,
   icon,
@@ -112,8 +115,9 @@ export function Shell({
   const notesRef = useRef<HTMLDivElement>(null);
   const seenRef = useRef<Set<string> | null>(null);
 
-  const displayName = about.displayName.trim() || user.username;
+  const displayName = about.displayName.trim() || user.alias?.trim() || user.username;
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
+  const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
 
   const loadTrades = async () => {
     const result = await api<{ trades: ShellTrade[] }>("/api/trades");
@@ -271,9 +275,9 @@ export function Shell({
 
         <div className="tw-rail-scroll">
           <nav className="tw-nav" aria-label="Dashboard">
-            {NAV.map((item, index) => {
+            {navItems.map((item, index) => {
               const active = item.tabs.some((tab) => tab.page === page);
-              const heading = item.group && item.group !== NAV[index - 1]?.group ? item.group : null;
+              const heading = item.group && item.group !== navItems[index - 1]?.group ? item.group : null;
               const tabs = item.tabs.filter(
                 (tab) => !searching || matches(item.label) || matches(tab.label),
               );
@@ -285,6 +289,8 @@ export function Shell({
                     type="button"
                     className={`tw-nav-item${active ? " is-active" : ""}`}
                     onClick={() => onNavigate(navHome(item))}
+                    onPointerEnter={() => onPrefetchPage?.(navHome(item))}
+                    onFocus={() => onPrefetchPage?.(navHome(item))}
                     aria-current={active ? "page" : undefined}
                   >
                     <Icon name={item.icon} size={18} />
@@ -317,7 +323,7 @@ export function Shell({
               <div className="tw-user-pop" role="menu" aria-label="Account menu">
                 <div className="tw-user-pop-head">
                   <small>Signed in as</small>
-                  <b>@{user.username}</b>
+                  <b>{user.email ?? (user.alias ? `@${user.alias}` : "Account")}</b>
                 </div>
 
                 <div className="tw-user-pop-list">
@@ -432,7 +438,7 @@ export function Shell({
                 </span>
                 <span className="tw-user-meta">
                   <b>{displayName}</b>
-                  <small>@{user.username}</small>
+                  <small>{user.alias ? `@${user.alias}` : user.email ?? ""}</small>
                 </span>
                 <Icon name="chevron-down" size={14} className="tw-chevron" />
               </button>
@@ -589,6 +595,8 @@ export function Shell({
                 aria-selected={tab.id === activeTab}
                 className={`tw-tab${tab.id === activeTab ? " is-active" : ""}`}
                 onClick={() => onTab(tab.id)}
+                onPointerEnter={() => onPrefetchPage?.(tab.id as Page)}
+                onFocus={() => onPrefetchPage?.(tab.id as Page)}
               >
                 {tab.icon ? <Icon name={tab.icon} size={15} /> : null}
                 {tab.label}

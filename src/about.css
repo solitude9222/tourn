@@ -6912,3 +6912,44 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--fx-cursor-color, #fff) 55%, transparent));
   pointer-events: none;
 }
+
+/* ── slideshow hard reset ──────────────────────────────────────────────────
+   `.lkr-flow.lkr-flow--left` loads later and re-applies a centred flex
+   column, which pushes the first slide above the scroll box (offsetTop was
+   -814 while scrollTop stayed 0). The slideshow must remain a block scroll
+   column so its first page starts at the top. */
+.lkr-page .lkr-flow.lkr-flow--slideshow,
+.lkr-page .lkr-flow.lkr-flow--slideshow.lkr-flow--left {
+  display: block;
+  flex: none;
+  flex-direction: initial;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  gap: 0;
+  justify-items: stretch;
+}
+
+/* Location is content, never a fixed-width label: let long places wrap
+   instead of clipping at 55–70% of the slot. */
+.pv-location {
+  max-width: 100%;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pv-page-slots .pv-slot {
+  max-width: calc(100% - 44px);
+}
+
+.pv-slot--page-tr {
+  text-align: right;
+}
+
+.pv-page-slots .pv-location {
+  justify-content: flex-end;
+  text-align: right;
+}

@@ -50,9 +50,12 @@ import { CopyIcon, ExternalIcon, MailIcon, UserIcon } from "./components/Icons";
 /* The marketing site, the dashboard and the demo page are not needed to render
    tourn.lol/<handle>. Splitting them keeps a profile visit down to the profile
    bundle instead of parsing the whole dashboard first. */
-const Dashboard = lazy(() =>
-  import("./dash/DashboardApp").then((module) => ({ default: module.Dashboard })),
-);
+const Dashboard = lazy(() => {
+  // Home is the landing page for almost every dashboard visit. Start its chunk
+  // alongside the shell instead of waiting for the shell to mount first.
+  void import("./dash/pages/Home");
+  return import("./dash/DashboardApp").then((module) => ({ default: module.Dashboard }));
+});
 const DemoPage = lazy(() =>
   import("./components/DemoPage").then((module) => ({ default: module.DemoPage })),
 );

@@ -33,6 +33,7 @@ const DECO_PAGE = 36;
 
 export function AccountProfilePage() {
   const { user, about, setAbout, notify, go, isPremium } = useDash();
+  const publicHandle = user.alias?.trim() || user.username;
   const avatarInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [decoOpen, setDecoOpen] = useState(false);
@@ -60,8 +61,8 @@ export function AccountProfilePage() {
   };
 
   const copyUrl = async () => {
-    const ok = await copyText(`https://tourn.lol/${user.username}`);
-    notify("Profile link", ok ? "Copied to your clipboard." : `tourn.lol/${user.username}`);
+    const ok = await copyText(`https://tourn.lol/${publicHandle}`);
+    notify("Profile link", ok ? "Copied to your clipboard." : `tourn.lol/${publicHandle}`);
   };
 
   const assets = about.assets;
@@ -387,7 +388,7 @@ export function AccountProfilePage() {
           title="Public Page"
           subtitle="Your shareable address and the details attached to it."
           actions={
-            <Button icon="external" onClick={() => window.open(`/${user.username}`, "_blank")}>
+            <Button icon="external" onClick={() => window.open(`/${publicHandle}`, "_blank")}>
               Open page
             </Button>
           }
@@ -395,7 +396,7 @@ export function AccountProfilePage() {
 
         <div className="tw-copy-row">
           <span className="tw-copy-value">
-            tourn.lol/<b>{user.username}</b>
+            tourn.lol/<b>{publicHandle}</b>
           </span>
           <IconButton label="Copy profile link" icon="copy" onClick={() => void copyUrl()} />
         </div>
@@ -406,12 +407,12 @@ export function AccountProfilePage() {
             <b>{joined}</b>
           </div>
           <div>
-            <small>Account</small>
-            <b>@{user.username}</b>
+            <small>Public name</small>
+            <b>{user.alias?.trim() ? `@${user.alias}` : "No alias yet"}</b>
           </div>
           <div>
-            <small>Alias</small>
-            <b>{user.alias?.trim() ? `swats.bio/${user.alias}` : "Not claimed"}</b>
+            <small>Second claim</small>
+            <b>{isPremium && user.alias2 ? `swats.bio/${user.alias2}` : "Premium only"}</b>
           </div>
         </div>
 
@@ -673,6 +674,7 @@ export function AccountProfilePage() {
 
 export function AffiliatesPage() {
   const { user, isPremium, notify, go } = useDash();
+  const publicHandle = user.alias?.trim() || user.username;
   const [copied, setCopied] = useState<string | null>(null);
 
   const copy = async (value: string, id: string) => {
@@ -688,17 +690,15 @@ export function AffiliatesPage() {
     {
       id: "main",
       label: "tourn.lol",
-      value: `tourn.lol/${user.username}`,
-      href: `https://tourn.lol/${user.username}`,
+      value: `tourn.lol/${publicHandle}`,
+      href: `https://tourn.lol/${publicHandle}`,
       locked: false,
     },
     {
       id: "alias",
       label: "swats.bio",
-      value: isPremium
-        ? `swats.bio/${user.alias2 || user.username}`
-        : "Premium alias",
-      href: `https://swats.bio/${user.alias2 || user.username}`,
+      value: isPremium ? (user.alias2 ? `swats.bio/${user.alias2}` : "No second claim") : "Premium alias",
+      href: isPremium && user.alias2 ? `https://swats.bio/${user.alias2}` : "#/dashboard/settings",
       locked: !isPremium,
     },
   ];
@@ -748,7 +748,7 @@ export function AffiliatesPage() {
           title="No referrals yet"
           message="Share your tourn.lol link. New accounts that arrive from it will appear here."
           action={
-            <Button icon="copy" onClick={() => void copy(`https://tourn.lol/${user.username}`, "main")}>
+            <Button icon="copy" onClick={() => void copy(`https://tourn.lol/${publicHandle}`, "main")}>
               Copy your link
             </Button>
           }

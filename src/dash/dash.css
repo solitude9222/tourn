@@ -10,21 +10,21 @@
   --page: #09090b;
   --rail: #09090b;
   --card: #121216;
-  --bar: #0f0f12;
-  --tile: #1a1a20;
-  --border: #2a2a32;
+  --bar: #141416;
+  --tile: #1a1a1d;
+  --border: #29292e;
   --input-border: #36363f;
-  --accent: #d40410;
-  --accent-soft: #3a1c23;
-  --accent-text: #ff7880;
-  --title: #f5f5f7;
-  --sub: #b0b0ba;
-  --desc: #9a9aa4;
-  --nav: #8e8e99;
+  --accent: #ed101f;
+  --accent-soft: #301015;
+  --accent-text: #ff2030;
+  --title: #fafafa;
+  --sub: #b2b2bc;
+  --desc: #777780;
+  --nav: #777780;
   --icon: #8a8a95;
   --subnav: #b4b4be;
   --danger: #e0575b;
-  --success: #34d399;
+  --success: #35e58b;
   --r-card: 16px;
   --r-tile: 12px;
   --r-input: 10px;
@@ -92,7 +92,7 @@
   width: var(--rail-w);
   height: 100vh;
   min-height: 0;
-  border-right: 1px solid #1d1d22;
+  border-right: 1px solid #202024;
   border-top-right-radius: 0;
   background: var(--rail);
 }
@@ -390,7 +390,7 @@
 }
 
 .tw-avatar i.is-on {
-  background: #3ddc84;
+  background: #35e58b;
 }
 
 .tw-user-meta {
@@ -556,7 +556,7 @@
   height: 36px;
   border: 1px solid #23232a;
   border-radius: 10px;
-  background: #141418;
+  background: #141416;
   color: var(--sub, #af9fa0);
   cursor: pointer;
   transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
@@ -977,7 +977,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--accent-text);
-  box-shadow: 0 0 0 4px rgba(212, 4, 16, 0.18);
+  box-shadow: 0 0 0 4px rgba(237, 16, 31, 0.18);
   appearance: none;
 }
 
@@ -1058,7 +1058,7 @@
 }
 
 .tw-toggle-tile.is-accent {
-  border-color: rgba(212, 4, 16, 0.55);
+  border-color: rgba(237, 16, 31, 0.55);
 }
 
 .tw-toggle-tile-icon {
@@ -1146,7 +1146,7 @@
 }
 
 .tw-btn--soft {
-  background: rgba(212, 4, 16, 0.14);
+  background: rgba(237, 16, 31, 0.14);
   color: #ffa8ab;
 }
 
@@ -1258,7 +1258,7 @@
 }
 
 .tw-chip--accent {
-  background: rgba(212, 4, 16, 0.16);
+  background: rgba(237, 16, 31, 0.16);
   color: #ff8f92;
 }
 
@@ -1827,7 +1827,7 @@
 }
 
 .tw-badge-tile.is-equipped {
-  border-color: rgba(212, 4, 16, 0.5);
+  border-color: rgba(237, 16, 31, 0.5);
   background: rgba(82, 32, 34, 0.32);
 }
 
@@ -1847,7 +1847,7 @@
   flex: none;
   overflow: hidden;
   border-radius: 10px;
-  background: radial-gradient(120% 120% at 30% 0%, #1d1d22, #101012);
+  background: radial-gradient(120% 120% at 30% 0%, #202024, #101012);
   border: 1px solid #232327;
 }
 
@@ -3192,7 +3192,7 @@
 }
 
 .tw-select-item.is-active {
-  background: rgba(212, 4, 16, 0.14);
+  background: rgba(237, 16, 31, 0.14);
   color: var(--accent-text);
 }
 
@@ -3438,7 +3438,7 @@
 
 .tw-platform-option.is-active {
   border-color: var(--accent);
-  background: rgba(212, 4, 16, 0.14);
+  background: rgba(237, 16, 31, 0.14);
   color: #fff;
 }
 
@@ -4248,7 +4248,7 @@
 .invt-chip.is-use {
   border-color: transparent;
   background: rgba(61, 220, 132, 0.12);
-  color: #3ddc84;
+  color: #35e58b;
 }
 .invt-chip.is-soon {
   border-color: transparent;
@@ -4334,7 +4334,7 @@
   font-size: 12px;
 }
 .invt-stat.is-ok b {
-  color: #3ddc84;
+  color: #35e58b;
 }
 .invt-note {
   margin: 12px 0 0;
@@ -5121,7 +5121,7 @@
 .ui-select:focus-visible {
   border-color: #b8080c;
   background: #141419;
-  box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.18);
+  box-shadow: 0 0 0 3px rgba(237, 16, 31, 0.18);
   outline: none;
 }
 
@@ -5161,7 +5161,7 @@
 .tw-textarea:focus {
   border-color: #b8080c;
   background: #141419;
-  box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.18);
+  box-shadow: 0 0 0 3px rgba(237, 16, 31, 0.18);
 }
 
 /* The portal-rendered dropdown list keeps the same surface language. */
@@ -5192,7 +5192,7 @@
 }
 
 .ui-select-item.is-active {
-  background: rgba(212, 4, 16, 0.22);
+  background: rgba(237, 16, 31, 0.22);
   color: #ffeeef;
 }
 
@@ -5327,7 +5327,7 @@
     radial-gradient(130% 160% at 0% 0%, rgba(255, 255, 255, 0.12), transparent 46%),
     linear-gradient(158deg, #221717 0%, #090910 52%, #101019 100%);
   box-shadow:
-    0 0 0 3px rgba(212, 4, 16, 0.2),
+    0 0 0 3px rgba(237, 16, 31, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.09);
 }
 
@@ -5341,7 +5341,7 @@
 
 .ui-select-item.is-active {
   background:
-    linear-gradient(160deg, rgba(212, 4, 16, 0.34), rgba(212, 4, 16, 0.14));
+    linear-gradient(160deg, rgba(237, 16, 31, 0.34), rgba(237, 16, 31, 0.14));
 }
 
 /* The fine checker texture came from these three shells. */
@@ -5484,11 +5484,11 @@
   background: var(--field-bg-hover, #1c1c23);
   background-image: none;
   border-color: #b8080c;
-  box-shadow: 0 0 0 3px rgba(212, 4, 16, 0.18);
+  box-shadow: 0 0 0 3px rgba(237, 16, 31, 0.18);
 }
 
 .ui-select-item.is-active {
-  background: rgba(212, 4, 16, 0.28);
+  background: rgba(237, 16, 31, 0.28);
 }
 
 .tw-dash .tw-control,
@@ -5542,7 +5542,7 @@
 }
 
 .ui-select-item.is-active {
-  background: rgba(212, 4, 16, 0.32);
+  background: rgba(237, 16, 31, 0.32);
 }
 
 /* The sidebar search was a black input inside a lighter label — the seam
@@ -5583,7 +5583,7 @@
 
 .tw-rail {
   background: var(--page);
-  border-right: 1px solid #1d1d22;
+  border-right: 1px solid #202024;
   border-top-right-radius: 0;
 }
 
@@ -5594,8 +5594,8 @@
 .tw-tile,
 .tw-modal-card,
 .tw-dash .tw-card {
-  border: 1px solid #26262c;
-  background: #141418;
+  border: 1px solid #29292e;
+  background: #141416;
   background-image: none;
   box-shadow: none;
 }
@@ -5642,7 +5642,7 @@
    with a single divider under it, instead of two stacked borders. */
 .tw-rail > .tw-rail-foot {
   padding: 0 16px 12px;
-  border-bottom: 1px solid #1d1d22;
+  border-bottom: 1px solid #202024;
 }
 
 .tw-rail-foot .tw-premium-card {
@@ -5668,13 +5668,13 @@
 
 .tw-dash {
   --card: #121216;
-  --tile: #1a1a20;
-  --bar: #0f0f12;
-  --border: #2a2a32;
+  --tile: #1a1a1d;
+  --bar: #141416;
+  --border: #29292e;
   --input-border: #36363f;
-  --sub: #b0b0ba;
-  --desc: #9a9aa4;
-  --nav: #8e8e99;
+  --sub: #b2b2bc;
+  --desc: #777780;
+  --nav: #777780;
   --icon: #8a8a95;
   --subnav: #b4b4be;
 }
@@ -5697,10 +5697,10 @@
 [data-dash-theme="black"] .tw-dash {
   --page: #0b0b0d;
   --rail: #0b0b0d;
-  --bar: #0f0f12;
+  --bar: #141416;
   --card: var(--page);
-  --tile: #141418;
-  --border: #26262c;
+  --tile: #141416;
+  --border: #29292e;
   --input-border: #33333b;
 }
 
@@ -6105,8 +6105,8 @@
 }
 
 .tw-wstack-chip.is-live {
-  border-color: color-mix(in srgb, #34d399 45%, var(--border));
-  background: color-mix(in srgb, #34d399 14%, transparent);
+  border-color: color-mix(in srgb, #35e58b 45%, var(--border));
+  background: color-mix(in srgb, #35e58b 14%, transparent);
   color: #7be3b8;
 }
 
@@ -6539,12 +6539,12 @@
   letter-spacing: -0.01em;
 }
 .tw-nav-item.is-active {
-  background: linear-gradient(90deg, rgba(212, 4, 16, 0.2), rgba(212, 4, 16, 0.05));
-  box-shadow: inset 0 0 0 1px rgba(212, 4, 16, 0.28);
+  background: linear-gradient(90deg, rgba(237, 16, 31, 0.2), rgba(237, 16, 31, 0.05));
+  box-shadow: inset 0 0 0 1px rgba(237, 16, 31, 0.28);
   color: #ffffff;
 }
 .tw-nav-item.is-active svg {
-  color: #ff7880;
+  color: #ff2030;
 }
 .tw-search kbd {
   margin-left: auto;
@@ -6565,8 +6565,8 @@
   padding: 0 14px;
   border: 1px solid #23232a;
   border-radius: 10px;
-  background: #141418;
-  color: var(--sub, #b0b0ba);
+  background: #141416;
+  color: var(--sub, #b2b2bc);
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
@@ -6590,7 +6590,7 @@
 }
 .tw-tab.is-active {
   background: var(--accent);
-  box-shadow: 0 10px 24px -14px rgba(212, 4, 16, 0.95);
+  box-shadow: 0 10px 24px -14px rgba(237, 16, 31, 0.95);
 }
 .tw-card {
   border-radius: 18px;
@@ -6646,6 +6646,942 @@
 
 /* ── example text is the red accent ─────────────────────────────────────── */
 .tw-dash :is(input, textarea)::placeholder {
-  color: #ff4d55;
+  color: #ff2030;
   opacity: 1;
+}
+
+/* ==========================================================================
+   Visual refresh — reference palette and 1738×864 sizing targets.
+   Values are intentional targets, not samples: 254px rail, 28px page titles,
+   14px cards, 11px controls, a single restrained crimson accent.
+   ========================================================================== */
+
+.tw-dash {
+  --page: #09090b;
+  --rail: #09090b;
+  --dash: #0d0d0f;
+  --card: #141416;
+  --bar: #141416;
+  --tile: #1a1a1d;
+  --tile-hover: #222225;
+  --border: #29292e;
+  --divider: #202024;
+  --input-border: #29292e;
+  --accent: #ed101f;
+  --accent-bright: #ff2030;
+  --accent-deep: #8f0813;
+  --accent-soft: #301015;
+  --accent-border: #71212b;
+  --accent-text: #ff2030;
+  --title: #fafafa;
+  --sub: #b2b2bc;
+  --desc: #b2b2bc;
+  --nav: #777780;
+  --icon: #777780;
+  --subnav: #b2b2bc;
+  --success: #35e58b;
+  --warning: #facc15;
+  --danger: #ed101f;
+  --disabled: #686870;
+  --r-card: 14px;
+  --r-tile: 11px;
+  --r-input: 10px;
+  --r-bar: 11px;
+  --rail-w: 254px;
+  --font: "Outfit", "Lexend", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--page);
+  color: var(--title);
+}
+
+/* ── rail: brand, search, navigation, account — in that order ───────────── */
+.tw-rail {
+  background: var(--rail);
+  border-right: 1px solid var(--divider);
+  box-shadow: none;
+}
+
+.tw-brand {
+  order: 0;
+  flex: none;
+  gap: 9px;
+  padding: 20px 17px 18px;
+}
+
+.tw-brand img {
+  width: 30px;
+  height: 30px;
+}
+
+.tw-brand-text {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.tw-brand-text i {
+  color: var(--accent-bright);
+}
+
+.tw-search {
+  order: 1;
+  flex: none;
+  width: 220px;
+  height: 40px;
+  margin: 0 17px 18px;
+  padding: 0 11px;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--nav);
+}
+
+.tw-search:focus-within {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px rgba(237, 16, 31, 0.12);
+}
+
+.tw-search input {
+  font-size: 13px;
+  color: var(--title);
+}
+
+.tw-search input::placeholder {
+  color: var(--nav);
+}
+
+.tw-search kbd {
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--tile);
+  color: var(--nav);
+  font-size: 9.5px;
+}
+
+.tw-rail-scroll {
+  order: 2;
+  padding: 2px 21px 16px;
+}
+
+.tw-nav {
+  gap: 4px;
+}
+
+.tw-nav-group {
+  margin: 18px 0 5px;
+  padding: 0 2px;
+  color: var(--nav);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.tw-nav-group:first-child {
+  margin-top: 2px;
+}
+
+.tw-nav-item {
+  width: 100%;
+  height: 40px;
+  padding: 0 11px;
+  gap: 10px;
+  border-radius: 11px;
+  color: var(--sub);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+.tw-nav-item svg {
+  width: 18px;
+  height: 18px;
+  color: var(--icon);
+}
+
+.tw-nav-item:hover {
+  background: var(--tile-hover);
+  color: var(--title);
+}
+
+.tw-nav-item.is-active {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+  color: var(--title);
+}
+
+.tw-nav-item.is-active svg {
+  color: var(--accent-bright);
+}
+
+.tw-rail-foot {
+  order: 3;
+  flex: none;
+  width: 100%;
+  margin-top: 0;
+  padding: 12px 13px 14px;
+  border-top: 1px solid var(--divider);
+  border-bottom: 0;
+  background: var(--rail);
+}
+
+.tw-rail-foot .tw-premium-card,
+.tw-premium-card {
+  width: 228px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--tile);
+}
+
+.tw-premium-card:hover {
+  border-color: var(--accent-border);
+  background: var(--tile-hover);
+}
+
+.tw-premium-card b {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tw-premium-card small {
+  color: var(--nav);
+  font-size: 10.5px;
+}
+
+.tw-premium-chev {
+  color: var(--nav);
+}
+
+.tw-user {
+  width: 228px;
+}
+
+.tw-user-row {
+  width: 228px;
+  height: 62px;
+  padding: 8px 10px;
+  gap: 9px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.tw-user-row:hover {
+  border-color: var(--accent-border);
+  background: var(--tile-hover);
+}
+
+.tw-avatar {
+  width: 34px;
+  height: 34px;
+}
+
+.tw-user-meta b {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-user-meta small {
+  color: var(--nav);
+  font-size: 11px;
+}
+
+.tw-user-bell {
+  width: 26px;
+  height: 26px;
+  color: var(--nav);
+}
+
+/* ── main frame: inset from the top, rounded, one hairline border ────────── */
+.tw-main {
+  height: calc(100vh - 50px);
+  margin-top: 50px;
+  padding: 25px 44px 120px;
+  border: 1px solid var(--border);
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 15px 0 0 0;
+  background: var(--dash);
+}
+
+.tw-dash .tw-main {
+  background: var(--dash);
+}
+
+.tw-topline {
+  min-height: 36px;
+  gap: 12px;
+}
+
+.tw-crumbs {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--tile);
+  color: var(--sub);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+
+.tw-crumbs svg {
+  color: var(--nav);
+}
+
+.tw-crumbs b {
+  color: var(--title);
+  font-weight: 500;
+}
+
+.tw-crumb-sep {
+  color: var(--disabled) !important;
+}
+
+.tw-view-profile,
+.tw-eye-btn {
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--tile);
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tw-view-profile {
+  padding: 0 14px;
+}
+
+.tw-eye-btn {
+  width: 38px;
+}
+
+.tw-view-profile:hover,
+.tw-eye-btn:hover {
+  border-color: var(--accent-border);
+  background: var(--tile-hover);
+  color: var(--title);
+}
+
+.tw-page-head {
+  margin-top: 22px;
+}
+
+.tw-page-copy h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.tw-page-copy p {
+  margin-top: 6px;
+  color: var(--sub);
+  font-size: 13.5px;
+  font-weight: 400;
+}
+
+/* ── page tabs: compact pills, crimson only on the selected one ──────────── */
+.tw-tabs {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  height: 40px;
+  min-height: 0;
+  margin-top: 20px;
+  padding: 4px;
+  gap: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--divider);
+  border-radius: 11px;
+  background: var(--card);
+}
+
+.tw-tab {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 14px;
+  gap: 7px;
+  border-radius: 8px;
+  color: var(--sub);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-tab .tw-icon,
+.tw-tab svg {
+  width: 14px;
+  height: 14px;
+  color: var(--nav);
+}
+
+.tw-tab:hover {
+  background: var(--tile-hover);
+  color: var(--title);
+}
+
+.tw-tab:hover .tw-icon,
+.tw-tab:hover svg {
+  color: var(--sub);
+}
+
+.tw-tab.is-active,
+.tw-tab.is-active:hover {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+  color: var(--title);
+}
+
+.tw-tab.is-active svg,
+.tw-tab.is-active .tw-icon {
+  color: var(--accent-bright);
+}
+
+/* ── cards and headings ─────────────────────────────────────────────────── */
+.tw-card {
+  margin-top: 15px;
+  padding: 23px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: none;
+}
+
+.tw-card:first-child {
+  margin-top: 20px;
+}
+
+.tw-card-head {
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.tw-card-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--nav);
+}
+
+.tw-card-copy h2 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tw-card-copy p {
+  margin-top: 4px;
+  color: var(--nav);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.tw-card-head--plain .tw-card-copy h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ── home: four overview tiles, then the 2.1fr / 1.05fr setup grid ───────── */
+.tw-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.tw-overview-card {
+  display: flex;
+  min-width: 0;
+  min-height: 131px;
+  flex-direction: column;
+  padding: 23px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--tile);
+}
+
+.tw-overview-card > span {
+  color: var(--nav);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.tw-overview-card > b {
+  overflow: hidden;
+  margin-top: 14px;
+  color: var(--title);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-overview-card > small {
+  overflow: hidden;
+  margin-top: auto;
+  padding-top: 12px;
+  color: var(--nav);
+  font-size: 11.5px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tw-home-setup {
+  display: grid;
+  grid-template-columns: 2.1fr 1.05fr;
+  align-items: start;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.tw-home-setup > .tw-card,
+.tw-home-setup .tw-card {
+  margin-top: 0;
+}
+
+.tw-home-setup-side {
+  display: grid;
+  gap: 15px;
+  min-width: 0;
+}
+
+.tw-home-actions {
+  padding: 23px;
+}
+
+.tw-home-actions-buttons {
+  margin-top: 16px;
+  gap: 10px;
+}
+
+.tw-home-progress-label {
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tw-home-progress {
+  height: 6px;
+  margin: 14px 0 18px;
+  background: var(--divider);
+}
+
+.tw-home-progress span {
+  background: linear-gradient(90deg, var(--accent-deep), var(--accent), var(--accent-bright));
+}
+
+.tw-foot-note {
+  margin: 12px 0 0;
+  color: var(--nav);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.tw-checklist {
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tw-check-row {
+  height: 54px;
+  min-height: 54px;
+  padding: 0 16px;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--tile);
+  color: var(--title);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tw-check-row:hover {
+  border-color: var(--accent-border);
+  background: var(--tile-hover);
+}
+
+.tw-check-mark {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #3a3a40;
+  border-radius: 6px;
+  color: var(--disabled);
+}
+
+.tw-check-mark.is-done {
+  border-color: var(--success);
+  background: var(--success);
+  color: #062316;
+}
+
+.tw-check-row b {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tw-check-row svg.tw-chevron {
+  color: var(--nav);
+}
+
+.tw-docs-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tw-docs-list .tw-check-row {
+  height: 46px;
+  min-height: 46px;
+}
+
+/* counters and secondary tiles */
+.tw-home-stats {
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.tw-home-stat {
+  padding: 16px;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.tw-home-stat:hover {
+  border-color: var(--accent-border);
+  background: var(--tile-hover);
+  transform: none;
+}
+
+.tw-home-stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-bright);
+}
+
+.tw-home-stat-copy b {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.tw-home-stat-copy small {
+  color: var(--nav);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.tw-home-stat-chev {
+  color: var(--disabled);
+}
+
+/* controls */
+.tw-btn {
+  height: 38px;
+  padding: 0 15px;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--tile);
+  color: var(--title);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tw-btn:hover:not(:disabled):not(.tw-btn--primary):not(.tw-btn--danger) {
+  border-color: #34343a;
+  background: var(--tile-hover);
+}
+
+.tw-btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.tw-btn--primary:hover {
+  border-color: var(--accent-bright);
+  background: var(--accent-bright);
+}
+
+.tw-btn--soft {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: #ffb3b8;
+}
+
+.tw-btn--danger {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: #ffb3b8;
+}
+
+.tw-btn:disabled {
+  opacity: 1;
+  border-color: var(--divider);
+  background: #17171a;
+  color: var(--disabled);
+}
+
+.tw-btn[data-size="sm"] {
+  height: 32px;
+  padding: 0 11px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.tw-dash :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tw-dash ::selection {
+  background: rgba(237, 16, 31, 0.28);
+}
+
+/* success stays green, warnings stay yellow */
+.tw-chip--success,
+.tw-badge-live,
+.tw-status--success {
+  color: var(--success);
+}
+
+.tw-chip--warning,
+.tw-status--warning {
+  color: var(--warning);
+}
+
+/* responsive: keep the frame usable on narrow screens */
+@media (max-width: 1280px) {
+  .tw-main {
+    padding: 22px 28px 110px;
+  }
+
+  .tw-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1080px) {
+  .tw-home-setup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tw-home-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .tw-main {
+    height: 100vh;
+    margin-top: 0;
+    padding: 20px 18px 110px;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .tw-brand {
+    padding-top: 18px;
+  }
+
+  .tw-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tw-checklist {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Rail children: beat the earlier `.tw-rail > ...` order overrides. */
+.tw-rail > .tw-brand {
+  order: 0;
+}
+
+.tw-rail > .tw-search {
+  order: 1;
+  width: 220px;
+  margin: 0 17px 18px;
+}
+
+.tw-rail > .tw-rail-scroll {
+  order: 2;
+  padding: 2px 21px 16px;
+}
+
+.tw-rail > .tw-rail-foot {
+  order: 3;
+  padding: 12px 13px 14px;
+  border-top: 1px solid var(--divider);
+  border-bottom: 0;
+}
+
+/* Task labels read left-to-right after their checkbox. */
+.tw-check-row {
+  text-align: left;
+}
+
+.tw-check-row b {
+  flex: 1;
+  text-align: left;
+}
+
+/* The rail scrolls by wheel; a hidden bar keeps every 212px item aligned. */
+.tw-rail > .tw-rail-scroll {
+  scrollbar-width: none;
+}
+
+.tw-rail > .tw-rail-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Account and notification menus open upward from the bottom rail block. */
+.tw-rail-foot .tw-user-pop {
+  top: auto;
+  bottom: calc(100% + 8px);
+  transform-origin: bottom right;
+}
+
+.tw-rail-foot .tw-note-pop {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+/* Home setup: the two panels share one row height, so no dead column. */
+.tw-home-setup,
+.tw-home-setup .tw-card {
+  align-items: stretch;
+}
+
+.tw-home-setup-side {
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+}
+
+.tw-home-actions {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.tw-home-guides-label {
+  margin: 22px 0 4px;
+  color: var(--nav);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tw-guide-row {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 2px;
+  border-color: transparent;
+  background: transparent;
+  font-weight: 500;
+}
+
+.tw-guide-row:hover {
+  border-color: transparent;
+  background: var(--tile-hover);
+}
+
+.tw-guide-row .tw-check-mark,
+.tw-guide-row .tw-check-mark.is-done {
+  width: 18px;
+  height: 18px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--nav);
+}
+
+.tw-guide-row .tw-chevron {
+  color: var(--disabled);
+}
+
+/* Guides stay useful without stretching the Quick Actions column. */
+.tw-home-actions .tw-docs-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 8px;
+  margin-top: 2px;
+}
+
+.tw-home-actions .tw-guide-row {
+  height: 34px;
+  min-height: 34px;
+  gap: 8px;
+}
+
+.tw-home-actions .tw-guide-row b {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tw-home-actions .tw-guide-row .tw-check-mark {
+  display: none;
+}
+
+.tw-home-actions .tw-guide-row .tw-chevron {
+  width: 12px;
+  height: 12px;
+}
+
+.tw-home-actions .tw-home-guides-label {
+  margin-top: auto;
+  padding-top: 22px;
+}
+
+/* Later theme blocks set active nav/tabs with extra specificity; restate the
+   reference treatment so the selected state is one maroon fill + red hairline. */
+.tw-dash .tw-nav-item.is-active {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+  color: var(--title);
+}
+
+.tw-dash .tw-nav-item.is-active svg {
+  color: var(--accent-bright);
+}
+
+.tw-dash .tw-tab.is-active,
+.tw-dash .tw-tab.is-active:hover {
+  background: var(--accent-soft);
+  color: var(--title);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+.tw-dash .tw-tab.is-active svg,
+.tw-dash .tw-tab.is-active .tw-icon {
+  color: var(--accent-bright);
+}
+
+/* Example text is metadata, not a call to action. */
+.tw-dash :is(input, textarea)::placeholder {
+  color: var(--nav);
+  opacity: 1;
+}
+
+/* Keep the account menu inside the 254px rail instead of clipping off-screen. */
+.tw-rail-foot .tw-user-pop {
+  left: 0;
+  right: auto;
+  width: 228px;
+  max-width: 228px;
+}
+
+.tw-dash .tw-tab.is-active,
+.tw-dash .tw-tab.is-active:hover {
+  background: #301015 !important;
+  color: #fafafa !important;
+  box-shadow: inset 0 0 0 1px #71212b !important;
 }

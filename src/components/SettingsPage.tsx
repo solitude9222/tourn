@@ -13,6 +13,23 @@ import { formatJoined } from "../lib/format";
 import { Button, Card, CardHead, Chip, Field, Icon, TextInput } from "../dash/ui";
 import { UploadEmbedCard, UploadResponseCard } from "./UploadSettings";
 
+const CLAIM_COOLDOWN_MS = 2 * 24 * 60 * 60 * 1000;
+
+/** Human-readable time left on a claim slot, or null when it is available. */
+function claimCooldown(updatedAt?: string | null): string | null {
+  if (!updatedAt) return null;
+  const changed = Date.parse(updatedAt);
+  if (!Number.isFinite(changed)) return null;
+  const remaining = changed + CLAIM_COOLDOWN_MS - Date.now();
+  if (remaining <= 0) return null;
+  const minutes = Math.ceil(remaining / 60000);
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h`;
+  return `${minutes}m`;
+}
+
 type SettingsNavigateTarget = "about" | "widgets" | "links";
 
 export function SettingsPage({
@@ -69,6 +86,11 @@ export function SettingsPage({
 
   const displayName = user?.alias?.trim() || user?.username || "Account";
   const uid = accountUid(user);
+  const emailHandle = (user?.email?.split("@")[0] ?? user?.username ?? "").slice(0, 24);
+  const aliasCooldown = claimCooldown(user?.aliasUpdatedAt);
+  const alias2Cooldown = claimCooldown(user?.alias2UpdatedAt);
+  const aliasChanged = (aliasDraft.trim().toLowerCase() || null) !== (user?.alias ?? null);
+  const alias2Changed = (alias2Draft.trim().toLowerCase() || null) !== (user?.alias2 ?? null);
 
   return (
     <div className="tw-set">
@@ -84,8 +106,7 @@ export function SettingsPage({
           <div className="tw-set-idcopy">
             <b>{displayName}</b>
             <small>
-              @{user?.username}
-              {user?.email ? ` · ${user.email}` : ""}
+              {[user?.alias ? `@${user.alias}` : null, user?.email].filter(Boolean).join(" · ")}
             </small>
             <div className="tw-set-chips">
               <Chip>#{uid}</Chip>
@@ -95,7 +116,7 @@ export function SettingsPage({
             </div>
           </div>
           <div className="tw-row">
-            <a className="tw-btn tw-btn--ghost" href={`#/profile/${user?.username ?? ""}`}>
+            <a className="tw-btn tw-btn--ghost" href={`#/profile/${user?.alias?.trim() || user?.username || ""}`}>
               <Icon name="eye" size={15} />
               Public page
             </a>
@@ -121,24 +142,33 @@ export function SettingsPage({
               <b>Primary claim</b>
               <Chip tone="success">Free</Chip>
             </div>
-            <Field label="Alias" hint="Letters, numbers, dots, underscores and dashes only. 3–24 characters.">
+            <Field label="Alias" hint="Letters, numbers, dots, underscores and dashes only. 3–24 characters, and one change every 2 days.">
               <span className="tw-prefix">
                 <i>tourn.lol/</i>
                 <input
                   value={aliasDraft}
                   onChange={(event) => setAliasDraft(event.target.value)}
-                  placeholder={user?.username ?? "yourname"}
+                  placeholder={emailHandle || "yourname"}
                   maxLength={24}
                   spellCheck={false}
                 />
               </span>
             </Field>
             <div className="tw-row">
-              <Button variant="primary" disabled={aliasBusy} onClick={() => void saveAlias()}>
+              <Button
+                variant="primary"
+                disabled={aliasBusy || Boolean(aliasCooldown && aliasChanged)}
+                onClick={() => void saveAlias()}
+              >
                 {aliasBusy ? "Saving…" : "Save claim"}
               </Button>
-              <Button onClick={() => setAliasDraft(user?.username ?? "")}>Use handle</Button>
+              <Button onClick={() => setAliasDraft(emailHandle)}>
+                Use email name
+              </Button>
             </div>
+            {aliasCooldown ? (
+              <p className="tw-set-note">Your primary claim can change again in {aliasCooldown}.</p>
+            ) : null}
             {aliasMsg ? <p className="tw-set-note">{aliasMsg}</p> : null}
           </div>
 
@@ -151,7 +181,7 @@ export function SettingsPage({
               label="swats.bio alias"
               hint={
                 isPremiumUser
-                  ? "Claiming is checked against every taken handle first."
+                  ? "Premium only. Claiming is checked against every taken handle first, with one change every 2 days."
                   : "A second claim on swats.bio is one of Premium's perks."
               }
             >
@@ -170,15 +200,22 @@ export function SettingsPage({
             <div className="tw-row">
               {isPremiumUser ? (
                 <>
-                  <Button variant="primary" disabled={aliasBusy} onClick={() => void saveAlias2()}>
+                  <Button
+                    variant="primary"
+                    disabled={aliasBusy || Boolean(alias2Cooldown && alias2Changed)}
+                    onClick={() => void saveAlias2()}
+                  >
                     Save second claim
                   </Button>
                   {user?.alias2 ? (
                     <Button
                       icon="trash"
+                      disabled={aliasBusy || Boolean(alias2Cooldown)}
                       onClick={() => {
                         setAlias2Draft("");
-                        void setAlias2(null).then(() => setAlias2Msg("Second claim cleared."));
+                        void setAlias2(null).then((result) => {
+                          setAlias2Msg(result.error ?? "Second claim cleared.");
+                        });
                       }}
                     >
                       Release
@@ -197,6 +234,9 @@ export function SettingsPage({
                 </Button>
               )}
             </div>
+            {alias2Cooldown ? (
+              <p className="tw-set-note">Your second claim can change again in {alias2Cooldown}.</p>
+            ) : null}
             {alias2Msg ? <p className="tw-set-note">{alias2Msg}</p> : null}
           </div>
         </div>
@@ -492,7 +532,7 @@ function SecurityPanel({
         <span className="tw-set-row-copy">
           <b>{user?.email ?? "Discord account"}</b>
           <small>
-            @{user?.username}
+            {user?.alias ? `@${user.alias}` : "No alias yet"}
             {user?.id ? ` · ${user.id.slice(0, 8)}…` : ""}
           </small>
         </span>

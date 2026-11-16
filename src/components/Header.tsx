@@ -43,6 +43,7 @@ export function Header({
 }) {
   const { isOwner, setAlias, user: viewer } = useAuth();
   const avatarUrl = (avatar || user?.avatarUrl || "").trim();
+  const publicName = user?.alias?.trim() || user?.username || "";
   const [menuOpen, setMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -146,11 +147,11 @@ export function Header({
                   <img className="avatar avatar--xs" src={avatarUrl} alt="" />
                 ) : (
                   <span className="avatar avatar--xs avatar--initial">
-                    {user.username.slice(0, 1).toUpperCase()}
+                    {publicName.slice(0, 1).toUpperCase()}
                   </span>
                 )}
                 <span className="profile-trigger-copy">
-                  <span className="profile-trigger-name">{user.username}</span>
+                  <span className="profile-trigger-name">{publicName}</span>
                   <span className="profile-trigger-sub">Dashboard</span>
                 </span>
               </a>
@@ -168,7 +169,7 @@ export function Header({
               {menuOpen ? (
                 <div className="menu" role="menu">
                   <div className="menu-head">
-                    <p className="menu-name">{user.username}</p>
+                    <p className="menu-name">{publicName}</p>
                     <p className="menu-mail">{user.email ?? "Discord account"}</p>
                   </div>
                   <a className="menu-item" role="menuitem" href={hrefFor("dashboard")}>

@@ -200,7 +200,7 @@ export function BillingPage() {
           </div>
           <div>
             <small>Account</small>
-            <b>@{user.username}</b>
+            <b>{user.alias ? `@${user.alias}` : user.email ?? "Account"}</b>
           </div>
         </div>
 

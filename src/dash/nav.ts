@@ -17,6 +17,8 @@ export type NavItem = {
   key: string;
   label: string;
   icon: IconName;
+  /** Hidden from everyone who is not an admin. */
+  adminOnly?: boolean;
   /** Sidebar section heading; Dashboard sits above every group. */
   group?: NavGroup;
   /** The first tab is where clicking the sidebar entry lands. */
@@ -33,6 +35,13 @@ export const NAV: NavItem[] = [
       { page: "analytics", label: "Analytics", icon: "chart" },
       { page: "leaderboard", label: "Leaderboard", icon: "crown" },
     ],
+  },
+  {
+    key: "social",
+    label: "Social",
+    icon: "comment",
+    adminOnly: true,
+    tabs: [{ page: "social", label: "Social", icon: "comment" }],
   },
   {
     key: "appearance",

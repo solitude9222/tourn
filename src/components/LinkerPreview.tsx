@@ -218,7 +218,7 @@ export function LinkerPreview({
   /** Keeps dashboard previews silent — a preview must never start audio. */
   hideAudio = false,
 }: {
-  user: Pick<Account, "id" | "username" | "avatarUrl">;
+  user: Pick<Account, "id" | "username" | "alias" | "avatarUrl">;
   about: About;
   widgets: WidgetStore;
   badges?: BadgeStore;
@@ -256,6 +256,16 @@ export function LinkerPreview({
   // screen over an already-loaded card when navigating back to a profile).
   const entryWanted = () => {
     if (!showEntry || !design.entry.enabled) return false;
+    // An enabled entry screen with nothing on it is just a black click blocker.
+    // Skip straight to the first slide when there is no copy or image.
+    const hasEntryContent = Boolean(
+      design.entry.title.trim() ||
+        design.entry.subtitle.trim() ||
+        design.entry.hint.trim() ||
+        design.entry.imageUrl.trim() ||
+        design.entry.backgroundImageUrl.trim(),
+    );
+    if (!hasEntryContent) return false;
     if (!design.entry.oncePerSession) return true;
     try {
       return sessionStorage.getItem(entrySeenKey) === null;

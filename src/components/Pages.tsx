@@ -11,6 +11,7 @@ import "../pages.css";
 
 type BoardRow = {
   username: string;
+  handle?: string;
   displayName: string | null;
   avatarUrl: string | null;
   views: number | null;
@@ -36,6 +37,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
         setRows(
           board.data.profiles.map((row) => ({
             ...row,
+            handle: row.handle ?? row.displayName ?? row.username,
             views: Number(row.views) || 0,
             likes: Number(row.likes) || 0,
           })),
@@ -54,7 +56,8 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
         setRows(
           profiles.map((row) => ({
             username: row.username,
-            displayName: null,
+            handle: row.alias ?? row.username,
+            displayName: row.alias ?? null,
             avatarUrl: row.avatarUrl,
             views: null,
             likes: null,
@@ -124,8 +127,8 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                 <a
                   key={row.username}
                   className={`board-podium-card is-${index + 1}`}
-                  href={profileHrefFor(row.username)}
-                  aria-label={`Rank ${index + 1}, @${row.username}`}
+                  href={profileHrefFor(row.handle ?? row.username)}
+                  aria-label={`Rank ${index + 1}, ${row.displayName || "profile"}`}
                 >
                   <span className="board-podium-rank">
                     {index === 0 ? <TrophyIcon size={12} /> : null}
@@ -135,12 +138,11 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                     <img className="board-podium-avatar" src={row.avatarUrl} alt="" loading="lazy" />
                   ) : (
                     <span className="board-podium-avatar board-podium-avatar--initial">
-                      {row.username.slice(0, 1).toUpperCase()}
+                      {(row.displayName || row.handle || row.username).slice(0, 1).toUpperCase()}
                     </span>
                   )}
                   <span className="board-podium-id">
-                    <b>{row.displayName || row.username}</b>
-                    <small>@{row.username}</small>
+                    <b>{row.displayName || "No alias yet"}</b>
                   </span>
                   <span className="board-podium-views">
                     <b>{metric(row).toLocaleString()}</b>
@@ -156,18 +158,18 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
             {rest.length ? (
               <div className="board">
                 {rest.map((row, index) => (
-                  <a className="board-row" key={row.username} href={profileHrefFor(row.username)}>
+                  <a className="board-row" key={row.username} href={profileHrefFor(row.handle ?? row.username)}>
                     <span className="board-rank">{String(index + 4).padStart(2, "0")}</span>
                     {row.avatarUrl ? (
                       <img className="avatar avatar--sm" src={row.avatarUrl} alt="" loading="lazy" />
                     ) : (
                       <span className="avatar avatar--sm avatar--initial">
-                        {row.username.slice(0, 1).toUpperCase()}
+                        {(row.displayName || row.handle || row.username).slice(0, 1).toUpperCase()}
                       </span>
                     )}
                     <div className="board-id">
-                      <p>{row.displayName || row.username}</p>
-                      <span>tourn.lol/{row.username}</span>
+                      <p>{row.displayName || "No alias yet"}</p>
+                      <span>tourn.lol/{row.handle ?? row.username}</span>
                     </div>
                     <span className="board-row-bar" aria-hidden="true">
                       <i style={{ width: share(metric(row)) }} />

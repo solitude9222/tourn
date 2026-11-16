@@ -45,6 +45,7 @@ export type Page =
   | "profile-experience"
   | "profile-integrations"
   | "profile-switches"
+  | "social"
   | "admin";
 
 export type ProfileTab = "profile" | "experience" | "integrations" | "switches";

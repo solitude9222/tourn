@@ -368,15 +368,17 @@ const boardHref = (handle: string) => `#/profile/${encodeURIComponent(handle)}`;
 export function LeaderboardPage() {
   const { user, profileViews } = useDash();
   const [rows, setRows] = useState<LeaderboardEntry[] | null>(null);
+  const [total, setTotal] = useState(0);
   const [failed, setFailed] = useState(false);
-  const [shown, setShown] = useState(18);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     let alive = true;
     fetchLeaderboard()
-      .then((entries) => {
+      .then((result) => {
         if (!alive) return;
-        setRows(entries);
+        setRows(result.entries);
+        setTotal(result.total);
         setFailed(false);
       })
       .catch(() => {
@@ -389,9 +391,27 @@ export function LeaderboardPage() {
     };
   }, []);
 
+  const loadMore = async () => {
+    if (!rows || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await fetchLeaderboard("views", 25, rows.length);
+      setTotal(result.total);
+      setRows((current) => {
+        if (!current) return result.entries;
+        const seen = new Set(current.map((row) => row.username));
+        return [...current, ...result.entries.filter((row) => !seen.has(row.username))];
+      });
+    } catch {
+      /* keep the rows already on screen */
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   const max = rows?.reduce((top, row) => Math.max(top, row.views), 0) ?? 0;
   const podium = rows?.slice(0, 3) ?? [];
-  const listed = rows?.slice(3, shown) ?? [];
+  const listed = rows?.slice(3) ?? [];
 
   return (
     <Card>
@@ -399,7 +419,7 @@ export function LeaderboardPage() {
         icon="chart"
         title="Leaderboard"
         subtitle="Most viewed profiles on tourn.lol. Open a row to visit the page."
-        actions={<Chip>{rows ? `${rows.length} profiles` : "Loading…"}</Chip>}
+        actions={<Chip>{rows ? `${total || rows.length} profiles` : "Loading…"}</Chip>}
       />
 
       {failed ? (
@@ -422,18 +442,17 @@ export function LeaderboardPage() {
               <a
                 key={row.username}
                 className={`tw-lb-podium-card is-${index + 1}${row.username === user.username ? " is-you" : ""}`}
-                href={boardHref(row.username)}
-                aria-label={`Rank ${index + 1}, @${row.username}`}
+                href={boardHref(row.handle)}
+                aria-label={`Rank ${index + 1}, ${row.displayName || "profile"}`}
               >
                 <span className="tw-lb-podium-rank">
                   {index === 0 ? "Champion" : index === 1 ? "Runner-up" : "Third"}
                 </span>
                 <span className="tw-lb-podium-avatar">
-                  {row.avatarUrl ? <img src={row.avatarUrl} alt="" /> : <Icon name="user" size={18} />}
+                  {row.avatarUrl ? <img src={row.avatarUrl} alt="" loading="lazy" decoding="async" /> : <Icon name="user" size={18} />}
                 </span>
                 <span className="tw-lb-podium-copy">
-                  <b>{row.displayName || row.username}</b>
-                  <small>@{row.username}</small>
+                  <b>{row.displayName || "No alias yet"}</b>
                 </span>
                 <span className="tw-lb-podium-views">
                   {row.views.toLocaleString()} <small>views</small>
@@ -454,16 +473,15 @@ export function LeaderboardPage() {
               <a
                 key={row.username}
                 className={`tw-lb-row${row.username === user.username ? " is-you" : ""}`}
-                href={boardHref(row.username)}
-                aria-label={`Rank ${index + 4}, @${row.username}`}
+                href={boardHref(row.handle)}
+                aria-label={`Rank ${index + 4}, ${row.displayName || "profile"}`}
               >
                 <span className="tw-lb-rank">{index + 4}</span>
                 <span className="tw-lb-avatar">
-                  {row.avatarUrl ? <img src={row.avatarUrl} alt="" /> : <Icon name="user" size={15} />}
+                  {row.avatarUrl ? <img src={row.avatarUrl} alt="" loading="lazy" decoding="async" /> : <Icon name="user" size={15} />}
                 </span>
                 <span className="tw-lb-copy">
-                  <b>{row.displayName || row.username}</b>
-                  <small>@{row.username}</small>
+                  <b>{row.displayName || "No alias yet"}</b>
                 </span>
                 <span className="tw-lb-bar" aria-hidden="true">
                   <span style={{ width: `${max ? Math.max(4, (row.views / max) * 100) : 0}%` }} />
@@ -474,9 +492,14 @@ export function LeaderboardPage() {
                 <Icon name="chevron-right" size={14} className="tw-lb-chev" />
               </a>
             ))}
-            {rows.length > shown ? (
-              <button type="button" className="btn btn-ghost" onClick={() => setShown((count) => count + 15)}>
-                Load 15 more
+            {rows.length < total ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => void loadMore()}
+                disabled={loadingMore}
+              >
+                {loadingMore ? "Loading…" : `Load more (${total - rows.length} left)`}
               </button>
             ) : null}
           </div>

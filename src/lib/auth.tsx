@@ -25,6 +25,10 @@ export type Account = {
   alias?: string | null;
   /** Premium second claim — shown as swats.bio/<alias2>. */
   alias2?: string | null;
+  /** Last primary-claim change — drives the 2-day cooldown. */
+  aliasUpdatedAt?: string | null;
+  /** Last second-claim change — drives the 2-day cooldown. */
+  alias2UpdatedAt?: string | null;
   email: string | null;
   avatarUrl: string | null;
   joinedAt: string;

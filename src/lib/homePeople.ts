@@ -23,6 +23,7 @@ const HIDDEN = new Set(["trackdown"]);
 
 type BoardRow = {
   username: string;
+  handle?: string;
   displayName: string | null;
   avatarUrl: string | null;
   views: number | null;
@@ -31,7 +32,7 @@ type BoardRow = {
 function fromPool(): CommunityPerson[] {
   return initialHomePreviews().profiles.map((row) => ({
     handle: row.account.username,
-    name: row.account.alias || row.account.username,
+    name: row.account.alias || row.profile?.about?.displayName?.trim() || "No alias yet",
     avatar: row.account.avatarUrl || null,
     bio: row.profile?.about?.bio?.trim() || null,
     views: null,
@@ -80,9 +81,9 @@ export async function loadCommunityPeople(): Promise<CommunityPerson[]> {
   ]);
 
   let leaderboard: CommunityPerson[] = board.ok
-    ? board.data.profiles.map((row) => ({
-        handle: row.username,
-        name: row.displayName || row.username,
+    ? board.data.profiles.filter((row) => !HIDDEN.has(row.username.toLowerCase())).map((row) => ({
+        handle: row.handle ?? row.displayName ?? row.username,
+        name: row.displayName || "No alias yet",
         avatar: row.avatarUrl || null,
         bio: null,
         views: Number(row.views) || 0,
@@ -97,9 +98,9 @@ export async function loadCommunityPeople(): Promise<CommunityPerson[]> {
       "/api/profiles?limit=25",
     );
     if (listed.ok) {
-      leaderboard = listed.data.profiles.map((row) => ({
-        handle: row.username,
-        name: row.alias || row.username,
+      leaderboard = listed.data.profiles.filter((row) => !HIDDEN.has(row.username.toLowerCase())).map((row) => ({
+        handle: row.alias || row.username,
+        name: row.alias || "No alias yet",
         avatar: row.avatarUrl || null,
         bio: null,
         views: null,
@@ -111,7 +112,7 @@ export async function loadCommunityPeople(): Promise<CommunityPerson[]> {
   const fresh: CommunityPerson[] = pool
     ? pool.profiles.map((row) => ({
         handle: row.account.username,
-        name: row.account.alias || row.account.username,
+        name: row.account.alias || row.profile?.about?.displayName?.trim() || "No alias yet",
         avatar: row.account.avatarUrl || null,
         bio: row.profile?.about?.bio?.trim() || null,
         views: null,
