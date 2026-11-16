@@ -179,10 +179,10 @@ export function ProfilePreview({
   // Six slots: three corners of the page (fixed, outside the card) and three
   // of the card itself. Grouping by slot means two details dropped on the
   // same corner sit side by side instead of stacking on one point.
-  const viewSlot = design.viewSlot ?? "card-bl";
+  const viewSlot = design.viewSlot ?? "card-tr";
   const likeSlot = design.likeSlot ?? "card-br";
-  const locationSlot = design.locationSlot ?? "page-tr";
-  const joinedSlot = design.joinedSlot ?? "page-tr";
+  const locationSlot = design.locationSlot ?? "card-bl";
+  const joinedSlot = design.joinedSlot ?? "card-bl";
   const slots: { key: string; slot: DetailSlot; node: ReactNode }[] = [
     { key: "location", slot: locationSlot, node: locationPill },
     { key: "joined", slot: joinedSlot, node: showJoined ? joinedNode : null },

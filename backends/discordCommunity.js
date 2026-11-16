@@ -35,39 +35,65 @@ export function discordAvatar(user) {
   return `https://cdn.discordapp.com/embed/avatars/${index}.png`;
 }
 
+const LEADERBOARD_PAGE_SIZE = 5;
+
 /**
- * One embed per profile so every entry can carry that person's Discord avatar
- * in the author icon. Red throughout, views and likes on the same line.
+ * One embed with Previous / Next buttons. Keeping the board in a single embed
+ * avoids Discord's ten-embed wall and lets every row carry the same layout.
  */
-export function buildLeaderboardMessage(rows = [], identities = {}) {
+export function buildLeaderboardMessage(rows = [], identities = {}, page = 0) {
   const entries = rows.filter(Boolean).slice(0, 10);
   if (!entries.length) return null;
 
-  let views = 0;
-  let likes = 0;
-  const embeds = entries.map((row, index) => {
-    views += Number(row.views || 0);
-    likes += Number(row.likes || 0);
-    const identity = identities[String(row.discord_id)] || null;
-    const alias = String(row.alias || row.username || "profile");
-    const handle = identity?.username ? `  ·  @${identity.username}` : "";
-    return {
-      color: BRAND_RED,
-      author: {
-        name: `${MEDALS[index] || `#${index + 1}`}  ${alias}${handle}`.slice(0, 256),
-        icon_url: safeIcon(identity?.avatar || row.avatar_url),
-        url: profileUrl(row.username),
-      },
-      description: `👁 **${count(row.views)}** views  ·  👍 **${count(row.likes)}** likes`,
-    };
-  });
+  const pages = Math.max(1, Math.ceil(entries.length / LEADERBOARD_PAGE_SIZE));
+  const current = Math.min(Math.max(Number(page) || 0, 0), pages - 1);
+  const visible = entries.slice(
+    current * LEADERBOARD_PAGE_SIZE,
+    (current + 1) * LEADERBOARD_PAGE_SIZE,
+  );
+  const description = visible
+    .map((row, offset) => {
+      const index = current * LEADERBOARD_PAGE_SIZE + offset;
+      const identity = identities[String(row.discord_id)] || null;
+      const alias = String(row.alias || row.username || "profile");
+      const handle = identity?.username ? `  ·  @${identity.username}` : "";
+      return `**${MEDALS[index] || `#${index + 1}`}  [${alias}](${profileUrl(row.username)})**${handle}\n👁 **${count(row.views)}** views  ·  👍 **${count(row.likes)}** likes`;
+    })
+    .join("\n\n");
 
   return {
-    content: [
-      "# 🏆 tourn.lol leaderboard",
-      `-# ranked by profile views and likes · [full board](${SITE_URL}/#/leaderboard)`,
-    ].join("\n"),
-    embeds,
+    embeds: [
+      {
+        color: BRAND_RED,
+        title: "🏆 tourn.lol leaderboard",
+        description,
+        footer: {
+          text: `Page ${current + 1} of ${pages} · ranked by profile views and likes`,
+        },
+      },
+    ],
+    components: [
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 2,
+            label: "← Previous",
+            custom_id: `tourn:lb:${current - 1}`,
+            disabled: current === 0,
+          },
+          {
+            type: 2,
+            style: 2,
+            label: "Next →",
+            custom_id: `tourn:lb:${current + 1}`,
+            disabled: current === pages - 1,
+          },
+          { type: 2, style: 5, label: "Full board", url: `${SITE_URL}/#/leaderboard` },
+        ],
+      },
+    ],
     allowed_mentions: { parse: [] },
   };
 }

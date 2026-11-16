@@ -442,7 +442,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   layout: "stacked",
   cardStyle: "default",
   font: "",
-  version: 2,
+  version: 3,
   // The reference card is 720px wide: 32px padding, a 24px radius, a 120px
   // avatar, a 36px name and a 20px bio, with a dark glass surface (55% fill,
   // 12px blur) and a 1px border at 12%. Every other metric is scaled from the
@@ -727,6 +727,14 @@ function loadDesignRaw(input: unknown): AboutDesign {
     ? (raw.cardStyle as CardStyle)
     : DEFAULT_ABOUT_DESIGN.cardStyle;
   // Preserve explicit saved values across releases; defaults apply only to missing fields.
+  const migrateDetailSlots = (Number(raw.version) || 0) < 3;
+  const detailSlot = (value: unknown, fallback: AboutDesign["viewSlot"]) => {
+    const slot = oneOf(value, DETAIL_SLOTS, fallback);
+    // Older designs parked the location and view counters on the page corners.
+    // Move those legacy slots inside the card once; after v3 a deliberately
+    // chosen page slot is preserved.
+    return migrateDetailSlots && slot.startsWith("page-") ? fallback : slot;
+  };
 
   return {
     theme,
@@ -802,7 +810,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     cardStyle,
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
-    version: 2,
+    version: 3,
     // Profiles saved against the old 620px card move to the wider one; a width
     // the owner picked after that is left alone.
     cardWidth:
@@ -852,10 +860,10 @@ function loadDesignRaw(input: unknown): AboutDesign {
     showLocation: boolIn(raw.showLocation, DEFAULT_ABOUT_DESIGN.showLocation),
     showViews: boolIn(raw.showViews, DEFAULT_ABOUT_DESIGN.showViews),
     showJoined: boolIn(raw.showJoined, DEFAULT_ABOUT_DESIGN.showJoined),
-    viewSlot: oneOf(raw.viewSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.viewSlot),
-    likeSlot: oneOf(raw.likeSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.likeSlot),
-    locationSlot: oneOf(raw.locationSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.locationSlot),
-    joinedSlot: oneOf(raw.joinedSlot, DETAIL_SLOTS, DEFAULT_ABOUT_DESIGN.joinedSlot),
+    viewSlot: detailSlot(raw.viewSlot, DEFAULT_ABOUT_DESIGN.viewSlot),
+    likeSlot: detailSlot(raw.likeSlot, DEFAULT_ABOUT_DESIGN.likeSlot),
+    locationSlot: detailSlot(raw.locationSlot, DEFAULT_ABOUT_DESIGN.locationSlot),
+    joinedSlot: detailSlot(raw.joinedSlot, DEFAULT_ABOUT_DESIGN.joinedSlot),
     groupInterests: boolIn(raw.groupInterests, false),
     entry: loadEntry(raw.entry),
     colors: {

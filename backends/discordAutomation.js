@@ -101,6 +101,19 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
    return description;
   }catch(error){lastError="Bot bio: "+error.message;return null;}
  }
+ async function leaderboardRows(){
+  try{const {rows}=await pool.query("select u.username,u.alias,u.avatar_url,u.discord_id,coalesce(v.views,0)::int as views,coalesce(r.likes,0)::int as likes from users u left join profile_views v on v.username=u.username left join (select username,count(*) filter (where kind='like')::int as likes from profile_reactions group by username) r on r.username=u.username order by views desc, likes desc, u.created_at asc limit 10");return rows;}
+  catch(error){throw new Error("Leaderboard query failed: "+error.message);}
+ }
+ async function leaderboardIdentities(rows){
+  const identitiesForBoard={};
+  await Promise.all(rows.map(async row=>{
+   if(!row.discord_id)return;
+   const identity=await identityFor(row.discord_id);
+   if(identity)identitiesForBoard[row.discord_id]=identity;
+  }));
+  return identitiesForBoard;
+ }
  async function postLeaderboard(force=false,channelOverride=""){
   const saved=await config();
   if(!saved.leaderboard.enabled && !force)return {posted:false,reason:"Leaderboard posting is off."};
@@ -108,16 +121,9 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   if(!snowflake(channelId))return {posted:false,reason:"Choose a channel for the leaderboard first."};
   if(!token)return {posted:false,reason:"DISCORD_BOT_TOKEN is not set on the backend."};
   let rows=[];
-  try{
-   ({rows}=await pool.query("select u.username,u.alias,u.avatar_url,u.discord_id,coalesce(v.views,0)::int as views,coalesce(r.likes,0)::int as likes from users u left join profile_views v on v.username=u.username left join (select username,count(*) filter (where kind='like')::int as likes from profile_reactions group by username) r on r.username=u.username order by views desc, likes desc, u.created_at asc limit 10"));
-  }catch(error){throw new Error("Leaderboard query failed: "+error.message);}
+  rows=await leaderboardRows();
   if(!rows.length)return {posted:false,reason:"There is nobody on the leaderboard yet."};
-  const identitiesForBoard={};
-  await Promise.all(rows.map(async row=>{
-   if(!row.discord_id)return;
-   const identity=await identityFor(row.discord_id);
-   if(identity)identitiesForBoard[row.discord_id]=identity;
-  }));
+  const identitiesForBoard=await leaderboardIdentities(rows);
   const payload=buildLeaderboardMessage(rows,identitiesForBoard);
   if(!payload)return {posted:false,reason:"There is nobody on the leaderboard yet."};
   // A leaderboard is only useful when it is the current one.
@@ -190,6 +196,18 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
    instance.on(Events.Error,error=>{lastError=String(error.message).replaceAll(token,"[redacted]");});
    instance.on(Events.GuildMemberAdd,member=>{if(String(member?.guild?.id||"")!==TOURN_GUILD_ID)return;void welcomeMember(member);});
    instance.on(Events.MessageCreate,message=>{if(!message || message.guild || message.author?.bot)return;void replyOnce(message);});
+   instance.on(Events.InteractionCreate,interaction=>{
+    const customId=String(interaction?.customId||"");
+    if(!interaction?.isButton?.() || !customId.startsWith("tourn:lb:"))return;
+    if(String(interaction.guildId||"")!==TOURN_GUILD_ID)return;
+    const page=Number(customId.split(":")[2])||0;
+    void (async()=>{
+     const rows=await leaderboardRows();
+     const payload=buildLeaderboardMessage(rows,await leaderboardIdentities(rows),page);
+     if(!payload){await interaction.reply({content:"No leaderboard entries yet.",ephemeral:true});return;}
+     await interaction.update(payload);
+    })().catch(error=>{lastError="Leaderboard interaction: "+error.message;});
+   });
    for(const event of [Events.GuildRoleCreate,Events.GuildRoleDelete,Events.GuildRoleUpdate])instance.on(event,()=>{members.clear();awards.clear();onChange();});
    instance.on(Events.ShardDisconnect,()=>{lastError="Discord Gateway disconnected; reconnecting.";});
    return instance;
