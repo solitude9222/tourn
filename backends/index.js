@@ -28,7 +28,7 @@ import "dotenv/config";
 import { registerDataTransfer } from "./dataTransfer.js";
 import { AUDIO_SCHEMA, registerAudioRoutes } from "./audio.js";
 import { SUPPORT_SCHEMA, registerSupportRoutes } from "./support.js";
-import { SOCIAL_SCHEMA, registerSocialRoutes } from "./social.js";
+import { SOCIAL_SCHEMA, registerSocialRoutes, seedSocialHub } from "./social.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -249,6 +249,9 @@ async function initDb() {
   await pool.query(AUDIO_SCHEMA);
   await pool.query(SUPPORT_SCHEMA);
   await pool.query(SOCIAL_SCHEMA);
+  await seedSocialHub(pool).catch((error) => {
+    console.error("[social] seed failed", error);
+  });
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
   // Trim history created before the limit existed, and keep the table small on
   // every boot as well as after each save.

@@ -71,6 +71,10 @@ export type IconName =
   | "globe"
   | "gamepad"
   | "refresh"
+  | "mic"
+  | "mic-off"
+  | "headphones"
+  | "headphones-off"
   | "expand"
   | "minus"
   | "at"
@@ -208,6 +212,34 @@ const ICONS: Record<IconName, ReactNode> = {
       <path d="M9.4 18.2V6.4l9-2v11.4" />
       <circle cx="6.8" cy="18.4" r="2.6" />
       <circle cx="15.8" cy="15.8" r="2.6" />
+    </>
+  ),
+  mic: (
+    <>
+      <rect x="9" y="3" width="6" height="10" rx="3" />
+      <path d="M5.5 11.2a6.5 6.5 0 0 0 13 0M12 17.7v3.1M9 20.8h6" />
+    </>
+  ),
+  "mic-off": (
+    <>
+      <path d="M9 9v1a3 3 0 0 0 5.1 2.1M9 5.2A3 3 0 0 1 15 6v3" />
+      <path d="M5.5 11.2a6.5 6.5 0 0 0 9.6 5.7M18.5 11.2a6.4 6.4 0 0 1-.5 2.5M12 17.7v3.1M9 20.8h6" />
+      <path d="m3 3 18 18" />
+    </>
+  ),
+  headphones: (
+    <>
+      <path d="M4 13v-1.2a8 8 0 0 1 16 0V13" />
+      <rect x="3.2" y="12" width="4.2" height="7" rx="2" />
+      <rect x="16.6" y="12" width="4.2" height="7" rx="2" />
+    </>
+  ),
+  "headphones-off": (
+    <>
+      <path d="M4 13v-1.2a8 8 0 0 1 12.2-6.8M19.8 10.6V13" />
+      <path d="M3.2 13.8A2 2 0 0 1 5.2 12h2.2v7H5.2a2 2 0 0 1-2-1.8Z" />
+      <path d="M16.6 15.6v3.4h2.2a2 2 0 0 0 2-1.8v-1.4" />
+      <path d="m3 3 18 18" />
     </>
   ),
   pin: (
