@@ -6968,7 +6968,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 }
 
 .lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections {
-  justify-items: center;
+  justify-content: center;
   align-content: center;
 }
 
