@@ -122,7 +122,7 @@ export function OverlayEffectLayer({ settings }: { settings: OverlayEffectSettin
           the density keeps the same look for a fraction of the particles. */}
       <CanvasEffectLayer
         effect={settings.id}
-        intensity={Math.min(settings.intensity, 45)}
+        intensity={settings.intensity}
         speed={settings.speed}
         color={settings.color}
         amount={settings.params.amount}
@@ -280,10 +280,11 @@ export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
 
 /* -------------------------------------------------------------------- cursor */
 
-const PARTICLE_TRAILS = new Set(["fairy", "snow", "bubbles", "emoji", "characters", "sparkler"]);
+const PARTICLE_TRAILS = new Set(["fairy", "snow", "bubbles", "emoji", "characters", "sparkler", "hearts", "comet"]);
 
 function splitGlyphs(text: string): string[] {
-  const glyphs = Array.from(text.trim());
+  const Segmenter = (Intl as unknown as { Segmenter?: new (locale?: string, options?: { granularity: string }) => { segment: (value: string) => Iterable<{ segment: string }> } }).Segmenter;
+  const glyphs = Segmenter ? Array.from(new Segmenter(undefined, { granularity: "grapheme" }).segment(text.trim()), part => part.segment) : Array.from(text.trim());
   return glyphs.length ? glyphs : ["✨"];
 }
 
@@ -292,6 +293,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
   const trailRef = useRef<(HTMLSpanElement | null)[]>([]);
   const particlesRef = useRef<HTMLSpanElement>(null);
   const dots = settings.trailLength;
+  const beadTrail = settings.trail && ["trailing", "ribbon"].includes(settings.trailType);
   const particleTrail = settings.trail && PARTICLE_TRAILS.has(settings.trailType);
   // The system cursor (and a custom image, which the page sets itself) has no
   // marker of its own, but it can still leave a trail.
@@ -307,10 +309,15 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
     let frame = 0;
     let idleTimer = 0;
     let lastSpawn = 0;
+    let lastPaint = 0;
+    let lastPoint: { x: number; y: number } | null = null;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const timers = new Set<number>();
+    const animations = new Set<Animation>();
     let next = { x: 0, y: 0 };
     const alive = new Set<HTMLElement>();
 
-    const paint = () => {
+    const paint = (now = performance.now()) => {
       frame = 0;
       const rect = layer.getBoundingClientRect();
       const x = next.x - rect.left;
@@ -318,9 +325,20 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       layer.style.setProperty("--fx-cx", `${x}px`);
       layer.style.setProperty("--fx-cy", `${y}px`);
 
-      if (!settings.trail || settings.trailType !== "trailing") return;
-      positions.unshift({ x, y });
-      positions.splice(dots + 1);
+      if (motion.matches) return;
+      if (particleTrail && now - lastSpawn >= 16) {
+        const distance = lastPoint ? Math.hypot(x-lastPoint.x,y-lastPoint.y) : 0;
+        const steps = Math.min(6, Math.max(1, Math.ceil(distance / 18)));
+        for (let step = 1; step <= steps; step++) burst(lastPoint ? lastPoint.x+(x-lastPoint.x)*step/steps : x, lastPoint ? lastPoint.y+(y-lastPoint.y)*step/steps : y);
+        lastPoint = {x,y}; lastSpawn = now;
+      }
+      if (!beadTrail) return;
+      const elapsed = lastPaint ? Math.min(50, now-lastPaint) : 16; lastPaint = now;
+      if (!positions.length) for(let i=0;i<=dots;i++)positions.push({x,y});
+      positions[0] = {x,y};
+      const follow = 1-Math.exp(-elapsed*.018*settings.trailSpeed);
+      let unsettled = false;
+      for(let i=1;i<positions.length;i++){positions[i].x += (positions[i-1].x-positions[i].x)*follow; positions[i].y += (positions[i-1].y-positions[i].y)*follow; if(Math.abs(positions[i].x-x)+Math.abs(positions[i].y-y)>.5)unsettled=true;}
       trailRef.current.forEach((dot, index) => {
         const point = positions[Math.min(index + 1, positions.length - 1)];
         const ahead = positions[Math.min(index, positions.length - 1)];
@@ -333,6 +351,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
             : 0;
         dot.style.transform = `translate3d(${point.x}px, ${point.y}px, 0) translate(-50%, -50%) rotate(${angle}deg)`;
       });
+      if (unsettled && layer.classList.contains("is-active")) frame = requestAnimationFrame(paint);
     };
 
     /**
@@ -350,14 +369,16 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       const glyphs = splitGlyphs(settings.trailText);
 
       for (let index = 0; index < amount; index += 1) {
+        if (alive.size >= 160) break;
         const node = document.createElement("span");
         node.className = `fx-cursor-particle fx-cursor-particle--${type}`;
         node.style.left = `${x + (Math.random() - 0.5) * 18}px`;
         node.style.top = `${y + (Math.random() - 0.5) * 18}px`;
         node.style.setProperty("--fx-p-color", settings.color);
-        const scale = type === "emoji" || type === "characters" ? 1.35 : type === "snow" ? 0.95 : 0.42;
+        const scale = type === "emoji" || type === "characters" || type === "hearts" ? 1.35 : type === "snow" ? 0.95 : 0.42;
         node.style.setProperty("--fx-p-size", `${Math.round(size * scale)}px`);
 
+        if (type === "hearts") node.textContent = "♥";
         if (type === "snow") node.textContent = Math.random() > 0.5 ? "❄" : "❅";
         if (type === "emoji" || type === "characters") {
           node.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
@@ -379,7 +400,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
             { opacity: 0.95, offset: 0.15, transform: "translate(-50%, -50%) scale(1)" },
             { opacity: 0, transform: `translate(calc(-50% + ${drift}px), calc(-50% + ${fall}px)) scale(.9) rotate(${180 + spin}deg)` },
           ];
-        } else if (type === "bubbles") {
+        } else if (type === "bubbles" || type === "hearts") {
           duration = 1300 / speed;
           frames = [
             { opacity: 0, transform: "translate(-50%, -50%) scale(.5)" },
@@ -393,7 +414,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
             { opacity: 1, offset: 0.12, transform: "translate(-50%, -50%) scale(1)" },
             { opacity: 0, transform: `translate(calc(-50% + ${drift}px), calc(-50% + ${fall * 1.6}px)) scale(.9) rotate(${spin}deg)` },
           ];
-        } else if (type === "sparkler") {
+        } else if (type === "sparkler" || type === "comet") {
           const angle = Math.random() * Math.PI * 2;
           const reach = 34 + Math.random() * 64;
           duration = 520 / speed;
@@ -418,49 +439,43 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
           easing: "cubic-bezier(.22,.61,.36,1)",
           fill: "forwards",
         });
+        animations.add(animation);
         const drop = () => {
+          animations.delete(animation);
           alive.delete(node);
           node.remove();
         };
-        animation.onfinish = drop;
-        window.setTimeout(drop, duration + 200);
+        animation.onfinish = drop; animation.oncancel = drop;
+        const timer = window.setTimeout(() => { timers.delete(timer); drop(); }, duration + 200); timers.add(timer);
       }
     };
 
     const onMove = (event: PointerEvent) => {
+      if (event.pointerType === "touch" || document.hidden) return;
       next = { x: event.clientX, y: event.clientY };
-      // The pointer marker and the ghost follow the raw position immediately;
-      // rAF only drives the bead trail, so a throttled frame never freezes
-      // them in place.
-      const offset = layer.getBoundingClientRect();
-      layer.style.setProperty("--fx-cx", `${next.x - offset.left}px`);
-      layer.style.setProperty("--fx-cy", `${next.y - offset.top}px`);
-      layer.classList.remove("is-idle");
-      window.clearTimeout(idleTimer);
-      idleTimer = window.setTimeout(() => layer.classList.add("is-idle"), 180);
-      layer.classList.add("is-active");
-      if (particleTrail) {
-        const now = performance.now();
-        if (now - lastSpawn > 52) {
-          lastSpawn = now;
-          burst(next.x - layer.getBoundingClientRect().left, next.y - layer.getBoundingClientRect().top);
-        }
-      }
-      if (frame) return;
-      frame = window.requestAnimationFrame(paint);
+      layer.classList.remove("is-idle"); layer.classList.add("is-active");
+      window.clearTimeout(idleTimer);idleTimer = window.setTimeout(() => layer.classList.add("is-idle"), 220);
+      if (!frame) frame = requestAnimationFrame(paint);
     };
 
     const onLeave = () => {
       layer.classList.remove("is-active");
       window.clearTimeout(idleTimer);
-      positions.length = 0;
+      positions.length = 0; lastPoint = null; lastPaint = 0;
+      animations.forEach(animation => animation.cancel()); animations.clear();
+      timers.forEach(timer => clearTimeout(timer)); timers.clear();
+      alive.forEach(node => node.remove()); alive.clear();
       if (frame) window.cancelAnimationFrame(frame);
       frame = 0;
     };
+    const onVisible = () => { if (document.hidden) onLeave(); };
+    motion.addEventListener("change", onLeave); document.addEventListener("visibilitychange", onVisible);
     host.addEventListener("pointerleave", onLeave);
     window.addEventListener("blur", onLeave);
     host.addEventListener("pointermove", onMove, { passive: true });
     return () => {
+      onLeave();
+      motion.removeEventListener("change", onLeave); document.removeEventListener("visibilitychange", onVisible);
       window.clearTimeout(idleTimer);
       alive.forEach((node) => node.remove());
       alive.clear();
@@ -471,6 +486,7 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
     };
   }, [
     dots,
+    beadTrail,
     particleTrail,
     settings.color,
     settings.size,
@@ -498,14 +514,14 @@ export function ProfileCursor({ settings }: { settings: CursorSettings }) {
       }
       aria-hidden="true"
     >
-      {settings.trail && settings.trailType === "trailing"
+      {beadTrail
         ? Array.from({ length: dots }, (_, index) => (
             <span
               key={index}
               ref={(node) => {
                 trailRef.current[index] = node;
               }}
-              className="profile-cursor-trail profile-cursor-trail--trailing"
+              className={`profile-cursor-trail profile-cursor-trail--${settings.trailType}`}
               style={
                 {
                   "--fx-dot": Math.max(0.18, 1 - index / (dots + 1)),

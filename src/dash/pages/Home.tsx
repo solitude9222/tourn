@@ -52,12 +52,12 @@ export function HomePage() {
     {
       label: "Upload avatar",
       done: Boolean(about.assets.avatarUrl || user.avatarUrl),
-      target: () => go("profile-main"),
+      target: () => go("appearance"),
     },
     {
       label: "Add description",
       done: about.bio.trim().length > 0,
-      target: () => go("portfolio-about"),
+      target: () => go("profile-main"),
     },
     {
       label: "Add a background",
@@ -65,7 +65,7 @@ export function HomePage() {
         Boolean(about.assets.background.imageUrl) ||
         about.assets.background.style === "gradient" ||
         about.assets.background.color !== DEFAULT_PROFILE_ASSETS.background.color,
-      target: () => go("profile-appearance"),
+      target: () => go("appearance"),
     },
     {
       label: "Connect Discord account",

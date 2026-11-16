@@ -157,6 +157,7 @@ export function LayoutPreview() {
             links={links}
             interactive={false}
             showEntry={false}
+            showMetadata={false}
           />
         </div>
         {dragging ? (

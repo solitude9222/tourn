@@ -29,6 +29,11 @@ const lazyPage = <T extends Record<string, unknown>, K extends keyof T>(
   name: K,
 ) => lazy(async () => ({ default: (await loader())[name] as unknown as React.ComponentType<any> }));
 
+const AppearanceStudioPage = lazyPage(() => import("./pages/Studio"), "AppearanceStudioPage");
+const ProfileGeneralPage = lazyPage(() => import("./pages/Studio"), "ProfileGeneralPage");
+const PortfolioGeneralPage = lazyPage(() => import("./pages/PortfolioStudio"), "PortfolioGeneralPage");
+const PortfolioAboutPage = lazyPage(() => import("./pages/PortfolioStudio"), "PortfolioAboutPage");
+const GalleryPage = lazyPage(() => import("./pages/Gallery"), "GalleryPage");
 const HomePage = lazyPage(() => import("./pages/Home"), "HomePage");
 const AccountProfilePage = lazyPage(() => import("./pages/Account"), "AccountProfilePage");
 const AffiliatesPage = lazyPage(() => import("./pages/Account"), "AffiliatesPage");
@@ -60,6 +65,9 @@ const AdminPage = lazy(() =>
 /* Warm a page chunk when its navigation entry is hovered or focused, so the
    click does not sit through a cold dynamic import. */
 const PAGE_PRELOADS: Partial<Record<Page, () => Promise<unknown>>> = {
+  appearance: () => import("./pages/Studio"),
+  "portfolio-projects": () => import("./pages/Layout"),
+  "portfolio-interests": () => import("./pages/Layout"),
   home: () => import("./pages/Home"),
   "account-profile": () => import("./pages/Account"),
   affiliates: () => import("./pages/Account"),
@@ -93,6 +101,7 @@ const PAGE_PRELOADS: Partial<Record<Page, () => Promise<unknown>>> = {
 
 import "./dash.css";
 import "./pages.css";
+import "./dashboardStudio.css";
 
 export type DashboardProps = {
   user: Account | null;
@@ -121,8 +130,11 @@ export type DashboardProps = {
 };
 
 const META: Record<Page, { title: string; subtitle: string; icon: IconName; crumb: string }> = {
+  appearance: { title: "Appearance", subtitle: "Media, decorations and every effect, in one place.", icon: "palette", crumb: "Customize" },
+  "portfolio-projects": {title:"Portfolio",subtitle:"Projects, artwork and links.",icon:"layers",crumb:"Customize"},
+  "portfolio-interests": {title:"Portfolio",subtitle:"Games, anime and everything you enjoy.",icon:"gamepad",crumb:"Customize"},
   aliases: {title:"Inventory",subtitle:"Your usernames, badges and collectables.",icon:"layers",crumb:"Account"},
-  home: { title: "Home", subtitle: "Here's how your profile and live data are doing.", icon: "home", crumb: "Home" },
+  home: { title: "Account Overview", subtitle: "Here's how your profile and live data are doing.", icon: "home", crumb: "Home" },
   "account-profile": {
     title: "Profile",
     subtitle: "Your name, picture and description.",
@@ -156,7 +168,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
   },
   music: { title: "Music", subtitle: "Your track, playback and player appearance.", icon: "music", crumb: "Customize" },
   effects: {
-    title: "Effects",
+    title: "Appearance",
     subtitle: "Background, overlay, text and cursor motion.",
     icon: "sparkles",
     crumb: "Customize",
@@ -175,7 +187,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Links",
   },
   assets: {
-    title: "Assets",
+    title: "Importer",
     subtitle: "Your uploads, ready to reuse on the profile.",
     icon: "image",
     crumb: "Community",
@@ -217,13 +229,13 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Settings",
   },
   "portfolio-general": {
-    title: "General",
+    title: "Portfolio",
     subtitle: "Everything your page shows, at a glance.",
     icon: "home",
     crumb: "Portfolio",
   },
   "portfolio-about": {
-    title: "About",
+    title: "Portfolio",
     subtitle: "The writing block and the tags inside it.",
     icon: "user",
     crumb: "Portfolio",
@@ -235,19 +247,19 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Portfolio",
   },
   "portfolio-gallery": {
-    title: "Gallery",
+    title: "Portfolio",
     subtitle: "Your uploads, ready to place on the page.",
     icon: "image",
     crumb: "Portfolio",
   },
   "portfolio-audio": {
-    title: "Audio player",
+    title: "Portfolio",
     subtitle: "The track, its playback and the player's look.",
     icon: "music",
     crumb: "Portfolio",
   },
   "portfolio-design": {
-    title: "Design",
+    title: "Portfolio",
     subtitle: "Colors, borders and roundness for every surface.",
     icon: "palette",
     crumb: "Portfolio",
@@ -259,25 +271,25 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     crumb: "Profile",
   },
   "profile-appearance": {
-    title: "Card",
+    title: "Profile",
     subtitle: "Card surface, colours, borders and decoration.",
     icon: "palette",
     crumb: "Profile",
   },
   "profile-experience": {
-    title: "Experience",
+    title: "Profile",
     subtitle: "The entry screen and the motion of the page.",
     icon: "sparkles",
     crumb: "Profile",
   },
   "profile-integrations": {
-    title: "Integrations",
+    title: "Profile",
     subtitle: "Discord, Spotify, Steam and the rest.",
     icon: "link",
     crumb: "Profile",
   },
   "profile-switches": {
-    title: "Switches",
+    title: "Profile",
     subtitle: "Visibility and behaviour toggles.",
     icon: "sliders",
     crumb: "Profile",
@@ -293,9 +305,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
 function readDashboardLocation(isAdmin: boolean): { page: Page; tab: ProfileTab } {
   const parts = window.location.hash.replace(/^#\/?/, "").split("?")[0].split("/");
   // Older bookmarks still point at the retired Projects and Games tabs.
-  const requested = parts[1] === "portfolio-projects" || parts[1] === "portfolio-games"
-    ? "portfolio-sections"
-    : parts[1];
+  const requested = parts[1] === "portfolio-games" ? "portfolio-interests" : parts[1];
   const candidate = parts[0] === "admin" ? "admin" : requested || "home";
   const page =
     Object.hasOwn(META, candidate) &&
@@ -641,8 +651,11 @@ export function Dashboard(props: DashboardProps) {
     case "home":
       content = <HomePage />;
       break;
+    case "appearance":
+      content = <AppearanceStudioPage />;
+      break;
     case "account-profile":
-      content = <AccountProfilePage />;
+      content = <ProfileGeneralPage />;
       break;
     case "badges":
       content = <BadgesPage />;
@@ -657,13 +670,13 @@ export function Dashboard(props: DashboardProps) {
       content = <AudioPage />;
       break;
     case "customize-profile":
-      content = <CustomizeProfilePage tab={profileTab} />;
+      content = <ProfileGeneralPage />;
       break;
     case "layout":
       content = <LayoutPage />;
       break;
     case "effects":
-      content = <EffectsPage />;
+      content = <AppearanceStudioPage />;
       break;
     case "premium":
       content = <PremiumPage />;
@@ -699,25 +712,40 @@ export function Dashboard(props: DashboardProps) {
       content = <ThemePage />;
       break;
     case "portfolio-general":
-      content = <PortfolioPage tab="general" />;
+      content = <PortfolioGeneralPage />;
+      break;
+    case "portfolio-about":
+      content = <PortfolioAboutPage />;
+      break;
+    case "portfolio-projects":
+      content = <LayoutPage section="sections" filterKind="project" />;
+      break;
+    case "portfolio-interests":
+      content = <LayoutPage section="sections" filterKind="interest" />;
+      break;
+    case "portfolio-audio":
+      content = <AudioPage />;
       break;
     case "portfolio-sections":
       content = <LayoutPage section="sections" />;
       break;
     case "portfolio-gallery":
-      content = <PortfolioPage tab="gallery" />;
+      content = <GalleryPage />;
       break;
     case "portfolio-design":
       content = <PortfolioPage tab="design" />;
       break;
     case "profile-main":
-      content = <ProfileWorkspacePage tab="profile" />;
+      content = <ProfileGeneralPage />;
       break;
     case "profile-appearance":
       content = <LayoutPage section="style" />;
       break;
     case "profile-experience":
       content = <ProfileWorkspacePage tab="experience" />;
+      break;
+    case "profile-integrations":
+      content = <WidgetsPage />;
       break;
     case "profile-switches":
       content = <ProfileWorkspacePage tab="switches" />;

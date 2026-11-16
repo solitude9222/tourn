@@ -1,6 +1,8 @@
+import { ProfileGallery } from "./ProfileGallery";
+import { DEFAULT_GALLERY, DEFAULT_PORTFOLIO } from "../lib/gallery";
 import {TECH_BY_ID,techIconUrl} from "../lib/techStack";
 import { useTilt } from "../lib/useTilt";
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { Account } from "../lib/auth";
 import { hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
@@ -467,11 +469,14 @@ export function LinkerPreview({
   const skillPills=skills.length?<section className="lkr-skills-section"><h2>Skills</h2><div className="lkr-tech-row">{skills.map(item=><span key={item.id} className="lkr-tech"><img src={techIconUrl(item)} alt=""/>{item.name}</span>)}</div></section>:null;
   const sectionsVisible = design.sectionsEnabled === true || design.cardStyle === "slide";
   const hasSkills = skills.length > 0;
+  const gallerySettings = design.gallery || DEFAULT_GALLERY;
+  const portfolio = design.portfolio || DEFAULT_PORTFOLIO;
+  const hasGallery = gallerySettings.enabled && gallerySettings.items.length > 0;
   // Sections only ever appear as slideshow pages; the plain stack is gone.
   const slideshowLayout = design.slideshow === true || design.cardStyle === "slide";
   const slideshowActive = Boolean(
     slideshowLayout &&
-      (hasSkills ||
+      (hasGallery || hasSkills ||
         (sectionsVisible && groupedSections.length > 0) ||
         design.slideshowLinks ||
         design.slideshowBadges ||
@@ -521,6 +526,7 @@ export function LinkerPreview({
               <h2 className="lkr-about-title">{aboutSlide.title || "About me"}</h2>
             {aboutSlide.subtitle ? <p className="lkr-about-sub">{aboutSlide.subtitle}</p> : null}
             {aboutSlide.text.trim() ? <p className="lkr-about-text">{aboutSlide.text}</p> : null}
+            {aboutSlide.widgetIds?.length ? <div className="lkr-about-widgets">{aboutSlide.widgetIds.flatMap(id=>{const widget=visibleWidgets.find(item=>item.id===id);return widget?[<WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker"/>]:[];})}</div> : null}
             {aboutSlide.showProjects && aboutProjects.length ? (
               <div className="lkr-about-projects lkr-about-projects--full">
                 <ProfileSections sections={aboutProjects} />
@@ -612,7 +618,7 @@ export function LinkerPreview({
       flow.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", sync);
     };
-  }, [slideshowActive, design.sectionsEnabled, design.sections.length, design.skills?.length]);
+  }, [slideshowActive, design.sectionsEnabled, design.sections.length, design.skills?.length, gallerySettings.items.length, portfolio.order.join(",")]);
   const goToSlide = (index: number) => {
     const flow = slidesRef.current;
     if (!flow) return;
@@ -621,12 +627,12 @@ export function LinkerPreview({
     if (target) flow.scrollTo({ top: target.offsetTop - flow.offsetTop, behavior: "smooth" });
   };
   const page = (
-    <div ref={slidesRef} className={`lkr-flow lkr-flow--${design.layout}${slideshowActive?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!slideshowActive || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType="";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType="";}}>
+    <div ref={slidesRef} style={{scrollSnapType:portfolio.snap ? undefined : "none"}} className={`lkr-flow lkr-flow--${design.layout}${slideshowActive?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!slideshowActive || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType=portfolio.snap?"":"none";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest&&portfolio.snap)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType=portfolio.snap?"":"none";}}>
       <div className={`${slideshowActive?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}`}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
+      {slideshowActive && portfolio.hint ? <button type="button" className={`lkr-scroll-hint${portfolio.hintAnimate?" is-animated":""}`} onClick={()=>goToSlide(1)}><span>⌄</span>{portfolio.hintText}</button> : null}
       </div>
-      {slideshowActive ? sectionContent : null}
-      {slideshowExtras}
+      {slideshowActive ? portfolio.order.map(key=><Fragment key={key}>{key==="about"?slideshowExtras:key==="sections"?sectionContent:hasGallery?<div className="lkr-slide"><ProfileGallery settings={gallerySettings}/></div>:null}</Fragment>) : null}
     </div>
   );
 
@@ -651,7 +657,7 @@ export function LinkerPreview({
       </div>
       <BackgroundEffectLayer settings={assets.effects.background} />
       {page}
-      {slideshowActive && slideCount > 1 ? (
+      {slideshowActive && slideCount > 1 && portfolio.indicators ? (
         <nav className="lkr-slide-dots" aria-label="Slideshow pages">
           {Array.from({ length: slideCount }, (_, index) => (
             <button

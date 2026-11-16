@@ -4,7 +4,8 @@
 
 import { useRef, useState } from "react";
 import { formatJoined } from "../../lib/format";
-import decorations from "../../lib/decorations.json";
+import { ProfileMedia } from "../ProfileMedia";
+import { DecorationsPanel } from "../DecorationsPanel";
 import { useDash } from "../context";
 import { copyText, imageToDataUrl, fileToDataUrl } from "../files";
 import { VIDEO_MAX_BYTES, uploadVideoFile } from "../../lib/videoUpload";
@@ -18,7 +19,6 @@ import { FileUpload,
   Field,
   Icon,
   IconButton,
-  Modal,
   Select,
   Slider,
   TextInput,
@@ -31,34 +31,10 @@ const BIO_LIMIT = 800;
 /** Presets mount a page at a time: the full set is ~700 animated PNGs. */
 const DECO_PAGE = 36;
 
-export function AccountProfilePage() {
+export function AccountProfilePage({ section = "details" }: { section?: "details" | "artwork" } = {}) {
   const { user, about, setAbout, notify, go, isPremium } = useDash();
   const publicHandle = user.alias?.trim() || user.username;
-  const avatarInput = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [decoOpen, setDecoOpen] = useState(false);
-  const [decoQuery, setDecoQuery] = useState("");
-  const [decoLimit, setDecoLimit] = useState(DECO_PAGE);
-
-  const avatarUrl = about.assets.avatarUrl || user.avatarUrl || "";
   const joined = formatJoined(new Date(user.joinedAt));
-
-  const uploadAvatar = async (file: File | undefined) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await imageToDataUrl(file, 512, 512, 0.9);
-      setAbout((current) => ({
-        ...current,
-        assets: { ...current.assets, avatarUrl: url },
-      }));
-      notify("Profile picture", "Your new picture is ready to save.");
-    } catch {
-      notify("Upload failed", "That file could not be read.");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const copyUrl = async () => {
     const ok = await copyText(`https://tourn.lol/${publicHandle}`);
@@ -69,40 +45,6 @@ export function AccountProfilePage() {
   const updateAssets = (patch: Partial<typeof assets>) =>
     setAbout((current) => ({ ...current, assets: { ...current.assets, ...patch } }));
 
-  // Decoration carousel: index 0 is "none", the rest are Discord's presets.
-  const decoOptions = [
-    { id: "none", label: "No decoration", url: "", category: "" },
-    ...decorations.map((entry) => ({
-      id: entry.id,
-      label: entry.label,
-      url: entry.url,
-      category: entry.category ?? "",
-    })),
-  ];
-  const decoIndex = Math.max(
-    0,
-    decoOptions.findIndex((entry) => entry.url === assets.decoration.discordUrl),
-  );
-  const activeDeco = decoOptions[decoIndex] ?? decoOptions[0];
-  const pickDeco = (index: number) => {
-    const next = decoOptions[(index + decoOptions.length) % decoOptions.length];
-    if (!next) return;
-    updateAssets({ decoration: { ...assets.decoration, discordUrl: next.url } });
-  };
-  // "None" always stays in the grid so removing a decoration never needs a
-  // second trip; the search only narrows the presets.
-  const decoResults = decoQuery.trim()
-    ? [
-        decoOptions[0],
-        ...decoOptions
-          .slice(1)
-          .filter((entry) =>
-            `${entry.label} ${entry.category}`.toLowerCase().includes(decoQuery.trim().toLowerCase()),
-          ),
-      ]
-    : decoOptions;
-  const decoVisible = decoResults.slice(0, decoLimit);
-
   const picker = useRef<HTMLInputElement>(null);
   const pickHandler = useRef<((file: File) => Promise<void>) | null>(null);
   const [accept, setAccept] = useState("image/*");
@@ -110,6 +52,7 @@ export function AccountProfilePage() {
   const pick = (nextAccept: string, handler: (file: File) => Promise<void>) => {
     pickHandler.current = handler;
     setAccept(nextAccept);
+    if (picker.current) picker.current.accept = nextAccept;
     picker.current?.click();
   };
 
@@ -135,208 +78,13 @@ export function AccountProfilePage() {
 
   return (
     <>
+      {section !== "artwork" ? <>
       <Card>
         <CardHead
           icon="user"
           title="Profile Details"
           subtitle="The name, picture and description visitors see on your page."
         />
-
-        <div className="tw-avatar-row">
-          <span className="tw-avatar tw-avatar--lg">
-            {avatarUrl ? <img src={avatarUrl} alt="" /> : (about.displayName || user.username).slice(0, 1).toUpperCase()}
-          </span>
-          <div className="tw-avatar-copy">
-            <b>Profile picture</b>
-            <small>Square image, at least 256 × 256. PNG, JPG or GIF.</small>
-            <div className="tw-row" style={{ marginTop: 8 }}>
-              <Button
-                icon="upload"
-                onClick={() => avatarInput.current?.click()}
-                disabled={uploading}
-              >
-                {uploading ? "Uploading…" : "Upload picture"}
-              </Button>
-              {about.assets.avatarUrl ? (
-                <Button
-                  icon="trash"
-                  variant="danger"
-                  onClick={() =>
-                    setAbout((current) => ({
-                      ...current,
-                      assets: { ...current.assets, avatarUrl: "" },
-                    }))
-                  }
-                >
-                  Remove
-                </Button>
-              ) : null}
-              <Button
-                icon="sparkles"
-                onClick={() => {
-                  setDecoLimit(DECO_PAGE);
-                  setDecoOpen(true);
-                }}
-              >
-                {about.assets.decoration.discordUrl ? "Change decoration" : "Add decoration"}
-              </Button>
-            </div>
-          </div>
-          <input
-            ref={avatarInput}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(event) => {
-              void uploadAvatar(event.target.files?.[0]);
-              event.target.value = "";
-            }}
-          />
-        </div>
-
-        <Modal
-          open={decoOpen}
-          title="Avatar decoration"
-          subtitle="Decorate the picture that shows on your profile."
-          onClose={() => setDecoOpen(false)}
-          footer={
-            <Button variant="primary" onClick={() => setDecoOpen(false)}>
-              Done
-            </Button>
-          }
-        >
-          <div className="tw-deco-stage">
-            <span className="tw-deco-preview">
-              <span className="tw-deco-preview-avatar">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="" />
-                ) : (
-                  (about.displayName || user.username).slice(0, 1).toUpperCase()
-                )}
-              </span>
-              {activeDeco.url ? (
-                <img
-                  className="tw-deco-preview-overlay"
-                  src={activeDeco.url.replace(/size=\d+/, "size=160")}
-                  alt=""
-                  draggable={false}
-                />
-              ) : null}
-            </span>
-            <div className="tw-deco-side">
-              <b>{activeDeco.label}</b>
-              <small>
-                {activeDeco.url
-                  ? "Discord avatar decoration"
-                  : "Your picture, with no frame around it."}
-              </small>
-              <div className="tw-row" style={{ marginTop: 10 }}>
-                <Button
-                  icon="sparkles"
-                  onClick={() =>
-                    pickDeco(Math.floor(Math.random() * Math.max(1, decoOptions.length - 1)) + 1)
-                  }
-                >
-                  Surprise me
-                </Button>
-                {activeDeco.url ? (
-                  <Button
-                    icon="trash"
-                    variant="danger"
-                    onClick={() =>
-                      updateAssets({ decoration: { ...assets.decoration, discordUrl: "" } })
-                    }
-                  >
-                    Remove
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          <div className="tw-deco-search">
-            <TextInput
-              icon="search"
-              placeholder="Search decorations"
-              value={decoQuery}
-              onChange={(event) => {
-                setDecoLimit(DECO_PAGE);
-                setDecoQuery(event.target.value);
-              }}
-            />
-            <span className="tw-deco-count">
-              {decoOptions.length - 1} decorations
-              {decoQuery.trim() ? ` · ${decoResults.length - 1} match` : ""}
-            </span>
-          </div>
-
-          <div className="tw-deco-grid">
-            {decoVisible.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                className={`tw-deco${
-                  entry.url === assets.decoration.discordUrl ? " is-active" : ""
-                }${entry.url ? "" : " tw-deco--none"}`}
-                title={entry.label}
-                aria-label={entry.label}
-                aria-pressed={entry.url === assets.decoration.discordUrl}
-                onClick={() =>
-                  updateAssets({ decoration: { ...assets.decoration, discordUrl: entry.url } })
-                }
-              >
-                {entry.url ? (
-                  <img
-                    src={entry.url.replace(/size=\d+/, "size=64")}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  "None"
-                )}
-              </button>
-            ))}
-          </div>
-          {decoResults.length > decoLimit ? (
-            <div className="tw-deco-more">
-              <Button onClick={() => setDecoLimit((value) => value + DECO_PAGE)}>
-                Show more decorations
-              </Button>
-              <small>{decoResults.length - decoLimit} still hidden</small>
-            </div>
-          ) : null}
-          {decoResults.length <= 1 ? (
-            <p className="tw-deco-caption">Nothing matches “{decoQuery.trim()}”.</p>
-          ) : null}
-
-          <div className="tw-form-grid" style={{ marginTop: 18 }}>
-            <Field label="Picture zoom">
-              <Slider
-                label="Zoom"
-                value={Math.round((assets.decoration.zoom ?? 1) * 100)}
-                min={60}
-                max={200}
-                suffix="%"
-                onChange={(value) =>
-                  updateAssets({ decoration: { ...assets.decoration, zoom: value / 100 } })
-                }
-              />
-            </Field>
-            <Field label="Picture rotation">
-              <Slider
-                label="Rotation"
-                value={assets.decoration.rotate ?? 0}
-                min={-180}
-                max={180}
-                suffix="°"
-                onChange={(value) =>
-                  updateAssets({ decoration: { ...assets.decoration, rotate: value } })
-                }
-              />
-            </Field>
-          </div>
-        </Modal>
 
         <div className="tw-form-grid" style={{ marginTop: 22 }}>
           <Field label="Display name" help>
@@ -428,7 +176,8 @@ export function AccountProfilePage() {
         </div>
       </Card>
 
-      <Card>
+      </> : null}
+      {section !== "details" ? <Card>
         <CardHead
           icon="palette"
           title="Artwork"
@@ -668,11 +417,11 @@ export function AccountProfilePage() {
           hidden
           onChange={(event) => {
             const file = event.target.files?.[0];
-            if (file && pickHandler.current) void pickHandler.current(file);
+            if (file && pickHandler.current) void pickHandler.current(file).catch(error => notify("Upload failed", error instanceof Error ? error.message : "Try a different file."));
             event.target.value = "";
           }}
         />
-      </Card>
+      </Card> : null}
     </>
   );
 }

@@ -11,11 +11,14 @@ export type CardEffectId =
   | "frost";
 export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
 /** How the pointer trail is drawn. */
-export type CursorTrailType = "none" | "fairy" | "snow" | "bubbles" | "trailing" | "emoji" | "ghost" | "characters" | "sparkler";
+export type CursorTrailType = "none" | "fairy" | "snow" | "bubbles" | "trailing" | "emoji" | "ghost" | "characters" | "sparkler" | "ribbon" | "comet" | "hearts";
 
 /** The pointer trails offered in Customize › Effects › Cursor. */
 export const CURSOR_TRAILS: { id: CursorTrailType; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "No pointer trail" },
+  { id: "ribbon", name: "Silk Ribbon", hint: "A smooth flowing ribbon that follows your movement" },
+  { id: "comet", name: "Comet", hint: "A luminous tapered tail with a bright leading point" },
+  { id: "hearts", name: "Floating Hearts", hint: "Little hearts rise and fade behind your pointer" },
   { id: "fairy", name: "Fairy Dust", hint: "Glittering motes that drift off the pointer" },
   { id: "snow", name: "Snowflakes", hint: "Flakes falling from the pointer" },
   { id: "bubbles", name: "Bubbles", hint: "Soft bubbles floating upward" },
@@ -47,8 +50,8 @@ export type BackgroundEffectId =
   | "snow"
   | "rain"
   | "dust"
-  | "leaf";
-export type OverlayEffectId = "none" | "tv" | "night" | "blur" | "snow" | "dotted";
+  | "leaf" | "aurora" | "fireflies" | "gridwave";
+export type OverlayEffectId = "none" | "tv" | "night" | "blur" | "snow" | "dotted" | "grain" | "scanlines" | "vignette" | "aurora";
 export type AudioStyle =
   | "none"
   | "compact"
@@ -128,6 +131,9 @@ export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
 };
 
 export const BACKGROUND_EFFECT_PARAM: Record<BackgroundEffectId, EffectParamSpec | null> = {
+  aurora: { kind: "slider", key: "ribbons", label: "Ribbon spread", min: 0, max: 100, step: 5, default: 55 },
+  fireflies: { kind: "slider", key: "drift", label: "Drift radius", min: 0, max: 100, step: 5, default: 45 },
+  gridwave: { kind: "slider", key: "spacing", label: "Grid spacing", min: 0, max: 100, step: 5, default: 50 },
   none: null,
   snowstorm: { kind: "slider", key: "gusts", label: "Wind gusts", min: 0, max: 100, step: 5, unit: "%", default: 50 },
   stars: { kind: "slider", key: "meteorRate", label: "Meteor rate", min: 0, max: 100, step: 5, unit: "%", default: 50 },
@@ -144,6 +150,10 @@ export const BACKGROUND_EFFECT_PARAM: Record<BackgroundEffectId, EffectParamSpec
 };
 
 export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | null> = {
+  grain: { kind: "slider", key: "grain", label: "Grain scale", min: 0, max: 100, step: 5, default: 40 },
+  scanlines: { kind: "slider", key: "spacing", label: "Line spacing", min: 0, max: 100, step: 5, default: 35 },
+  vignette: { kind: "slider", key: "edge", label: "Edge depth", min: 0, max: 100, step: 5, default: 55 },
+  aurora: BACKGROUND_EFFECT_PARAM.aurora,
   none: null,
   tv: BACKGROUND_EFFECT_PARAM.tv,
   night: BACKGROUND_EFFECT_PARAM.night,
@@ -485,6 +495,9 @@ export const DECORATIONS: { id: AvatarDecorationStyle; name: string; hint: strin
 
 export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "No background motion" },
+  { id: "aurora", name: "Aurora Ribbons", hint: "Layered northern lights flowing across the page" },
+  { id: "fireflies", name: "Fireflies", hint: "Warm floating lights with gentle flickering" },
+  { id: "gridwave", name: "Wave Grid", hint: "A luminous perspective grid with rolling waves" },
   { id: "snowstorm", name: "Snowstorm", hint: "Heavy wind-blown snow with drifting white haze" },
   { id: "stars", name: "Shooting Stars", hint: "Twinkling stars with streaking meteors" },
   { id: "blur", name: "Blurred Background", hint: "Softens whatever is behind the card" },
@@ -500,6 +513,10 @@ export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: s
 ];
 
 export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] = [
+  { id: "grain", name: "Film Grain", hint: "Fine animated film texture, without the CRT bars" },
+  { id: "scanlines", name: "Soft Scanlines", hint: "A subtle moving monitor texture" },
+  { id: "vignette", name: "Cinematic Vignette", hint: "Soft dark corners that frame your profile" },
+  { id: "aurora", name: "Aurora Wash", hint: "Translucent ribbons of light over your page" },
   { id: "none", name: "None", hint: "No filter applied" },
   { id: "tv", name: "Old TV", hint: "Vintage TV effect with scan lines" },
   { id: "night", name: "Night Time", hint: "Dark vignette overlay with darkening effect" },
@@ -697,7 +714,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       // The preset cursors were replaced by a single uploaded image. Old saved
       // presets migrate to the custom image when one exists, otherwise the
       // system pointer.
-      style: cursorImage ? "custom" : "default",
+      style: cursor.style === "custom" && !cursorImage ? "default" : choiceIn(cursor.style, ["default", "dot", "ring", "crosshair", "glow", "custom"] as const, cursorImage ? "custom" : "default"),
       color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
       size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
       trail: boolIn(cursor.trail, DEFAULT_PROFILE_ASSETS.cursor.trail),
@@ -756,7 +773,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
           intensity: numberIn(
             backgroundEffect.intensity,
             DEFAULT_PROFILE_ASSETS.effects.background.intensity,
-            8,
+            0,
             100,
           ),
           speed: numberIn(
@@ -778,7 +795,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
         };
         const rawOverlay = String(overlay.id ?? "");
         const id = choiceIn(
-          legacyOverlay[rawOverlay] ?? rawOverlay,
+          OVERLAY_EFFECTS.some(item => item.id === rawOverlay) ? rawOverlay : legacyOverlay[rawOverlay] ?? rawOverlay,
           OVERLAY_EFFECTS.map((item) => item.id),
           DEFAULT_PROFILE_ASSETS.effects.overlay.id,
         );

@@ -139,3 +139,9 @@
 .profile-page .lkr-sections > *,
 .profile-page .lkr-about-slide > *,
 .profile-page .lkr-widgets-block > * { animation: none; will-change: auto; }
+
+/* Additional pointer trails share the public profile renderer. */
+.profile-cursor-trail--ribbon { width:calc(var(--fx-cursor-size) * 1.3); height:3px; border-radius:99px; box-shadow:0 0 10px var(--fx-cursor-color); background:var(--fx-cursor-color); }
+.fx-cursor-particle--hearts { color:var(--fx-p-color); font-size:var(--fx-p-size); text-shadow:0 0 8px var(--fx-p-color); }
+.fx-cursor-particle--comet { width:calc(var(--fx-p-size) * 2); height:3px; border-radius:99px; background:linear-gradient(90deg,var(--fx-p-color),transparent); box-shadow:0 0 6px var(--fx-p-color); }
+@media(prefers-reduced-motion:reduce) { .profile-cursor-trail, .fx-cursor-particles, .fx-cursor-ghost { display:none; } }

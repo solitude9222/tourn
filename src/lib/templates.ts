@@ -1,3 +1,4 @@
+import { normalizeGallery } from "./gallery";
 /* ---------------------------------------------------------------------------
    templates — a look you can hand to someone else.
 
@@ -93,7 +94,7 @@ export function snapshotFrom(
   badges: BadgeStore,
 ): TemplateSnapshot {
   return {
-    design: { ...about.design },
+    design: { ...about.design, gallery: { ...normalizeGallery(about.design.gallery), items: [] } },
     assets: withoutUploads(about.assets),
     links: { links: [...links.links], design: { ...links.design } },
     widgets: { widgets: widgets.widgets.map((item) => ({ ...item })), design: { ...widgets.design } },

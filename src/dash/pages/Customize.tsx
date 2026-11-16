@@ -591,21 +591,6 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
               />
             </Field>
 
-            <Field label="Background Filters" help>
-              <Select
-                icon="filter"
-                value={filter}
-                placeholder="Select filters"
-                options={FILTERS}
-                onChange={(value) =>
-                  updateDesign({
-                    backgroundBlur:
-                      value === "none" ? 0 : value === "soft" ? 6 : value === "blur" ? 16 : 28,
-                  })
-                }
-              />
-            </Field>
-
             <Field
               label="Description"
               help

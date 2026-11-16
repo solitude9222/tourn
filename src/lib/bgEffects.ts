@@ -221,12 +221,45 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     if (mode === "leaf") for (let i = 0; i < 80; i++) P.push({ x: R(W), y: R(H), s: 7 + R(8), r: R(TAU), vr: (R(1) - 0.5) * 0.05, ph: R(TAU), c: i % 4 });
     if (mode === "dither") lowres(Math.max(2, Math.round(2 + (amount / 100) * 3)));
     if (mode === "tv") lowres(3);
+    if (mode === "grain") lowres(3);
+    if (mode === "fireflies") mkStars(110);
     if (mode === "fuzzy") lowres(Math.max(2, Math.round(2 + (amount / 100) * 6)));
   }
 
   /* ── the twelve effects ─────────────────────────────────── */
 
   const D: Record<string, (t: number) => void> = {
+    aurora(t) {
+      const strength = s.intensity / 100, spread = .15 + s.amount / 160;
+      ctx.globalCompositeOperation = "screen";
+      for (let layer = 0; layer < 4; layer++) {
+        const y = H * (.2 + layer * .16) + Math.sin(t / 2800 + layer) * H * .08;
+        const gradient = ctx.createLinearGradient(0, y - H * spread, 0, y + H * spread);
+        const color = [Math.round(cr * .45 + layer * 12), Math.round(cg * .65 + (3-layer)*15), Math.round(cb * .75 + layer * 10)];
+        gradient.addColorStop(0,"rgba(0,0,0,0)"); gradient.addColorStop(.48,`rgba(${color.join(",")},${strength*.28})`); gradient.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle=gradient; ctx.beginPath();ctx.moveTo(-20,y);
+        ctx.bezierCurveTo(W*.25,y-H*spread*Math.sin(t/3300+layer),W*.7,y+H*spread*Math.cos(t/2700+layer),W+20,y);
+        ctx.lineTo(W+20,y+H*spread);ctx.bezierCurveTo(W*.7,y+H*spread*1.5,W*.2,y-H*spread*.2,-20,y+H*spread);ctx.closePath();ctx.fill();
+      }
+    },
+    fireflies(t) {
+      const count=Math.min(P.length,Math.round(15+s.intensity*.9)),drift=10+s.amount*.7;
+      for(let i=0;i<count;i++){const p=P[i],x=p.x+Math.sin(t/2600+i)*drift,y=p.y+Math.cos(t/3100+i*.8)*drift;
+        ctx.globalAlpha=(.2+.8*Math.abs(Math.sin(t/1500+p.ph)))*s.intensity/100;ctx.fillStyle=tint(.9);ctx.beginPath();ctx.arc(x,y,1.2+(i%3)*.6,0,TAU);ctx.fill();
+        ctx.globalAlpha*=.15;ctx.drawImage(SW!,x-10,y-10,20,20);
+      }ctx.globalAlpha=1;
+    },
+    gridwave(t) {
+      const step=22+s.amount*.65;ctx.strokeStyle=tint(s.intensity/100*.35);ctx.lineWidth=1;
+      for(let row=0;row<H+step;row+=step){ctx.beginPath();for(let x=0;x<W+step;x+=step){const y=row+Math.sin(x/120+t/1000+row/100)*12;x?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
+      for(let col=0;col<W+step;col+=step){ctx.beginPath();ctx.moveTo(col,0);ctx.lineTo(col,H);ctx.stroke();}
+    },
+    grain(t) { D.fuzzy(t); },
+    scanlines(t) {
+      const gap=3+s.amount/12;ctx.fillStyle=tint(s.intensity/100*.45);
+      for(let y=(t/100)%gap;y<H;y+=gap)ctx.fillRect(0,y,W,1);
+    },
+    vignette() { vig(s.intensity/100*(.2+s.amount/150)); },
     snowstorm(t) {
       const f = s.intensity / 100;
       const gust = 0.5 + s.amount / 100;
@@ -619,7 +652,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     motionStep = Math.min(4, Math.max(0, (clock - paintedClock) / (1000 / 30)));
     paintedClock = clock;
     draw(clock);
-    if (mode === "blur" || reducedMotion.matches) return;
+    if ((mode === "blur" || mode === "vignette") || reducedMotion.matches) return;
     raf = requestAnimationFrame(loop);
   }
 
@@ -699,7 +732,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         init();
         start();
       }
-      if (reducedMotion.matches || mode === "blur") draw(clock);
+      if (reducedMotion.matches || mode === "blur" || mode === "vignette") draw(clock);
     },
     destroy() {
       stop();

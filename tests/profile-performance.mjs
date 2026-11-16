@@ -103,7 +103,7 @@ const schedule=await page.evaluate(async()=>{
  window.ResizeObserver=class{observe(){}disconnect(){}};window.IntersectionObserver=class{observe(){}disconnect(){}};
  const output=[];
  try {
-  for(const effect of ['snowstorm','stars','blur','night','tv','dither','fuzzy','flash','snow','rain','dust','leaf'])for(const refresh of [60,120]) {
+  for(const effect of ['snowstorm','stars','blur','night','tv','dither','fuzzy','flash','snow','rain','dust','leaf','aurora','fireflies','gridwave','grain','scanlines','vignette'])for(const refresh of [60,120]) {
    const host=document.createElement('div');host.style.cssText='position:fixed;inset:0;width:320px;height:180px';document.body.append(host);
    const fx=mountBgEffect(host,{effect,intensity:50,speed:9,color:'#ffffff',amount:50,flag:false});
    const context=host.querySelector('canvas').getContext('2d'),clear=context.clearRect;let frames=0;context.clearRect=function(...args){frames++;return clear.apply(this,args);};
@@ -113,12 +113,12 @@ const schedule=await page.evaluate(async()=>{
  } finally {window.requestAnimationFrame=original.raf;window.cancelAnimationFrame=original.cancel;window.ResizeObserver=original.ro;window.IntersectionObserver=original.io;}
  return output;
 });
-for(const row of schedule){if(row.effect==='blur')assert(row.frames<=1);else assert.equal(row.frames,row.refresh,JSON.stringify(row));}
-console.log('PASS all 11 animated canvas effects follow 60/120 Hz scheduling without hidden FPS caps; blur remains static');
+for(const row of schedule){if(row.effect==='blur'||row.effect==='vignette')assert(row.frames<=1);else assert.equal(row.frames,row.refresh,JSON.stringify(row));}
+console.log('PASS all animated canvas effects follow 60/120 Hz scheduling without hidden FPS caps; blur remains static');
 // Measure real scheduling as a smoke check, separate from deterministic refresh tests.
 const real=await page.evaluate(async()=>{
  const {mountBgEffect}=await import('/src/lib/bgEffects.ts');const results=[];
- for(const effect of ['snowstorm','stars','night','tv','dither','fuzzy','flash','snow','rain','dust','leaf']) {
+ for(const effect of ['snowstorm','stars','night','tv','dither','fuzzy','flash','snow','rain','dust','leaf','aurora','fireflies','gridwave','grain','scanlines']) {
   const host=document.createElement('div');host.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:9999';document.body.append(host);
   const fx=mountBgEffect(host,{effect,intensity:50,speed:9,color:'#ffffff',amount:50,flag:false});const ctx=host.querySelector('canvas').getContext('2d'),clear=ctx.clearRect;let frames=0;ctx.clearRect=function(...args){frames++;return clear.apply(this,args);};
   const start=performance.now();await new Promise(resolve=>setTimeout(resolve,450));const fps=frames*1000/(performance.now()-start);fx.destroy();host.remove();results.push({effect,fps:Number(fps.toFixed(1))});

@@ -1,3 +1,4 @@
+import { normalizeGallery, normalizePortfolio, type GallerySettings, type PortfolioSettings } from "./gallery";
 import { DEFAULT_PROFILE_ASSETS, loadProfileAssets, type ProfileAssets } from "./profileAssets";
 import { isOnekoCat, type OnekoCat } from "./oneko";
 import type { TooltipAnimation, TooltipStyle } from "./links";
@@ -62,7 +63,7 @@ export type AudioSlot = "card-bottom" | "below-card" | "page-top" | "page-bottom
 export type WidgetsPosition = "auto" | "inside" | "below";
 
 /** Browser-tab behaviour for the public page. */
-export type TabAnimation = "none" | "cycle" | "typewriter";
+export type TabAnimation = "none" | "cycle" | "typewriter" | "marquee";
 
 export type JoinDateFormat = "relative" | "us" | "eu";
 
@@ -279,6 +280,8 @@ export function createProfileSection(kind: ProfileSectionKind = "project"): Prof
 }
 
 export type AboutDesign = {
+  gallery?: GallerySettings;
+  portfolio?: PortfolioSettings;
   sections: ProfileSection[];
   sectionsEnabled?: boolean;
   slideshow?: boolean;
@@ -290,7 +293,7 @@ export type AboutDesign = {
   metaGlowColor?: string;
   metaGlowStrength?: number;
   /** The "About me" slideshow page: its own copy and speciality tags. */
-  aboutSlide: { title: string; subtitle: string; text: string; tags: string[]; showProjects?: boolean };
+  aboutSlide: { title: string; subtitle: string; text: string; tags: string[]; showProjects?: boolean; widgetIds?: string[] };
   /** Move the avatar, name and bio away from the layout's default composition. */
   advancedLayout?: boolean;
   /** The location pill, above the card on the right, beside the account date. */
@@ -589,7 +592,7 @@ const BADGE_POSITIONS: readonly BadgePosition[] = [
 ];
 const TEXT_POSITIONS: readonly TextAlignPosition[] = ["default", "center", "left", "right"];
 const AVATAR_SHAPES: readonly AvatarShape[] = ["circle", "rounded", "square", "hexagon"];
-const TAB_ANIMATIONS: readonly TabAnimation[] = ["none", "cycle", "typewriter"];
+const TAB_ANIMATIONS: readonly TabAnimation[] = ["none", "cycle", "typewriter", "marquee"];
 
 function loadMetadata(input: unknown): AboutMetadata {
   const raw = (input ?? {}) as Partial<AboutMetadata>;
@@ -738,6 +741,8 @@ function loadDesignRaw(input: unknown): AboutDesign {
 
   return {
     theme,
+    gallery: normalizeGallery(raw.gallery),
+    portfolio: normalizePortfolio(raw.portfolio),
     sectionsEnabled: typeof raw.sectionsEnabled === "boolean" ? raw.sectionsEnabled : Boolean(raw.sections?.length),
     slideshow: raw.slideshow === true,
     slideshowLinks: raw.slideshowLinks === true,
@@ -754,6 +759,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
         : [],
       // Optional: repeat the project cards on the About page as well.
       showProjects: raw.aboutSlide?.showProjects === true,
+      widgetIds: Array.isArray(raw.aboutSlide?.widgetIds) ? [...new Set(raw.aboutSlide.widgetIds.filter((id): id is string => typeof id === "string"))].slice(0,4) : [],
     },
     skills: Array.isArray(raw.skills) ? [...new Set(raw.skills.filter((id): id is string=>typeof id === "string"))].slice(0,100) : [],
     // "hidden" is retired: a saved profile that used it comes back as automatic.

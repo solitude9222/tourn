@@ -14,6 +14,9 @@ import type { Settings } from "../config";
 import type { IconName } from "./ui";
 
 export type Page =
+  | "appearance"
+  | "portfolio-projects"
+  | "portfolio-interests"
   | "home"
   | "account-profile"
   | "badges"

@@ -608,7 +608,7 @@ export function Shell({
           </div>
         </header>
 
-        {tabs && activeTab && onTab ? (
+        {tabs && tabs.length > 1 && activeTab && onTab ? (
           <div className="tw-tabs" role="tablist" onKeyDown={navigateTabs} aria-label={`${title} sections`}>
             {tabs.map((tab) => (
               <button

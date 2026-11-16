@@ -48,9 +48,11 @@ const PAGE_LAYOUTS: {
 
 export function LayoutPage({
   section = "layout",
+  filterKind,
 }: {
   /** Which slice of the card editor this route is. The sidebar owns the switch. */
   section?: "layout" | "style" | "sections";
+  filterKind?: ProfileSectionKind;
 } = {}) {
   const sectionRefs = useRef(new Map<string, HTMLDivElement>());
   const dragRef = useRef<{ from: number; over: number } | null>(null);
@@ -367,7 +369,7 @@ export function LayoutPage({
           </Field>
         </div>
       </Card> : null}
-      {section === "sections" ? <Card><CardHead icon="layers" title="Sections" subtitle="Everything below your card: projects, games and the animes you like. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
+      {section === "sections" ? <Card><CardHead icon="layers" title={filterKind === "project" ? "Projects" : filterKind === "interest" ? "Interests" : "Sections"} subtitle="Everything below your card: projects, games and the animes you like. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
         <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime and game libraries.</p>
         <div className="tw-toggle-grid">
           <div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div>
@@ -379,7 +381,7 @@ export function LayoutPage({
             <div className="tw-inline-toggle"><b>Badges slide</b><Toggle label="Badges slide" checked={design.slideshowBadges===true} onChange={slideshowBadges=>updateDesign({slideshowBadges})}/></div>
           </> : null}
         </div>
-        {design.slideshowAbout === true ? (
+        {!filterKind && design.slideshowAbout === true ? (
           <details className="tw-about-editor">
             <summary className="tw-about-editor-head">
               <span>
@@ -465,7 +467,7 @@ export function LayoutPage({
         ) : null}
 
         <div className={`tw-section-list${drag ? " is-sorting" : ""}`}>
-          {design.sections.map((section, index) => (
+          {design.sections.map((section, index) => !filterKind || section.kind === filterKind ? (
             <div
               key={section.id}
               className={`tw-section-card${drag?.from === index ? " is-dragging" : ""}`}
@@ -497,13 +499,13 @@ export function LayoutPage({
                 onMoveUp={() => moveSection(index, index - 1)}
               />
             </div>
-          ))}
+          ) : null)}
         </div>
         {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a project, a game list, or an anime you like.</p> : null}
         <div className="tw-section-add">
           <span className="tw-section-add-label">Add a section</span>
           <div className="tw-section-add-row">
-            {SECTION_KINDS.map((kind) => (
+            {SECTION_KINDS.filter(kind => !filterKind || kind.id === filterKind).map((kind) => (
               <button
                 key={kind.id}
                 type="button"
