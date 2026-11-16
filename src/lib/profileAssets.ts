@@ -9,49 +9,104 @@ export type CardEffectId =
   | "aurora"
   | "edgeGlow"
   | "frost";
-export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
+export type CursorSkin = "system" | "dot" | "ring" | "dotRing" | "crosshair";
+export type CursorStyle = CursorSkin | "custom";
 /** How the pointer trail is drawn. */
-export type CursorTrailType = "none" | "fairy" | "snow" | "bubbles" | "trailing" | "emoji" | "ghost" | "characters" | "sparkler" | "ribbon" | "comet" | "hearts";
+export type CursorTrailType =
+  | "none"
+  | "fairyDust"
+  | "snowflakes"
+  | "trailingCursor"
+  | "emojiRain"
+  | "ghost"
+  | "characterRain"
+  | "sparkler"
+  | "lightning"
+  | "tracer"
+  | "petals"
+  | "orbit"
+  | "pixels"
+  | "ripple"
+  | "warp"
+  | "constellation";
 
-/** The pointer trails offered in Customize › Effects › Cursor. */
+export type ClickEffectId = "none" | "ripple" | "burst" | "sparks" | "pixelPop" | "shockwave";
+
+export type CursorMotionSettings = {
+  /** Multiplier for the effect's natural particle / shape size. */
+  size: number;
+  /** Density multiplier for emitted particles. */
+  amount: number;
+  /** Lifespan multiplier. */
+  life: number;
+  /** Empty means the trail keeps its authored colour palette. */
+  color: string;
+  rainbow: boolean;
+};
+
+/** The pointer trails offered in Customize › Effects › Pointer. */
 export const CURSOR_TRAILS: { id: CursorTrailType; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "No pointer trail" },
-  { id: "ribbon", name: "Silk Ribbon", hint: "A smooth flowing ribbon that follows your movement" },
-  { id: "comet", name: "Comet", hint: "A luminous tapered tail with a bright leading point" },
-  { id: "hearts", name: "Floating Hearts", hint: "Little hearts rise and fade behind your pointer" },
-  { id: "fairy", name: "Fairy Dust", hint: "Glittering motes that drift off the pointer" },
-  { id: "snow", name: "Snowflakes", hint: "Flakes falling from the pointer" },
-  { id: "bubbles", name: "Bubbles", hint: "Soft bubbles floating upward" },
-  { id: "trailing", name: "Trailing Cursor", hint: "A smooth bead trail behind the pointer" },
-  { id: "emoji", name: "Emoji Rain", hint: "Your emoji spill out and fall as you move" },
+  { id: "fairyDust", name: "Fairy Dust", hint: "Glittering sparkles drifting from the pointer" },
+  { id: "snowflakes", name: "Snowflakes", hint: "Snowflakes that fall and spin behind the pointer" },
+  { id: "trailingCursor", name: "Trailing Cursor", hint: "A trail of cursor arrows lagging behind the pointer" },
+  { id: "emojiRain", name: "Emoji Rain", hint: "Emoji spill out and fall as you move" },
   { id: "ghost", name: "Ghost Following", hint: "A little ghost floats behind the pointer" },
-  { id: "characters", name: "Character Rain", hint: "Letters and symbols rain from the pointer" },
+  { id: "characterRain", name: "Character Rain", hint: "Letters and symbols rain from the pointer" },
   { id: "sparkler", name: "Sparkler", hint: "Bright sparks shooting out from the pointer" },
+  { id: "lightning", name: "Lightning", hint: "Small electric bolts crackle off the pointer" },
+  { id: "tracer", name: "Tracer", hint: "A thin line follows the path of the pointer" },
+  { id: "petals", name: "Petals", hint: "Soft petals tumble away from the pointer" },
+  { id: "orbit", name: "Orbit", hint: "Six little planets orbit the pointer" },
+  { id: "pixels", name: "Pixels", hint: "Pixel blocks snap to a grid behind the pointer" },
+  { id: "ripple", name: "Ripple", hint: "Small rings expand from the pointer" },
+  { id: "warp", name: "Warp", hint: "Streaking stars are pulled outward from the pointer" },
+  { id: "constellation", name: "Constellation", hint: "Dots drift and link into constellations" },
 ];
+
+/** Cursor skins replace the system pointer while active. */
+export const CURSOR_SKINS: { id: CursorSkin; name: string; hint: string }[] = [
+  { id: "system", name: "System cursor", hint: "Keep the normal pointer" },
+  { id: "dot", name: "Dot", hint: "A solid dot at the pointer" },
+  { id: "ring", name: "Ring", hint: "A ring that trails slightly behind" },
+  { id: "dotRing", name: "Dot + Ring", hint: "A dot with a trailing outer ring" },
+  { id: "crosshair", name: "Crosshair", hint: "Four short lines around the pointer" },
+];
+
+export const CLICK_EFFECTS: { id: ClickEffectId; name: string; hint: string }[] = [
+  { id: "none", name: "None", hint: "No click effect" },
+  { id: "ripple", name: "Ripple", hint: "Two rings expand from every click" },
+  { id: "burst", name: "Burst", hint: "A radial burst of dots" },
+  { id: "sparks", name: "Sparks", hint: "Sharp sparks fly out from the click" },
+  { id: "pixelPop", name: "Pixel Pop", hint: "Pixel shards pop out with gravity" },
+  { id: "shockwave", name: "Shockwave", hint: "One wide, fast shockwave" },
+];
+
+export const DEFAULT_CURSOR_MOTION: CursorMotionSettings = {
+  size: 1,
+  amount: 1,
+  life: 1,
+  color: "",
+  rainbow: false,
+};
+
+function motionMap<T extends string>(items: readonly { id: T }[]): Record<T, CursorMotionSettings> {
+  return Object.fromEntries(items.map((item) => [item.id, { ...DEFAULT_CURSOR_MOTION }])) as Record<T, CursorMotionSettings>;
+}
 
 /** Old trail ids keep working after the catalogue changed. */
 const LEGACY_TRAILS: Record<string, CursorTrailType> = {
-  dots: "trailing", line: "trailing", ribbon: "trailing", smoke: "trailing",
-  glow: "fairy", sparkle: "fairy", stars: "fairy", comet: "sparkler",
+  dots: "trailingCursor", line: "tracer", ribbon: "trailingCursor", smoke: "tracer",
+  glow: "fairyDust", sparkle: "fairyDust", fairy: "fairyDust",
+  snow: "snowflakes", trailing: "trailingCursor", emoji: "emojiRain",
+  characters: "characterRain", comet: "sparkler", bubbles: "petals",
+  hearts: "petals", stars: "sparkler", custom: "constellation",
 };
 export type ProfileBackgroundStyle = "solid" | "gradient" | "image" | "video";
-/** Canvas background effects — the same twelve engines power both the
- *  behind-the-card layer and the above-everything overlay layer. */
-export type BackgroundEffectId =
-  | "none"
-  | "snowstorm"
-  | "stars"
-  | "blur"
-  | "night"
-  | "tv"
-  | "dither"
-  | "fuzzy"
-  | "flash"
-  | "snow"
-  | "rain"
-  | "dust"
-  | "leaf" | "aurora" | "fireflies" | "gridwave";
-export type OverlayEffectId = "none" | "tv" | "night" | "blur" | "snow" | "dotted" | "grain" | "scanlines" | "vignette" | "aurora";
+/** Transparent particle layers drawn behind the profile page. */
+export type BackgroundEffectId = "none" | "rain" | "snow" | "night" | "storm" | "warp" | "shootingStars";
+/** Full-page CSS filters, grain and the snowfall filter. */
+export type OverlayEffectId = "none" | "oldTv" | "blurred" | "snowFall" | "dotPattern" | "lines" | "gridLines" | "crt" | "grain";
 export type AudioStyle =
   | "none"
   | "compact"
@@ -112,6 +167,17 @@ function clampParamsFor(spec: EffectParamSpec | null, raw: unknown): EffectParam
   return { amount: 50, flag: typeof r.flag === "boolean" ? r.flag : fallback.flag };
 }
 
+function loadCursorMotion(value: unknown): CursorMotionSettings {
+  const raw = (value ?? {}) as Partial<CursorMotionSettings>;
+  return {
+    size: numberIn(raw.size, DEFAULT_CURSOR_MOTION.size, 0.4, 2),
+    amount: numberIn(raw.amount, DEFAULT_CURSOR_MOTION.amount, 0.2, 3),
+    life: numberIn(raw.life, DEFAULT_CURSOR_MOTION.life, 0.25, 2.5),
+    color: normalizeHexColor(raw.color) ?? "",
+    rainbow: boolIn(raw.rainbow, DEFAULT_CURSOR_MOTION.rainbow),
+  };
+}
+
 export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
   aurora: null, outline: null, metallic: null,
   none: null,
@@ -131,35 +197,25 @@ export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
 };
 
 export const BACKGROUND_EFFECT_PARAM: Record<BackgroundEffectId, EffectParamSpec | null> = {
-  aurora: { kind: "slider", key: "ribbons", label: "Ribbon spread", min: 0, max: 100, step: 5, default: 55 },
-  fireflies: { kind: "slider", key: "drift", label: "Drift radius", min: 0, max: 100, step: 5, default: 45 },
-  gridwave: { kind: "slider", key: "spacing", label: "Grid spacing", min: 0, max: 100, step: 5, default: 50 },
   none: null,
-  snowstorm: { kind: "slider", key: "gusts", label: "Wind gusts", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  stars: { kind: "slider", key: "meteorRate", label: "Meteor rate", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  blur: { kind: "slider", key: "extraBlur", label: "Extra blur", min: 0, max: 100, step: 5, unit: "%", default: 30 },
-  night: { kind: "slider", key: "vignette", label: "Corner darkening", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  tv: { kind: "slider", key: "scanlines", label: "Scanline strength", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  dither: { kind: "slider", key: "pixel", label: "Pixel size", min: 0, max: 100, step: 5, unit: "%", default: 40 },
-  fuzzy: { kind: "slider", key: "grain", label: "Grain size", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  flash: { kind: "slider", key: "lightSize", label: "Light size", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  snow: { kind: "slider", key: "drift", label: "Drift & sway", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  rain: { kind: "slider", key: "slant", label: "Wind slant", min: 0, max: 100, step: 5, unit: "%", default: 40 },
-  dust: { kind: "slider", key: "size", label: "Particle size", min: 0, max: 100, step: 5, unit: "%", default: 50 },
-  leaf: { kind: "slider", key: "spin", label: "Spin & flip", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  rain: null,
+  snow: null,
+  night: null,
+  storm: null,
+  warp: null,
+  shootingStars: null,
 };
 
 export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | null> = {
-  grain: { kind: "slider", key: "grain", label: "Grain scale", min: 0, max: 100, step: 5, default: 40 },
-  scanlines: { kind: "slider", key: "spacing", label: "Line spacing", min: 0, max: 100, step: 5, default: 35 },
-  vignette: { kind: "slider", key: "edge", label: "Edge depth", min: 0, max: 100, step: 5, default: 55 },
-  aurora: BACKGROUND_EFFECT_PARAM.aurora,
   none: null,
-  tv: BACKGROUND_EFFECT_PARAM.tv,
-  night: BACKGROUND_EFFECT_PARAM.night,
-  blur: BACKGROUND_EFFECT_PARAM.blur,
-  snow: BACKGROUND_EFFECT_PARAM.snow,
-  dotted: null,
+  oldTv: null,
+  blurred: null,
+  snowFall: null,
+  dotPattern: null,
+  lines: null,
+  gridLines: null,
+  crt: null,
+  grain: null,
 };
 
 export type DecorationSettings = {
@@ -169,7 +225,7 @@ export type DecorationSettings = {
   spin: boolean;
   /** Discord CDN avatar-decoration-preset URL (APNG overlay). */
   discordUrl?: string;
-  /** Avatar zoom 0.5–2 */
+  /** Avatar zoom 0.5–2.5 */
   zoom?: number;
   /** Avatar rotation in degrees */
   rotate?: number;
@@ -181,13 +237,13 @@ export type CursorSettings = {
   size: number;
   trail: boolean;
   trailType: CursorTrailType;
-  trailLength: number;
-  /** Particles emitted per burst */
-  trailAmount: number;
-  /** Playback speed multiplier */
-  trailSpeed: number;
-  /** Emoji/characters used by emoji, ghost and character trails. */
+  /** Emoji/characters used by emoji and character trails. */
   trailText: string;
+  /** Each trail keeps its own motion settings. */
+  trailSettings: Record<CursorTrailType, CursorMotionSettings>;
+  click: ClickEffectId;
+  /** Each click effect keeps its own settings too. */
+  clickSettings: Record<ClickEffectId, CursorMotionSettings>;
   imageUrl: string;
   /** The clickable (pointer) cursor, uploaded on its own. */
   pointerImageUrl: string;
@@ -384,15 +440,15 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     spin: false,
   },
   cursor: {
-    style: "default",
+    style: "system",
     color: "#ffb3ae",
     size: 10,
     trail: false,
-    trailType: "trailing",
-    trailLength: 5,
-    trailAmount: 4,
-    trailSpeed: 1,
-    trailText: "👻✨❄️🫧",
+    trailType: "trailingCursor",
+    trailText: "",
+    trailSettings: motionMap(CURSOR_TRAILS),
+    click: "none",
+    clickSettings: motionMap(CLICK_EFFECTS),
     imageUrl: "",
     pointerImageUrl: "",
   },
@@ -494,35 +550,25 @@ export const DECORATIONS: { id: AvatarDecorationStyle; name: string; hint: strin
 ];
 
 export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: string }[] = [
-  { id: "none", name: "None", hint: "No background motion" },
-  { id: "aurora", name: "Aurora Ribbons", hint: "Layered northern lights flowing across the page" },
-  { id: "fireflies", name: "Fireflies", hint: "Warm floating lights with gentle flickering" },
-  { id: "gridwave", name: "Wave Grid", hint: "A luminous perspective grid with rolling waves" },
-  { id: "snowstorm", name: "Snowstorm", hint: "Heavy wind-blown snow with drifting white haze" },
-  { id: "stars", name: "Shooting Stars", hint: "Twinkling stars with streaking meteors" },
-  { id: "blur", name: "Blurred Background", hint: "Softens whatever is behind the card" },
-  { id: "night", name: "Night Time", hint: "Dark tint, twinkling stars, darker corners" },
-  { id: "tv", name: "Old TV", hint: "CRT static, scanlines and a rolling light bar" },
-  { id: "dither", name: "Dither", hint: "Retro 1-bit dot pattern in motion" },
-  { id: "fuzzy", name: "Fuzzy", hint: "Soft shimmering coloured grain" },
-  { id: "flash", name: "Flashlight", hint: "A warm light that follows the pointer" },
-  { id: "snow", name: "Snow", hint: "Calm snowfall in three depths" },
-  { id: "rain", name: "Rain", hint: "Slanted raindrops with tiny splashes" },
-  { id: "dust", name: "Particles", hint: "Glowing dust that dodges the pointer" },
-  { id: "leaf", name: "Leaf Fall", hint: "Autumn leaves that spin and sway as they fall" },
+  { id: "none", name: "None", hint: "No animated background" },
+  { id: "rain", name: "Rain", hint: "Slanted rain drifting across the page" },
+  { id: "snow", name: "Snow", hint: "Soft snowflakes falling at different speeds" },
+  { id: "night", name: "Night", hint: "A quiet field of twinkling stars" },
+  { id: "storm", name: "Storm", hint: "Heavy rain with distant lightning flashes" },
+  { id: "warp", name: "Warp", hint: "Stars streaking outward from the centre" },
+  { id: "shootingStars", name: "Shooting Stars", hint: "Occasional meteors crossing the night sky" },
 ];
 
 export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] = [
-  { id: "grain", name: "Film Grain", hint: "Fine animated film texture, without the CRT bars" },
-  { id: "scanlines", name: "Soft Scanlines", hint: "A subtle moving monitor texture" },
-  { id: "vignette", name: "Cinematic Vignette", hint: "Soft dark corners that frame your profile" },
-  { id: "aurora", name: "Aurora Wash", hint: "Translucent ribbons of light over your page" },
   { id: "none", name: "None", hint: "No filter applied" },
-  { id: "tv", name: "Old TV", hint: "Vintage TV effect with scan lines" },
-  { id: "night", name: "Night Time", hint: "Dark vignette overlay with darkening effect" },
-  { id: "blur", name: "Blurred", hint: "Blur background effect" },
-  { id: "snow", name: "Snow Fall", hint: "Animated snow falling effect" },
-  { id: "dotted", name: "Dot Pattern", hint: "Dotted pattern with a screen like effect" },
+  { id: "oldTv", name: "Old TV", hint: "Scanlines, a dark vignette and a subtle flicker" },
+  { id: "blurred", name: "Blurred", hint: "Softens the background behind your profile" },
+  { id: "snowFall", name: "Snow Fall", hint: "Snow falling above the page" },
+  { id: "dotPattern", name: "Dot Pattern", hint: "A fine dotted texture over the page" },
+  { id: "lines", name: "Lines", hint: "Fine horizontal lines across the page" },
+  { id: "gridLines", name: "Grid Lines", hint: "A faint 40px grid over the page" },
+  { id: "crt", name: "CRT", hint: "Scanlines, RGB stripes, a flicker and a heavy vignette" },
+  { id: "grain", name: "Film Grain", hint: "Animated monochrome noise over the page" },
 ];
 export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "Plain text" },
@@ -707,29 +753,47 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       size: numberIn(decoration.size, DEFAULT_PROFILE_ASSETS.decoration.size, 0.5, 1.8),
       spin: boolIn(decoration.spin, DEFAULT_PROFILE_ASSETS.decoration.spin),
       discordUrl: textIn(decoration.discordUrl, "", 900),
-      zoom: numberIn(decoration.zoom, 1, 0.5, 2),
+      zoom: numberIn(decoration.zoom, 1, 0.5, 2.5),
       rotate: numberIn(decoration.rotate, 0, -180, 180),
     },
-    cursor: {
-      // The preset cursors were replaced by a single uploaded image. Old saved
-      // presets migrate to the custom image when one exists, otherwise the
-      // system pointer.
-      style: cursor.style === "custom" && !cursorImage ? "default" : choiceIn(cursor.style, ["default", "dot", "ring", "crosshair", "glow", "custom"] as const, cursorImage ? "custom" : "default"),
-      color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
-      size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
-      trail: boolIn(cursor.trail, DEFAULT_PROFILE_ASSETS.cursor.trail),
-      trailType: (() => {
+    cursor: (() => {
+      const rawStyle = String(cursor.style ?? "");
+      const style: CursorStyle = rawStyle === "custom"
+        ? (cursorImage ? "custom" : "system")
+        : rawStyle === "default" ? "system"
+        : rawStyle === "glow" ? "dotRing"
+        : choiceIn(rawStyle, ["system", "dot", "ring", "dotRing", "crosshair"] as const, "system");
+      const trailType = (() => {
         const raw = String(cursor.trailType ?? "");
         if (CURSOR_TRAILS.some((entry) => entry.id === raw)) return raw as CursorTrailType;
         return LEGACY_TRAILS[raw] ?? DEFAULT_PROFILE_ASSETS.cursor.trailType;
-      })(),
-      trailLength: numberIn(cursor.trailLength, DEFAULT_PROFILE_ASSETS.cursor.trailLength, 1, 24),
-      trailAmount: numberIn(cursor.trailAmount, DEFAULT_PROFILE_ASSETS.cursor.trailAmount, 1, 12),
-      trailSpeed: numberIn(cursor.trailSpeed, DEFAULT_PROFILE_ASSETS.cursor.trailSpeed, 0.4, 2.5),
-      trailText: textIn(cursor.trailText, DEFAULT_PROFILE_ASSETS.cursor.trailText, 32),
-      imageUrl: cursorImage,
-      pointerImageUrl: textIn(cursor.pointerImageUrl, "", 750_000),
-    },
+      })();
+      const rawTrailSettings = (cursor.trailSettings ?? {}) as Partial<Record<string, unknown>>;
+      const trailSettings = Object.fromEntries(
+        CURSOR_TRAILS.map((entry) => [entry.id, loadCursorMotion(rawTrailSettings[entry.id])]),
+      ) as Record<CursorTrailType, CursorMotionSettings>;
+      const rawClick = String(cursor.click ?? "");
+      const click = CLICK_EFFECTS.some((entry) => entry.id === rawClick)
+        ? rawClick as ClickEffectId
+        : interactions.ripple ? "ripple" : "none";
+      const rawClickSettings = (cursor.clickSettings ?? {}) as Partial<Record<string, unknown>>;
+      const clickSettings = Object.fromEntries(
+        CLICK_EFFECTS.map((entry) => [entry.id, loadCursorMotion(rawClickSettings[entry.id])]),
+      ) as Record<ClickEffectId, CursorMotionSettings>;
+      return {
+        style,
+        color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
+        size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
+        trail: boolIn(cursor.trail, DEFAULT_PROFILE_ASSETS.cursor.trail),
+        trailType,
+        trailText: textIn(cursor.trailText, DEFAULT_PROFILE_ASSETS.cursor.trailText, 32),
+        trailSettings,
+        click,
+        clickSettings,
+        imageUrl: cursorImage,
+        pointerImageUrl: textIn(cursor.pointerImageUrl, "", 750_000),
+      };
+    })(),
     background: {
       style: choiceIn(
         background.style,
@@ -763,8 +827,12 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
     audio: loadAudio(raw.audio),
     effects: {
       background: (() => {
+        const legacyBackground: Record<string, BackgroundEffectId> = {
+          snowstorm: "snow", dust: "storm", ashes: "storm", stars: "night",
+        };
+        const rawBackground = String(backgroundEffect.id ?? "");
         const id = choiceIn(
-          backgroundEffect.id,
+          legacyBackground[rawBackground] ?? rawBackground,
           BACKGROUND_EFFECTS.map((item) => item.id),
           DEFAULT_PROFILE_ASSETS.effects.background.id,
         );
@@ -788,10 +856,12 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       })(),
       overlay: (() => {
         const legacyOverlay: Record<string, OverlayEffectId> = {
-          grain: "dotted", dither: "dotted", scanlines: "tv", fuzzy: "tv",
-          vignette: "night", stars: "night", bloom: "none", chromatic: "none",
-          fog: "blur", custom: "none", flash: "none", dust: "none",
-          rain: "snow", leaf: "snow", snowstorm: "snow",
+          dither: "dotPattern", scanlines: "lines", fuzzy: "lines",
+          vignette: "oldTv", stars: "oldTv", bloom: "none", chromatic: "crt",
+          fog: "blurred", custom: "none", flash: "none", dust: "snowFall",
+          rain: "snowFall", leaf: "snowFall", snowstorm: "snowFall",
+          tv: "oldTv", night: "oldTv", nightTime: "oldTv", blur: "blurred", snow: "snowFall",
+          dotted: "dotPattern", aurora: "none", grid: "gridLines", gridwave: "gridLines",
         };
         const rawOverlay = String(overlay.id ?? "");
         const id = choiceIn(

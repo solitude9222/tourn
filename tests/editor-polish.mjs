@@ -81,6 +81,7 @@ await page.getByRole('button',{name:'Open audio manager'}).click();
 const audioDialog=page.getByRole('dialog',{name:'Audio player'});
 await audioDialog.waitFor();
 assert.equal(await audioDialog.getByRole('heading',{name:'Audio player'}).count(),1,'Modal repeats the audio heading');
+assert((await audioDialog.evaluate(el=>el.getBoundingClientRect().width))>900,'Audio modal is still narrow');
 await page.keyboard.press('Escape');
 await audioDialog.waitFor({state:'hidden'});
 await page.evaluate(()=>location.hash='#/dashboard/profile-main');

@@ -1,29 +1,29 @@
 import "./effectsStudio.css";
 import { usePreference } from "./preferences";
 import { useState, type CSSProperties } from "react";
-import { BackgroundEffectLayer, OverlayEffectLayer, EffectText, ProfileCursor } from "../components/ProfileEffects";
+import { BackgroundEffectLayer, OverlayEffectLayer, EffectText } from "../components/ProfileEffects";
+import { CursorTrailLayer } from "../components/CursorTrailLayer";
 import { DEFAULT_PROFILE_ASSETS, DEFAULT_TEXT_EFFECT, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type OverlayEffectId } from "../lib/profileAssets";
 import { naturalCompare, sorted, chain } from "../lib/sort";
 import { SortSelect, TextInput } from "./ui";
 
 export type EffectOption = { id: string; name: string; hint: string; effect?: string; colorA?: string; colorB?: string };
 type Option = EffectOption;
-export type EffectKind = "background" | "overlay" | "text" | "card" | "cursor" | "trail";
+export type EffectKind = "background" | "overlay" | "text" | "card" | "cursor" | "trail" | "click";
 const groupFor = (kind: EffectKind, id: string) => {
-  if (id === "none" || id === "default") return "Basics";
+  if (id === "none" || id === "default" || id === "system") return "Basics";
   if (kind === "text") return ["rgb", "glow", "shimmer", "sparkle", "neon"].includes(id) ? "Light & colour" : "Motion";
   if (kind === "card") return "Light & borders";
-  if (kind === "cursor" || kind === "trail") return "Pointer";
-  if (["rain", "snow", "snowstorm", "leaf", "dust", "stars", "night"].includes(id)) return "Atmosphere";
-  if (["dotted", "grain", "scanlines", "tv", "dither", "fuzzy", "chromatic"].includes(id)) return "Texture";
+  if (kind === "cursor" || kind === "trail" || kind === "click") return "Pointer";
+  if (["rain", "snow", "night", "storm", "warp", "shootingStars", "blurred", "snowFall"].includes(id)) return "Atmosphere";
+  if (["oldTv", "dotPattern", "lines", "gridLines", "crt", "grain"].includes(id)) return "Texture";
   return "Light & depth";
 };
 
 function TilePreview({ option, kind, active, previewText }: { option: Option; kind: EffectKind; active: boolean; previewText: string }) {
   const base = { ...DEFAULT_PROFILE_ASSETS.effects.background, id: option.id as typeof DEFAULT_PROFILE_ASSETS.effects.background.id, color: "#ffffff", intensity: 45, params: defaultParamsFor(BACKGROUND_EFFECT_PARAM[option.id as keyof typeof BACKGROUND_EFFECT_PARAM] || null) };
   return <span className={`fx-tile-preview fx-preview-${option.id}`}>
-    {kind === "background" && option.id !== "none" && !active && !["aurora","fireflies","gridwave"].includes(option.id) ? <img className="fx-effect-poster" src={`/effect-previews/${option.id}.png`} alt="" loading="lazy" /> : null}
-    {kind === "background" && !active && ["aurora","fireflies","gridwave"].includes(option.id) ? <span className={`fx-generated-poster fx-generated-poster--${option.id}`} /> : null}
+    {kind === "background" && option.id !== "none" && !active ? <span className={`fx-preview-poster fx-preview-poster--${option.id}`} /> : null}
     {kind === "overlay" ? <span className="fx-preview-scene" aria-hidden="true">
       <span className="fx-preview-scene-card">
         <span className="fx-preview-scene-avatar" />
@@ -32,8 +32,8 @@ function TilePreview({ option, kind, active, previewText }: { option: Option; ki
       </span>
     </span> : null}
     {kind === "overlay" && option.id === "custom" ? <span className="fx-upload-symbol" aria-hidden="true">+</span> : null}
-    {(kind === "background" || kind === "overlay") && active ? kind === "overlay" ? <OverlayEffectLayer settings={{ ...DEFAULT_PROFILE_ASSETS.effects.overlay, ...base, id: option.id as OverlayEffectId, params: defaultParamsFor(OVERLAY_EFFECT_PARAM[option.id as OverlayEffectId]), opacity: .7 }} /> : <BackgroundEffectLayer settings={base} compact /> : null}
-    {kind === "text" ? <EffectText text={previewText} settings={{ ...DEFAULT_TEXT_EFFECT, effect: (option.effect || option.id) as typeof DEFAULT_TEXT_EFFECT.effect, colorA: option.colorA || "#fff", colorB: option.colorB || "#ffffff", params: defaultParamsFor(TEXT_EFFECT_PARAM[(option.effect || option.id) as keyof typeof TEXT_EFFECT_PARAM]) }} /> : kind === "card" ? <span className="fx-mini-card"><span className={`pv-card-fx pv-card-fx--${option.id}`} /><b>Your name</b><small>@username</small></span> : (kind === "cursor" || kind === "trail") ? <span className="fx-pointer-demo"><span className={`fx-mini-cursor fx-mini-cursor--${option.id}`} />{active ? <ProfileCursor settings={{ ...DEFAULT_PROFILE_ASSETS.cursor, style: "dot", trail: option.id !== "none", trailType: option.id as typeof DEFAULT_PROFILE_ASSETS.cursor.trailType, color: "#91a7ff", size: 14 }} /> : null}</span> : null}
+    {(kind === "background" || kind === "overlay") && active ? kind === "overlay" ? <OverlayEffectLayer compact settings={{ ...DEFAULT_PROFILE_ASSETS.effects.overlay, ...base, id: option.id as OverlayEffectId, params: defaultParamsFor(OVERLAY_EFFECT_PARAM[option.id as OverlayEffectId]), opacity: .7 }} /> : <BackgroundEffectLayer settings={base} compact /> : null}
+    {kind === "text" ? <EffectText text={previewText} settings={{ ...DEFAULT_TEXT_EFFECT, effect: (option.effect || option.id) as typeof DEFAULT_TEXT_EFFECT.effect, colorA: option.colorA || "#fff", colorB: option.colorB || "#ffffff", params: defaultParamsFor(TEXT_EFFECT_PARAM[(option.effect || option.id) as keyof typeof TEXT_EFFECT_PARAM]) }} /> : kind === "card" ? <span className="fx-mini-card"><span className={`pv-card-fx pv-card-fx--${option.id}`} /><b>Your name</b><small>@username</small></span> : kind === "click" && option.id !== "none" ? <span className={`fx-click-demo fx-click-demo--${option.id}`} /> : (kind === "cursor" || kind === "trail") ? <span className="fx-pointer-demo"><span className={`fx-mini-cursor fx-mini-cursor--${option.id}`} />{active ? <CursorTrailLayer settings={{ ...DEFAULT_PROFILE_ASSETS.cursor, style: "dot", trail: option.id !== "none", trailType: option.id as typeof DEFAULT_PROFILE_ASSETS.cursor.trailType, color: "#91a7ff", size: 14 }} /> : null}</span> : null}
   </span>;
 }
 

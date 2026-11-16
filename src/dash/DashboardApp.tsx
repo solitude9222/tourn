@@ -103,6 +103,7 @@ const PAGE_PRELOADS: Partial<Record<Page, () => Promise<unknown>>> = {
 import "./dash.css";
 import "./pages.css";
 import "./dashboardStudio.css";
+import "./managePages.css";
 
 export type DashboardProps = {
   user: Account | null;
@@ -180,7 +181,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     icon: "star",
     crumb: "Premium",
   },
-  links: { title: "Social Links", subtitle: "Links and buttons on your profile.", icon: "link", crumb: "Links" },
+  links: { title: "Social Links", subtitle: "Connect your social media accounts to your profile", icon: "link", crumb: "Links" },
   widgets: {
     title: "Widgets",
     subtitle: "Add rich platform widgets to your profile",

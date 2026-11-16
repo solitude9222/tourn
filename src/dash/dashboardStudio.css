@@ -119,6 +119,25 @@
 .tw-about-widget-choices label { display:flex; gap:10px; align-items:center; background:var(--tile); padding:14px; border-radius:10px; }
 .tw-audio-modal > .tw-card { padding:0; border:0; background:transparent; }
 .tw-audio-modal > .tw-card > .tw-card-head { display:none; }
+.tw-dash .tw-search:focus-within { border-color:var(--sub); background:var(--bar); box-shadow:none; }
+.tw-dash .tw-search input::placeholder,
+.tw-dash :is(.tw-control input,.tw-textarea)::placeholder { color:var(--desc); opacity:1; }
+.tw-dash :is(.tw-search input,.tw-control input,.tw-textarea) { caret-color:var(--title); }
+/* Selection stays neutral inside every field; the red accent is not an input state. */
+.tw-dash ::selection,
+.tw-dash :is(input,textarea,select)::selection { background:rgba(255,255,255,.18) !important; color:inherit !important; }
+.tw-interest-mode { display:flex; flex-direction:column; gap:12px; padding:16px; margin-bottom:16px; border:1px solid var(--border); border-radius:12px; background:var(--tile); }
+.tw-interest-mode-head { display:flex; flex-direction:column; gap:3px; }
+.tw-interest-mode-head b { font-size:13px; line-height:19px; }
+.tw-interest-mode-head small { color:var(--sub); font-size:11.5px; line-height:17px; }
+.tw-interest-modes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.tw-profile-media-settings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:18px; padding-top:18px; border-top:1px solid var(--border); }
+.tw-media-setting-head { display:flex; flex-direction:column; gap:3px; margin-bottom:10px; }
+.tw-media-setting-head b { font-size:12px; line-height:18px; }
+.tw-media-setting-head small { color:var(--sub); font-size:11px; line-height:17px; }
+.tw-media-video-sound { display:flex; flex-direction:column; gap:14px; }
+.tw-media-background { display:block; object-fit:cover; }
+@media(max-width:700px) { .tw-profile-media-settings { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:1100px) { .tw-dash .tw-toggle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:900px) { .tw-dash .tw-tab { flex:1 0 110px; } }
 @media(max-width:600px) { .tw-dash .tw-toggle-grid,.tw-about-widget-choices { grid-template-columns:minmax(0,1fr); } .tw-dash .tw-overview { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .tw-dash .tw-overview-card { padding:14px; } .tw-dash .tw-home-setup { grid-template-columns:minmax(0,1fr); } }

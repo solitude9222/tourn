@@ -1,6 +1,6 @@
 import type { AboutDesign } from "../lib/about";
 
-const STYLE_KEYS: (keyof AboutDesign)[] = ["theme", "layout", "cardStyle", "font", "cardWidth", "cardRadius", "borderWidth", "borderOpacity", "backgroundOpacity", "backgroundBlur", "avatarSize", "widgetGap", "cardPadding", "nameSize", "bioSize", "tilt", "stackTilt", "colors", "pills", "surfaces", "pfpPosition", "badgePosition", "namePosition", "bioPosition", "avatarShape"];
+const STYLE_KEYS: (keyof AboutDesign)[] = ["theme", "layout", "cardStyle", "font", "cardWidth", "cardRadius", "borderWidth", "borderOpacity", "backgroundOpacity", "backgroundBlur", "avatarSize", "widgetGap", "cardPadding", "nameSize", "bioSize", "tilt", "stackTilt", "colors", "pills", "surfaces", "pfpPosition", "badgePosition", "namePosition", "bioPosition", "avatarShape", "interestMode"];
 export function styleFrom(design: AboutDesign): Partial<AboutDesign> { return Object.fromEntries(STYLE_KEYS.map(key => [key, design[key]])); }
 
 export function contrastRatio(foreground: string, background: string): number {

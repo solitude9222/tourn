@@ -103,7 +103,8 @@ export function AudioPlayer({
   const artist = settings.artist.trim();
   const cover = settings.coverUrl.trim() || null;
   const hasTrack = Boolean(fileUrl);
-  // "None" is the off switch: no player, even when a track is still uploaded.
+  // "None" hides the player chrome, not the music. An uploaded track keeps
+  // playing with this hidden element so the page mute button can control it.
   const audioOn = settings.style !== "none";
   const style = settings.style;
   // Saved uploads can hold a relative /api path; resolve it so the audio
@@ -314,7 +315,7 @@ export function AudioPlayer({
     [syncedLines, position],
   );
 
-  if (!hasTrack || !audioOn) return null;
+  if (!hasTrack) return null;
 
   const audioEl = (
     <audio
@@ -342,6 +343,8 @@ export function AudioPlayer({
       style={{ display: "none" }}
     />
   );
+
+  if (!audioOn) return audioEl;
 
   const coverNode = cover ? (
     <img src={cover} alt="" draggable={false} decoding="async" />
@@ -403,9 +406,9 @@ export function AudioPlayer({
     );
   }
 
-  // 0% player opacity means off. Rendering nothing is the only way a fully
-  // transparent player cannot leave a ghost frame, border or icon behind.
-  if (settings.cardOpacity <= 0.005) return null;
+  // 0% opacity hides the frame but keeps the audio element mounted, so the
+  // track is not silenced by a visual-only setting.
+  if (settings.cardOpacity <= 0.005) return audioEl;
 
   const seekFrom = (event: ReactMouseEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();

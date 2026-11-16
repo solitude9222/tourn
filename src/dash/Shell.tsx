@@ -606,6 +606,7 @@ export function Shell({
             <h1>{title}</h1>
             <p>{subtitle}</p>
           </div>
+          <div id="tw-page-actions" className="tw-page-actions" />
         </header>
 
         {tabs && tabs.length > 1 && activeTab && onTab ? (

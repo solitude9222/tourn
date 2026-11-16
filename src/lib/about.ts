@@ -279,6 +279,8 @@ export function createProfileSection(kind: ProfileSectionKind = "project"): Prof
   return { id, title: "", text: "", image: "", url: "", kind, subtitle: "", status: "", stack: [], links: [], meta: "", items: [] };
 }
 
+export type InterestMode = "carousel" | "catalog";
+
 export type AboutDesign = {
   gallery?: GallerySettings;
   portfolio?: PortfolioSettings;
@@ -309,6 +311,8 @@ export type AboutDesign = {
   joinedSlot: DetailSlot;
   /** One Interests list for animes and games instead of two separate kinds. */
   groupInterests?: boolean;
+  /** Four-up scroll rail, or the full catalogue in one grid. */
+  interestMode?: InterestMode;
   skills?: string[];
   audioSlot: AudioSlot;
   widgetsPosition: WidgetsPosition;
@@ -479,6 +483,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   locationSlot: "card-bl",
   joinedSlot: "card-bl",
   groupInterests: false,
+  interestMode: "carousel",
   onekoCat: "classic",
   entry: DEFAULT_ENTRY,
   colors: DEFAULT_PROFILE_COLORS,
@@ -871,6 +876,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     locationSlot: detailSlot(raw.locationSlot, DEFAULT_ABOUT_DESIGN.locationSlot),
     joinedSlot: detailSlot(raw.joinedSlot, DEFAULT_ABOUT_DESIGN.joinedSlot),
     groupInterests: boolIn(raw.groupInterests, false),
+    interestMode: raw.interestMode === "catalog" ? "catalog" : "carousel",
     entry: loadEntry(raw.entry),
     colors: {
       // The old default accents were a pale pink and a pale blue; the profile

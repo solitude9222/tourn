@@ -23,6 +23,8 @@ import {
 import { useWidgetLive } from "../../lib/widgetLive";
 import { WidgetPlatformIcon } from "../../components/WidgetPlatformIcon";
 import { WidgetCard, WidgetCardPreview } from "../../components/WidgetCard";
+import { PageActions } from "../PageActions";
+import { usePointerSort } from "../Sortable";
 import { useDash } from "../context";
 import {
   Button,
@@ -196,14 +198,13 @@ function WidgetInspector({
 }
 
 export function WidgetsPage() {
-  const { widgets, setWidgets, save, notify } = useDash();
+  const { widgets, setWidgets, about, notify } = useDash();
   const [configuring, setConfiguring] = useState<WidgetPlatform | null>(null);
   const [content, setContent] = useState("");
   const [addOptions, setAddOptions] = useState<Record<string, boolean | string>>({});
   const [inspecting, setInspecting] = useState<WidgetInstance | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const design = widgets.design;
   const active = widgets.widgets.filter((widget) => widget.visible !== false);
@@ -278,49 +279,61 @@ export function WidgetsPage() {
     });
   };
 
+  const sortable = usePointerSort(widgets.widgets, move);
+
+  const widgetTitle = (instance: WidgetInstance) => {
+    const platform = platformFor(instance);
+    if (instance.platform === "discord") {
+      const value = instance.content.trim();
+      if (/discord\.(gg|com\/invite)\//i.test(value)) return "Discord (server)";
+      if (/^\d{17,20}$/.test(value)) return "Discord Presence";
+    }
+    return platform?.name ?? instance.platform;
+  };
+
+  const widgetSubtitle = (instance: WidgetInstance) => {
+    if (instance.platform === "discord" && /^\d{17,20}$/.test(instance.content.trim())) return "Active on profile";
+    return instance.content || "Not configured yet";
+  };
+
+  const slotLimit = about.design.layout === "left" ? 4 : 1;
+  const overSlotLimit = active.length > slotLimit;
+
   const setDesign = (patch: Partial<typeof design>) =>
     setWidgets((current) => ({ ...current, design: { ...current.design, ...patch } }));
 
   return (
     <>
-      <Card className="tw-wstudio-hero">
-        <div className="tw-wstudio-summary">
-          <div>
-            <span className="tw-wstudio-eyebrow">Widget stack</span>
-            <h2>
-              {widgets.widgets.length
-                ? `${active.length} live widget${active.length === 1 ? "" : "s"}`
-                : "No widgets yet"}
-            </h2>
-            <p>
-              {widgets.widgets.length
-                ? `${widgets.widgets.length - active.length} hidden · drag a row to change the order they appear in.`
-                : "Add a platform below and it shows on your profile as soon as you save."}
-            </p>
-          </div>
-          <div className="tw-row">
-            <Button
-              icon="plus"
-              onClick={() => document.getElementById("dash-widget-add")?.scrollIntoView({ block: "start" })}
-            >
-              Add widget
-            </Button>
-            <Button variant="primary" icon="save" onClick={save}>
-              Save changes
-            </Button>
-          </div>
-        </div>
-      </Card>
+      <PageActions>
+        <Button
+          variant="primary"
+          icon="plus"
+          onClick={() => document.getElementById("dash-widget-add")?.scrollIntoView({ block: "start" })}
+        >
+          Add widget
+        </Button>
+      </PageActions>
 
-      <Card id="dash-widget-stack">
-        <CardHead
-          icon="layers"
-          title="Your stack"
-          subtitle="Open a row to change its handle and options. The toggle hides it without deleting it."
-        />
+      <div className="tw-manage-page tw-widgets-page">
+        <div className="tw-manage-bar">
+          <span>Manage your active profile widgets</span>
+          <span className={`tw-manage-count${overSlotLimit ? " is-warning" : ""}`}>
+            {active.length} of {slotLimit} used
+          </span>
+        </div>
+
+        {overSlotLimit ? (
+          <div className="tw-manage-notice">
+            <Icon name="help" size={17} />
+            <span>
+              Your card layout shows {slotLimit} widget{slotLimit === 1 ? "" : "s"}. Remove{" "}
+              {active.length - slotLimit === 1 ? "it" : `${active.length - slotLimit}`} or switch to the left layout for four.
+            </span>
+          </div>
+        ) : null}
 
         {widgets.widgets.length ? (
-          <div className="tw-wstack" style={{ gap: design.gap }}>
+          <div className="tw-manage-list">
             {widgets.widgets.map((instance, index) => {
               const platform = platformFor(instance);
               const open = openId === instance.id;
@@ -328,124 +341,121 @@ export function WidgetsPage() {
               return (
                 <div
                   key={instance.id}
-                  className={`tw-wstack-row${open ? " is-open" : ""}${visible ? "" : " is-hidden"}`}
-                  draggable
-                  onDragStart={() => setDragIndex(index)}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={() => {
-                    if (dragIndex !== null) move(dragIndex, index);
-                    setDragIndex(null);
-                  }}
+                  ref={sortable.register(instance.id)}
+                  className={[
+                    "tw-manage-row tw-widget-manage-row",
+                    open ? "is-open" : "",
+                    visible ? "" : "is-hidden",
+                    sortable.drag?.from === index ? "is-dragging" : "",
+                    sortable.drag && sortable.drag.over === index && sortable.drag.from !== index ? "is-drop-target" : "",
+                  ].filter(Boolean).join(" ")}
                 >
-                  <div className="tw-wstack-head">
-                    <span className="tw-drag" aria-hidden="true">
-                      <Icon name="drag" size={15} />
-                    </span>
-                    <span className="tw-wstack-icon" style={{ ["--widget-color" as string]: platform?.color }}>
-                      <WidgetPlatformIcon id={instance.platform} size={17} />
-                    </span>
-                    <button
-                      type="button"
-                      className="tw-wstack-title"
-                      onClick={() => setOpenId(open ? null : instance.id)}
-                      aria-expanded={open}
-                    >
-                      <b>{platform?.name ?? instance.platform}</b>
-                      <small>{instance.content || "Not configured yet"}</small>
-                    </button>
-                    <span className="tw-wstack-chips">
-                      <span className={`tw-wstack-chip${visible ? " is-live" : ""}`}>
-                        {visible ? "Live" : "Hidden"}
+                  <button
+                    type="button"
+                    className="tw-row-grip"
+                    aria-label={`Reorder ${widgetTitle(instance)}`}
+                    title="Drag to reorder · arrow keys also move this row"
+                    aria-grabbed={sortable.drag?.from === index}
+                    onPointerDown={(event) => sortable.begin(event, index)}
+                    onKeyDown={(event) => sortable.keyDown(event, index)}
+                  >
+                    <Icon name="drag" size={16} />
+                  </button>
+
+                  <div className="tw-manage-content">
+                    <div className="tw-manage-head">
+                      <span className="tw-manage-icon tw-manage-icon--widget" style={{ ["--widget-color" as string]: platform?.color }}>
+                        <WidgetPlatformIcon id={instance.platform} size={22} />
                       </span>
-                      <span className="tw-wstack-index">#{index + 1}</span>
-                    </span>
-                    <span className="tw-wstack-actions" onClick={(event) => event.stopPropagation()}>
-                      <Toggle
-                        checked={visible}
-                        onChange={(checked) => patchWidget(instance.id, { visible: checked })}
-                        label={`Show ${platform?.name ?? "widget"}`}
-                      />
-                      <IconButton
-                        label={`Preview ${platform?.name ?? "widget"}`}
-                        icon="eye"
-                        onClick={() => setInspecting(instance)}
-                      />
-                      <IconButton
-                        label={open ? "Close settings" : "Edit widget"}
-                        icon={open ? "chevron-down" : "edit"}
-                        variant={open ? "primary" : undefined}
-                        onClick={() => setOpenId(open ? null : instance.id)}
-                      />
-                      <IconButton
-                        label={`Delete ${platform?.name ?? "widget"}`}
-                        icon="trash"
-                        variant="danger"
-                        onClick={() => remove(instance)}
-                      />
-                    </span>
-                  </div>
-
-                  {open ? (
-                    <div className="tw-wstack-body">
-                      <div className="tw-wstack-body-grid">
-                        <div className="tw-stack">
-                          <Field label={platform?.contentLabel ?? "Content"}>
-                            <TextInput
-                              icon="at"
-                              value={instance.content}
-                              placeholder={platform?.contentPlaceholder}
-                              onChange={(event) => patchWidget(instance.id, { content: event.target.value })}
-                            />
-                          </Field>
-
-                          {instance.platform === "discord" ? (
-                            <DiscordBadgeChoices
-                              value={instance.options.profile_badges}
-                              content={instance.content}
-                              onChange={(profile_badges) => updateOption(instance.id, "profile_badges", profile_badges)}
-                            />
-                          ) : null}
-
-                          <div className="tw-option-grid">
-                            {(platform?.options ?? []).map((option) =>
-                              option.type === "toggle" ? (
-                                <div className="tw-inline-toggle" key={option.key}>
-                                  <span>
-                                    <b>{option.label}</b>
-                                    <small>{option.hint}</small>
-                                  </span>
-                                  <Toggle
-                                    checked={instance.options[option.key] === true}
-                                    onChange={(checked) => updateOption(instance.id, option.key, checked)}
-                                    label={option.label}
-                                  />
-                                </div>
-                              ) : (
-                                <Field key={option.key} label={option.label}>
-                                  <Select
-                                    value={String(instance.options[option.key] ?? option.default ?? "")}
-                                    options={(option.choices ?? []).map((choice) => ({
-                                      value: choice.value,
-                                      label: choice.label,
-                                    }))}
-                                    onChange={(value) => updateOption(instance.id, option.key, value)}
-                                  />
-                                </Field>
-                              ),
-                            )}
-                          </div>
-                        </div>
-
-                        <aside className="tw-wstack-side">
-                          <small className="tw-wstack-side-label">Preview</small>
-                          <WidgetCard widget={instance} design={design} />
-                          <Button icon="external" onClick={() => setInspecting(instance)}>
-                            Open live data
-                          </Button>
-                        </aside>
-                      </div>
+                      <span className="tw-manage-copy">
+                        <b>
+                          {widgetTitle(instance)}
+                          {visible ? null : <em className="tw-manage-badge">Hidden</em>}
+                        </b>
+                        <small>{widgetSubtitle(instance)}</small>
+                      </span>
+                      <span className="tw-manage-actions">
+                        <Toggle
+                          checked={visible}
+                          onChange={(checked) => patchWidget(instance.id, { visible: checked })}
+                          label={`Show ${widgetTitle(instance)}`}
+                        />
+                        <IconButton
+                          label={open ? "Close settings" : `Edit ${widgetTitle(instance)}`}
+                          icon={open ? "chevron-down" : "edit"}
+                          onClick={() => setOpenId(open ? null : instance.id)}
+                        />
+                        <IconButton
+                          label={`Delete ${widgetTitle(instance)}`}
+                          icon="trash"
+                          variant="danger"
+                          onClick={() => remove(instance)}
+                        />
+                      </span>
                     </div>
-                  ) : null}
+
+                    {open ? (
+                      <div className="tw-wstack-body">
+                        <div className="tw-wstack-body-grid">
+                          <div className="tw-stack">
+                            <Field label={platform?.contentLabel ?? "Content"}>
+                              <TextInput
+                                icon="at"
+                                value={instance.content}
+                                placeholder={platform?.contentPlaceholder}
+                                onChange={(event) => patchWidget(instance.id, { content: event.target.value })}
+                              />
+                            </Field>
+
+                            {instance.platform === "discord" ? (
+                              <DiscordBadgeChoices
+                                value={instance.options.profile_badges}
+                                content={instance.content}
+                                onChange={(profile_badges) => updateOption(instance.id, "profile_badges", profile_badges)}
+                              />
+                            ) : null}
+
+                            <div className="tw-option-grid">
+                              {(platform?.options ?? []).map((option) =>
+                                option.type === "toggle" ? (
+                                  <div className="tw-inline-toggle" key={option.key}>
+                                    <span>
+                                      <b>{option.label}</b>
+                                      <small>{option.hint}</small>
+                                    </span>
+                                    <Toggle
+                                      checked={instance.options[option.key] === true}
+                                      onChange={(checked) => updateOption(instance.id, option.key, checked)}
+                                      label={option.label}
+                                    />
+                                  </div>
+                                ) : (
+                                  <Field key={option.key} label={option.label}>
+                                    <Select
+                                      value={String(instance.options[option.key] ?? option.default ?? "")}
+                                      options={(option.choices ?? []).map((choice) => ({
+                                        value: choice.value,
+                                        label: choice.label,
+                                      }))}
+                                      onChange={(value) => updateOption(instance.id, option.key, value)}
+                                    />
+                                  </Field>
+                                ),
+                              )}
+                            </div>
+                          </div>
+
+                          <aside className="tw-wstack-side">
+                            <small className="tw-wstack-side-label">Preview</small>
+                            <WidgetCard widget={instance} design={design} />
+                            <Button icon="external" onClick={() => setInspecting(instance)}>
+                              Open live data
+                            </Button>
+                          </aside>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               );
             })}
@@ -457,6 +467,215 @@ export function WidgetsPage() {
             message="Pick a platform from the list below to build the stack visitors see."
           />
         )}
+      </div>
+
+      <Card className="tw-widget-customization">
+        <CardHead
+          plain
+          title="Widget Card Customization"
+          subtitle="Adjust the shared design of your profile widgets. Background color is only visible on widgets without their own image background."
+          actions={
+            <Button
+              icon="refresh"
+              onClick={() => {
+                setWidgets((current) => ({ ...current, design: { ...DEFAULT_WIDGET_DESIGN } }));
+                notify("Widget design", "Defaults restored — save to publish.");
+              }}
+            >
+              Reset to Defaults
+            </Button>
+          }
+        />
+
+        <div className="tw-widget-custom-grid">
+          <div className="tw-widget-tune-grid">
+            <div className="tw-widget-tune">
+              <Slider
+                label="Border Width"
+                value={design.borderWidth}
+                min={0}
+                max={6}
+                suffix="px"
+                onChange={(value) => setDesign({ borderWidth: value })}
+              />
+            </div>
+            <div className="tw-widget-tune">
+              <Slider
+                label="Border Opacity"
+                value={design.borderOpacity}
+                min={0}
+                max={1}
+                step={0.01}
+                format={(value) => value.toFixed(2)}
+                onChange={(value) => setDesign({ borderOpacity: value })}
+              />
+            </div>
+            <div className="tw-widget-tune">
+              <ColorField
+                label="Border Color"
+                value={design.borderColor}
+                onChange={(value) => setDesign({ borderColor: value })}
+              />
+            </div>
+            <div className="tw-widget-tune">
+              <ColorField
+                label="Background Color"
+                value={design.backgroundColor}
+                onChange={(value) => setDesign({ backgroundColor: value })}
+              />
+            </div>
+            <div className="tw-widget-tune">
+              <Slider
+                label="Background Opacity"
+                value={design.backgroundOpacity}
+                min={0}
+                max={1}
+                step={0.01}
+                format={(value) => value.toFixed(2)}
+                onChange={(value) => setDesign({ backgroundOpacity: value })}
+              />
+            </div>
+            <div className="tw-widget-tune">
+              <Slider
+                label="Background Blur"
+                value={design.backgroundBlur}
+                min={0}
+                max={24}
+                suffix="px"
+                onChange={(value) => setDesign({ backgroundBlur: value })}
+              />
+            </div>
+          </div>
+
+          <aside className="tw-widget-preview tw-widget-preview--panel" aria-label="Widget preview">
+            <div className="tw-widget-preview-head">
+              <div>
+                <small>Preview</small>
+                <span className="tw-widget-preview-note">Normal widget card without an image background.</span>
+              </div>
+            </div>
+            <div className="tw-widget-design-preview-card">
+              <WidgetCardPreview design={design} platformId={active[0]?.platform ?? "discord"} />
+            </div>
+          </aside>
+        </div>
+
+        <details className="tw-advanced tw-widget-more">
+          <summary>
+            More card controls
+            <small>background style, radius, artwork, edge animation, spacing and content</small>
+          </summary>
+
+          <div className="tw-form-grid">
+            <Field label="Background style">
+              <Select
+                value={design.backgroundStyle}
+                options={[
+                  { value: "solid", label: "Solid" },
+                  { value: "frosted", label: "Frosted" },
+                  { value: "gradient", label: "Gradient" },
+                  { value: "rgb", label: "RGB" },
+                  { value: "art", label: "Artwork" },
+                ]}
+                onChange={(value) => setDesign({ backgroundStyle: value as typeof design.backgroundStyle })}
+              />
+            </Field>
+            <Field label="Corner radius">
+              <Slider
+                label="Corner radius"
+                value={design.radius}
+                min={0}
+                max={28}
+                suffix="px"
+                onChange={(value) => setDesign({ radius: value })}
+              />
+            </Field>
+            <Slider
+              label="Artwork opacity"
+              value={Math.round(design.artOpacity * 100)}
+              min={0}
+              max={100}
+              suffix="%"
+              onChange={(value) => setDesign({ artOpacity: value / 100 })}
+            />
+            <Slider
+              label="Shading opacity"
+              value={Math.round(design.scrimOpacity * 100)}
+              min={0}
+              max={100}
+              suffix="%"
+              onChange={(value) => setDesign({ scrimOpacity: value / 100 })}
+            />
+            <Field label="Edge effect">
+              <Select
+                value={design.outlineEffect}
+                options={[
+                  { value: "none", label: "None" },
+                  { value: "trace", label: "Trace · a line runs the border" },
+                  { value: "march", label: "March · dashes chase each other" },
+                  { value: "pulse", label: "Pulse · the ring breathes" },
+                  { value: "glow", label: "Glow · halo around the card" },
+                ]}
+                onChange={(value) => setDesign({ outlineEffect: value as WidgetDesign["outlineEffect"] })}
+              />
+            </Field>
+            <ColorField
+              label="Edge colour"
+              value={design.outlineColor}
+              onChange={(value) => setDesign({ outlineColor: value })}
+            />
+            <Slider
+              label="Edge speed"
+              value={design.outlineSpeed}
+              min={1}
+              max={12}
+              step={0.5}
+              suffix="s"
+              onChange={(value) => setDesign({ outlineSpeed: value })}
+            />
+            <Slider
+              label="Spacing"
+              value={design.gap}
+              min={0}
+              max={28}
+              suffix="px"
+              onChange={(value) => setDesign({ gap: value })}
+            />
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Lift on hover</b>
+                <small>Nudge the card up a pixel when the pointer is on it.</small>
+              </span>
+              <Toggle
+                checked={design.hoverLift !== false}
+                onChange={(checked) => setDesign({ hoverLift: checked })}
+                label="Lift on hover"
+              />
+            </div>
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Show live details</b>
+                <small>The member, follower or stat chips under each name.</small>
+              </span>
+              <Toggle
+                checked={design.showMeta}
+                onChange={(checked) => setDesign({ showMeta: checked })}
+                label="Show live details"
+              />
+            </div>
+            <div className="tw-inline-toggle">
+              <span>
+                <b>Show badges</b>
+                <small>Public flags only: Staff, Partner, HypeSquad, Bug Hunter, Early Supporter and Active Developer.</small>
+              </span>
+              <Toggle
+                checked={design.showBadges}
+                onChange={(checked) => setDesign({ showBadges: checked })}
+                label="Show badges"
+              />
+            </div>
+          </div>
+        </details>
       </Card>
 
       <Card id="dash-widget-add">
@@ -511,244 +730,6 @@ export function WidgetsPage() {
             );
           })}
           {!platforms.length ? <p className="tw-foot-note">Nothing matches that search.</p> : null}
-        </div>
-      </Card>
-
-      <Card>
-        <CardHead
-          icon="palette"
-          title="Stack appearance"
-          subtitle="One shared look for every widget on your profile."
-          actions={
-            <Button
-              icon="refresh"
-              onClick={() => {
-                setWidgets((current) => ({ ...current, design: { ...DEFAULT_WIDGET_DESIGN } }));
-                notify("Widget design", "Defaults restored — save to publish.");
-              }}
-            >
-              Reset
-            </Button>
-          }
-        />
-
-        <div className="tw-widget-design">
-          <div className="tw-stack">
-            <div className="tw-subhead">Surface</div>
-            <Field label="Background style">
-              <Select
-                value={design.backgroundStyle}
-                options={[
-                  { value: "solid", label: "Solid" },
-                  { value: "frosted", label: "Frosted" },
-                  { value: "gradient", label: "Gradient" },
-                  { value: "rgb", label: "RGB" },
-                  { value: "art", label: "Artwork" },
-                ]}
-                onChange={(value) => setDesign({ backgroundStyle: value as typeof design.backgroundStyle })}
-              />
-            </Field>
-
-            <div className="tw-form-grid">
-              <ColorField
-                label="Background"
-                value={design.backgroundColor}
-                onChange={(value) => setDesign({ backgroundColor: value })}
-              />
-              <Slider
-                label="Background alpha"
-                value={design.backgroundOpacity}
-                min={0}
-                max={1}
-                step={0.01}
-                format={(value) => value.toFixed(2)}
-                onChange={(value) => setDesign({ backgroundOpacity: value })}
-              />
-            </div>
-
-            <div className="tw-form-grid">
-              <Slider
-                label="Blur"
-                value={design.backgroundBlur}
-                min={0}
-                max={24}
-                suffix="px"
-                onChange={(value) => setDesign({ backgroundBlur: value })}
-              />
-              <Slider
-                label="Corner radius"
-                value={design.radius}
-                min={0}
-                max={28}
-                suffix="px"
-                onChange={(value) => setDesign({ radius: value })}
-              />
-            </div>
-
-            <div className="tw-form-grid">
-              <Slider
-                label="Artwork opacity"
-                value={Math.round(design.artOpacity * 100)}
-                min={0}
-                max={100}
-                suffix="%"
-                onChange={(value) => setDesign({ artOpacity: value / 100 })}
-              />
-              <Slider
-                label="Shading opacity"
-                value={Math.round(design.scrimOpacity * 100)}
-                min={0}
-                max={100}
-                suffix="%"
-                onChange={(value) => setDesign({ scrimOpacity: value / 100 })}
-              />
-            </div>
-
-            <div className="tw-subhead">Border</div>
-            <div className="tw-form-grid">
-              <ColorField
-                label="Border"
-                value={design.borderColor}
-                onChange={(value) => setDesign({ borderColor: value })}
-              />
-              <Slider
-                label="Border width"
-                value={design.borderWidth}
-                min={0}
-                max={6}
-                suffix="px"
-                onChange={(value) => setDesign({ borderWidth: value })}
-              />
-            </div>
-
-            <Slider
-              label="Border alpha"
-              value={design.borderOpacity}
-              min={0}
-              max={1}
-              step={0.01}
-              format={(value) => value.toFixed(2)}
-              onChange={(value) => setDesign({ borderOpacity: value })}
-            />
-
-            <details className="tw-advanced">
-              <summary>Edge animation<small>effect, colour, speed, hover lift</small></summary>
-            <Field label="Effect">
-              <Select
-                value={design.outlineEffect}
-                options={[
-                  { value: "none", label: "None" },
-                  { value: "trace", label: "Trace · a line runs the border" },
-                  { value: "march", label: "March · dashes chase each other" },
-                  { value: "pulse", label: "Pulse · the ring breathes" },
-                  { value: "glow", label: "Glow · halo around the card" },
-                ]}
-                onChange={(value) => setDesign({ outlineEffect: value as WidgetDesign["outlineEffect"] })}
-              />
-            </Field>
-
-            <div className="tw-form-grid">
-              <ColorField
-                label="Edge colour"
-                value={design.outlineColor}
-                onChange={(value) => setDesign({ outlineColor: value })}
-              />
-              <Slider
-                label="Edge speed"
-                value={design.outlineSpeed}
-                min={1}
-                max={12}
-                step={0.5}
-                suffix="s"
-                onChange={(value) => setDesign({ outlineSpeed: value })}
-              />
-            </div>
-
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Lift on hover</b>
-                <small>Nudge the card up a pixel when the pointer is on it.</small>
-              </span>
-              <Toggle
-                checked={design.hoverLift !== false}
-                onChange={(checked) => setDesign({ hoverLift: checked })}
-                label="Lift on hover"
-              />
-            </div>
-
-            </details>
-
-            <div className="tw-subhead">Stack</div>
-            <Slider
-              label="Spacing"
-              value={design.gap}
-              min={0}
-              max={28}
-              suffix="px"
-              onChange={(value) => setDesign({ gap: value })}
-            />
-
-            <div className="tw-subhead">Content</div>
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Show live details</b>
-                <small>The member, follower or stat chips under each name.</small>
-              </span>
-              <Toggle
-                checked={design.showMeta}
-                onChange={(checked) => setDesign({ showMeta: checked })}
-                label="Show live details"
-              />
-            </div>
-
-            <div className="tw-inline-toggle">
-              <span>
-                <b>Show badges</b>
-                <small>Public flags only: Staff, Partner, HypeSquad, Bug Hunter, Early Supporter and Active Developer.</small>
-              </span>
-              <Toggle
-                checked={design.showBadges}
-                onChange={(checked) => setDesign({ showBadges: checked })}
-                label="Show badges"
-              />
-            </div>
-          </div>
-
-          <aside className="tw-widget-preview" aria-label="Widget preview">
-            <div className="tw-widget-preview-head">
-              <small>Real preview</small>
-              <span className="tw-widget-preview-note">
-                {active.length
-                  ? `${active.length} active widget${active.length === 1 ? "" : "s"}`
-                  : "sample cards"}
-              </span>
-            </div>
-            <div className="tw-widget-scroll">
-              <div className="tw-widget-scroll-track">
-                {[0, 1].map((pass) => (
-                  <div className="tw-widget-scroll-pass" key={pass} aria-hidden={pass === 1 ? "true" : undefined}>
-                    {active.length
-                      ? active.map((widget) => (
-                          <WidgetCard
-                            key={`${pass}-${widget.id}`}
-                            widget={widget}
-                            design={design}
-                            className="widget-card--reel"
-                          />
-                        ))
-                      : ["discord", "discordbot", "spotify", "roblox"].map((id) => (
-                          <WidgetCardPreview
-                            key={`${pass}-${id}`}
-                            design={design}
-                            platformId={id}
-                            className="widget-card--reel"
-                          />
-                        ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </aside>
         </div>
       </Card>
 

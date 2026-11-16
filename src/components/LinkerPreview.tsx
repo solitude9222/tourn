@@ -12,7 +12,8 @@ import { DEFAULT_LINK_DESIGN, EMPTY_LINK_STORE, type LinkStore } from "../lib/li
 import { ProfilePreview } from "./ProfilePreview";
 import { ProfileLinks } from "./ProfileLinks";
 import { ProfileMetadata } from "./ProfileMetadata";
-import { BackgroundEffectLayer, OverlayEffectLayer, ProfileCursor } from "./ProfileEffects";
+import { BackgroundEffectLayer, OverlayEffectLayer } from "./ProfileEffects";
+import { CursorTrailLayer } from "./CursorTrailLayer";
 import { WidgetCard } from "./WidgetCard";
 import { ProfileInteractions } from "./ProfileInteractions";
 import { AudioPlayer } from "./AudioPlayer";
@@ -365,7 +366,7 @@ export function LinkerPreview({
     "--lkr-bg-brightness": assets.background.brightness,
     cursor: assets.cursor.style === "custom" && assets.cursor.imageUrl.trim()
       ? `url("${assets.cursor.imageUrl.trim().replace(/"/g, '\\"')}") 4 4, auto`
-      : assets.cursor.style !== "default" && assets.cursor.style !== "custom" ? "none" : undefined,
+      : assets.cursor.style !== "system" && assets.cursor.style !== "custom" ? "none" : undefined,
     ...(assets.cursor.pointerImageUrl.trim()
       ? { "--lkr-pointer-cursor": `url(${assets.cursor.pointerImageUrl.trim()}) 4 4, pointer` }
       : {}),
@@ -429,10 +430,9 @@ export function LinkerPreview({
   // The card stays in the middle of the page for every layout; the layouts
   // rearrange what is inside it. `stacked` is the exception: it lifts the
   // player out under the card so the track has its own titled panel.
-  const hasTrack =
-    !hideAudio &&
-    about.assets.audio.style !== "none" &&
-    Boolean(about.assets.audio.fileUrl);
+  // The player skin can be off while the uploaded track still plays. The mute
+  // button is the only control needed in that case.
+  const hasTrack = !hideAudio && Boolean(about.assets.audio.fileUrl);
 
   const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
   const showAudioBelow = audioSlot === "below-card" && hasTrack;
@@ -489,7 +489,7 @@ export function LinkerPreview({
       {sectionsVisible
         ? groupedSections.map((group) => (
             <div key={group[0].id} className={slideshowActive ? "lkr-slide" : ""}>
-              <ProfileSections sections={group} />
+              <ProfileSections sections={group} interestMode={design.interestMode} />
             </div>
           ))
         : null}
@@ -529,7 +529,7 @@ export function LinkerPreview({
             {aboutSlide.widgetIds?.length ? <div className="lkr-about-widgets">{aboutSlide.widgetIds.flatMap(id=>{const widget=visibleWidgets.find(item=>item.id===id);return widget?[<WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker"/>]:[];})}</div> : null}
             {aboutSlide.showProjects && aboutProjects.length ? (
               <div className="lkr-about-projects lkr-about-projects--full">
-                <ProfileSections sections={aboutProjects} />
+                <ProfileSections sections={aboutProjects} interestMode={design.interestMode} />
               </div>
             ) : null}
             {aboutSlide.tags.length ? (
@@ -642,6 +642,7 @@ export function LinkerPreview({
       className={`lkr-page lkr-card-${design.cardStyle}${className ? ` ${className}` : ""}`}
       style={style}
       data-interactive={interactive ? "true" : undefined}
+      data-fx-filter={assets.effects.overlay.id}
     >
       {interactive ? <ProfileInteractions settings={assets.interactions} /> : null}
       {showMetadata ? <ProfileMetadata about={about} user={user} /> : null}
@@ -678,7 +679,7 @@ export function LinkerPreview({
       ) : null}
       {hasTrack && assets.audio.muteButton && !previewMode ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
-      <ProfileCursor settings={assets.cursor} />
+      <CursorTrailLayer settings={assets.cursor} />
       {entryOpen ? (
         <EntryOverlay
           about={about}

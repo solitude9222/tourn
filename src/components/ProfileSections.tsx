@@ -1,4 +1,5 @@
-import type { ProfileSection } from "../lib/about";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { InterestMode, ProfileSection } from "../lib/about";
 import { TECH_BY_ID, techIconUrl } from "../lib/techStack";
 import "../aboutSections.css";
 
@@ -33,7 +34,111 @@ function TechBadge({ id }: { id: string }) {
   );
 }
 
-export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
+/* Interests sit in a fixed four-up rail. The rail fades at whichever edge has
+   more posters beyond it and the two arrow buttons move one page at a time;
+   catalogue mode drops the rail and shows every poster in the same grid. */
+function InterestSet({ section, mode }: { section: ProfileSection; mode?: InterestMode }) {
+  const picks = section.items ?? [];
+  const layout: InterestMode = mode === "catalog" ? "catalog" : "carousel";
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const sync = () => {
+      const remaining = track.scrollWidth - track.clientWidth;
+      setOverflowing(remaining > 2);
+      setEdges({
+        left: track.scrollLeft > 2,
+        right: remaining > 2 && track.scrollLeft < remaining - 2,
+      });
+    };
+    sync();
+    track.addEventListener("scroll", sync, { passive: true });
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(sync) : null;
+    observer?.observe(track);
+    window.addEventListener("resize", sync);
+    return () => {
+      track.removeEventListener("scroll", sync);
+      observer?.disconnect();
+      window.removeEventListener("resize", sync);
+    };
+  }, [picks.length, layout]);
+
+  const scrollPage = (direction: -1 | 1) => {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollBy({ left: direction * track.clientWidth, behavior: "smooth" });
+  };
+
+  const mask = layout === "carousel" && overflowing
+    ? `linear-gradient(90deg, ${edges.left ? "transparent" : "#000"} 0, #000 26px, #000 calc(100% - 26px), ${edges.right ? "transparent" : "#000"} 100%)`
+    : undefined;
+
+  return (
+    <article className="lkr-interest-set">
+      <div className="lkr-interest-head">
+        {section.title ? <h2>{section.title}</h2> : null}
+        {layout === "carousel" && overflowing ? (
+          <div className="lkr-interest-arrows">
+            <button
+              type="button"
+              aria-label="Previous interests"
+              disabled={!edges.left}
+              onClick={() => scrollPage(-1)}
+            >
+              <span aria-hidden="true">‹</span>
+            </button>
+            <button
+              type="button"
+              aria-label="Next interests"
+              disabled={!edges.right}
+              onClick={() => scrollPage(1)}
+            >
+              <span aria-hidden="true">›</span>
+            </button>
+          </div>
+        ) : null}
+      </div>
+      <div className={`lkr-interest-rail lkr-interest-rail--${layout}`}>
+        <div
+          ref={trackRef}
+          className="lkr-interest-track"
+          style={{ maskImage: mask, WebkitMaskImage: mask } as CSSProperties}
+        >
+          {picks.map((pick) => {
+            const href = safeUrl(pick.url);
+            const body = (
+              <>
+                <span className="lkr-interest-art">
+                  {pick.image ? <img src={pick.image} alt="" loading="lazy" /> : null}
+                </span>
+                <span className="lkr-interest-copy">
+                  <b>{pick.title || "Untitled"}</b>
+                  <small>{[pick.subtitle, pick.meta].filter(Boolean).join(" · ")}</small>
+                </span>
+              </>
+            );
+            return href ? (
+              <a className="lkr-interest-tile" href={href} target="_blank" rel="noreferrer" key={pick.id}>
+                {body}
+              </a>
+            ) : (
+              <span className="lkr-interest-tile" key={pick.id}>
+                {body}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      {section.text ? <p className="lkr-interest-note">{section.text}</p> : null}
+    </article>
+  );
+}
+
+export function ProfileSections({ sections, interestMode }: { sections: ProfileSection[]; interestMode?: InterestMode }) {
   if (!sections.length) return null;
 
   const single = sections.length === 1 && sections[0].kind === "project";
@@ -43,40 +148,9 @@ export function ProfileSections({ sections }: { sections: ProfileSection[] }) {
       {sections.map((section) => {
         const mainUrl = safeUrl(section.url);
 
-        // Several animes in one section: a single card holding the whole set.
-        const picks = section.items ?? [];
-        if (section.kind === "interest" && picks.length) {
-          return (
-            <article className="lkr-interest-set" key={section.id}>
-              {section.title ? <h2>{section.title}</h2> : null}
-              <div className="lkr-interest-grid">
-                {picks.map((pick) => {
-                  const href = safeUrl(pick.url);
-                  const body = (
-                    <>
-                      <span className="lkr-interest-art">
-                        {pick.image ? <img src={pick.image} alt="" loading="lazy" /> : null}
-                      </span>
-                      <span className="lkr-interest-copy">
-                        <b>{pick.title || "Untitled"}</b>
-                        <small>{[pick.subtitle, pick.meta].filter(Boolean).join(" · ")}</small>
-                      </span>
-                    </>
-                  );
-                  return href ? (
-                    <a className="lkr-interest-tile" href={href} target="_blank" rel="noreferrer" key={pick.id}>
-                      {body}
-                    </a>
-                  ) : (
-                    <span className="lkr-interest-tile" key={pick.id}>
-                      {body}
-                    </span>
-                  );
-                })}
-              </div>
-              {section.text ? <p className="lkr-interest-note">{section.text}</p> : null}
-            </article>
-          );
+        // Several animes in one section: one rail or one catalogue grid.
+        if (section.kind === "interest" && (section.items ?? []).length) {
+          return <InterestSet section={section} mode={interestMode} key={section.id} />;
         }
 
         const kinds = [section.status, section.meta].filter(Boolean);

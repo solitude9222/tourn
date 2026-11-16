@@ -2753,6 +2753,69 @@
   opacity: var(--fx-opacity, 0.55);
 }
 
+/* Replacement filters: CRT scanlines, night tint, texture patterns and the
+   page-background blur. They are fixed visual layers, not particle engines. */
+.profile-fx-overlay--oldTv {
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0, rgba(0, 0, 0, 0.28) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+  animation: fxOldTvFlicker 0.15s infinite;
+}
+
+.profile-fx-overlay--gridLines {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.profile-fx-overlay--crt {
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0, rgba(0, 0, 0, 0.25) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(to right, rgba(255, 0, 0, 0.07) 0, rgba(255, 0, 0, 0.07) 1px, rgba(0, 255, 0, 0.07) 1px, rgba(0, 255, 0, 0.07) 2px, rgba(0, 0, 255, 0.07) 2px, rgba(0, 0, 255, 0.07) 3px);
+  box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.85);
+  animation: fxOldTvFlicker 0.12s infinite;
+}
+
+.profile-fx-overlay--grain {
+  overflow: hidden;
+}
+
+.profile-fx-grain-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.profile-fx-overlay--dotPattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1.2px);
+  background-size: 4px 4px;
+}
+
+.profile-fx-overlay--lines {
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.13) 0, rgba(255, 255, 255, 0.13) 1px, transparent 1px, transparent 3px);
+}
+
+.profile-fx-overlay--blurred {
+  backdrop-filter: blur(6px);
+}
+
+.lkr-page[data-fx-filter="blurred"] .lkr-bg,
+.lkr-page[data-fx-filter="blurred"] .profile-fx-bg {
+  filter: blur(6px);
+}
+
+@keyframes fxOldTvFlicker {
+  0% { opacity: 0.9; }
+  50% { opacity: 1; }
+  100% { opacity: 0.93; }
+}
+
 .profile-fx-bg i {
   position: absolute;
   display: block;
@@ -3042,6 +3105,11 @@
 
 /* cursor */
 
+.profile-cursor-hidden,
+.profile-cursor-hidden * {
+  cursor: none !important;
+}
+
 .profile-cursor {
   position: absolute;
   inset: 0;
@@ -3053,6 +3121,15 @@
 
 .profile-cursor.is-active {
   opacity: 1;
+}
+
+.profile-cursor-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
 }
 
 .profile-cursor-point,
@@ -5086,8 +5163,8 @@
 .lkr-stacked-group--tilt { transform:perspective(1400px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); transition:transform var(--tilt-ease,0ms) cubic-bezier(.22,1,.36,1); transform-style:preserve-3d; }
 .lkr-popup-audio { position:absolute; top:var(--popup-offset,20px); left:var(--popup-offset,20px); right:auto; z-index:20; width:auto; max-width:calc(100% - 16px); padding:0; border:0; border-radius:0; background:transparent; backdrop-filter:none; box-shadow:none; }
 .lkr-popup-audio--right { right:var(--popup-offset,20px); left:auto; }
-.lkr-popup-audio--bottom-left { top:auto; bottom:var(--popup-offset,20px); left:var(--popup-offset,20px); right:auto; }
-.lkr-popup-audio--bottom-right { top:auto; bottom:var(--popup-offset,20px); right:var(--popup-offset,20px); left:auto; }
+.lkr-popup-audio--bottom-left { top:auto; bottom:calc(var(--popup-offset,20px) + env(safe-area-inset-bottom,0px)); left:var(--popup-offset,20px); right:auto; z-index:40; }
+.lkr-popup-audio--bottom-right { top:auto; bottom:calc(var(--popup-offset,20px) + env(safe-area-inset-bottom,0px)); right:var(--popup-offset,20px); left:auto; z-index:40; }
 .profile-overlay--dotted { background-image:radial-gradient(circle,var(--overlay-color,#fff) .65px,transparent .9px); background-size:6px 6px; }
 
 
@@ -6793,6 +6870,16 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .pv-slot--page-bl { bottom: 18px; left: 22px; }
 .pv-slot--page-br { bottom: 18px; right: 22px; }
 .pv-page-slots svg { width: 22px; height: 22px; opacity: 0.92; }
+
+/* The mute button owns its page corner. Move the corner detail clear of it
+   instead of letting the round control clip the view counter, and keep the
+   button above the browser's bottom safe area. */
+.lkr-page:has(> .lkr-popup-audio--bottom-left) .pv-slot--page-bl {
+  bottom: calc(18px + 64px);
+}
+.lkr-page:has(> .lkr-popup-audio--bottom-right) .pv-slot--page-br {
+  bottom: calc(18px + 64px);
+}
 
 /* ── page-level audio ─────────────────────────────────────────────────── */
 .lkr-page-audio {

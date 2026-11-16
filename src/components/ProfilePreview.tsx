@@ -129,9 +129,9 @@ export function ProfilePreview({
   // labelled blocks (Connections, Links, Music) instead of one long stack.
   const visibleLinks = links.filter((link) => link.visible && link.url.trim());
   const hasLinks = visibleLinks.length > 0;
-  // "None" is the off switch; a saved track alone must not resurrect the
-  // player after the owner turns it off.
-  const hasAudio = assets.audio.style !== "none" && Boolean(assets.audio.fileUrl);
+  // Playback follows the upload, not the chosen player skin. "None" hides the
+  // player chrome but the track keeps playing and the mute control stays.
+  const hasAudio = Boolean(assets.audio.fileUrl);
   // The badge rail carries no explanation popover any more: the little arrow
   // that opened it pushed the rail away from the name. Each badge still shows
   // its own tooltip on hover.

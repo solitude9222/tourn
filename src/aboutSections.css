@@ -472,30 +472,116 @@
 /* ── interests as full-bleed posters ──────────────────────────────────────
    Artwork fills the card and the details sit bottom-left, like the game
    posters: genre line, title, then score/platforms. */
-.lkr-interest-grid {
-  /* Poster rows are centred, including a final row with one or two cards.
-     A grid with auto-fill left those short rows bunched at the left edge in
-     the vertical slideshow. */
+.lkr-interest-set h2 {
+  margin: 0;
+}
+
+.lkr-interest-head {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.lkr-interest-arrows {
+  display: flex;
+  flex: none;
+  gap: 7px;
+  margin-left: auto;
+}
+
+.lkr-interest-arrows button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--pv-border-color, rgba(255, 255, 255, 0.14));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pv-card, #121218) 82%, transparent);
+  color: var(--pv-text, #fbf4f4);
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, opacity 160ms ease;
+}
+
+.lkr-interest-arrows button:hover:not(:disabled) {
+  border-color: var(--pv-accent, #ff8f92);
+  background: color-mix(in srgb, var(--pv-card, #121218) 65%, transparent);
+}
+
+.lkr-interest-arrows button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.lkr-interest-rail {
+  min-width: 0;
+}
+
+.lkr-interest-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 36px) / 4);
   gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px;
+  margin: -2px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.lkr-interest-track::-webkit-scrollbar {
+  display: none;
+}
+
+.lkr-interest-track > .lkr-interest-tile {
+  width: 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.lkr-interest-rail--catalog .lkr-interest-track {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: visible;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
 }
 
 .lkr-interest-tile {
   position: relative;
   display: block;
-  flex: 0 1 168px;
   aspect-ratio: 3 / 4;
   overflow: hidden;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
 }
 
-@media (max-width: 430px) {
-  .lkr-interest-tile {
-    flex-basis: calc(50% - 6px);
+@media (max-width: 860px) {
+  .lkr-interest-track,
+  .lkr-interest-rail--catalog .lkr-interest-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-columns: calc((100% - 24px) / 3);
+  }
+}
+
+@media (max-width: 560px) {
+  .lkr-interest-track,
+  .lkr-interest-rail--catalog .lkr-interest-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-columns: calc((100% - 12px) / 2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lkr-interest-track {
+    scroll-behavior: auto;
   }
 }
 

@@ -52,6 +52,39 @@
 .fx-generated-poster--aurora { background:radial-gradient(ellipse at 20% 70%,#69e4c455,transparent 60%),radial-gradient(ellipse at 80% 30%,#ad73ff77,transparent 60%); }
 .fx-generated-poster--fireflies { background:radial-gradient(circle at 25% 32%,#e6efb7 1px,transparent 4px),radial-gradient(circle at 65% 72%,#f0eab5 2px,transparent 6px),radial-gradient(circle at 80% 25%,#d0ffaf 1px,transparent 4px); background-size:80px 90px,130px 120px,110px 80px; }
 .fx-generated-poster--gridwave { background-image:linear-gradient(#899dff33 1px,transparent 1px),linear-gradient(90deg,#899dff33 1px,transparent 1px); background-size:24px 24px; transform:perspective(200px) rotateX(35deg) scale(1.4); }
+.fx-preview-poster { position:absolute; inset:0; overflow:hidden; background:#0c1018; }
+.fx-preview-poster--rain { background:repeating-linear-gradient(112deg,transparent 0 13px,rgba(170,190,220,.55) 14px,transparent 15px 25px),radial-gradient(ellipse at 50% 20%,#1a2432,#080a0f 75%); }
+.fx-preview-poster--snow { background:radial-gradient(circle at 18% 20%,#fff 1.5px,transparent 2px),radial-gradient(circle at 68% 35%,#fff 1px,transparent 2px),radial-gradient(circle at 42% 72%,#fff 1.8px,transparent 2.5px),radial-gradient(circle at 82% 80%,#fff 1.2px,transparent 2px),radial-gradient(ellipse at 50% 30%,#1a2432,#080a0f 75%); background-size:70px 90px,95px 110px,80px 120px,60px 80px,auto; }
+.fx-preview-poster--storm { background:repeating-linear-gradient(105deg,transparent 0 11px,rgba(190,205,230,.65) 12px,transparent 13px 24px),radial-gradient(ellipse at 50% 20%,#202b3d,#06070b 75%); }
+.fx-preview-poster--warp { background:repeating-conic-gradient(from 0deg at 50% 50%,transparent 0 9deg,rgba(210,225,255,.55) 10deg 11deg,transparent 12deg 30deg),radial-gradient(ellipse at 50% 50%,#18223a,#05060a 75%); }
+.fx-preview-poster--shootingStars { background:linear-gradient(145deg,transparent 46%,#fff 49%,transparent 52%) 20% 25%/120px 100px no-repeat,linear-gradient(145deg,transparent 46%,#fff9 49%,transparent 52%) 72% 55%/90px 70px no-repeat,radial-gradient(circle at 15% 22%,#fff 1px,transparent 1.6px),radial-gradient(circle at 68% 30%,#fff 1.2px,transparent 1.8px),radial-gradient(ellipse at 50% 30%,#121827,#05060a 75%); }
+.fx-preview-poster--night { background:radial-gradient(circle at 15% 22%,#fff 1px,transparent 1.6px),radial-gradient(circle at 42% 68%,#fff 0.8px,transparent 1.4px),radial-gradient(circle at 68% 30%,#fff 1.4px,transparent 2px),radial-gradient(circle at 84% 76%,#fff 0.7px,transparent 1.2px),radial-gradient(ellipse at 50% 30%,#121827,#05060a 75%); background-size:80px 90px,60px 70px,100px 110px,70px 80px,auto; }
+.fx-mini-cursor--fairyDust { width:6px; height:6px; box-shadow:0 0 12px 3px #fff,-18px 9px 0 -1px #fff9,-34px 15px 0 -2px #fff6; }
+.fx-mini-cursor--snowflakes::after { content:"❄"; position:absolute; inset:-8px; display:grid; place-items:center; font-size:16px; color:#fff; }
+.fx-mini-cursor--trailingCursor { width:8px; height:8px; box-shadow:-12px 5px 0 -1px #ffffffcc,-24px 9px 0 -2px #ffffff88,-36px 13px 0 -3px #ffffff44; }
+.fx-mini-cursor--emojiRain::after { content:"✨"; position:absolute; inset:-8px; display:grid; place-items:center; font-size:16px; }
+.fx-mini-cursor--characterRain::after { content:"Aa"; position:absolute; inset:-8px; display:grid; place-items:center; font:700 13px/1 inherit; color:#5aff8c; }
+.fx-mini-cursor--lightning::after { content:"⚡"; position:absolute; inset:-8px; display:grid; place-items:center; font-size:16px; color:#c8e6ff; }
+.fx-mini-cursor--tracer { width:42px; height:2px; border-radius:999px; transform:rotate(-18deg); box-shadow:none; background:linear-gradient(90deg,transparent,#fff); }
+.fx-mini-cursor--petals::after { content:"✿"; position:absolute; inset:-8px; display:grid; place-items:center; font-size:17px; color:#ffaac8; }
+.fx-mini-cursor--orbit { width:7px; height:7px; box-shadow:0 0 0 8px #ffffff22, 0 0 0 12px #ffffff11; }
+.fx-mini-cursor--pixels { width:7px; height:7px; border-radius:0; box-shadow:-10px 4px 0 #00ffffaa,-19px 9px 0 #ff00c8aa; }
+.fx-mini-cursor--ripple { width:6px; height:6px; box-shadow:0 0 0 7px #ffffff55,0 0 0 14px #ffffff22; }
+.fx-mini-cursor--warp::after { content:"✦"; position:absolute; inset:-8px; display:grid; place-items:center; font-size:16px; color:#d2e1ff; }
+.fx-mini-cursor--constellation { width:5px; height:5px; box-shadow:-13px 6px 0 #c8dcff,-25px 13px 0 #c8dcff,-18px 20px 0 #c8dcff; }
+.fx-click-demo { position:absolute; left:50%; top:50%; width:10px; height:10px; transform:translate(-50%,-50%); border-radius:50%; background:#fff; box-shadow:0 0 0 5px #ffffff44,0 0 0 11px #ffffff1f; }
+.fx-click-demo--burst { box-shadow:0 0 0 3px #ffffff55,15px -12px 0 -2px #fff, -16px 10px 0 -2px #fff, 12px 15px 0 -2px #fff, -13px -14px 0 -2px #fff; }
+.fx-click-demo--sparks { width:4px; height:4px; box-shadow:18px -9px 0 0 #ffd15a,-17px 12px 0 0 #ffb347,11px 18px 0 0 #fff3b0,-20px -10px 0 0 #fff; }
+.fx-click-demo--pixelPop { border-radius:0; box-shadow:14px -15px 0 -2px #00ffff,-16px 9px 0 -2px #ff00c8,13px 14px 0 -2px #fff; }
+.fx-click-demo--shockwave { background:transparent; border:2px solid #fff; box-shadow:0 0 0 9px #ffffff33,0 0 0 20px #ffffff18; }
+.fx-preview-oldTv .fx-preview-scene::after { content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background:repeating-linear-gradient(to bottom,rgba(0,0,0,.32) 0,rgba(0,0,0,.32) 1px,transparent 1px,transparent 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5)); }
+.fx-preview-gridLines .fx-preview-scene::after { content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px); background-size:40px 40px; }
+.fx-preview-crt .fx-preview-scene::after { content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background:repeating-linear-gradient(to bottom,rgba(0,0,0,.25) 0,rgba(0,0,0,.25) 1px,transparent 1px,transparent 3px),repeating-linear-gradient(to right,rgba(255,0,0,.07) 0,rgba(255,0,0,.07) 1px,rgba(0,255,0,.07) 1px,rgba(0,255,0,.07) 2px,rgba(0,0,255,.07) 2px,rgba(0,0,255,.07) 3px); box-shadow:inset 0 0 140px rgba(0,0,0,.85); }
+.fx-preview-grain .fx-preview-scene::after { content:""; position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.55; background:repeating-conic-gradient(#fff2 0 25%,#0000 0 50%) 0 0/3px 3px; }
+.fx-preview-dotPattern .fx-preview-scene::after { content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background-image:radial-gradient(rgba(255,255,255,.2) 1px,transparent 1.2px); background-size:4px 4px; }
+.fx-preview-lines .fx-preview-scene::after { content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background:repeating-linear-gradient(to bottom,rgba(255,255,255,.16) 0,rgba(255,255,255,.16) 1px,transparent 1px,transparent 3px); }
+.fx-preview-snowFall .fx-preview-scene::after { content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(circle at 20% 25%,#fff 1.4px,transparent 2px),radial-gradient(circle at 65% 45%,#fff 1px,transparent 2px),radial-gradient(circle at 40% 78%,#fff 1.6px,transparent 2px),radial-gradient(circle at 82% 20%,#fff 1px,transparent 2px); background-size:64px 80px,48px 66px,70px 92px,55px 75px; }
+.fx-preview-blurred .fx-preview-scene-card { filter: blur(3px); }
 
 
 

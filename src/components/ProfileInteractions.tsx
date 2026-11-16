@@ -32,18 +32,12 @@ export function ProfileInteractions({ settings }: { settings: InteractionSetting
   useEffect(() => {
     const host = ref.current?.parentElement;
     if (!host) return;
-    const rings = new Set<HTMLElement>();
     const click = (event: PointerEvent) => {
       if (event.button !== 0) return;
       if (settings.allClicks || (event.target as Element).closest("a, button, [role=button], .lkr-entry")) playInteractionSound(settings);
-      if (!settings.ripple) return;
-      const ring = document.createElement("i"); ring.className = "profile-click-ring";
-      ring.style.left = `${event.clientX}px`; ring.style.top = `${event.clientY}px`; ring.style.color = settings.color;
-      host.append(ring); rings.add(ring);
-      ring.addEventListener("animationend", () => { ring.remove(); rings.delete(ring); }, { once: true });
     };
     host.addEventListener("pointerdown", click);
-    return () => { host.removeEventListener("pointerdown", click); rings.forEach((ring) => ring.remove()); };
-  }, [settings.sound, settings.volume, settings.fileUrl, settings.ripple, settings.color, settings.allClicks]);
+    return () => host.removeEventListener("pointerdown", click);
+  }, [settings.sound, settings.volume, settings.fileUrl, settings.allClicks]);
   return <span ref={ref} aria-hidden="true" />;
 }

@@ -352,7 +352,7 @@ export function LayoutPage({
               label="Zoom"
               value={Math.round((about.assets.decoration.zoom ?? 1) * 100)}
               min={60}
-              max={200}
+              max={250}
               suffix="%"
               onChange={(value) => updateDecoration({ zoom: value / 100 })}
             />
@@ -464,6 +464,43 @@ export function LayoutPage({
             </div>
             </details>
           </details>
+        ) : null}
+
+        {filterKind === "interest" ? (
+          <div className="tw-interest-mode">
+            <div className="tw-interest-mode-head">
+              <b>Interest layout</b>
+              <small>Keep the rail to four posters at a time, or show the whole collection.</small>
+            </div>
+            <div className="tw-gallery-layouts tw-interest-modes">
+              {(["carousel", "catalog"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={(design.interestMode ?? "carousel") === mode}
+                  onClick={() => updateDesign({ interestMode: mode })}
+                >
+                  <span
+                    className="tw-gallery-layout-thumb"
+                    data-layout={mode === "carousel" ? "carousel" : "catalog"}
+                  >
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="tw-gallery-layout-copy">
+                    <b>{mode === "carousel" ? "Carousel" : "Catalog"}</b>
+                    <small>
+                      {mode === "carousel"
+                        ? "Four at a time, with arrows and soft edge fades."
+                        : "The full grid, all posters visible at once."}
+                    </small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         ) : null}
 
         <div className={`tw-section-list${drag ? " is-sorting" : ""}`}>

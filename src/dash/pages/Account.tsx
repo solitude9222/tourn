@@ -395,7 +395,7 @@ export function AccountProfilePage({ section = "details" }: { section?: "details
                   variant="danger"
                   icon="trash"
                   onClick={() =>
-                    updateAssets({ cursor: { ...assets.cursor, imageUrl: "", style: "default" } })
+                    updateAssets({ cursor: { ...assets.cursor, imageUrl: "", style: "system" } })
                   }
                 >
                   Remove
