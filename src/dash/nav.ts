@@ -37,13 +37,6 @@ export const NAV: NavItem[] = [
     ],
   },
   {
-    key: "social",
-    label: "Social",
-    icon: "comment",
-    adminOnly: true,
-    tabs: [{ page: "social", label: "Social", icon: "comment" }],
-  },
-  {
     key: "appearance",
     group: "PROFILE",
     label: "Appearance",

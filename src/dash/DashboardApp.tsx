@@ -49,7 +49,6 @@ const PortfolioPage = lazyPage(() => import("./pages/Workspaces"), "PortfolioPag
 const ProfileWorkspacePage = lazyPage(() => import("./pages/Workspaces"), "ProfileWorkspacePage");
 const ThemePage = lazyPage(() => import("./pages/Theme"), "ThemePage");
 const SupportPage = lazyPage(() => import("./pages/Support"), "SupportPage");
-const SocialPage = lazyPage(() => import("./pages/Social"), "SocialPage");
 
 const AccountSettingsPage = lazy(() =>
   import("./pages/Embedded").then((module) => ({ default: module.AccountSettingsPage })),
@@ -81,7 +80,6 @@ const PAGE_PRELOADS: Partial<Record<Page, () => Promise<unknown>>> = {
   billing: () => import("./pages/Plan"),
   premium: () => import("./pages/Plan"),
   support: () => import("./pages/Support"),
-  social: () => import("./pages/Social"),
   settings: () => import("./pages/Embedded"),
   admin: () => import("./pages/Embedded"),
   theme: () => import("./pages/Theme"),
@@ -206,12 +204,6 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
     icon: "help",
     crumb: "Dashboard",
   },
-  social: {
-    title: "Social",
-    subtitle: "Admin-only servers, channels and real member profiles.",
-    icon: "comment",
-    crumb: "Admin",
-  },
   settings: {
     title: "Account",
     subtitle: "Your claims, account security and plan.",
@@ -307,8 +299,7 @@ function readDashboardLocation(isAdmin: boolean): { page: Page; tab: ProfileTab 
   const candidate = parts[0] === "admin" ? "admin" : requested || "home";
   const page =
     Object.hasOwn(META, candidate) &&
-    (candidate !== "admin" || isAdmin) &&
-    (candidate !== "social" || isAdmin)
+    (candidate !== "admin" || isAdmin)
       ? (candidate as Page)
       : "home";
   const tab = ["profile", "experience", "integrations", "switches"].includes(parts[2]) ? parts[2] as ProfileTab : "profile";
@@ -655,9 +646,6 @@ export function Dashboard(props: DashboardProps) {
       break;
     case "support":
       content = <SupportPage />;
-      break;
-    case "social":
-      content = isAdmin ? <SocialPage /> : <HomePage />;
       break;
     case "settings":
       content = <AccountSettingsPage />;
