@@ -7,12 +7,21 @@
    document on hover so opening a profile is effectively instant.
    --------------------------------------------------------------------------- */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { BADGE_MAP } from "../../lib/badges";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from "react";
+import { BADGE_CATALOGUE, BADGE_MAP } from "../../lib/badges";
 import { api, post } from "../../lib/backend";
 import { fetchPublicProfile, type ProfilePayload } from "../../lib/serverProfile";
 import { useDash } from "../context";
-import { Icon } from "../ui";
+import { Icon, type IconName } from "../ui";
 import "../../social.css";
 
 type RoleSummary = {
@@ -77,9 +86,27 @@ type SocialMessage = {
   id: string;
   channelId: string;
   content: string;
+  embed?: SocialEmbed | null;
+  replyTo?: SocialReply | null;
+  reactions?: SocialReaction[];
   createdAt: string;
   author: SocialAuthor;
 };
+type SocialEmbed = {
+  title: string;
+  description: string;
+  url: string;
+  image: string;
+  color: string;
+};
+type SocialReply = {
+  id: string;
+  content: string;
+  authorName: string;
+  authorHandle: string;
+};
+type SocialReaction = { emoji: string; count: number };
+type LeaderboardEntry = { userId: string; messages: number; lastMessageAt: string | null };
 type ModerationEntry = {
   id: string;
   action: string;
@@ -104,26 +131,77 @@ type SocialTab = {
   channelName: string;
 };
 
-type ModalKind = "server" | "channel" | "member" | "roles" | "moderation" | null;
+type ModalKind = "server" | "channel" | "member" | "roles" | "moderation" | "settings" | "leaderboard" | null;
 
-type SocialTheme = "midnight" | "ocean" | "ember" | "mono";
+type SocialTheme = "tourn" | "ocean" | "ember" | "mono";
 type SocialIdentity = { username?: string; alias?: string | null; displayName?: string | null };
 
+type SocialSettings = {
+  compact: boolean;
+  timestamps: boolean;
+  embeds: boolean;
+  enterToSend: boolean;
+  showMembers: boolean;
+  reduceMotion: boolean;
+};
+
+type ContextTarget =
+  | { kind: "app" }
+  | { kind: "message"; message: SocialMessage }
+  | { kind: "member"; member: SocialMember | SocialAuthor }
+  | { kind: "channel"; channel: SocialChannel }
+  | { kind: "server"; server: SocialServer };
+type ContextMenuState = { x: number; y: number; target: ContextTarget };
+type OwnedNames = {
+  items: { handle: string; acquired_at: string }[];
+  primary: string;
+  username: string;
+  alias2: string | null;
+};
+
 const SOCIAL_THEMES: { id: SocialTheme; label: string; swatch: [string, string] }[] = [
-  { id: "midnight", label: "Midnight", swatch: ["#ff8f92", "#0b0e14"] },
+  { id: "tourn", label: "Tourn", swatch: ["#b8c2ff", "#17181b"] },
   { id: "ocean", label: "Ocean", swatch: ["#62c8ff", "#07121b"] },
   { id: "ember", label: "Ember", swatch: ["#ffa65c", "#140e0b"] },
   { id: "mono", label: "Mono", swatch: ["#e6ebf5", "#0a0b0d"] },
 ];
 
+const DEFAULT_SOCIAL_SETTINGS: SocialSettings = {
+  compact: false,
+  timestamps: true,
+  embeds: true,
+  enterToSend: true,
+  showMembers: true,
+  reduceMotion: false,
+};
+const REACTION_CHOICES = ["🔥", "❤️", "😂", "👍", "👀", "🎉"];
+
 function readSocialTheme(): SocialTheme {
   try {
     const saved = localStorage.getItem("tourn.social.theme");
+    if (saved === "midnight") return "tourn";
     if (SOCIAL_THEMES.some((theme) => theme.id === saved)) return saved as SocialTheme;
   } catch {
     /* local only */
   }
-  return "midnight";
+  return "tourn";
+}
+
+function readSocialSettings(): SocialSettings {
+  try {
+    const saved = JSON.parse(localStorage.getItem("tourn.social.settings") ?? "{}");
+    if (!saved || typeof saved !== "object") return DEFAULT_SOCIAL_SETTINGS;
+    return {
+      compact: saved.compact === true,
+      timestamps: saved.timestamps !== false,
+      embeds: saved.embeds !== false,
+      enterToSend: saved.enterToSend !== false,
+      showMembers: saved.showMembers !== false,
+      reduceMotion: saved.reduceMotion === true,
+    };
+  } catch {
+    return DEFAULT_SOCIAL_SETTINGS;
+  }
 }
 
 const nameOf = (person: SocialIdentity) =>
@@ -229,17 +307,19 @@ function Modal({
   children,
   onClose,
   footer,
+  wide = false,
 }: {
   title: string;
   subtitle: string;
   children: ReactNode;
   onClose: () => void;
   footer: ReactNode;
+  wide?: boolean;
 }) {
   return (
     <div className="soc-modal-layer" role="presentation" onMouseDown={onClose}>
       <section
-        className="soc-modal"
+        className={`soc-modal${wide ? " soc-modal--wide" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -261,8 +341,130 @@ function Modal({
   );
 }
 
+function SettingToggle({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <label className="soc-setting-toggle">
+      <span>
+        <b>{label}</b>
+        <small>{hint}</small>
+      </span>
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <i aria-hidden="true" />
+    </label>
+  );
+}
+
+function ContextMenuItem({
+  icon,
+  children,
+  onClick,
+  danger = false,
+}: {
+  icon: IconName;
+  children: ReactNode;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      className={`soc-context-item${danger ? " is-danger" : ""}`}
+      onClick={onClick}
+    >
+      <Icon name={icon} size={13} />
+      <span>{children}</span>
+    </button>
+  );
+}
+
+function embedDomain(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function youtubeId(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "youtu.be") return parsed.pathname.slice(1).split("/")[0] || null;
+    if (!/(^|\.)youtube\.com$/i.test(parsed.hostname)) return null;
+    if (parsed.pathname === "/watch") return parsed.searchParams.get("v");
+    const match = parsed.pathname.match(/^\/(?:shorts|embed)\/([^/]+)/);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function MessageEmbeds({ message, enabled }: { message: SocialMessage; enabled: boolean }) {
+  if (!enabled) return null;
+  const embed = message.embed;
+  const urls = Array.from(new Set(message.content.match(/https?:\/\/[^\s<>"']+/gi) ?? []))
+    .filter((url) => url !== embed?.url)
+    .slice(0, 3);
+  if (!embed && !urls.length) return null;
+  return (
+    <div className="soc-embeds">
+      {embed ? (
+        <article className="soc-embed" style={{ borderLeftColor: embed.color || "var(--soc-accent)" }}>
+          {embed.title ? <strong>{embed.title}</strong> : null}
+          {embed.description ? <p>{embed.description}</p> : null}
+          {embed.image ? (
+            <img className="soc-embed-image" src={embed.image} alt="" loading="lazy" decoding="async" />
+          ) : null}
+          {embed.url ? (
+            <a href={embed.url} target="_blank" rel="noreferrer">
+              {embedDomain(embed.url)} <Icon name="external" size={10} />
+            </a>
+          ) : null}
+        </article>
+      ) : null}
+      {urls.map((url) => {
+        const video = youtubeId(url);
+        const image = !video && /\.(png|jpe?g|gif|webp|avif)(\?|#|$)/i.test(url);
+        return (
+          <article className={`soc-embed soc-embed--link${image ? " is-image" : ""}`} key={url}>
+            {video ? (
+              <a className="soc-embed-video" href={url} target="_blank" rel="noreferrer">
+                <img src={`https://img.youtube.com/vi/${encodeURIComponent(video)}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" />
+                <span><Icon name="external" size={12} /> YouTube</span>
+              </a>
+            ) : image ? (
+              <a href={url} target="_blank" rel="noreferrer">
+                <img className="soc-embed-image" src={url} alt="" loading="lazy" decoding="async" />
+              </a>
+            ) : (
+              <a className="soc-embed-link" href={url} target="_blank" rel="noreferrer">
+                <span className="soc-embed-favicon"><Icon name="globe" size={14} /></span>
+                <span>
+                  <b>{embedDomain(url)}</b>
+                  <small>{url}</small>
+                </span>
+                <Icon name="external" size={12} />
+              </a>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
 export function SocialPage() {
-  const { user, isAdmin, go, notify } = useDash();
+  const { user, isAdmin, go, notify, earned, badges } = useDash();
 
   const [servers, setServers] = useState<SocialServer[] | null>(null);
   const [activeServerId, setActiveServerId] = useState<string | null>(null);
@@ -287,6 +489,20 @@ export function SocialPage() {
   });
   const [theme, setTheme] = useState<SocialTheme>(readSocialTheme);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [settings, setSettings] = useState<SocialSettings>(readSocialSettings);
+  const [replyTarget, setReplyTarget] = useState<SocialMessage | null>(null);
+  const [embedOpen, setEmbedOpen] = useState(false);
+  const [embedDraft, setEmbedDraft] = useState<SocialEmbed>({
+    title: "",
+    description: "",
+    url: "",
+    image: "",
+    color: "#b8c2ff",
+  });
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardVersion, setLeaderboardVersion] = useState(0);
+  const [inventoryNames, setInventoryNames] = useState<OwnedNames | null>(null);
 
   const [modal, setModal] = useState<ModalKind>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -325,6 +541,8 @@ export function SocialPage() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
+  const contextRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLElement>(null);
   const pendingChannel = useRef<string | null>(null);
 
   const query = search.trim().toLowerCase();
@@ -337,9 +555,32 @@ export function SocialPage() {
   const canManageMembers = Boolean(selfMember?.isOwner || selfMember?.roles.some((role) => role.permissions?.manage_members));
   const canManageRoles = Boolean(selfMember?.isOwner || selfMember?.roles.some((role) => role.permissions?.manage_roles));
 
+  const ownedBadgeIds = new Set([...earned, ...badges.equipped.map((badge) => badge.id)]);
+  const inventoryBadges = BADGE_CATALOGUE.filter((badge) => ownedBadgeIds.has(badge.id));
+  const inventoryHandles = inventoryNames
+    ? [inventoryNames.username, ...inventoryNames.items.map((item) => item.handle)].filter(
+        (handle, index, all) => handle && all.findIndex((item) => item.toLowerCase() === handle.toLowerCase()) === index,
+      )
+    : [];
+
   useEffect(() => {
     try { localStorage.setItem("tourn.social.theme", theme); } catch { /* local only */ }
   }, [theme]);
+
+  useEffect(() => {
+    try { localStorage.setItem("tourn.social.settings", JSON.stringify(settings)); } catch { /* local only */ }
+  }, [settings]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let alive = true;
+    void api<OwnedNames>("/api/account/aliases").then((result) => {
+      if (alive && result.ok) setInventoryNames(result.data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!themeOpen) return;
@@ -407,6 +648,22 @@ export function SocialPage() {
   }, [activeServerId, detailVersion]);
 
   useEffect(() => {
+    if (!activeServerId) {
+      setLeaderboard([]);
+      return;
+    }
+    let alive = true;
+    void api<{ entries: LeaderboardEntry[] }>(
+      `/api/social/servers/${encodeURIComponent(activeServerId)}/leaderboard`,
+    ).then((result) => {
+      if (alive) setLeaderboard(result.ok ? result.data.entries : []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [activeServerId, detailVersion, leaderboardVersion]);
+
+  useEffect(() => {
     if (!activeServer || !activeChannel) return;
     const key = `${activeServer.id}:${activeChannel.id}`;
     setOpenTabs((current) => {
@@ -467,6 +724,12 @@ export function SocialPage() {
   }, [activeChannelId]);
 
   useEffect(() => {
+    setReplyTarget(null);
+    setEmbedOpen(false);
+    setContextMenu(null);
+  }, [activeChannelId]);
+
+  useEffect(() => {
     const pane = messagesRef.current;
     if (!pane) return;
     const nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 160;
@@ -490,6 +753,36 @@ export function SocialPage() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [selectedMember]);
+
+  useEffect(() => {
+    if (!selectedMember) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) closeProfile();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [selectedMember]);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const closeIfOutside = (event: PointerEvent) => {
+      if (!contextRef.current?.contains(event.target as Node)) setContextMenu(null);
+    };
+    const close = () => setContextMenu(null);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setContextMenu(null);
+    };
+    document.addEventListener("pointerdown", closeIfOutside);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      document.removeEventListener("pointerdown", closeIfOutside);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [contextMenu]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -588,6 +881,68 @@ export function SocialPage() {
     setProfile(null);
     setProfileError(null);
     setProfileLoading(false);
+  };
+
+  const openContextMenuAt = (x: number, y: number, target: ContextTarget) => {
+    const width = 224;
+    const height = 330;
+    setContextMenu({
+      x: Math.max(8, Math.min(x, window.innerWidth - width - 8)),
+      y: Math.max(8, Math.min(y, window.innerHeight - height - 8)),
+      target,
+    });
+  };
+
+  const openContextMenu = (event: ReactMouseEvent, target: ContextTarget) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openContextMenuAt(event.clientX, event.clientY, target);
+  };
+
+  const copyText = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      notify("Copied", `${label} copied to your clipboard.`);
+    } catch {
+      notify("Copy failed", "Your browser blocked clipboard access.");
+    }
+  };
+
+  const updateSetting = (key: keyof SocialSettings, value: boolean) => {
+    setSettings((current) => ({ ...current, [key]: value }));
+  };
+
+  const scrollToMessage = (messageId: string) => {
+    const node = messagesRef.current?.querySelector<HTMLElement>(`[data-message-id="${messageId}"]`);
+    if (!node) return;
+    node.scrollIntoView({ behavior: settings.reduceMotion ? "auto" : "smooth", block: "center" });
+    node.classList.add("is-flash");
+    window.setTimeout(() => node.classList.remove("is-flash"), 1200);
+  };
+
+  const startReply = (message: SocialMessage) => {
+    setReplyTarget(message);
+    closeProfile();
+    window.requestAnimationFrame(() => composerRef.current?.focus());
+  };
+
+  const toggleReaction = async (message: SocialMessage, emoji: string) => {
+    const result = await api<{ reactions: SocialReaction[] }>(
+      `/api/social/messages/${encodeURIComponent(message.id)}/reactions`,
+      { method: "POST", body: JSON.stringify({ emoji }) },
+    );
+    if (!result.ok) {
+      notify("Reaction not saved", result.error);
+      return;
+    }
+    setMessages((current) =>
+      current.map((item) => (item.id === message.id ? { ...item, reactions: result.data.reactions } : item)),
+    );
+  };
+
+  const openSettings = () => {
+    setContextMenu(null);
+    setModal("settings");
   };
 
   const selectTab = (tab: SocialTab) => {
@@ -790,9 +1145,14 @@ export function SocialPage() {
     const content = draft.trim();
     if (!content || !activeChannelId || sending || activeChannel?.canSend === false) return;
     setSending(true);
+    const embed = [embedDraft.title, embedDraft.description, embedDraft.url, embedDraft.image].some(
+      (value) => value.trim(),
+    )
+      ? { ...embedDraft, color: embedDraft.color || "#b8c2ff" }
+      : null;
     const result = await post<{ message: SocialMessage }>(
       `/api/social/channels/${encodeURIComponent(activeChannelId)}/messages`,
-      { content },
+      { content, replyToId: replyTarget?.id ?? null, embed },
     );
     setSending(false);
     if (!result.ok) {
@@ -800,15 +1160,20 @@ export function SocialPage() {
       return;
     }
     setDraft("");
+    setReplyTarget(null);
+    setEmbedOpen(false);
+    setEmbedDraft({ title: "", description: "", url: "", image: "", color: "#b8c2ff" });
     setMessages((current) => {
       if (current.some((message) => message.id === result.data.message.id)) return current;
       return [...current, result.data.message];
     });
+    setLeaderboardVersion((value) => value + 1);
     composerRef.current?.focus();
   };
 
   const deleteMessage = async (message: SocialMessage) => {
     if (!canModerateMessages) return;
+    setContextMenu(null);
     if (!window.confirm("Delete this message? This cannot be undone.")) return;
     const result = await api<{ ok: boolean }>(
       `/api/social/messages/${encodeURIComponent(message.id)}`,
@@ -819,6 +1184,8 @@ export function SocialPage() {
       return;
     }
     setMessages((current) => current.filter((item) => item.id !== message.id));
+    setReplyTarget((current) => (current?.id === message.id ? null : current));
+    setLeaderboardVersion((value) => value + 1);
     notify("Message deleted", "The message was removed and logged.");
   };
 
@@ -943,6 +1310,20 @@ export function SocialPage() {
   const selectedJoinedAt = profile?.account.joinedAt ?? selectedRecord?.joinedAt ?? null;
   const selectedViews = selectedRecord?.profileViews ?? 0;
   const selectedServers = selectedRecord?.serverCount ?? 0;
+  const leaderboardMembers = leaderboard
+    .map((entry) => ({
+      ...entry,
+      member: detail?.members.find((member) => member.id === entry.userId) ?? null,
+    }))
+    .filter((entry): entry is LeaderboardEntry & { member: SocialMember } => Boolean(entry.member));
+  const topLeaderboard = leaderboardMembers.slice(0, 3);
+  const menuMessage = contextMenu?.target.kind === "message" ? contextMenu.target.message : null;
+  const menuMember = contextMenu?.target.kind === "member" ? contextMenu.target.member : null;
+  const menuChannel = contextMenu?.target.kind === "channel" ? contextMenu.target.channel : null;
+  const menuServer = contextMenu?.target.kind === "server" ? contextMenu.target.server : null;
+  const contextMemberRecord = menuMember
+    ? detail?.members.find((member) => member.id === menuMember.id) ?? null
+    : null;
 
   const copySelectedHandle = async () => {
     if (!selectedHandle) return;
@@ -962,8 +1343,25 @@ export function SocialPage() {
     window.requestAnimationFrame(() => composerRef.current?.focus());
   };
 
+  const mentionMember = (person: SocialMember | SocialAuthor) => {
+    if (!activeChannel?.canSend) {
+      notify("Cannot message here", "You do not have permission to post in this channel.");
+      return;
+    }
+    const mention = `@${handleOf(person)} `;
+    setDraft((current) => (current.trim() ? `${current.replace(/\s+$/, "")} ${mention}` : mention));
+    closeProfile();
+    setContextMenu(null);
+    window.requestAnimationFrame(() => composerRef.current?.focus());
+  };
+
   return (
-    <div className="social-app" data-soc-theme={theme}>
+    <div
+      className={`social-app${settings.compact ? " is-compact" : ""}${settings.showMembers ? "" : " is-members-hidden"}`}
+      data-soc-theme={theme}
+      data-soc-motion={settings.reduceMotion ? "off" : "on"}
+      onContextMenu={(event) => openContextMenu(event, { kind: "app" })}
+    >
       <div className="soc-tabstrip" role="tablist" aria-label="Open channels">
         <button type="button" className="soc-browser-home" onClick={() => go("home")} title="Dashboard">
           <img src="/logo.png" alt="" width={16} height={16} />
@@ -1091,6 +1489,7 @@ export function SocialPage() {
               className={`soc-server${server.id === activeServerId ? " is-active" : ""}`}
               title={`${server.name} · ${server.memberCount} members`}
               aria-label={server.name}
+              onContextMenu={(event) => openContextMenu(event, { kind: "server", server })}
               onClick={() => {
                 setActiveServerId(server.id);
                 setActiveChannelId(null);
@@ -1110,7 +1509,10 @@ export function SocialPage() {
         </nav>
 
         <aside className="soc-channels">
-          <div className="soc-server-head">
+          <div
+            className="soc-server-head"
+            onContextMenu={(event) => activeServer && openContextMenu(event, { kind: "server", server: activeServer })}
+          >
             <div>
               <strong>{activeServer?.name ?? "No server selected"}</strong>
               {activeServer ? <small>{activeServer.memberCount} members · {activeServer.channelCount} channels</small> : null}
@@ -1154,6 +1556,7 @@ export function SocialPage() {
                         key={channel.id}
                         type="button"
                         className={`soc-channel${channel.id === activeChannelId ? " is-active" : ""}`}
+                        onContextMenu={(event) => openContextMenu(event, { kind: "channel", channel })}
                         onClick={() => setActiveChannelId(channel.id)}
                         title={channel.sendRole ? `Only ${channel.sendRole.name} can post` : channel.topic || undefined}
                       >
@@ -1175,6 +1578,7 @@ export function SocialPage() {
                     key={channel.id}
                     type="button"
                     className={`soc-channel${channel.id === activeChannelId ? " is-active" : ""}`}
+                    onContextMenu={(event) => openContextMenu(event, { kind: "channel", channel })}
                     onClick={() => setActiveChannelId(channel.id)}
                   >
                     <span className="soc-channel-hash">#</span>
@@ -1191,6 +1595,15 @@ export function SocialPage() {
               </div>
             ) : null}
           </div>
+
+          <button type="button" className="soc-inventory-peek" onClick={openSettings} title="Open your inventory preview">
+            <span className="soc-inventory-peek-icon"><Icon name="layers" size={13} /></span>
+            <span>
+              <b>Your inventory</b>
+              <small>{inventoryHandles.length || "—"} handles · {inventoryBadges.length} badges</small>
+            </span>
+            <Icon name="chevron-right" size={11} />
+          </button>
 
           <div className="soc-user-panel">
             <button type="button" className="soc-user-identity" onClick={() => openProfile(memberFromUser(user))}>
@@ -1210,7 +1623,7 @@ export function SocialPage() {
               <button type="button" className={deafened ? "is-on" : ""} onClick={toggleDeafen} title={deafened ? "Undeafen" : "Deafen"} aria-label={deafened ? "Undeafen" : "Deafen"}>
                 <Icon name={deafened ? "headphones-off" : "headphones"} size={14} />
               </button>
-              <button type="button" onClick={() => go("settings")} title="Account settings" aria-label="Account settings">
+              <button type="button" onClick={openSettings} title="Social settings" aria-label="Social settings">
                 <Icon name="settings" size={14} />
               </button>
             </div>
@@ -1236,7 +1649,10 @@ export function SocialPage() {
             </div>
           ) : activeChannel ? (
             <>
-              <header className="soc-chat-head">
+              <header
+                className="soc-chat-head"
+                onContextMenu={(event) => activeServer && openContextMenu(event, { kind: "server", server: activeServer })}
+              >
                 <span className="soc-chat-hash">#</span>
                 <strong>{activeChannel.name}</strong>
                 {activeChannel.topic ? <span className="soc-chat-topic">{activeChannel.topic}</span> : null}
@@ -1276,7 +1692,11 @@ export function SocialPage() {
                   return (
                     <div key={message.id}>
                       {divider ? <div className="soc-day"><span>{dayOf(message.createdAt)}</span></div> : null}
-                      <article className="soc-message">
+                      <article
+                        className="soc-message"
+                        data-message-id={message.id}
+                        onContextMenu={(event) => openContextMenu(event, { kind: "message", message })}
+                      >
                         <button
                           type="button"
                           className="soc-message-avatar"
@@ -1300,20 +1720,65 @@ export function SocialPage() {
                             </button>
                             <BadgeMarks badges={message.author.badges} size={13} />
                             {topRole ? <RoleChip role={topRole} small /> : null}
-                            <time dateTime={message.createdAt}>{timeOf(message.createdAt)}</time>
-                            {canModerateMessages ? (
+                            {settings.timestamps ? <time dateTime={message.createdAt}>{timeOf(message.createdAt)}</time> : null}
+                            <span className="soc-message-hover-actions">
+                              <button type="button" onClick={() => startReply(message)} title="Reply" aria-label="Reply">
+                                <Icon name="comment" size={11} />
+                              </button>
+                              <button type="button" onClick={() => void toggleReaction(message, "🔥")} title="React with fire" aria-label="React with fire">
+                                🔥
+                              </button>
                               <button
                                 type="button"
-                                className="soc-message-delete"
-                                onClick={() => void deleteMessage(message)}
-                                aria-label={`Delete message from ${nameOf(message.author)}`}
-                                title="Delete message"
+                                onClick={(event) => {
+                                  const rect = event.currentTarget.getBoundingClientRect();
+                                  openContextMenuAt(rect.right - 210, rect.bottom + 4, { kind: "message", message });
+                                }}
+                                title="More actions"
+                                aria-label="More actions"
                               >
-                                <Icon name="trash-2" size={12} />
+                                <Icon name="dots" size={12} />
                               </button>
-                            ) : null}
+                              {canModerateMessages ? (
+                                <button
+                                  type="button"
+                                  onClick={() => void deleteMessage(message)}
+                                  title="Delete message"
+                                  aria-label="Delete message"
+                                >
+                                  <Icon name="trash-2" size={11} />
+                                </button>
+                              ) : null}
+                            </span>
                           </div>
+                          {message.replyTo ? (
+                            <button
+                              type="button"
+                              className="soc-reply-preview"
+                              onClick={() => scrollToMessage(message.replyTo!.id)}
+                              title="Jump to replied message"
+                            >
+                              <span>{message.replyTo.authorName}</span>
+                              <p>{message.replyTo.content.slice(0, 140)}</p>
+                            </button>
+                          ) : null}
                           <p>{message.content}</p>
+                          <MessageEmbeds message={message} enabled={settings.embeds} />
+                          {message.reactions?.length ? (
+                            <div className="soc-reactions">
+                              {message.reactions.map((reaction) => (
+                                <button
+                                  type="button"
+                                  key={reaction.emoji}
+                                  className="soc-reaction"
+                                  onClick={() => void toggleReaction(message, reaction.emoji)}
+                                  title={`React with ${reaction.emoji}`}
+                                >
+                                  <span>{reaction.emoji}</span> {reaction.count}
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                       </article>
                     </div>
@@ -1325,28 +1790,93 @@ export function SocialPage() {
               </div>
 
               {activeChannel.canSend ? (
-                <form className="soc-composer" onSubmit={sendMessage}>
-                  <textarea
-                    ref={composerRef}
-                    value={draft}
-                    onChange={(event) => setDraft(event.target.value.slice(0, 2000))}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" && !event.shiftKey) {
-                        event.preventDefault();
-                        void sendMessage();
-                      }
-                    }}
-                    placeholder={`Message #${activeChannel.name}`}
-                    rows={1}
-                    aria-label={`Message #${activeChannel.name}`}
-                  />
-                  <div className="soc-composer-foot">
-                    <span>{draft.length ? `${draft.length}/2000` : "Enter to send · Shift+Enter for a new line"}</span>
-                    <button type="submit" className="soc-send" disabled={!draft.trim() || sending} aria-label="Send message">
-                      <Icon name="arrow-right" size={15} />
-                    </button>
-                  </div>
-                </form>
+                <div className="soc-composer-wrap">
+                  {replyTarget ? (
+                    <div className="soc-reply-bar">
+                      <span>Replying to <b>{nameOf(replyTarget.author)}</b></span>
+                      <p>{replyTarget.content.slice(0, 120)}</p>
+                      <button type="button" onClick={() => setReplyTarget(null)} aria-label="Cancel reply">
+                        <Icon name="x" size={12} />
+                      </button>
+                    </div>
+                  ) : null}
+                  {embedOpen ? (
+                    <div className="soc-embed-builder">
+                      <div className="soc-embed-builder-head">
+                        <span><Icon name="layers" size={12} /> Rich embed</span>
+                        <button type="button" onClick={() => { setEmbedOpen(false); setEmbedDraft({ title: "", description: "", url: "", image: "", color: "#b8c2ff" }); }}>
+                          Clear
+                        </button>
+                      </div>
+                      <input
+                        className="soc-input"
+                        value={embedDraft.title}
+                        onChange={(event) => setEmbedDraft((current) => ({ ...current, title: event.target.value.slice(0, 120) }))}
+                        placeholder="Embed title"
+                        aria-label="Embed title"
+                      />
+                      <textarea
+                        className="soc-input soc-embed-description"
+                        value={embedDraft.description}
+                        onChange={(event) => setEmbedDraft((current) => ({ ...current, description: event.target.value.slice(0, 600) }))}
+                        placeholder="Description"
+                        aria-label="Embed description"
+                        rows={2}
+                      />
+                      <div className="soc-embed-fields">
+                        <input
+                          className="soc-input"
+                          value={embedDraft.url}
+                          onChange={(event) => setEmbedDraft((current) => ({ ...current, url: event.target.value.slice(0, 1000) }))}
+                          placeholder="https://link"
+                          aria-label="Embed link"
+                        />
+                        <input
+                          className="soc-input"
+                          value={embedDraft.image}
+                          onChange={(event) => setEmbedDraft((current) => ({ ...current, image: event.target.value.slice(0, 1000) }))}
+                          placeholder="https://image"
+                          aria-label="Embed image"
+                        />
+                        <input
+                          type="color"
+                          className="soc-color-input"
+                          value={embedDraft.color}
+                          onChange={(event) => setEmbedDraft((current) => ({ ...current, color: event.target.value }))}
+                          aria-label="Embed colour"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+                  <form className="soc-composer" onSubmit={sendMessage}>
+                    <div className="soc-composer-tools">
+                      <button type="button" className={embedOpen ? "is-on" : ""} onClick={() => setEmbedOpen((open) => !open)}>
+                        <Icon name="layers" size={12} /> Embed
+                      </button>
+                      <span>{settings.enterToSend ? "Enter to send · Shift+Enter for a new line" : "Ctrl+Enter to send"}</span>
+                    </div>
+                    <textarea
+                      ref={composerRef}
+                      value={draft}
+                      onChange={(event) => setDraft(event.target.value.slice(0, 2000))}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" && !event.shiftKey && (settings.enterToSend || event.metaKey || event.ctrlKey)) {
+                          event.preventDefault();
+                          void sendMessage();
+                        }
+                      }}
+                      placeholder={`Message #${activeChannel.name}`}
+                      rows={1}
+                      aria-label={`Message #${activeChannel.name}`}
+                    />
+                    <div className="soc-composer-foot">
+                      <span>{draft.length ? `${draft.length}/2000` : "Shift+Enter for a new line"}</span>
+                      <button type="submit" className="soc-send" disabled={!draft.trim() || sending} aria-label="Send message">
+                        <Icon name="arrow-right" size={15} />
+                      </button>
+                    </div>
+                  </form>
+                </div>
               ) : (
                 <div className="soc-readonly">
                   <Icon name="lock" size={15} />
@@ -1380,6 +1910,9 @@ export function SocialPage() {
           <header className="soc-members-head">
             <strong>Members</strong>
             <span>{detail?.members.length ?? 0}</span>
+            <button type="button" className="soc-icon-button" onClick={() => setModal("leaderboard")} aria-label="Server leaderboard" title="Server leaderboard">
+              <Icon name="crown" size={13} />
+            </button>
             {canManageRoles ? (
               <button type="button" className="soc-icon-button" onClick={() => openRolesModal()} aria-label="Manage roles">
                 <Icon name="shield" size={13} />
@@ -1391,6 +1924,25 @@ export function SocialPage() {
               </button>
             ) : null}
           </header>
+          <div className="soc-mini-board">
+            <div className="soc-mini-board-head">
+              <span><Icon name="crown" size={11} /> Leaderboard</span>
+              <button type="button" onClick={() => setModal("leaderboard")}>View all</button>
+            </div>
+            {topLeaderboard.length ? topLeaderboard.map((entry, index) => (
+              <button
+                type="button"
+                className="soc-mini-board-row"
+                key={entry.userId}
+                onClick={() => openProfile(entry.member)}
+              >
+                <span className={`soc-mini-board-rank is-${index + 1}`}>{index + 1}</span>
+                <Avatar person={entry.member} size={22} />
+                <strong>{nameOf(entry.member)}</strong>
+                <small>{entry.messages}</small>
+              </button>
+            )) : <p>No messages yet. The board fills up from real messages.</p>}
+          </div>
           <div className="soc-members-scroll">
             {detailLoading ? <p className="soc-side-note">Loading members…</p> : null}
             {!detailLoading && memberGroups.map((group) => (
@@ -1402,6 +1954,7 @@ export function SocialPage() {
                     type="button"
                     className={`soc-member${selectedMember?.id === member.id ? " is-selected" : ""}`}
                     onClick={() => openProfile(member)}
+                    onContextMenu={(event) => openContextMenu(event, { kind: "member", member })}
                     onPointerEnter={() => warmProfile(member)}
                     onFocus={() => warmProfile(member)}
                   >
@@ -1699,9 +2252,152 @@ export function SocialPage() {
         </Modal>
       ) : null}
 
+      {modal === "settings" ? (
+        <Modal
+          title="Social settings"
+          subtitle="Saved on this account in this browser and applied across the whole Social area."
+          wide
+          onClose={() => setModal(null)}
+          footer={<button type="button" className="soc-button soc-button--primary" onClick={() => setModal(null)}>Done</button>}
+        >
+          <div className="soc-settings-layout">
+            <div className="soc-settings-main">
+              <div className="soc-profile-section-label">Appearance</div>
+              <div className="soc-theme-grid">
+                {SOCIAL_THEMES.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className={`soc-theme-card${theme === preset.id ? " is-active" : ""}`}
+                    onClick={() => setTheme(preset.id)}
+                    aria-pressed={theme === preset.id}
+                  >
+                    <span className="soc-theme-swatch" aria-hidden="true">
+                      <i style={{ background: preset.swatch[0] }} />
+                      <i style={{ background: preset.swatch[1] }} />
+                    </span>
+                    <span>{preset.label}</span>
+                    {theme === preset.id ? <Icon name="check" size={12} /> : null}
+                  </button>
+                ))}
+              </div>
+
+              <div className="soc-profile-section-label">Chat</div>
+              <SettingToggle
+                label="Compact messages"
+                hint="Tighter spacing so more of the conversation fits on screen."
+                checked={settings.compact}
+                onChange={(next) => updateSetting("compact", next)}
+              />
+              <SettingToggle
+                label="Show timestamps"
+                hint="Keep the time beside every message."
+                checked={settings.timestamps}
+                onChange={(next) => updateSetting("timestamps", next)}
+              />
+              <SettingToggle
+                label="Rich embeds"
+                hint="Render link previews, images, media cards and custom embeds."
+                checked={settings.embeds}
+                onChange={(next) => updateSetting("embeds", next)}
+              />
+              <SettingToggle
+                label="Enter sends"
+                hint="Turn this off to require Ctrl+Enter instead."
+                checked={settings.enterToSend}
+                onChange={(next) => updateSetting("enterToSend", next)}
+              />
+
+              <div className="soc-profile-section-label">Layout & motion</div>
+              <SettingToggle
+                label="Show member list"
+                hint="Hide the right-hand roster when you want a wider conversation."
+                checked={settings.showMembers}
+                onChange={(next) => updateSetting("showMembers", next)}
+              />
+              <SettingToggle
+                label="Reduce motion"
+                hint="Disable the profile and menu entrance animations."
+                checked={settings.reduceMotion}
+                onChange={(next) => updateSetting("reduceMotion", next)}
+              />
+            </div>
+
+            <aside className="soc-inventory-preview">
+              <div className="soc-profile-section-label">Inventory preview</div>
+              <div className="soc-inventory-person">
+                <Avatar person={{ alias: user.alias ?? null, username: user.username, avatarUrl: user.avatarUrl }} size={36} />
+                <div>
+                  <strong>{inventoryNames?.primary || user.alias?.trim() || user.username}</strong>
+                  <small>@{user.username}</small>
+                </div>
+              </div>
+              <div className="soc-inventory-stats">
+                <div><b>{inventoryHandles.length || "—"}</b><span>handles</span></div>
+                <div><b>{inventoryBadges.length}</b><span>badges</span></div>
+              </div>
+              <div className="soc-inventory-handles">
+                {inventoryHandles.slice(0, 3).map((handle) => <span key={handle}>@{handle}</span>)}
+                {!inventoryHandles.length ? <small>Your signup username is your first handle.</small> : null}
+              </div>
+              <div className="soc-inventory-badges">
+                {inventoryBadges.slice(0, 6).map((badge) =>
+                  badge.art ? <img key={badge.id} src={badge.art} alt={badge.name} title={badge.name} /> : null,
+                )}
+                {!inventoryBadges.length ? <small>No badges collected yet.</small> : null}
+              </div>
+              <button type="button" className="soc-button soc-button--small" onClick={() => { setModal(null); go("aliases"); }}>
+                Open full inventory <Icon name="arrow-right" size={11} />
+              </button>
+              <p>Your handles and badges come straight from your account inventory.</p>
+            </aside>
+          </div>
+        </Modal>
+      ) : null}
+
+      {modal === "leaderboard" ? (
+        <Modal
+          title="Server leaderboard"
+          subtitle={`Top message senders in ${activeServer?.name ?? "this server"}, from real messages only.`}
+          onClose={() => setModal(null)}
+          footer={<button type="button" className="soc-button" onClick={() => setModal(null)}>Done</button>}
+        >
+          {!leaderboardMembers.length ? (
+            <p className="soc-help">No messages have been sent in this server yet. The leaderboard fills up as people talk.</p>
+          ) : (
+            <div className="soc-leaderboard">
+              {leaderboardMembers.map((entry, index) => (
+                <button
+                  type="button"
+                  className="soc-leaderboard-row"
+                  key={entry.userId}
+                  onClick={() => { setModal(null); openProfile(entry.member); }}
+                >
+                  <span className={`soc-leaderboard-rank is-${index + 1}`}>
+                    {index < 3 ? <Icon name="crown" size={13} /> : index + 1}
+                  </span>
+                  <Avatar person={entry.member} size={30} />
+                  <span className="soc-leaderboard-copy">
+                    <strong>{nameOf(entry.member)}</strong>
+                    <small>@{handleOf(entry.member)}</small>
+                  </span>
+                  <span className="soc-leaderboard-count"><b>{entry.messages.toLocaleString()}</b><small>messages</small></span>
+                </button>
+              ))}
+            </div>
+          )}
+        </Modal>
+      ) : null}
+
       {selectedMember ? (
         <div className="soc-profile-layer" role="presentation" onMouseDown={closeProfile}>
-          <aside className="soc-profile-card" onMouseDown={(event) => event.stopPropagation()} aria-label={`${nameOf(selectedMember)} profile`}>
+          <aside
+            ref={profileRef}
+            className="soc-profile-card"
+            onMouseDown={(event) => event.stopPropagation()}
+            onContextMenu={(event) => openContextMenu(event, { kind: "member", member: selectedPerson ?? selectedMember })}
+            aria-label={`${nameOf(selectedMember)} profile`}
+          >
             <div className="soc-profile-banner" />
             <button type="button" className="soc-profile-close" onClick={closeProfile} aria-label="Close profile">
               <Icon name="x" size={15} />
@@ -1779,6 +2475,110 @@ export function SocialPage() {
               ) : null}
             </div>
           </aside>
+        </div>
+      ) : null}
+
+      {contextMenu ? (
+        <div
+          ref={contextRef}
+          className="soc-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          role="menu"
+          aria-label="Social actions"
+          onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); }}
+        >
+          {contextMenu.target.kind === "app" ? (
+            <>
+              <div className="soc-context-label">Social</div>
+              <ContextMenuItem icon="settings" onClick={() => { setContextMenu(null); openSettings(); }}>Social settings</ContextMenuItem>
+              <ContextMenuItem icon="palette" onClick={() => { setContextMenu(null); openSettings(); }}>Appearance & theme</ContextMenuItem>
+              <ContextMenuItem icon="layers" onClick={() => { setContextMenu(null); setModal("settings"); }}>Inventory preview</ContextMenuItem>
+              <div className="soc-context-separator" />
+              <ContextMenuItem icon="plus" onClick={() => { setContextMenu(null); openServerModal(); }}>Create a server</ContextMenuItem>
+              <ContextMenuItem
+                icon="users"
+                onClick={() => { setContextMenu(null); updateSetting("showMembers", !settings.showMembers); }}
+              >
+                {settings.showMembers ? "Hide member list" : "Show member list"}
+              </ContextMenuItem>
+              <ContextMenuItem icon="crown" onClick={() => { setContextMenu(null); setModal("leaderboard"); }}>Server leaderboard</ContextMenuItem>
+            </>
+          ) : null}
+
+          {menuMessage ? (
+            <>
+              <div className="soc-context-reactions">
+                {REACTION_CHOICES.map((emoji) => (
+                  <button
+                    type="button"
+                    key={emoji}
+                    title={`React with ${emoji}`}
+                    aria-label={`React with ${emoji}`}
+                    onClick={() => { setContextMenu(null); void toggleReaction(menuMessage, emoji); }}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <ContextMenuItem icon="comment" onClick={() => { setContextMenu(null); startReply(menuMessage); }}>Reply</ContextMenuItem>
+              <ContextMenuItem icon="copy" onClick={() => { setContextMenu(null); void copyText(menuMessage.content, "Message"); }}>Copy text</ContextMenuItem>
+              <ContextMenuItem icon="user" onClick={() => { setContextMenu(null); openProfile(menuMessage.author); }}>Open profile</ContextMenuItem>
+              {canModerateMessages ? (
+                <>
+                  <div className="soc-context-separator" />
+                  <ContextMenuItem icon="trash-2" danger onClick={() => void deleteMessage(menuMessage)}>Delete message</ContextMenuItem>
+                </>
+              ) : null}
+            </>
+          ) : null}
+
+          {menuMember ? (
+            <>
+              <div className="soc-context-label">{nameOf(menuMember)}</div>
+              <ContextMenuItem icon="user" onClick={() => { setContextMenu(null); openProfile(menuMember); }}>Open profile</ContextMenuItem>
+              <ContextMenuItem icon="at" onClick={() => mentionMember(menuMember)}>Mention in chat</ContextMenuItem>
+              <ContextMenuItem icon="copy" onClick={() => { setContextMenu(null); void copyText(`@${handleOf(menuMember)}`, "Handle"); }}>Copy handle</ContextMenuItem>
+              {contextMemberRecord && canManageRoles ? (
+                <ContextMenuItem icon="shield" onClick={() => { setContextMenu(null); openRolesModal(contextMemberRecord); }}>Manage roles</ContextMenuItem>
+              ) : null}
+              {contextMemberRecord && canManageMembers && !contextMemberRecord.isOwner && contextMemberRecord.id !== user.id ? (
+                <>
+                  <div className="soc-context-separator" />
+                  <ContextMenuItem icon="trash-2" danger onClick={() => { setContextMenu(null); void removeMember(contextMemberRecord); }}>Remove from server</ContextMenuItem>
+                </>
+              ) : null}
+            </>
+          ) : null}
+
+          {menuChannel ? (
+            <>
+              <div className="soc-context-label">#{menuChannel.name}</div>
+              <ContextMenuItem icon="comment" onClick={() => { setContextMenu(null); setActiveChannelId(menuChannel.id); }}>Open channel</ContextMenuItem>
+              <ContextMenuItem icon="copy" onClick={() => { setContextMenu(null); void copyText(`#${menuChannel.name}`, "Channel name"); }}>Copy channel name</ContextMenuItem>
+              {canManageChannels ? (
+                <ContextMenuItem icon="plus" onClick={() => { setContextMenu(null); openChannelModal(menuChannel.categoryId ?? undefined); }}>Create channel here</ContextMenuItem>
+              ) : null}
+            </>
+          ) : null}
+
+          {menuServer ? (
+            <>
+              <div className="soc-context-label">{menuServer.name}</div>
+              <ContextMenuItem icon="comment" onClick={() => { setContextMenu(null); setActiveServerId(menuServer.id); setActiveChannelId(null); }}>Open server</ContextMenuItem>
+              <ContextMenuItem icon="crown" onClick={() => { setContextMenu(null); setActiveServerId(menuServer.id); setModal("leaderboard"); }}>Leaderboard</ContextMenuItem>
+              <ContextMenuItem icon="copy" onClick={() => { setContextMenu(null); void copyText(menuServer.name, "Server name"); }}>Copy server name</ContextMenuItem>
+              <div className="soc-context-separator" />
+              {menuServer.id === activeServerId && canManageChannels ? (
+                <ContextMenuItem icon="plus" onClick={() => { setContextMenu(null); setActiveServerId(menuServer.id); openChannelModal(); }}>Create channel</ContextMenuItem>
+              ) : null}
+              {menuServer.id === activeServerId && canManageRoles ? (
+                <ContextMenuItem icon="shield" onClick={() => { setContextMenu(null); setActiveServerId(menuServer.id); openRolesModal(); }}>Manage roles</ContextMenuItem>
+              ) : null}
+              {menuServer.id === activeServerId && (canModerateMessages || canManageMembers) ? (
+                <ContextMenuItem icon="clock" onClick={() => { setContextMenu(null); setActiveServerId(menuServer.id); void openModeration(); }}>Moderation log</ContextMenuItem>
+              ) : null}
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -86,10 +86,24 @@ create table if not exists social_messages (
   channel_id uuid not null references social_channels(id) on delete cascade,
   author_id uuid not null references users(id) on delete cascade,
   content text not null,
+  embed jsonb,
+  reply_to_id uuid references social_messages(id) on delete set null,
   created_at timestamptz not null default now()
 );
+alter table social_messages add column if not exists embed jsonb;
+alter table social_messages add column if not exists reply_to_id uuid references social_messages(id) on delete set null;
 create index if not exists social_messages_channel_idx
   on social_messages (channel_id, created_at desc);
+
+create table if not exists social_message_reactions (
+  message_id uuid not null references social_messages(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
+  emoji text not null,
+  created_at timestamptz not null default now(),
+  primary key (message_id, user_id, emoji)
+);
+create index if not exists social_message_reactions_message_idx
+  on social_message_reactions (message_id, created_at);
 
 create table if not exists social_moderation_log (
   id uuid primary key default gen_random_uuid(),
@@ -235,9 +249,72 @@ const messageOf = (row) => ({
   id: row.id,
   channelId: row.channel_id,
   content: row.content,
+  embed: row.embed && typeof row.embed === "object" ? row.embed : null,
+  replyTo: row.reply_id
+    ? {
+        id: row.reply_id,
+        content: row.reply_content ?? "",
+        authorName:
+          row.reply_display_name?.trim() ||
+          row.reply_alias?.trim() ||
+          row.reply_username ||
+          "Member",
+        authorHandle: row.reply_alias?.trim() || row.reply_username || "",
+      }
+    : null,
+  reactions: [],
   createdAt: row.created_at,
   author: authorOf(row),
 });
+
+const cleanEmbed = (value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const text = (key, limit) => String(value[key] ?? "").replace(/\r\n/g, "\n").trim().slice(0, limit);
+  const safeUrl = (key) => {
+    const candidate = String(value[key] ?? "").trim();
+    return /^https?:\/\//i.test(candidate) ? candidate.slice(0, 1000) : "";
+  };
+  const embed = {
+    title: text("title", 120),
+    description: text("description", 600),
+    url: safeUrl("url"),
+    image: safeUrl("image"),
+    color: /^#[0-9a-f]{6}$/i.test(String(value.color ?? "")) ? String(value.color) : "#b8c2ff",
+  };
+  return embed.title || embed.description || embed.url || embed.image ? embed : null;
+};
+
+async function reactionsOf(pool, messageId) {
+  const { rows } = await pool.query(
+    `select emoji, count(*)::int as count
+       from social_message_reactions
+      where message_id = $1
+      group by emoji
+      order by min(created_at) asc`,
+    [messageId],
+  );
+  return rows.map((row) => ({ emoji: row.emoji, count: Number(row.count) || 0 }));
+}
+
+async function attachReactions(pool, messages) {
+  if (!messages.length) return messages;
+  const { rows } = await pool.query(
+    `select message_id, emoji, count(*)::int as count
+       from social_message_reactions
+      where message_id = any($1::uuid[])
+      group by message_id, emoji
+      order by min(created_at) asc`,
+    [messages.map((message) => message.id)],
+  );
+  const byId = new Map();
+  for (const row of rows) {
+    const list = byId.get(row.message_id) ?? [];
+    list.push({ emoji: row.emoji, count: Number(row.count) || 0 });
+    byId.set(row.message_id, list);
+  }
+  for (const message of messages) message.reactions = byId.get(message.id) ?? [];
+  return messages;
+}
 
 export function cleanChannelName(input) {
   return String(input ?? "")
@@ -761,6 +838,34 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
     }
   });
 
+  app.get("/api/social/servers/:id/leaderboard", async (req, res) => {
+    try {
+      const server = await findServer(pool, req.params.id);
+      if (!server) return res.status(404).json({ error: "Server not found." });
+      await ensureAdminMembership(pool, server.id, req.user);
+      const { rows } = await pool.query(
+        `select m.author_id as user_id, count(*)::int as messages,
+                max(m.created_at) as last_message_at
+           from social_messages m
+           join social_channels c on c.id = m.channel_id
+          where c.server_id = $1
+          group by m.author_id
+          order by messages desc, last_message_at desc
+          limit 10`,
+        [server.id],
+      );
+      res.json({
+        entries: rows.map((row) => ({
+          userId: row.user_id,
+          messages: Number(row.messages) || 0,
+          lastMessageAt: row.last_message_at,
+        })),
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.get("/api/social/servers/:id/users", async (req, res) => {
     try {
       const server = await findServer(pool, req.params.id);
@@ -1011,10 +1116,13 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
       const before = req.query.before ? new Date(String(req.query.before)) : null;
       const validBefore = before && !Number.isNaN(before.getTime()) ? before : null;
       const { rows } = await pool.query(
-        `select m.id, m.channel_id, m.content, m.created_at,
+        `select m.id, m.channel_id, m.content, m.embed, m.reply_to_id, m.created_at,
                 u.id as author_id, u.username, u.alias, u.avatar_url, u.premium,
                 nullif(trim(p.data->'about'->>'displayName'), '') as display_name,
                 u.is_admin, u.is_owner,
+                rm.id as reply_id, rm.content as reply_content,
+                ru.username as reply_username, ru.alias as reply_alias,
+                nullif(trim(rp.data->'about'->>'displayName'), '') as reply_display_name,
                 coalesce((
                   select json_agg(json_build_object(
                     'id', r.id, 'name', r.name, 'color', r.color,
@@ -1029,13 +1137,16 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
          join users u on u.id = m.author_id
          join social_channels c on c.id = m.channel_id
          left join profiles p on p.user_id = u.id
+         left join social_messages rm on rm.id = m.reply_to_id
+         left join users ru on ru.id = rm.author_id
+         left join profiles rp on rp.user_id = ru.id
          where m.channel_id = $1
            ${validBefore ? "and m.created_at < $3" : ""}
          order by m.created_at desc
          limit $2`,
         validBefore ? [channel.id, limit, validBefore] : [channel.id, limit],
       );
-      res.json({ messages: rows.reverse().map(messageOf) });
+      res.json({ messages: await attachReactions(pool, rows.reverse().map(messageOf)) });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -1060,15 +1171,33 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
       if (content.length > 2000) {
         return res.status(400).json({ error: "Messages are limited to 2,000 characters." });
       }
+      const embed = cleanEmbed(req.body?.embed);
+      const requestedReply = req.body?.replyToId ? String(req.body.replyToId) : null;
+      if (requestedReply && !UUID_RE.test(requestedReply)) {
+        return res.status(400).json({ error: "That reply target is not available." });
+      }
+      if (requestedReply) {
+        const reply = await pool.query(
+          "select id from social_messages where id = $1 and channel_id = $2",
+          [requestedReply, channel.id],
+        );
+        if (!reply.rows.length) {
+          return res.status(400).json({ error: "That message is not in this channel." });
+        }
+      }
       const inserted = await pool.query(
-        "insert into social_messages (channel_id, author_id, content) values ($1, $2, $3) returning id",
-        [channel.id, req.user.id, content],
+        `insert into social_messages (channel_id, author_id, content, embed, reply_to_id)
+         values ($1, $2, $3, $4, $5) returning id`,
+        [channel.id, req.user.id, content, embed ? JSON.stringify(embed) : null, requestedReply],
       );
       const { rows } = await pool.query(
-        `select m.id, m.channel_id, m.content, m.created_at,
+        `select m.id, m.channel_id, m.content, m.embed, m.reply_to_id, m.created_at,
                 u.id as author_id, u.username, u.alias, u.avatar_url, u.premium,
                 nullif(trim(p.data->'about'->>'displayName'), '') as display_name,
                 u.is_admin, u.is_owner,
+                rm.id as reply_id, rm.content as reply_content,
+                ru.username as reply_username, ru.alias as reply_alias,
+                nullif(trim(rp.data->'about'->>'displayName'), '') as reply_display_name,
                 coalesce((
                   select json_agg(json_build_object(
                     'id', r.id, 'name', r.name, 'color', r.color,
@@ -1083,10 +1212,52 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
          join users u on u.id = m.author_id
          join social_channels c on c.id = m.channel_id
          left join profiles p on p.user_id = u.id
+         left join social_messages rm on rm.id = m.reply_to_id
+         left join users ru on ru.id = rm.author_id
+         left join profiles rp on rp.user_id = ru.id
          where m.id = $1`,
         [inserted.rows[0].id],
       );
-      res.status(201).json({ message: messageOf(rows[0]) });
+      const [message] = await attachReactions(pool, [messageOf(rows[0])]);
+      res.status(201).json({ message });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/social/messages/:id/reactions", async (req, res) => {
+    try {
+      if (!UUID_RE.test(String(req.params.id ?? ""))) {
+        return res.status(400).json({ error: "Message not found." });
+      }
+      const emoji = String(req.body?.emoji ?? "").trim();
+      if (!emoji || emoji.length > 16) {
+        return res.status(400).json({ error: "Choose a valid reaction." });
+      }
+      const found = await pool.query(
+        "select id, channel_id from social_messages where id = $1",
+        [req.params.id],
+      );
+      const message = found.rows[0];
+      if (!message) return res.status(404).json({ error: "Message not found." });
+      const channel = await findChannel(pool, message.channel_id);
+      if (!channel) return res.status(404).json({ error: "Channel not found." });
+      await ensureAdminMembership(pool, channel.server_id, req.user);
+      const roles = await rolesForMember(pool, channel.server_id, req.user.id);
+      if (!canUseChannel(channel, roles, "view")) {
+        return res.status(403).json({ error: "You do not have access to this channel." });
+      }
+      const removed = await pool.query(
+        "delete from social_message_reactions where message_id = $1 and user_id = $2 and emoji = $3",
+        [message.id, req.user.id, emoji],
+      );
+      if (!removed.rowCount) {
+        await pool.query(
+          "insert into social_message_reactions (message_id, user_id, emoji) values ($1, $2, $3) on conflict do nothing",
+          [message.id, req.user.id, emoji],
+        );
+      }
+      res.json({ reactions: await reactionsOf(pool, message.id) });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

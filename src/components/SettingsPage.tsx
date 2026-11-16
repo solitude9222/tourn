@@ -532,7 +532,7 @@ function SecurityPanel({
         <span className="tw-set-row-copy">
           <b>{user?.email ?? "Discord account"}</b>
           <small>
-            {user?.alias ? `@${user.alias}` : "No alias yet"}
+            {user?.alias ? `@${user.alias}` : user?.username ? `@${user.username}` : ""}
             {user?.id ? ` · ${user.id.slice(0, 8)}…` : ""}
           </small>
         </span>

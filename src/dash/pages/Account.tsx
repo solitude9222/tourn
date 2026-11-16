@@ -408,7 +408,7 @@ export function AccountProfilePage() {
           </div>
           <div>
             <small>Public name</small>
-            <b>{user.alias?.trim() ? `@${user.alias}` : "No alias yet"}</b>
+            <b>{user.alias?.trim() ? `@${user.alias}` : `@${user.username}`}</b>
           </div>
           <div>
             <small>Second claim</small>
