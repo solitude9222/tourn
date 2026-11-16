@@ -23,15 +23,16 @@ export function BackgroundEffectLayer({
   compact?: boolean;
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
-  const reduced = typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host || settings.id === "none") return;
-    const api = mountAmbientScene(host, settings.id, { compact, reducedMotion: reduced });
+    // Atmosphere is the point of this layer. Unlike the cursor trail, it keeps
+    // moving even when the OS asks for reduced motion; the scenes are slow and
+    // non-interactive, and freezing them makes the chosen effect look broken.
+    const api = mountAmbientScene(host, settings.id, { compact });
     return () => api.destroy();
-  }, [settings.id, compact, reduced]);
+  }, [settings.id, compact]);
 
   if (settings.id === "none") return null;
   return <span ref={hostRef} className="profile-fx-bg profile-fx-canvas" aria-hidden="true" />;

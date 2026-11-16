@@ -74,11 +74,16 @@ const SCENES: Record<AmbientScene, Scene> = {
   night: {
     area: 5000,
     make: (w, h) => ({ x: rnd(0, w), y: rnd(0, h), r: rnd(0.4, 1.5), ph: rnd(0, 6.28), s: rnd(0.5, 2) }),
-    update() {},
+    update(p, w, h, dt, t) {
+      // A slow drift gives the field a direction even between twinkles.
+      p.x = (((p.x ?? 0) + Math.sin(t * 0.35 + (p.ph ?? 0)) * 4 * dt) + w) % w;
+      p.y = (((p.y ?? 0) + Math.cos(t * 0.22 + (p.ph ?? 0)) * 1.5 * dt) + h) % h;
+    },
     draw(ctx, p, t) {
+      const pulse = 0.55 + 0.45 * Math.sin(t * (p.s ?? 1) + (p.ph ?? 0));
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r ?? 1, 0, TAU);
-      ctx.fillStyle = `rgba(255,255,255,${0.3 + 0.7 * (Math.sin(t * (p.s ?? 1) + (p.ph ?? 0)) + 1) / 2})`;
+      ctx.arc(p.x, p.y, (p.r ?? 1) * (0.75 + pulse * 0.35), 0, TAU);
+      ctx.fillStyle = `rgba(255,255,255,${0.25 + 0.75 * pulse})`;
       ctx.fill();
     },
   },
@@ -138,8 +143,16 @@ const SCENES: Record<AmbientScene, Scene> = {
     },
   },
   shootingStars: {
-    count: 3,
-    make: () => ({ on: false, wait: rnd(0, 3), x: 0, y: 0, vx: 0, vy: 0, life: 0 }),
+    count: 4,
+    make: (_w, _h, first, index = 0) => ({
+      on: false,
+      wait: first ? index * 0.55 + rnd(0, 0.45) : rnd(0.8, 2.8),
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      life: 0,
+    }),
     update(p, w, h, dt) {
       if (!p.on) {
         p.wait = (p.wait ?? 0) - dt;
@@ -158,7 +171,7 @@ const SCENES: Record<AmbientScene, Scene> = {
       p.y += (p.vy ?? 0) * dt;
       if ((p.life ?? 0) > 0.7) {
         p.on = false;
-        p.wait = rnd(1.5, 5);
+        p.wait = rnd(1.2, 3.8);
       }
     },
     draw(ctx, p) {
@@ -171,7 +184,7 @@ const SCENES: Record<AmbientScene, Scene> = {
       ctx.moveTo(p.x, p.y);
       ctx.lineTo(p.x - (p.vx ?? 0) * 0.12, p.y - (p.vy ?? 0) * 0.12);
       ctx.strokeStyle = gradient;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.25;
       ctx.lineCap = "round";
       ctx.stroke();
     },

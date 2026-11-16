@@ -124,16 +124,21 @@ await page.getByRole('slider',{name:'Click size',exact:true}).press('ArrowRight'
 await page.waitForFunction(()=>JSON.parse(localStorage.getItem('tourn.lol/about/v1/qa-user')).assets.cursor.clickSettings.ripple.size>1);
 await page.getByRole('button',{name:'Pointer skin',exact:true}).click();await page.getByRole('option',{name:'Ring',exact:true}).click();
 await page.waitForFunction(()=>JSON.parse(localStorage.getItem('tourn.lol/about/v1/qa-user')).assets.cursor.style==='ring');
-const playground=page.locator('.fx-pointer-playground'),box=await playground.boundingBox();
-await playground.scrollIntoViewIfNeeded();const rect=await playground.boundingBox();
-assert.equal(await playground.evaluate(el=>el.classList.contains('profile-cursor-hidden')),true,'Canvas skin did not hide the system pointer');
-await page.mouse.move(rect.x+20,rect.y+40);await page.mouse.move(rect.x+rect.width-30,rect.y+150,{steps:20});
-await page.evaluate(()=>document.querySelector('.fx-pointer-playground')?.dispatchEvent(new PointerEvent('pointermove',{clientX:600,clientY:150,pointerType:'mouse',bubbles:true})));
-await page.waitForTimeout(500);
-await page.waitForFunction(()=>{const c=document.querySelector('.fx-pointer-playground .profile-cursor-canvas');if(!c)return false;const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return d.some((value,index)=>index%4===3&&value>0);});
-await page.evaluate(()=>document.querySelector('.fx-pointer-playground')?.dispatchEvent(new PointerEvent('pointerleave',{bubbles:true})));
-await page.waitForTimeout(100);assert.equal(await playground.locator('.profile-cursor-canvas').evaluate(c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return d.some((value,index)=>index%4===3&&value>0);}),false,'Pointer leave leaked trail pixels');
-await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(300);await page.waitForFunction(()=>!document.querySelector('.fx-pointer-playground .profile-cursor-canvas'));
+assert.equal(await page.locator('.fx-pointer-playground').count(),0,'Separate pointer playground should be removed');
+const canvasPainted=async(locator)=>locator.locator('.profile-cursor-canvas').evaluate(c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return d.some((value,index)=>index%4===3&&value>0);});
+const trailTile=trailGallery.locator('.fx-choice[aria-label="Fairy Dust"]');
+await trailTile.hover();
+await page.waitForFunction(()=>{const c=document.querySelector('.fx-choice[aria-label="Fairy Dust"] .profile-cursor-canvas');if(!c)return false;const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return d.some((value,index)=>index%4===3&&value>0);});
+assert.equal(await trailTile.locator('.fx-pointer-demo').evaluate(el=>el.classList.contains('is-live')),true,'Trail tile did not start its live preview');
+await page.mouse.move(10,10);await page.waitForTimeout(120);
+assert.equal(await trailTile.locator('.profile-cursor-canvas').count(),0,'Pointer leave did not tear down the trail preview');
+const clickTile=clickGallery.locator('.fx-choice[aria-label="Ripple"]');
+await clickTile.hover();
+await page.waitForFunction(()=>{const c=document.querySelector('.fx-choice[aria-label="Ripple"] .profile-cursor-canvas');if(!c)return false;const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return d.some((value,index)=>index%4===3&&value>0);});
+assert.equal(await canvasPainted(clickTile),true,'Click tile did not preview the ripple');
+await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(100);
+await clickTile.hover();
+await page.waitForFunction(()=>{const c=document.querySelector('.fx-choice[aria-label="Ripple"] .profile-cursor-canvas');if(!c)return false;const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return d.some((value,index)=>index%4===3&&value>0);});
 await page.emulateMedia({reducedMotion:'no-preference'});
 const normalized=await page.evaluate(async()=>{const {normalizeAbout}=await import('/src/lib/about.ts');const about=normalizeAbout({assets:{cursor:{style:'ring',trail:true,trailType:'comet'},effects:{background:{id:'snowstorm',intensity:0},overlay:{id:'scanlines',intensity:95}}}});return {style:about.assets.cursor.style,trail:about.assets.cursor.trailType,bg:about.assets.effects.background.id,intensity:about.assets.effects.background.intensity,overlay:about.assets.effects.overlay.id};});
 assert.deepEqual(normalized,{style:'ring',trail:'sparkler',bg:'snow',intensity:0,overlay:'lines'});
@@ -142,5 +147,5 @@ await page.setViewportSize({width:390,height:900});await page.waitForTimeout(100
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Mobile effects overflow');
 assert.equal(await page.getByRole('dialog').count(),0);
 assert.deepEqual(errors,[]);
-console.log('PASS side-by-side media, inline paginated decorations, favorites, uploads, new backgrounds/overlays, pointer shape persistence, bounded trails and reduced motion');
+console.log('PASS side-by-side media, inline paginated decorations, favorites, uploads, new backgrounds/overlays, hover pointer previews, shape persistence and bounded trails');
 } finally { await browser.close(); }

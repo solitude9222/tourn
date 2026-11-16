@@ -3,7 +3,6 @@ import { useState } from "react";
 import { CURSOR_TRAILS, CURSOR_SKINS, CLICK_EFFECTS, BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, TEXT_EFFECT_PARAM, DEFAULT_CURSOR_MOTION, defaultParamsFor, type BackgroundEffectSettings, type ClickEffectId, type CursorMotionSettings, type CursorStyle, type CursorTrailType, type OverlayEffectSettings, type TextEffectId, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
 import { EffectBrowser, type EffectKind } from "../EffectBrowser";
 import { FontPicker } from "../../components/FontPicker";
-import { CursorTrailLayer } from "../../components/CursorTrailLayer";
 import { playInteractionSound } from "../../components/ProfileInteractions";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, MultiSelect, Select, Slider, TextInput, Toggle } from "../ui";
@@ -88,9 +87,8 @@ export function EffectsPage({ category = "background", embedded = false }: { cat
     {browser === "card" ? <Card><CardHead icon="layout" title="Card lighting" subtitle="Border beams, glow, shimmer and surface treatments." />{chooser("card")}
       {assets.card.id !== "none" ? <div className="tw-form-grid"><ColorField label="Light colour" value={assets.card.color} onChange={(color) => setCard({ color })} /><Slider label="Light intensity" value={assets.card.intensity} min={0} max={100} suffix="%" onChange={(intensity) => setCard({ intensity })} /><Slider label="Sweep duration" value={assets.card.speed} min={1.5} max={20} step={.5} suffix="s" onChange={(speed) => setCard({ speed })} /></div> : null}
     </Card> : null}
-    {browser === "cursor" ? <Card><CardHead icon="move" title="Cursor and trails" subtitle="Pick a pointer skin, trail and click effect, then tune each one below." />
+    {browser === "cursor" ? <Card><CardHead icon="move" title="Cursor and trails" subtitle="Pick a pointer skin, trail and click effect; hover a tile to preview it." />
       <div className="tw-form-grid"><Field label="Pointer skin"><Select ariaLabel="Pointer skin" value={assets.cursor.style} options={skinOptions} onChange={(style) => setCursor({ style: style as CursorStyle })} /></Field>{assets.cursor.style !== "system" && assets.cursor.style !== "custom" ? <><Slider label="Pointer size" value={assets.cursor.size} min={4} max={32} suffix="px" onChange={(size) => setCursor({ size })} /><ColorField label="Pointer colour" value={assets.cursor.color} onChange={(color) => setCursor({ color })} /></> : null}</div>
-      <div className="fx-pointer-playground"><span>Move your pointer here</span><small>Live preview · touch devices keep their normal pointer behavior</small><CursorTrailLayer settings={assets.cursor}/></div>
       <div className="fx-cursor-grid fx-cursor-grid--single">
         <div className="fx-trail-column">
           <div className="fx-trail-head"><span className="fx-subheading">Pointer trail</span><Toggle label="Show cursor trail" checked={assets.cursor.trail} onChange={(trail) => setCursor({ trail })} /></div>

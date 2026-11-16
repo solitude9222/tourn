@@ -45,9 +45,6 @@
 .fx-avatar-identity img { width:100%; height:100%; object-fit:cover; }
 .fx-avatar-decoration { position:absolute; width:110px; height:110px; object-fit:contain; }
 .fx-pointer-demo { display:block; position:absolute; inset:0; overflow:hidden; }
-.fx-pointer-playground { position:relative; display:flex; height:220px; flex-direction:column; align-items:center; justify-content:center; gap:10px; overflow:hidden; border:1px dashed var(--input-border); border-radius:12px; background:radial-gradient(ellipse at center,#22222b,#0e0e10 75%); color:var(--sub); margin:18px 0; }
-.fx-pointer-playground > span, .fx-pointer-playground > small { pointer-events:none; }
-.fx-pointer-playground > small { font-size:11px; }
 .fx-generated-poster { position:absolute; inset:0; }
 .fx-generated-poster--aurora { background:radial-gradient(ellipse at 20% 70%,#69e4c455,transparent 60%),radial-gradient(ellipse at 80% 30%,#ad73ff77,transparent 60%); }
 .fx-generated-poster--fireflies { background:radial-gradient(circle at 25% 32%,#e6efb7 1px,transparent 4px),radial-gradient(circle at 65% 72%,#f0eab5 2px,transparent 6px),radial-gradient(circle at 80% 25%,#d0ffaf 1px,transparent 4px); background-size:80px 90px,130px 120px,110px 80px; }
@@ -94,3 +91,6 @@
 
 /* Hover previews never replace the click target of their stable button. */
 .fx-choice > .fx-tile-preview, .fx-choice > .fx-tile-preview * { pointer-events:none; }
+/* The live pointer preview needs to hear the pointer, while clicks still bubble
+   to the selector button underneath. */
+.fx-choice > .fx-tile-preview .fx-pointer-demo.is-live { pointer-events:auto; }

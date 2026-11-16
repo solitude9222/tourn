@@ -3,7 +3,7 @@ import { usePreference } from "./preferences";
 import { useState, type CSSProperties } from "react";
 import { BackgroundEffectLayer, OverlayEffectLayer, EffectText } from "../components/ProfileEffects";
 import { CursorTrailLayer } from "../components/CursorTrailLayer";
-import { DEFAULT_PROFILE_ASSETS, DEFAULT_TEXT_EFFECT, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type OverlayEffectId } from "../lib/profileAssets";
+import { DEFAULT_PROFILE_ASSETS, DEFAULT_TEXT_EFFECT, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type ClickEffectId, type CursorStyle, type CursorTrailType, type OverlayEffectId } from "../lib/profileAssets";
 import { naturalCompare, sorted, chain } from "../lib/sort";
 import { SortSelect, TextInput } from "./ui";
 
@@ -22,6 +22,17 @@ const groupFor = (kind: EffectKind, id: string) => {
 
 function TilePreview({ option, kind, active, previewText }: { option: Option; kind: EffectKind; active: boolean; previewText: string }) {
   const base = { ...DEFAULT_PROFILE_ASSETS.effects.background, id: option.id as typeof DEFAULT_PROFILE_ASSETS.effects.background.id, color: "#ffffff", intensity: 45, params: defaultParamsFor(BACKGROUND_EFFECT_PARAM[option.id as keyof typeof BACKGROUND_EFFECT_PARAM] || null) };
+  const pointer = kind === "cursor" || kind === "trail" || kind === "click";
+  const pointerSettings = pointer ? {
+    ...DEFAULT_PROFILE_ASSETS.cursor,
+    style: (kind === "cursor" ? option.id : "system") as CursorStyle,
+    trail: kind === "trail" && option.id !== "none",
+    trailType: (kind === "trail" ? option.id : "none") as CursorTrailType,
+    click: (kind === "click" ? option.id : "none") as ClickEffectId,
+    color: "#91a7ff",
+    size: 14,
+  } : null;
+  const previewMode = kind === "trail" ? "trail" : kind === "click" ? "click" : kind === "cursor" ? "skin" : undefined;
   return <span className={`fx-tile-preview fx-preview-${option.id}`}>
     {kind === "background" && option.id !== "none" && !active ? <span className={`fx-preview-poster fx-preview-poster--${option.id}`} /> : null}
     {kind === "overlay" ? <span className="fx-preview-scene" aria-hidden="true">
@@ -33,7 +44,7 @@ function TilePreview({ option, kind, active, previewText }: { option: Option; ki
     </span> : null}
     {kind === "overlay" && option.id === "custom" ? <span className="fx-upload-symbol" aria-hidden="true">+</span> : null}
     {(kind === "background" || kind === "overlay") && active ? kind === "overlay" ? <OverlayEffectLayer compact settings={{ ...DEFAULT_PROFILE_ASSETS.effects.overlay, ...base, id: option.id as OverlayEffectId, params: defaultParamsFor(OVERLAY_EFFECT_PARAM[option.id as OverlayEffectId]), opacity: .7 }} /> : <BackgroundEffectLayer settings={base} compact /> : null}
-    {kind === "text" ? <EffectText text={previewText} settings={{ ...DEFAULT_TEXT_EFFECT, effect: (option.effect || option.id) as typeof DEFAULT_TEXT_EFFECT.effect, colorA: option.colorA || "#fff", colorB: option.colorB || "#ffffff", params: defaultParamsFor(TEXT_EFFECT_PARAM[(option.effect || option.id) as keyof typeof TEXT_EFFECT_PARAM]) }} /> : kind === "card" ? <span className="fx-mini-card"><span className={`pv-card-fx pv-card-fx--${option.id}`} /><b>Your name</b><small>@username</small></span> : kind === "click" && option.id !== "none" ? <span className={`fx-click-demo fx-click-demo--${option.id}`} /> : (kind === "cursor" || kind === "trail") ? <span className="fx-pointer-demo"><span className={`fx-mini-cursor fx-mini-cursor--${option.id}`} />{active ? <CursorTrailLayer settings={{ ...DEFAULT_PROFILE_ASSETS.cursor, style: "dot", trail: option.id !== "none", trailType: option.id as typeof DEFAULT_PROFILE_ASSETS.cursor.trailType, color: "#91a7ff", size: 14 }} /> : null}</span> : null}
+    {kind === "text" ? <EffectText text={previewText} settings={{ ...DEFAULT_TEXT_EFFECT, effect: (option.effect || option.id) as typeof DEFAULT_TEXT_EFFECT.effect, colorA: option.colorA || "#fff", colorB: option.colorB || "#ffffff", params: defaultParamsFor(TEXT_EFFECT_PARAM[(option.effect || option.id) as keyof typeof TEXT_EFFECT_PARAM]) }} /> : kind === "card" ? <span className="fx-mini-card"><span className={`pv-card-fx pv-card-fx--${option.id}`} /><b>Your name</b><small>@username</small></span> : pointer && pointerSettings ? <span className={`fx-pointer-demo${active ? " is-live" : ""}`}>{active ? <CursorTrailLayer settings={pointerSettings} preview={previewMode} /> : <span className={`fx-mini-cursor fx-mini-cursor--${option.id}`} />}</span> : null}
   </span>;
 }
 
