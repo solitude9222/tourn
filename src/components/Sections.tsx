@@ -296,6 +296,7 @@ export function AudioSection() {
                 lyrics:
                   "[00:00.00]A quiet pad, fading in\n[00:07.00]Every note plays from your own upload\n[00:14.00]Lyrics follow the track line by line\n[00:21.00]Pick a style and it is live",
               }}
+              preview
             />
           </div>
         </div>

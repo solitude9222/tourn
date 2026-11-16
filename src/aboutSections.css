@@ -473,17 +473,30 @@
    Artwork fills the card and the details sit bottom-left, like the game
    posters: genre line, title, then score/platforms. */
 .lkr-interest-grid {
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  /* Poster rows are centred, including a final row with one or two cards.
+     A grid with auto-fill left those short rows bunched at the left edge in
+     the vertical slideshow. */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
 .lkr-interest-tile {
   position: relative;
   display: block;
+  flex: 0 1 168px;
   aspect-ratio: 3 / 4;
   overflow: hidden;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 430px) {
+  .lkr-interest-tile {
+    flex-basis: calc(50% - 6px);
+  }
 }
 
 .lkr-interest-art {

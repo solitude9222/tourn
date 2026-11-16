@@ -217,6 +217,8 @@ export function LinkerPreview({
   joined,
   /** Keeps dashboard previews silent — a preview must never start audio. */
   hideAudio = false,
+  /** Render the page as a preview: visible player, no playback. */
+  preview = false,
 }: {
   user: Pick<Account, "id" | "username" | "alias" | "avatarUrl">;
   about: About;
@@ -235,9 +237,12 @@ export function LinkerPreview({
   joined?: string;
   /** Drop the player entirely (dashboard previews). */
   hideAudio?: boolean;
+  /** Show the player but never start it — dashboard and demo previews. */
+  preview?: boolean;
 }) {
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
+  const previewMode = preview || !interactive;
   const videoRef = useRef<HTMLVideoElement>(null);
   const sharedTilt = design.layout === "stacked" && design.stackTilt;
   const stackMotion = useTilt(sharedTilt ? design.tilt : 0, Boolean(design.tiltInvert));
@@ -411,6 +416,7 @@ export function LinkerPreview({
       entryActive={entryOpen}
       disableTilt={sharedTilt}
       hideAudio={hideAudio || audioSlot !== "card-bottom"}
+      preview={previewMode}
       pageLayerTarget={pageHost}
     >
       {includeWidgets && orderedWidgets.length ? widgetStack : null}
@@ -421,7 +427,9 @@ export function LinkerPreview({
   // rearrange what is inside it. `stacked` is the exception: it lifts the
   // player out under the card so the track has its own titled panel.
   const hasTrack =
-    !hideAudio && Boolean(about.assets.audio.fileUrl);
+    !hideAudio &&
+    about.assets.audio.style !== "none" &&
+    Boolean(about.assets.audio.fileUrl);
 
   const showWidgetsBelow = effectiveWidgetsPosition === "below" && orderedWidgets.length > 0;
   const showAudioBelow = audioSlot === "below-card" && hasTrack;
@@ -432,7 +440,7 @@ export function LinkerPreview({
       {showAudioBelow ? (
         <div className="lkr-stack">
           <div className="lkr-audio" data-detail="audio">
-            <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
+            <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} preview={previewMode} />
           </div>
         </div>
       ) : null}
@@ -658,10 +666,10 @@ export function LinkerPreview({
       ) : null}
       {showAudioPage ? (
         <div data-detail="audio" className={`lkr-page-audio lkr-page-audio--${audioSlot}`}>
-          <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} />
+          <AudioPlayer settings={about.assets.audio} enabled={!entryOpen} preview={previewMode} />
         </div>
       ) : null}
-      {hasTrack && assets.audio.muteButton ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
+      {hasTrack && assets.audio.muteButton && !previewMode ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       <ProfileCursor settings={assets.cursor} />
       {entryOpen ? (

@@ -77,12 +77,15 @@ export function AudioPlayer({
   settings,
   enabled = true,
   tilt = 0,
+  preview = false,
 }: {
   settings: AudioSettings;
   /** False while the entry screen covers the page — the track starts after it. */
   enabled?: boolean;
   /** Optional pointer tilt, in degrees. 0 keeps the player flat. */
   tilt?: number;
+  /** Dashboard/demo previews show the player but must never play a sound. */
+  preview?: boolean;
 }) {
   const musicTilt = useTilt<HTMLDivElement>(tilt);
   // The manager can hold three songs. Shuffle picks one per page load;
@@ -100,9 +103,9 @@ export function AudioPlayer({
   const artist = settings.artist.trim();
   const cover = settings.coverUrl.trim() || null;
   const hasTrack = Boolean(fileUrl);
-  // "None" only means "no style picked" — with a track uploaded it should still
-  // play, so it renders as the compact player instead of vanishing.
-  const style = settings.style === "none" ? "compact" : settings.style;
+  // "None" is the off switch: no player, even when a track is still uploaded.
+  const audioOn = settings.style !== "none";
+  const style = settings.style;
   // Saved uploads can hold a relative /api path; resolve it so the audio
   // element can actually fetch the file.
   const trackSrc = !fileUrl
@@ -149,13 +152,14 @@ export function AudioPlayer({
     subscribeAudioBus((next) => {
       setMuted(next.muted);
       setVolume(next.volume);
+      if (preview) return;
       if (next.playToken !== playsRef.current) {
         playsRef.current = next.playToken;
         const el = audioRef.current;
         if (el && el.paused) void el.play().then(() => setPlaying(true)).catch(() => undefined);
       }
     }),
-  []);
+  [preview]);
   useEffect(() => {
     setAudioBus({ muted, volume });
   }, [muted, volume]);
@@ -207,7 +211,12 @@ export function AudioPlayer({
   const retryCleanup = useRef<(() => void) | null>(null);
   useEffect(() => {
     const el = audioRef.current;
-    if (!el || !fileUrl || !settings.autoplay) return;
+    if (!el) return;
+    if (preview) {
+      el.pause();
+      return;
+    }
+    if (!fileUrl || !settings.autoplay) return;
 
     if (!enabled) {
       el.pause();
@@ -240,9 +249,10 @@ export function AudioPlayer({
       cancelled = true;
       retryCleanup.current?.();
     };
-  }, [fileUrl, settings.autoplay, enabled]);
+  }, [fileUrl, settings.autoplay, enabled, preview]);
 
   const togglePlay = () => {
+    if (preview) return;
     const el = audioRef.current;
     if (!el) return;
     if (el.paused) void el.play().catch(() => undefined);
@@ -304,13 +314,13 @@ export function AudioPlayer({
     [syncedLines, position],
   );
 
-  if (!hasTrack) return null;
+  if (!hasTrack || !audioOn) return null;
 
   const audioEl = (
     <audio
       ref={audioRef}
       src={trackSrc}
-      preload={enabled ? "auto" : "metadata"}
+      preload={preview || !enabled ? "metadata" : "auto"}
       onError={() => {
         setLoadFailed(true);
         console.warn("[tourn] audio failed to load", trackSrc);
@@ -382,7 +392,7 @@ export function AudioPlayer({
           <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
             <SkipBackIcon size={13} />
           </button>
-          <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
+          <button type="button" className="ap-play" onClick={togglePlay} disabled={preview} aria-label={playing ? "Pause" : "Play"}>
             {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
           </button>
           <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">
@@ -408,7 +418,7 @@ export function AudioPlayer({
     onPointerLeave: tilt > 0 ? musicTilt.onPointerLeave : undefined,
   };
   const playButton = (
-    <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
+    <button type="button" className="ap-play" onClick={togglePlay} disabled={preview} aria-label={playing ? "Pause" : "Play"}>
       {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
     </button>
   );
@@ -569,6 +579,7 @@ export function AudioPlayer({
             type="button"
             className="ap-play ap-pill-play"
             onClick={togglePlay}
+            disabled={preview}
             aria-label={playing ? "Pause" : "Play"}
           >
             {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
@@ -623,7 +634,7 @@ export function AudioPlayer({
           <button type="button" className="ap-skip" onClick={() => skip(-10)} aria-label="Back 10 seconds">
             <SkipBackIcon size={13} />
           </button>
-          <button type="button" className="ap-play" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
+          <button type="button" className="ap-play" onClick={togglePlay} disabled={preview} aria-label={playing ? "Pause" : "Play"}>
             {playing ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
           </button>
           <button type="button" className="ap-skip" onClick={() => skip(10)} aria-label="Forward 10 seconds">

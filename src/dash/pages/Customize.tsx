@@ -181,7 +181,7 @@ export function AudioSettingsCard() {
 
       {audio.fileUrl && audio.style !== "none" && audio.cardOpacity > 0.005 ? (
         <div className="tw-audio-live-preview">
-          <AudioPlayer settings={{ ...audio, autoplay: false }} />
+          <AudioPlayer settings={{ ...audio, autoplay: false }} preview />
         </div>
       ) : (
         <p className="tw-foot-note">

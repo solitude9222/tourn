@@ -53,6 +53,8 @@ export function ProfilePreview({
   entryActive = false,
   /** Marketing previews (the home hero) show the card, not the player. */
   hideAudio = false,
+  /** Keep a dashboard/demo player visible but silent. */
+  preview = false,
   disableTilt = false,
   pageLayerTarget,
   children,
@@ -77,6 +79,8 @@ export function ProfilePreview({
   entryActive?: boolean;
   /** Hide the audio player entirely — used by the home page preview. */
   hideAudio?: boolean;
+  /** Render the player without ever starting playback (dashboard previews). */
+  preview?: boolean;
   disableTilt?: boolean;
   /** Element that owns the page-level pins (the page or the editor stage). */
   pageLayerTarget?: HTMLElement | null;
@@ -122,9 +126,9 @@ export function ProfilePreview({
   // labelled blocks (Connections, Links, Music) instead of one long stack.
   const visibleLinks = links.filter((link) => link.visible && link.url.trim());
   const hasLinks = visibleLinks.length > 0;
-  // An uploaded track always shows a player; "None" just means the owner
-  // never picked a style, and AudioPlayer falls back to the compact layout.
-  const hasAudio = Boolean(assets.audio.fileUrl);
+  // "None" is the off switch; a saved track alone must not resurrect the
+  // player after the owner turns it off.
+  const hasAudio = assets.audio.style !== "none" && Boolean(assets.audio.fileUrl);
   // The badge rail carries no explanation popover any more: the little arrow
   // that opened it pushed the rail away from the name. Each badge still shows
   // its own tooltip on hover.
@@ -404,6 +408,7 @@ export function ProfilePreview({
             <AudioPlayer
               settings={assets.audio}
               enabled={!entryActive}
+              preview={preview}
               tilt={design.widgetTilt ? design.tilt ?? 0 : 0}
             />
           </div>

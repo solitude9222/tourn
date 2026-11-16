@@ -97,6 +97,7 @@ export function DemoPage({
         badges={data.badges}
         links={data.links}
         interactive
+        preview
       />
     </section>
   );
