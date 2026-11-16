@@ -33,6 +33,7 @@ type SocialAuthor = {
   id: string;
   username: string;
   alias: string | null;
+  displayName?: string | null;
   avatarUrl: string | null;
   premium: boolean;
   isAdmin: boolean;
@@ -79,6 +80,14 @@ type SocialMessage = {
   createdAt: string;
   author: SocialAuthor;
 };
+type ModerationEntry = {
+  id: string;
+  action: string;
+  detail: string;
+  createdAt: string;
+  actor: SocialIdentity | null;
+  target: SocialIdentity | null;
+};
 type ServerDetail = {
   server: SocialServer;
   categories: SocialCategory[];
@@ -95,9 +104,30 @@ type SocialTab = {
   channelName: string;
 };
 
-type ModalKind = "server" | "channel" | "member" | "roles" | null;
+type ModalKind = "server" | "channel" | "member" | "roles" | "moderation" | null;
 
-const nameOf = (person: Pick<SocialAuthor, "alias">) => person.alias?.trim() || "Unclaimed";
+type SocialTheme = "midnight" | "ocean" | "ember" | "mono";
+type SocialIdentity = { username?: string; alias?: string | null; displayName?: string | null };
+
+const SOCIAL_THEMES: { id: SocialTheme; label: string; swatch: [string, string] }[] = [
+  { id: "midnight", label: "Midnight", swatch: ["#ff8f92", "#0b0e14"] },
+  { id: "ocean", label: "Ocean", swatch: ["#62c8ff", "#07121b"] },
+  { id: "ember", label: "Ember", swatch: ["#ffa65c", "#140e0b"] },
+  { id: "mono", label: "Mono", swatch: ["#e6ebf5", "#0a0b0d"] },
+];
+
+function readSocialTheme(): SocialTheme {
+  try {
+    const saved = localStorage.getItem("tourn.social.theme");
+    if (SOCIAL_THEMES.some((theme) => theme.id === saved)) return saved as SocialTheme;
+  } catch {
+    /* local only */
+  }
+  return "midnight";
+}
+
+const nameOf = (person: SocialIdentity) =>
+  person.displayName?.trim() || person.alias?.trim() || person.username?.trim() || "Member";
 const handleOf = (person: Pick<SocialAuthor, "alias" | "username">) =>
   person.alias?.trim() || person.username;
 const initialsOf = (name: string) =>
@@ -135,7 +165,7 @@ const countOf = (value: number | undefined) => {
   return String(number);
 };
 
-function Avatar({ person, size = 32 }: { person: Pick<SocialAuthor, "alias" | "avatarUrl">; size?: number }) {
+function Avatar({ person, size = 32 }: { person: SocialIdentity & { avatarUrl?: string | null }; size?: number }) {
   return person.avatarUrl ? (
     <img
       className="soc-avatar"
@@ -255,6 +285,8 @@ export function SocialPage() {
   const [deafened, setDeafened] = useState(() => {
     try { return localStorage.getItem("tourn.social.deafened") === "1"; } catch { return false; }
   });
+  const [theme, setTheme] = useState<SocialTheme>(readSocialTheme);
+  const [themeOpen, setThemeOpen] = useState(false);
 
   const [modal, setModal] = useState<ModalKind>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -273,11 +305,14 @@ export function SocialPage() {
   const [roleName, setRoleName] = useState("");
   const [roleColor, setRoleColor] = useState("#8db6ff");
   const [rolePerms, setRolePerms] = useState({
+    manage_messages: false,
     manage_channels: false,
     manage_roles: false,
     manage_members: false,
     manage_server: false,
   });
+  const [moderationLog, setModerationLog] = useState<ModerationEntry[]>([]);
+  const [moderationLoading, setModerationLoading] = useState(false);
 
   const [selectedMember, setSelectedMember] = useState<SocialMember | SocialAuthor | null>(null);
   const [profile, setProfile] = useState<ProfilePayload | null>(null);
@@ -289,6 +324,7 @@ export function SocialPage() {
   const messagesRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const themeRef = useRef<HTMLDivElement>(null);
   const pendingChannel = useRef<string | null>(null);
 
   const query = search.trim().toLowerCase();
@@ -296,9 +332,23 @@ export function SocialPage() {
   const activeServer = detail?.server ?? servers?.find((server) => server.id === activeServerId) ?? null;
   const activeTabKey = activeServer && activeChannel ? `${activeServer.id}:${activeChannel.id}` : null;
   const selfMember = detail?.members.find((member) => member.id === user.id) ?? null;
+  const canModerateMessages = Boolean(selfMember?.isOwner || selfMember?.roles.some((role) => role.permissions?.manage_messages));
   const canManageChannels = Boolean(selfMember?.isOwner || selfMember?.roles.some((role) => role.permissions?.manage_channels));
   const canManageMembers = Boolean(selfMember?.isOwner || selfMember?.roles.some((role) => role.permissions?.manage_members));
   const canManageRoles = Boolean(selfMember?.isOwner || selfMember?.roles.some((role) => role.permissions?.manage_roles));
+
+  useEffect(() => {
+    try { localStorage.setItem("tourn.social.theme", theme); } catch { /* local only */ }
+  }, [theme]);
+
+  useEffect(() => {
+    if (!themeOpen) return;
+    const close = (event: PointerEvent) => {
+      if (!themeRef.current?.contains(event.target as Node)) setThemeOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [themeOpen]);
 
   const loadServers = useCallback(async (preferredId?: string) => {
     const result = await api<{ servers: SocialServer[] }>("/api/social/servers");
@@ -602,9 +652,29 @@ export function SocialPage() {
     setRoleSelection(target?.roles.map((role) => role.id) ?? []);
     setRoleName("");
     setRoleColor("#8db6ff");
-    setRolePerms({ manage_channels: false, manage_roles: false, manage_members: false, manage_server: false });
+    setRolePerms({ manage_messages: false, manage_channels: false, manage_roles: false, manage_members: false, manage_server: false });
     setFormError(null);
     setModal("roles");
+  };
+
+  const openModeration = async () => {
+    if (!activeServerId) return;
+    if (!canModerateMessages && !canManageMembers) {
+      notify("Permission needed", "You do not have permission to view moderation here.");
+      return;
+    }
+    setModal("moderation");
+    setModerationLoading(true);
+    const result = await api<{ entries: ModerationEntry[] }>(
+      `/api/social/servers/${encodeURIComponent(activeServerId)}/moderation`,
+    );
+    setModerationLoading(false);
+    if (!result.ok) {
+      setModerationLog([]);
+      notify("Couldn't load moderation", result.error);
+      return;
+    }
+    setModerationLog(result.data.entries);
   };
 
   const createServer = async (event: FormEvent) => {
@@ -737,6 +807,37 @@ export function SocialPage() {
     composerRef.current?.focus();
   };
 
+  const deleteMessage = async (message: SocialMessage) => {
+    if (!canModerateMessages) return;
+    if (!window.confirm("Delete this message? This cannot be undone.")) return;
+    const result = await api<{ ok: boolean }>(
+      `/api/social/messages/${encodeURIComponent(message.id)}`,
+      { method: "DELETE" },
+    );
+    if (!result.ok) {
+      notify("Message not deleted", result.error);
+      return;
+    }
+    setMessages((current) => current.filter((item) => item.id !== message.id));
+    notify("Message deleted", "The message was removed and logged.");
+  };
+
+  const removeMember = async (member: SocialMember) => {
+    if (!activeServerId || !canManageMembers || member.isOwner || member.id === user.id) return;
+    if (!window.confirm(`Remove ${nameOf(member)} from ${activeServer?.name ?? "this server"}?`)) return;
+    const result = await api<{ ok: boolean }>(
+      `/api/social/servers/${encodeURIComponent(activeServerId)}/members/${encodeURIComponent(member.id)}`,
+      { method: "DELETE" },
+    );
+    if (!result.ok) {
+      notify("Member not removed", result.error);
+      return;
+    }
+    closeProfile();
+    setDetailVersion((value) => value + 1);
+    notify("Member removed", `${nameOf(member)} was removed and the action was logged.`);
+  };
+
   const loadEarlier = async () => {
     const oldest = messages[0];
     if (!oldest || !activeChannelId) return;
@@ -855,14 +956,14 @@ export function SocialPage() {
 
   const startMessage = () => {
     if (!selectedRecord || !activeChannel?.canSend) return;
-    const mention = `@${nameOf(selectedRecord)} `;
+    const mention = `@${handleOf(selectedRecord)} `;
     setDraft((current) => (current.trim() ? `${current.replace(/\s+$/, "")} ${mention}` : mention));
     closeProfile();
     window.requestAnimationFrame(() => composerRef.current?.focus());
   };
 
   return (
-    <div className="social-app">
+    <div className="social-app" data-soc-theme={theme}>
       <div className="soc-tabstrip" role="tablist" aria-label="Open channels">
         <button type="button" className="soc-browser-home" onClick={() => go("home")} title="Dashboard">
           <img src="/logo.png" alt="" width={16} height={16} />
@@ -932,6 +1033,39 @@ export function SocialPage() {
           <kbd>⌘K</kbd>
         </label>
         <div className="soc-topbar-spacer" />
+        <div className="soc-theme-picker" ref={themeRef}>
+          <button
+            type="button"
+            className="soc-icon-button"
+            onClick={() => setThemeOpen((open) => !open)}
+            aria-label="Choose Social theme"
+            aria-expanded={themeOpen}
+            title="Social theme"
+          >
+            <Icon name="palette" size={15} />
+          </button>
+          {themeOpen ? (
+            <div className="soc-theme-menu" role="menu" aria-label="Social themes">
+              {SOCIAL_THEMES.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={theme === preset.id}
+                  className={`soc-theme-option${theme === preset.id ? " is-active" : ""}`}
+                  onClick={() => { setTheme(preset.id); setThemeOpen(false); }}
+                >
+                  <span className="soc-theme-swatch" aria-hidden="true">
+                    <i style={{ background: preset.swatch[0] }} />
+                    <i style={{ background: preset.swatch[1] }} />
+                  </span>
+                  {preset.label}
+                  {theme === preset.id ? <Icon name="check" size={12} /> : null}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
         <button type="button" className="soc-icon-button soc-help" onClick={() => go("support")} aria-label="Open support">
           <Icon name="help" size={15} />
         </button>
@@ -942,8 +1076,8 @@ export function SocialPage() {
           <Icon name="plus" size={14} /> Create server
         </button>
         <button type="button" className="soc-self" onClick={() => openProfile(memberFromUser(user))}>
-          <Avatar person={{ alias: user.alias ?? null, avatarUrl: user.avatarUrl }} size={28} />
-          <span>{user.alias?.trim() || "Admin"}</span>
+          <Avatar person={{ alias: user.alias ?? null, username: user.username, avatarUrl: user.avatarUrl }} size={28} />
+          <span>{user.alias?.trim() || user.username}</span>
         </button>
       </header>
 
@@ -983,6 +1117,11 @@ export function SocialPage() {
             </div>
             {activeServer ? (
               <div className="soc-server-head-actions">
+                {canModerateMessages || canManageMembers ? (
+                  <button type="button" className="soc-icon-button" onClick={() => void openModeration()} aria-label="Moderation log" title="Moderation log">
+                    <Icon name="clock" size={14} />
+                  </button>
+                ) : null}
                 {canManageRoles ? (
                   <button type="button" className="soc-icon-button" onClick={() => openRolesModal()} aria-label="Manage roles">
                     <Icon name="shield" size={14} />
@@ -1056,11 +1195,11 @@ export function SocialPage() {
           <div className="soc-user-panel">
             <button type="button" className="soc-user-identity" onClick={() => openProfile(memberFromUser(user))}>
               <span className="soc-user-avatar">
-                <Avatar person={{ alias: user.alias ?? null, avatarUrl: user.avatarUrl }} size={30} />
+                <Avatar person={{ alias: user.alias ?? null, username: user.username, avatarUrl: user.avatarUrl }} size={30} />
                 <i />
               </span>
               <span className="soc-user-copy">
-                <strong>{user.alias?.trim() || "Admin"}</strong>
+                <strong>{user.alias?.trim() || user.username}</strong>
                 <small>{deafened ? "Deafened" : muted ? "Muted" : "Online"}</small>
               </span>
             </button>
@@ -1162,6 +1301,17 @@ export function SocialPage() {
                             <BadgeMarks badges={message.author.badges} size={13} />
                             {topRole ? <RoleChip role={topRole} small /> : null}
                             <time dateTime={message.createdAt}>{timeOf(message.createdAt)}</time>
+                            {canModerateMessages ? (
+                              <button
+                                type="button"
+                                className="soc-message-delete"
+                                onClick={() => void deleteMessage(message)}
+                                aria-label={`Delete message from ${nameOf(message.author)}`}
+                                title="Delete message"
+                              >
+                                <Icon name="trash-2" size={12} />
+                              </button>
+                            ) : null}
                           </div>
                           <p>{message.content}</p>
                         </div>
@@ -1467,7 +1617,7 @@ export function SocialPage() {
                       }}
                     />
                     <RoleChip role={role} />
-                    <span>{role.isDefault ? "Default" : role.permissions.manage_channels ? "Can manage channels" : "Member access"}</span>
+                    <span>{role.isDefault ? "Default" : role.permissions.manage_server ? "Full access" : role.permissions.manage_messages ? "Can moderate messages" : role.permissions.manage_channels ? "Can manage channels" : "Member access"}</span>
                   </label>
                 ))}
               </div>
@@ -1479,7 +1629,7 @@ export function SocialPage() {
             {detail?.roles.map((role) => (
               <div className="soc-role-row" key={role.id}>
                 <RoleChip role={role} />
-                <span>{role.isDefault ? "Default role" : role.permissions.manage_server ? "Full access" : role.permissions.manage_channels ? "Can manage channels" : "Member access"}</span>
+                <span>{role.isDefault ? "Default role" : role.permissions.manage_server ? "Full access" : role.permissions.manage_messages ? "Can moderate messages" : role.permissions.manage_channels ? "Can manage channels" : "Member access"}</span>
                 <b>{role.position}</b>
               </div>
             ))}
@@ -1507,6 +1657,7 @@ export function SocialPage() {
               </button>
             </div>
             <div className="soc-perm-row">
+              <label><input type="checkbox" checked={rolePerms.manage_messages} onChange={(event) => setRolePerms((current) => ({ ...current, manage_messages: event.target.checked }))} /> Delete messages</label>
               <label><input type="checkbox" checked={rolePerms.manage_channels} onChange={(event) => setRolePerms((current) => ({ ...current, manage_channels: event.target.checked }))} /> Manage channels</label>
               <label><input type="checkbox" checked={rolePerms.manage_members} onChange={(event) => setRolePerms((current) => ({ ...current, manage_members: event.target.checked }))} /> Manage members</label>
               <label><input type="checkbox" checked={rolePerms.manage_roles} onChange={(event) => setRolePerms((current) => ({ ...current, manage_roles: event.target.checked }))} /> Manage roles</label>
@@ -1514,6 +1665,37 @@ export function SocialPage() {
             </div>
             {formError ? <p className="soc-form-error">{formError}</p> : null}
           </form>
+        </Modal>
+      ) : null}
+
+      {modal === "moderation" ? (
+        <Modal
+          title="Moderation log"
+          subtitle={`Recent moderator actions in ${activeServer?.name ?? "this server"}.`}
+          onClose={() => setModal(null)}
+          footer={<button type="button" className="soc-button" onClick={() => setModal(null)}>Done</button>}
+        >
+          {moderationLoading ? <p className="soc-help">Loading moderation history…</p> : null}
+          {!moderationLoading && !moderationLog.length ? (
+            <p className="soc-help">No moderation actions have been taken in this server yet.</p>
+          ) : null}
+          <div className="soc-mod-log">
+            {moderationLog.map((entry) => (
+              <div className="soc-mod-entry" key={entry.id}>
+                <span className={`soc-mod-icon soc-mod-icon--${entry.action}`}>
+                  <Icon name={entry.action === "message_delete" ? "trash-2" : "users"} size={14} />
+                </span>
+                <div>
+                  <strong>{entry.actor ? nameOf(entry.actor) : "Staff"}</strong>
+                  <p>{entry.detail}</p>
+                  <small>
+                    {dayOf(entry.createdAt)} · {timeOf(entry.createdAt)}
+                    {entry.target ? ` · ${nameOf(entry.target)}` : ""}
+                  </small>
+                </div>
+              </div>
+            ))}
+          </div>
         </Modal>
       ) : null}
 
@@ -1527,9 +1709,9 @@ export function SocialPage() {
             <div className="soc-profile-content">
               <Avatar person={selectedMember} size={72} />
               <div className="soc-profile-name-row">
-                <strong>{selectedName || "Unclaimed"}</strong>
+                <strong>{selectedName || selectedHandle || "Member"}</strong>
                 <BadgeMarks badges={profileBadges} size={17} />
-                {selectedPerson?.alias ? <span>@{selectedPerson.alias}</span> : <span>No alias claimed</span>}
+                {selectedHandle ? <span>@{selectedHandle}</span> : null}
               </div>
               <div className="soc-profile-tags">
                 {selectedPerson?.isOwner ? <span className="soc-tag soc-tag--owner">OWNER</span> : null}
@@ -1590,6 +1772,11 @@ export function SocialPage() {
                   <Icon name="shield" size={12} /> Manage server roles
                 </button>
               ) : null}
+              {selectedRecord && canManageMembers && !selectedRecord.isOwner && selectedRecord.id !== user.id ? (
+                <button type="button" className="soc-profile-remove-button" onClick={() => void removeMember(selectedRecord)}>
+                  <Icon name="trash-2" size={12} /> Remove from server
+                </button>
+              ) : null}
             </div>
           </aside>
         </div>
@@ -1604,6 +1791,7 @@ function memberFromUser(user: ReturnType<typeof useDash>["user"]): SocialMember 
     id: user.id,
     username: user.username,
     alias: user.alias ?? null,
+    displayName: null,
     avatarUrl: user.avatarUrl,
     premium: Boolean(user.premium),
     isAdmin: Boolean(user.isAdmin),

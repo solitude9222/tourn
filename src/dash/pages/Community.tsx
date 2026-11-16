@@ -443,7 +443,7 @@ export function LeaderboardPage() {
                 key={row.username}
                 className={`tw-lb-podium-card is-${index + 1}${row.username === user.username ? " is-you" : ""}`}
                 href={boardHref(row.handle)}
-                aria-label={`Rank ${index + 1}, ${row.displayName || "profile"}`}
+                aria-label={`Rank ${index + 1}, ${row.displayName || row.username}`}
               >
                 <span className="tw-lb-podium-rank">
                   {index === 0 ? "Champion" : index === 1 ? "Runner-up" : "Third"}
@@ -452,7 +452,7 @@ export function LeaderboardPage() {
                   {row.avatarUrl ? <img src={row.avatarUrl} alt="" loading="lazy" decoding="async" /> : <Icon name="user" size={18} />}
                 </span>
                 <span className="tw-lb-podium-copy">
-                  <b>{row.displayName || "No alias yet"}</b>
+                  <b>{row.displayName || row.username}</b>
                 </span>
                 <span className="tw-lb-podium-views">
                   {row.views.toLocaleString()} <small>views</small>
@@ -474,14 +474,14 @@ export function LeaderboardPage() {
                 key={row.username}
                 className={`tw-lb-row${row.username === user.username ? " is-you" : ""}`}
                 href={boardHref(row.handle)}
-                aria-label={`Rank ${index + 4}, ${row.displayName || "profile"}`}
+                aria-label={`Rank ${index + 4}, ${row.displayName || row.username}`}
               >
                 <span className="tw-lb-rank">{index + 4}</span>
                 <span className="tw-lb-avatar">
                   {row.avatarUrl ? <img src={row.avatarUrl} alt="" loading="lazy" decoding="async" /> : <Icon name="user" size={15} />}
                 </span>
                 <span className="tw-lb-copy">
-                  <b>{row.displayName || "No alias yet"}</b>
+                  <b>{row.displayName || row.username}</b>
                 </span>
                 <span className="tw-lb-bar" aria-hidden="true">
                   <span style={{ width: `${max ? Math.max(4, (row.views / max) * 100) : 0}%` }} />

@@ -114,7 +114,7 @@ export function HomePage() {
         <div className="tw-overview">
           <div className="tw-overview-card">
             <span>Alias</span>
-            <b>{user.alias?.trim() || "Not claimed"}</b>
+            <b>{user.alias?.trim() || user.username}</b>
             <small>{user.alias?.trim() ? "2-day cooldown between changes" : "claim one in settings"}</small>
           </div>
           <div className="tw-overview-card">

@@ -128,7 +128,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                   key={row.username}
                   className={`board-podium-card is-${index + 1}`}
                   href={profileHrefFor(row.handle ?? row.username)}
-                  aria-label={`Rank ${index + 1}, ${row.displayName || "profile"}`}
+                  aria-label={`Rank ${index + 1}, ${row.displayName || row.username}`}
                 >
                   <span className="board-podium-rank">
                     {index === 0 ? <TrophyIcon size={12} /> : null}
@@ -142,7 +142,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                     </span>
                   )}
                   <span className="board-podium-id">
-                    <b>{row.displayName || "No alias yet"}</b>
+                    <b>{row.displayName || row.username}</b>
                   </span>
                   <span className="board-podium-views">
                     <b>{metric(row).toLocaleString()}</b>
@@ -168,7 +168,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                       </span>
                     )}
                     <div className="board-id">
-                      <p>{row.displayName || "No alias yet"}</p>
+                      <p>{row.displayName || row.username}</p>
                       <span>tourn.lol/{row.handle ?? row.username}</span>
                     </div>
                     <span className="board-row-bar" aria-hidden="true">

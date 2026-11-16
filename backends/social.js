@@ -90,12 +90,33 @@ create table if not exists social_messages (
 );
 create index if not exists social_messages_channel_idx
   on social_messages (channel_id, created_at desc);
+
+create table if not exists social_moderation_log (
+  id uuid primary key default gen_random_uuid(),
+  server_id uuid not null references social_servers(id) on delete cascade,
+  actor_id uuid references users(id) on delete set null,
+  target_user_id uuid references users(id) on delete set null,
+  action text not null,
+  detail text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists social_moderation_log_server_idx
+  on social_moderation_log (server_id, created_at desc);
+
+/* Existing Owner and Staff roles predate message moderation. Give them the
+   new permission once; custom roles keep the default (off) until an owner
+   explicitly grants it. */
+update social_roles
+set permissions = permissions || '{"manage_messages": true}'::jsonb
+where lower(name) in ('owner', 'staff')
+  and permissions->>'manage_messages' is null;
 `;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DEFAULT_PERMISSIONS = {
   read_messages: true,
   send_messages: true,
+  manage_messages: false,
   manage_channels: false,
   manage_roles: false,
   manage_members: false,
@@ -104,6 +125,7 @@ const DEFAULT_PERMISSIONS = {
 const OWNER_PERMISSIONS = {
   read_messages: true,
   send_messages: true,
+  manage_messages: true,
   manage_channels: true,
   manage_roles: true,
   manage_members: true,
@@ -112,6 +134,7 @@ const OWNER_PERMISSIONS = {
 const STAFF_PERMISSIONS = {
   read_messages: true,
   send_messages: true,
+  manage_messages: true,
   manage_channels: true,
   manage_roles: false,
   manage_members: true,
@@ -152,6 +175,7 @@ const memberOf = (row) => ({
   id: row.user_id ?? row.id,
   username: row.username,
   alias: row.alias ?? null,
+  displayName: row.display_name?.trim() || null,
   avatarUrl: row.avatar_url ?? null,
   premium: Boolean(row.premium),
   isAdmin: Boolean(row.is_admin),
@@ -167,6 +191,7 @@ const authorOf = (row) => ({
   id: row.author_id,
   username: row.username,
   alias: row.alias ?? null,
+  displayName: row.display_name?.trim() || null,
   avatarUrl: row.avatar_url ?? null,
   premium: Boolean(row.premium),
   isAdmin: Boolean(row.is_admin),
@@ -174,6 +199,37 @@ const authorOf = (row) => ({
   roles: rolesOf(row.roles),
   badges: badgesOf(row.badges),
 });
+
+const moderationOf = (row) => ({
+  id: row.id,
+  action: row.action,
+  detail: row.detail ?? "",
+  createdAt: row.created_at,
+  actor: row.actor_id
+    ? {
+        id: row.actor_id,
+        username: row.actor_username,
+        alias: row.actor_alias ?? null,
+        displayName: row.actor_display_name?.trim() || null,
+      }
+    : null,
+  target: row.target_id
+    ? {
+        id: row.target_id,
+        username: row.target_username,
+        alias: row.target_alias ?? null,
+        displayName: row.target_display_name?.trim() || null,
+      }
+    : null,
+});
+
+async function logModeration(pool, { serverId, actorId, targetId = null, action, detail }) {
+  await pool.query(
+    `insert into social_moderation_log (server_id, actor_id, target_user_id, action, detail)
+     values ($1, $2, $3, $4, $5)`,
+    [serverId, actorId, targetId, action, detail],
+  );
+}
 
 const messageOf = (row) => ({
   id: row.id,
@@ -268,6 +324,7 @@ const channelOf = (row) => ({
 
 const MEMBER_SELECT = `
   select u.id, u.username, u.alias, u.avatar_url, u.premium, u.is_admin, u.is_owner,
+         nullif(trim(p.data->'about'->>'displayName'), '') as display_name,
          m.joined_at,
          coalesce((
            select json_agg(json_build_object(
@@ -712,13 +769,16 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
       if (!query) return res.json({ users: [] });
       const { rows } = await pool.query(
         `select u.id, u.username, u.alias, u.avatar_url, u.premium, u.is_admin, u.is_owner,
+                nullif(trim(p.data->'about'->>'displayName'), '') as display_name,
                 null::timestamptz as joined_at, '[]'::json as roles,
                 coalesce(p.data->'badges'->'equipped', '[]'::jsonb) as badges,
                 coalesce((select v.views from profile_views v where v.username = u.username), 0)::int as profile_views,
                 (select count(*) from social_server_members sm where sm.user_id = u.id)::int as server_count
          from users u
          left join profiles p on p.user_id = u.id
-         where (lower(coalesce(u.alias, '')) like $1 or lower(u.username) like $1)
+         where (lower(coalesce(u.alias, '')) like $1
+                or lower(u.username) like $1
+                or lower(coalesce(p.data->'about'->>'displayName', '')) like $1)
            and not exists (
              select 1 from social_server_members m
              where m.server_id = $2 and m.user_id = u.id
@@ -762,6 +822,84 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
       }
       const member = await memberById(pool, server.id, userId);
       res.status(201).json({ member });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/social/servers/:id/members/:userId", async (req, res) => {
+    try {
+      const server = await findServer(pool, req.params.id);
+      if (!server) return res.status(404).json({ error: "Server not found." });
+      await ensureAdminMembership(pool, server.id, req.user);
+      const viewerRoles = await rolesForMember(pool, server.id, req.user.id);
+      if (!hasPermission(viewerRoles, "manage_members")) {
+        return res.status(403).json({ error: "You do not have permission to remove members here." });
+      }
+      const targetId = String(req.params.userId ?? "");
+      if (!UUID_RE.test(targetId)) return res.status(400).json({ error: "Choose a real account." });
+      if (targetId === server.owner_id) {
+        return res.status(400).json({ error: "The server owner cannot be removed." });
+      }
+      if (targetId === req.user.id) {
+        return res.status(400).json({ error: "You cannot remove yourself here." });
+      }
+      const target = await pool.query(
+        `select u.username, u.alias
+         from social_server_members m
+         join users u on u.id = m.user_id
+         where m.server_id = $1 and m.user_id = $2`,
+        [server.id, targetId],
+      );
+      if (!target.rows[0]) return res.status(404).json({ error: "That account is not in this server." });
+      await pool.query(
+        "delete from social_member_roles where server_id = $1 and user_id = $2",
+        [server.id, targetId],
+      );
+      await pool.query(
+        "delete from social_server_members where server_id = $1 and user_id = $2",
+        [server.id, targetId],
+      );
+      const targetName = target.rows[0].alias?.trim() || target.rows[0].username;
+      await logModeration(pool, {
+        serverId: server.id,
+        actorId: req.user.id,
+        targetId,
+        action: "member_remove",
+        detail: `Removed ${targetName} from the server.`,
+      });
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/social/servers/:id/moderation", async (req, res) => {
+    try {
+      const server = await findServer(pool, req.params.id);
+      if (!server) return res.status(404).json({ error: "Server not found." });
+      await ensureAdminMembership(pool, server.id, req.user);
+      const viewerRoles = await rolesForMember(pool, server.id, req.user.id);
+      if (!hasPermission(viewerRoles, "manage_messages") && !hasPermission(viewerRoles, "manage_members")) {
+        return res.status(403).json({ error: "You do not have permission to view moderation here." });
+      }
+      const { rows } = await pool.query(
+        `select l.id, l.action, l.detail, l.created_at,
+                a.id as actor_id, a.username as actor_username, a.alias as actor_alias,
+                nullif(trim(pa.data->'about'->>'displayName'), '') as actor_display_name,
+                t.id as target_id, t.username as target_username, t.alias as target_alias,
+                nullif(trim(pt.data->'about'->>'displayName'), '') as target_display_name
+         from social_moderation_log l
+         left join users a on a.id = l.actor_id
+         left join profiles pa on pa.user_id = a.id
+         left join users t on t.id = l.target_user_id
+         left join profiles pt on pt.user_id = t.id
+         where l.server_id = $1
+         order by l.created_at desc
+         limit 60`,
+        [server.id],
+      );
+      res.json({ entries: rows.map(moderationOf) });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -875,6 +1013,7 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
       const { rows } = await pool.query(
         `select m.id, m.channel_id, m.content, m.created_at,
                 u.id as author_id, u.username, u.alias, u.avatar_url, u.premium,
+                nullif(trim(p.data->'about'->>'displayName'), '') as display_name,
                 u.is_admin, u.is_owner,
                 coalesce((
                   select json_agg(json_build_object(
@@ -928,6 +1067,7 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
       const { rows } = await pool.query(
         `select m.id, m.channel_id, m.content, m.created_at,
                 u.id as author_id, u.username, u.alias, u.avatar_url, u.premium,
+                nullif(trim(p.data->'about'->>'displayName'), '') as display_name,
                 u.is_admin, u.is_owner,
                 coalesce((
                   select json_agg(json_build_object(
@@ -947,6 +1087,41 @@ export function registerSocialRoutes(app, { pool, requireAdmin }) {
         [inserted.rows[0].id],
       );
       res.status(201).json({ message: messageOf(rows[0]) });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/social/messages/:id", async (req, res) => {
+    try {
+      if (!UUID_RE.test(String(req.params.id ?? ""))) {
+        return res.status(400).json({ error: "Message not found." });
+      }
+      const found = await pool.query(
+        "select id, channel_id, author_id from social_messages where id = $1",
+        [req.params.id],
+      );
+      const message = found.rows[0];
+      if (!message) return res.status(404).json({ error: "Message not found." });
+      const channel = await findChannel(pool, message.channel_id);
+      if (!channel) return res.status(404).json({ error: "Channel not found." });
+      await ensureAdminMembership(pool, channel.server_id, req.user);
+      const roles = await rolesForMember(pool, channel.server_id, req.user.id);
+      if (!canUseChannel(channel, roles, "view")) {
+        return res.status(403).json({ error: "You do not have access to this channel." });
+      }
+      if (!hasPermission(roles, "manage_messages")) {
+        return res.status(403).json({ error: "You do not have permission to delete messages here." });
+      }
+      await pool.query("delete from social_messages where id = $1", [message.id]);
+      await logModeration(pool, {
+        serverId: channel.server_id,
+        actorId: req.user.id,
+        targetId: message.author_id,
+        action: "message_delete",
+        detail: `Deleted a message in #${channel.name}.`,
+      });
+      res.json({ ok: true });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

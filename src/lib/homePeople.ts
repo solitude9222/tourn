@@ -32,7 +32,7 @@ type BoardRow = {
 function fromPool(): CommunityPerson[] {
   return initialHomePreviews().profiles.map((row) => ({
     handle: row.account.username,
-    name: row.account.alias || row.profile?.about?.displayName?.trim() || "No alias yet",
+    name: row.account.alias || row.profile?.about?.displayName?.trim() || row.account.username,
     avatar: row.account.avatarUrl || null,
     bio: row.profile?.about?.bio?.trim() || null,
     views: null,
@@ -83,7 +83,7 @@ export async function loadCommunityPeople(): Promise<CommunityPerson[]> {
   let leaderboard: CommunityPerson[] = board.ok
     ? board.data.profiles.filter((row) => !HIDDEN.has(row.username.toLowerCase())).map((row) => ({
         handle: row.handle ?? row.displayName ?? row.username,
-        name: row.displayName || "No alias yet",
+        name: row.displayName || row.username,
         avatar: row.avatarUrl || null,
         bio: null,
         views: Number(row.views) || 0,
@@ -100,7 +100,7 @@ export async function loadCommunityPeople(): Promise<CommunityPerson[]> {
     if (listed.ok) {
       leaderboard = listed.data.profiles.filter((row) => !HIDDEN.has(row.username.toLowerCase())).map((row) => ({
         handle: row.alias || row.username,
-        name: row.alias || "No alias yet",
+        name: row.alias || row.username,
         avatar: row.avatarUrl || null,
         bio: null,
         views: null,
@@ -112,7 +112,7 @@ export async function loadCommunityPeople(): Promise<CommunityPerson[]> {
   const fresh: CommunityPerson[] = pool
     ? pool.profiles.map((row) => ({
         handle: row.account.username,
-        name: row.account.alias || row.profile?.about?.displayName?.trim() || "No alias yet",
+        name: row.account.alias || row.profile?.about?.displayName?.trim() || row.account.username,
         avatar: row.account.avatarUrl || null,
         bio: row.profile?.about?.bio?.trim() || null,
         views: null,
