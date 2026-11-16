@@ -113,9 +113,12 @@ export function ProfilePreview({
   // date live above the card on the right, the view counter in the bottom-left
   // corner and the reactions in the bottom-right. There is nothing to misplace.
   const custom = design.advancedLayout === true;
-  const pfpPosition = custom ? design.pfpPosition : design.layout === "centered" ? "above" : "left";
-  const namePosition = custom ? design.namePosition : design.layout === "centered" ? "center" : "left";
-  const bioPosition = custom ? design.bioPosition : design.layout === "centered" ? "center" : "left";
+  // Only the Left preset is left-aligned. Stacked is a vertical layout, so its
+  // avatar sits above the text and the identity block is centred instead of
+  // silently resetting to the left whenever the layout changes.
+  const pfpPosition = custom ? design.pfpPosition : design.layout === "left" ? "left" : "above";
+  const namePosition = custom ? design.namePosition : design.layout === "left" ? "left" : "center";
+  const bioPosition = custom ? design.bioPosition : design.layout === "left" ? "left" : "center";
   // A dashboard preview has no counter to read, but the element still has to
   // exist so its corner is visible while editing.
   const viewCount = typeof views === "number" ? views : 0;

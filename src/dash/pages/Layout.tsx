@@ -363,9 +363,9 @@ export function LayoutPage({
                   cardWidth: 720,
                   widgetsPosition: preset.id === "stacked" ? "below" : "inside",
                   audioSlot: "below-card",
-                  pfpPosition: preset.id === "centered" ? "above" : "left",
-                  namePosition: preset.id === "centered" ? "center" : "left",
-                  bioPosition: preset.id === "centered" ? "center" : "left",
+                  pfpPosition: preset.id === "left" ? "left" : "above",
+                  namePosition: preset.id === "left" ? "left" : "center",
+                  bioPosition: preset.id === "left" ? "left" : "center",
                 })
               }
             >
