@@ -1,5 +1,6 @@
+import { LayoutPreview } from "../LayoutPreview";
 import { contrastRatio } from "../appearance";
-import { useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 /* ---------------------------------------------------------------------------
    Customize > Card — the card layout, the widget positions and the card's
    colours in one place. The layout only decides how much room the card and
@@ -10,8 +11,6 @@ import { createProfileSection, type AboutLayout, type ProfileSection, type Profi
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
-import { LocationGlyph, ViewsGlyph } from "../../components/ProfilePreview";
-import { ThumbIcon } from "../../components/Reactions";
 import { TECH_STACK, techCategory, techIconUrl } from "../../lib/techStack";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
@@ -47,192 +46,6 @@ const PAGE_LAYOUTS: {
   },
 ];
 
-type DragKind = "views" | "likes" | "location" | "joined" | "audio";
-
-const DETAIL_ZONES: { id: string; label: string }[] = [
-  { id: "page-tr", label: "Page top right" },
-  { id: "card-tr", label: "Card top right" },
-  { id: "card-bl", label: "Card bottom left" },
-  { id: "card-br", label: "Card bottom right" },
-  { id: "page-bl", label: "Page bottom left" },
-  { id: "page-br", label: "Page bottom right" },
-];
-
-const AUDIO_ZONES: { id: string; label: string }[] = [
-  { id: "page-top", label: "Page top" },
-  { id: "card-bottom", label: "Card bottom" },
-  { id: "below-card", label: "Below card" },
-  { id: "page-bottom", label: "Page bottom" },
-];
-
-function LayoutPreview() {
-  const { user, about, widgets, badges, links, setAbout, notify } = useDash();
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [dragging, setDragging] = useState<DragKind | null>(null);
-  const [hover, setHover] = useState<string | null>(null);
-  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
-
-  // The zone buttons are drawn over the real card, so measure where it landed
-  // in the stage instead of guessing from the layout name.
-  const measure = () => {
-    const stage = stageRef.current;
-    const card = stage?.querySelector(".profile-preview") as HTMLElement | null;
-    if (!stage || !card) return;
-    const s = stage.getBoundingClientRect();
-    const c = card.getBoundingClientRect();
-    setBox({ x: c.left - s.left, y: c.top - s.top, w: c.width, h: c.height });
-  };
-
-  const fieldFor = (kind: DragKind) =>
-    kind === "views"
-      ? "viewSlot"
-      : kind === "likes"
-        ? "likeSlot"
-        : kind === "location"
-          ? "locationSlot"
-          : kind === "joined"
-            ? "joinedSlot"
-            : "audioSlot";
-
-  const place = (kind: DragKind, slot: string) => {
-    setAbout((current) => ({ ...current, design: { ...current.design, [fieldFor(kind)]: slot } }));
-    const label =
-      kind === "audio"
-        ? "Audio player"
-        : kind === "likes"
-          ? "Likes"
-          : kind === "views"
-            ? "Views"
-            : kind === "location"
-              ? "Location"
-              : "Account date";
-    notify("Placed", `${label} moved. Save to publish it.`);
-    setDragging(null);
-    setHover(null);
-  };
-
-  const zones = dragging === "audio" ? AUDIO_ZONES : DETAIL_ZONES;
-
-  const zoneStyle = (id: string): CSSProperties => {
-    const card = box;
-    switch (id) {
-      case "page-tr": return { top: 10, right: 10 };
-      case "page-bl": return { bottom: 10, left: 10 };
-      case "page-br": return { bottom: 10, right: 10 };
-      case "page-top": return { top: 10, left: "50%", transform: "translateX(-50%)" };
-      case "page-bottom": return { bottom: 10, left: "50%", transform: "translateX(-50%)" };
-      case "card-tr": return card ? { top: card.y + 8, left: card.x + card.w - 152 } : { top: "36%", left: "52%" };
-      case "card-bl": return card ? { top: card.y + card.h - 46, left: card.x + 8 } : { top: "56%", left: "36%" };
-      case "card-br": return card ? { top: card.y + card.h - 46, left: card.x + card.w - 152 } : { top: "56%", left: "52%" };
-      case "card-bottom": return card ? { top: card.y + card.h - 46, left: card.x + card.w / 2 - 76 } : { top: "56%", left: "45%" };
-      case "below-card": return card ? { top: card.y + card.h + 8, left: card.x + card.w / 2 - 76 } : { top: "64%", left: "45%" };
-      default: return {};
-    }
-  };
-
-  return (
-    <Card>
-      <CardHead
-        icon="move"
-        title="Layout preview"
-        subtitle="Press and hold a detail on the card, then drop it on one of the ghost copies."
-      />
-
-      <div
-        className={`tw-layout-stage${dragging ? " is-dragging" : ""}`}
-        ref={stageRef}
-        onPointerDown={(event) => {
-          // Grab the widget that is actually on the card, so dragging feels
-          // like moving the real thing instead of its label chip.
-          const target = (event.target as HTMLElement).closest("[data-detail]") as HTMLElement | null;
-          const kind = target?.dataset.detail as DragKind | undefined;
-          if (!kind) return;
-          event.preventDefault();
-          measure();
-          setDragging(kind);
-        }}
-        onPointerMove={(event) => {
-          if (!dragging) return;
-          const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-slot]") as HTMLElement | null;
-          setHover(target?.dataset.slot ?? null);
-        }}
-        onPointerUp={(event) => {
-          if (!dragging) return;
-          // A press that starts on a widget ends somewhere over the overlay,
-          // so the drop has to be read from the point rather than the target.
-          const slot = document
-            .elementFromPoint(event.clientX, event.clientY)
-            ?.closest("[data-slot]")
-            ?.getAttribute("data-slot");
-          if (slot) place(dragging, slot);
-          else { setDragging(null); setHover(null); }
-        }}
-      >
-        <div className="tw-layout-stage-scaler">
-          <LinkerPreview
-            user={user}
-            about={about}
-            widgets={widgets}
-            badges={badges}
-            links={links}
-            interactive={false}
-            showEntry={false}
-          />
-        </div>
-        {dragging ? (
-          <div className="tw-drop-layer">
-            {zones.map((zone) => (
-              <button
-                key={zone.id}
-                type="button"
-                data-slot={zone.id}
-                className={`tw-drop-zone${hover === zone.id ? " is-hot" : ""}`}
-                style={zoneStyle(zone.id)}
-                onPointerEnter={() => setHover(zone.id)}
-                onClick={() => place(dragging, zone.id)}
-                aria-label={zone.label}
-              >
-                <span className={`tw-ghost tw-ghost--${dragging}`}>
-                  {dragging === "audio" ? (
-                    <>
-                      <span className="tw-ghost-cover" />
-                      <span className="tw-ghost-lines"><i /><i /></span>
-                      <span className="tw-ghost-play" />
-                    </>
-                  ) : (
-                    <>
-                      {dragging === "views" ? (
-                        <ViewsGlyph size={22} />
-                      ) : dragging === "location" ? (
-                        <LocationGlyph size={21} />
-                      ) : dragging === "likes" ? (
-                        <ThumbIcon size={22} />
-                      ) : (
-                        <Icon name="calendar" size={21} />
-                      )}
-                      {dragging === "likes" ? (
-                        <><b>19</b><b>5</b></>
-                      ) : dragging === "views" ? (
-                        <b>1</b>
-                      ) : (
-                        <i className="tw-ghost-word" />
-                      )}
-                    </>
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-
-      <p className="tw-foot-note">
-        Audio: below the card, the card's bottom edge, or the top / bottom of the page (offset from
-        the screen edge). Everything else: any of the six corners, on the card or the page.
-      </p>
-    </Card>
-  );
-}
 export function LayoutPage({
   section = "layout",
 }: {

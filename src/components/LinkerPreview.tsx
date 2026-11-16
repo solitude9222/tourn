@@ -21,6 +21,7 @@ import { ReactionBar, ReactionGhost } from "./Reactions";
 import { createPortal } from "react-dom";
 import { MuteButton } from "./MuteButton";
 import "../about.css";
+import "../profileLayout.css";
 
 export function EntryOverlay({
   about,
@@ -372,7 +373,7 @@ export function LinkerPreview({
   const orderedWidgets = visibleWidgets;
 
   const widgetStack = orderedWidgets.length ? (
-    <div className="lkr-widgets-block">
+    <div className="lkr-widgets-block" data-detail="widgets">
       <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
         {orderedWidgets.map((widget) => (
           <WidgetCard

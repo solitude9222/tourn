@@ -1,0 +1,135 @@
+/* Content dimensions are independent of the identity card's layout/width. */
+.lkr-page .lkr-flow:not(.lkr-flow--slideshow) {
+  width: min(100%, max(calc(var(--pv-width) + 100px), 760px));
+  max-width: max(calc(var(--pv-width) + 100px), 760px);
+}
+.lkr-page .lkr-flow .lkr-primary,
+.lkr-page .lkr-flow .lkr-stacked-group {
+  width: min(100%, max(var(--pv-width), 664px));
+  max-width: min(100%, max(var(--pv-width), 664px));
+  align-items: center;
+  flex-shrink: 0;
+}
+.lkr-page .lkr-flow .lkr-primary > .profile-preview,
+.lkr-page .lkr-flow .lkr-stacked-group > .profile-preview {
+  width: min(100%, var(--pv-width));
+  max-width: min(100%, var(--pv-width));
+  flex-shrink: 0;
+}
+.lkr-page .lkr-flow .lkr-widgets-block {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+.lkr-page .lkr-flow .lkr-widgets {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  max-width: 664px;
+  margin-inline: auto;
+}
+.lkr-page .lkr-flow .lkr-widgets > .widget-card {
+  flex: 0 0 320px;
+  width: 320px;
+  max-width: 100%;
+  min-width: 0;
+  height: 88px;
+  min-height: 88px;
+  padding: 11px 12px;
+  box-sizing: border-box;
+}
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+}
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-name b { font-size: 15px; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-inner { padding: 0; gap: 8px; }
+.lkr-page .lkr-flow .lkr-stacked-widgets,
+.lkr-page .lkr-flow .lkr-stack {
+  width: 100%;
+  max-width: 664px;
+  margin-inline: auto;
+  flex-shrink: 0;
+  align-items: center;
+}
+.lkr-page .lkr-flow .lkr-audio,
+.lkr-page .profile-preview .pv-audio-block,
+.lkr-page .lkr-page-audio {
+  width: 360px;
+  max-width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+.lkr-page .lkr-page-audio { max-width: calc(100% - 32px); }
+.lkr-page .lkr-flow .lkr-audio > *,
+.lkr-page .pv-audio-block > * { width: 100%; max-width: 100%; }
+
+/* Wide, centered sections; writing reads from a shared left edge. */
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections {
+  width: min(100%, 1280px);
+  max-width: 1280px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-about-slide {
+  width: min(100%, 1024px);
+  max-width: 1024px;
+  justify-items: start;
+  align-items: start;
+  text-align: left;
+  padding: 24px;
+}
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-text {
+  width: 100%;
+  max-width: 68ch;
+  margin-inline: 0;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-title { font-size: 34px; }
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-tags { justify-content: flex-start; gap: 10px; }
+.lkr-page .lkr-interest-set {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+.lkr-page .lkr-interest-set > h2 { font-size: 30px; margin-bottom: 24px; }
+.lkr-page .lkr-interest-grid { justify-content: flex-start; gap: 16px; }
+.lkr-page .lkr-interest-grid .lkr-interest-tile {
+  flex: 0 0 min(300px, calc((100% - 48px) / 4));
+  aspect-ratio: 3 / 4;
+  min-height: 0;
+  border-radius: 18px;
+}
+.lkr-page .lkr-interest-tile .lkr-interest-art::after {
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, .82) 100%);
+}
+.lkr-page .lkr-interest-copy { left: 18px; right: 18px; bottom: 20px; }
+.lkr-page .lkr-interest-copy b { font-size: 20px; line-height: 1.25; }
+.lkr-page .lkr-interest-copy small { font-size: 12px; margin-top: 6px; }
+@media (max-width: 1000px) {
+  .lkr-page .lkr-interest-grid .lkr-interest-tile { flex-basis: calc((100% - 32px) / 3); }
+}
+@media (max-width: 700px) {
+  .lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections { grid-template-columns: minmax(0, 1fr); }
+  .lkr-page .lkr-interest-grid .lkr-interest-tile { flex-basis: calc((100% - 16px) / 2); }
+  .lkr-page .lkr-interest-copy { left: 12px; right: 12px; bottom: 14px; }
+  .lkr-page .lkr-interest-copy b { font-size: 16px; }
+  .lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-about-slide { padding: 12px 0; }
+  .lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-title { font-size: 28px; }
+  .lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-text { font-size: 14px; }
+}
+
+/* Each project/poster owns its surface, with no second enclosing card. */
+.lkr-page .lkr-flow .lkr-sections { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+.lkr-page .lkr-flow .lkr-sections > .lkr-showcase { border-radius: 20px; border: 0; overflow: hidden; }
+.lkr-page .lkr-flow .lkr-interest-set { border: 0; }

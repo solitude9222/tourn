@@ -11,7 +11,6 @@ import { Button, Icon, IconButton, navigateTabs, type IconName } from "./ui";
 import { api, post } from "../lib/backend";
 import { TradeThread } from "./Trades";
 import { useDashTheme, useDashAccent, accentForeground } from "./theme";
-import { EditorTools } from "./EditorTools";
 import { usePreference } from "./preferences";
 import { NAV, navHome } from "./nav";
 
@@ -629,7 +628,6 @@ export function Shell({
           </div>
         ) : null}
 
-        <EditorTools key={user.id} page={page} />
         <div className="tw-page-swap" key={`${page}-${activeTab ?? ""}`}>{children}</div>
       </main>
 

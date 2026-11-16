@@ -1,5 +1,7 @@
 # Dashboard improvement pass
 
+**Follow-up:** The user requested removal of the editor toolbar, presets and reset controls. The current layout preview uses a stable placement canvas; profile sizing and surface corrections are recorded in `layout-corrections.md`. The table below describes the earlier pass where noted.
+
 The original 60 suggestions included features the project already had. This pass extends those features rather than adding competing editors. “Retained” below means the existing implementation supplies that capability; it does not mean a new feature was added.
 
 | # | Recommendation | Result |
@@ -11,7 +13,7 @@ The original 60 suggestions included features the project already had. This pass
 | 5 | Consistent spacing | Shared toolbar, collection tools, mobile spacing and card action wrapping. |
 | 6 | Scannable sidebar | Reordered groups, collapsible headings and direct search results. |
 | 7 | Collapsible advanced controls | Retained advanced layout/audio panels; navigation groups also collapse and remember their state. |
-| 8 | Persistent Save/Preview | Sticky editor toolbar across dashboard pages. |
+| 8 | Persistent Save/Preview | The shared toolbar was subsequently removed at the user’s request. |
 | 9 | Mobile settings | Wrapping toolbars/actions, bounded dialogs, mobile save-bar clearance. |
 | 10 | Search settings | Search now opens matching subtabs, with Ctrl/Cmd+K and an empty state. |
 | 11 | Asset sorting | Existing date/name/type sorts retained; download sort added. |
@@ -38,17 +40,17 @@ The original 60 suggestions included features the project already had. This pass
 | 32 | Dropdown motion | Short menu entrance animation; existing controlled dismissal retained. |
 | 33 | Card feedback | Asset border hover feedback; existing interactive-card feedback retained. |
 | 34 | Reordering motion | Existing pointer section reordering, drop indicators and up/down controls retained. |
-| 35 | Save feedback | Toolbar distinguishes publishing, published and locally retained/retrying edits using actual publish outcomes. |
+| 35 | Save feedback | Publish outcome events and notifications remain; the toolbar indicator was removed with the shared toolbar. |
 | 36 | Entrance speed | Existing entry animation-duration control retained. |
 | 37 | Effect intensity | Existing background/overlay/text/card intensity and speed controls retained. |
 | 38 | Individual previews | Background and overlay canvases activate on hover or keyboard focus; other tiles stay static. |
 | 39 | Reduced motion | Canvas effects stop after a static frame; dashboard transitions/animations respect reduced motion. |
 | 40 | Effect cost | Mobile/low-core canvas FPS cap, existing offscreen/hidden pausing, lazy posters and focused previews. |
 | 41 | Profile section ordering | Existing drag-and-drop and move up/down controls retained. |
-| 42 | Device previews | Shared live draft preview in an iframe viewport, including actual mobile CSS media queries. |
+| 42 | Device previews | The separate preview toolbar was removed; Layout now has a stable placement canvas. |
 | 43 | Undo/redo | Shared bounded history for all four profile stores; typing/slider updates coalesce; keyboard shortcuts included. |
-| 44 | Named presets | Up to 12 personal appearance presets per account/browser; storage errors are surfaced. |
-| 45 | Section resets | Card, effect, audio, link, widget and badge style resets; content and uploaded media remain intact. |
+| 44 | Named presets | Personal preset UI was subsequently removed at the user’s request. |
+| 45 | Section resets | Shared reset UI was subsequently removed at the user’s request. |
 | 46 | Unsaved warning | Before-unload warning covers pending or retrying publication, in addition to dirty editor state. |
 | 47 | Background framing | Horizontal/vertical position and cover/contain, normalized and rendered on public profiles. |
 | 48 | Background readability | Existing brightness/dim/blur/opacity controls plus contrast guidance. |
@@ -68,7 +70,7 @@ The original 60 suggestions included features the project already had. This pass
 ## Validation
 
 - TypeScript check and Vite production build.
-- `node tests/editor-polish.mjs`: mocked account/API browser coverage of search, undo/redo, iframe/mobile previews, focus restoration/trapping, presets, library selection/deletion review, favorite effects, quota errors, framing normalization, styling-only snapshots and static reduced-motion canvases.
+- `node tests/editor-polish.mjs`: mocked account/API browser coverage of search, keyboard undo/redo, toolbar removal, library selection/deletion review, favorite effects, quota errors, framing normalization, styling-only snapshots and static reduced-motion canvases.
 - Broader Node suite: 36 passed, four Discord automation tests failed in untouched backend behavior (role lookup/mock expectations).
 - Existing `frontend-regressions.mjs` stopped at the homepage artwork fixture; `layout-upgrade.mjs` stopped at its existing widget-row geometry assertion. These suites did not complete, so they are not reported as passing.
 
