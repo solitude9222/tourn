@@ -87,7 +87,7 @@ export function fileToDataUrl(file: File, onProgress?: (percent: number) => void
 }
 
 /** Downscale an image in the browser so a phone photo doesn't blow the store. */
-export async function cursorToDataUrl(file: File, max = 64): Promise<string> {
+export async function cursorToDataUrl(file: File, max = 128): Promise<string> {
   const raw = await fileToDataUrl(file);
   // Animated cursors must keep their frames; the browser handles their own
   // hotspot and we leave the original file alone.
