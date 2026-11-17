@@ -4,6 +4,7 @@ import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid
 import { TRADE_SCHEMA, registerTradeRoutes } from "./trades.js";
 import { TEMPLATE_SCHEMA, registerTemplateRoutes } from "./templates.js";
 import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
+import { createProfileWebhooks, registerProfileWebhookRoutes, PROFILE_WEBHOOK_SCHEMA } from "./webhooks.js";
 /* ---------------------------------------------------------------------------
    tourn.lol backend — one Express app on Railway Postgres.
 
@@ -248,6 +249,7 @@ async function initDb() {
   await pool.query(AUDIO_SCHEMA);
   await pool.query(SUPPORT_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
+  await pool.query(PROFILE_WEBHOOK_SCHEMA);
   // Trim history created before the limit existed, and keep the table small on
   // every boot as well as after each save.
   await pool.query(
@@ -734,6 +736,8 @@ const billingLimiter = rateLimit({
   max: 20,
   message: "Too many billing attempts — wait a few minutes and try again.",
 });
+const WEBHOOK_ALLOW_HTTP = process.env.WEBHOOK_ALLOW_HTTP === "true";
+const profileWebhooks = createProfileWebhooks({ pool, allowHttp: WEBHOOK_ALLOW_HTTP });
 
 const app = express();
 app.set("trust proxy", 1);
@@ -773,7 +777,7 @@ app.use((req, res, next) => {
 });
 
 /* Signed-in responses and billing must never sit in a shared cache. */
-app.use(["/api/auth", "/api/billing", "/api/account", "/api/admin", "/api/market", "/api/commerce"], (_req, res, next) => {
+app.use(["/api/auth", "/api/billing", "/api/account", "/api/admin", "/api/market", "/api/commerce", "/api/settings"], (_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
@@ -900,11 +904,18 @@ app.put("/api/profile", express.json({ limit: PROFILE_JSON_LIMIT }), requireAuth
     );
     await client.query("commit");
     profilePageCache.clear();
+    const revision = Number(saved.rows[0].revision);
+    const updatedAt = saved.rows[0].updated_at;
     res.json({
       ok: true,
-      revision: Number(saved.rows[0].revision),
-      updatedAt: saved.rows[0].updated_at,
+      revision,
+      updatedAt,
     });
+    // A webhook is a copy of the published document, never the source of it.
+    // Delivery runs after the response and a failure only updates its own status.
+    void profileWebhooks
+      .deliver(req.auth.sub, { profile: merged, revision, updatedAt })
+      .catch((error) => console.error("[profile] webhook delivery failed:", error.message));
   } catch (error) {
     if (client) await client.query("rollback").catch(() => {});
     res.status(500).json({ error: error.message });
@@ -1024,6 +1035,8 @@ app.post("/api/billing/portal", billingLimiter, requireAuth, async (req, res) =>
 });
 
 app.use(express.json({ limit: "256kb" }));
+
+registerProfileWebhookRoutes(app, { pool, requireAuth, limiter: billingLimiter, allowHttp: WEBHOOK_ALLOW_HTTP });
 
 registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limiter:billingLimiter,jwt,secret:JWT_SECRET,invalidate:()=>profilePageCache.clear()});
 // Exact paths only: app.use() would also swallow /api/admin/usernames/claim.

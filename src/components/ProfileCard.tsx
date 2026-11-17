@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { chooseHomePreview, initialHomePreviews, refreshHomePreviews } from "../lib/homePreview";
-import { DEFAULT_ABOUT_DESIGN, type About } from "../lib/about";
+import { DEFAULT_ABOUT_DESIGN, DEFAULT_METADATA, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import { DEFAULT_BADGE_STYLE, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import { DEFAULT_LINK_DESIGN, type LinkInstance, type LinkStore } from "../lib/links";
@@ -23,7 +23,7 @@ const FALLBACK_ABOUT: About = {
   displayName: "tourn",
   bio: "One link for everything you play.\nDiscord, music and games — always current.",
   location: "tourn.lol",
-  metadata: { title: "", faviconUrl: "", animation: "none", messages: [], interval: 6 },
+  metadata: DEFAULT_METADATA,
   design: { ...DEFAULT_ABOUT_DESIGN, tilt: 8 },
   assets: DEFAULT_PROFILE_ASSETS,
 };

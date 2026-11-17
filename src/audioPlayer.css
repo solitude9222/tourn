@@ -623,8 +623,11 @@
   position: relative;
   display: grid;
   place-items: center;
-  aspect-ratio: 1 / 1;
-  max-height: 260px;
+  /* A wide banner rather than a square sleeve: the art still fills the width,
+     without pushing the transport and the rest of the page below the fold. */
+  aspect-ratio: 2.4 / 1;
+  min-height: 112px;
+  max-height: 170px;
   width: 100%;
   overflow: hidden;
   background: color-mix(in srgb, var(--ap-accent) 18%, #000);

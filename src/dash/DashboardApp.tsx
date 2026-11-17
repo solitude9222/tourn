@@ -352,6 +352,33 @@ export function Dashboard(props: DashboardProps) {
   const prefetchPage = useCallback((next: Page) => {
     void PAGE_PRELOADS[next]?.();
   }, []);
+  // Hover prefetch removes most of the wait, but a first visit can still hit a
+  // cold chunk. Warm every editor once the shell is idle so opening a page is
+  // a render, not a download. Failures stay silent; navigation retries itself.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const warm = () => {
+      if (cancelled) return;
+      const seen = new Set<() => Promise<unknown>>();
+      for (const load of Object.values(PAGE_PRELOADS)) {
+        if (!load || seen.has(load)) continue;
+        seen.add(load);
+        void load().catch(() => undefined);
+      }
+    };
+    const idle = window.requestIdleCallback as
+      | ((callback: () => void, options?: { timeout: number }) => number)
+      | undefined;
+    let idleId = 0;
+    const timer = idle ? 0 : window.setTimeout(warm, 250);
+    if (idle) idleId = idle(warm, { timeout: 1200 });
+    return () => {
+      cancelled = true;
+      if (idle) window.cancelIdleCallback?.(idleId);
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [user?.id]);
   const [aboutDraft, setAboutDraft] = useState<About>(about);
   const [widgetsDraft, setWidgetsDraft] = useState<WidgetStore>(widgets);
   const [badgesDraft, setBadgesDraft] = useState<BadgeStore>(badges);

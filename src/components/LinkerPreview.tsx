@@ -630,7 +630,6 @@ export function LinkerPreview({
     <div ref={slidesRef} style={{scrollSnapType:portfolio.snap ? undefined : "none"}} className={`lkr-flow lkr-flow--${design.layout}${slideshowActive?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!slideshowActive || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType=portfolio.snap?"":"none";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest&&portfolio.snap)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType=portfolio.snap?"":"none";}}>
       <div className={`${slideshowActive?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}`}>
       {design.layout === "stacked" ? <div className={`lkr-stacked-group${sharedTilt && design.tilt > 0 ? " lkr-stacked-group--tilt" : ""}`} ref={stackMotion.ref} onPointerMove={stackMotion.onPointerMove} onPointerLeave={stackMotion.onPointerLeave}>{primaryCards}</div> : primaryCards}
-      {slideshowActive && portfolio.hint ? <button type="button" className={`lkr-scroll-hint${portfolio.hintAnimate?" is-animated":""}`} onClick={()=>goToSlide(1)}><span>⌄</span>{portfolio.hintText}</button> : null}
       </div>
       {slideshowActive ? portfolio.order.map(key=><Fragment key={key}>{key==="about"?slideshowExtras:key==="sections"?sectionContent:hasGallery?<div className="lkr-slide"><ProfileGallery settings={gallerySettings}/></div>:null}</Fragment>) : null}
     </div>
@@ -658,6 +657,16 @@ export function LinkerPreview({
       </div>
       <BackgroundEffectLayer settings={assets.effects.background} />
       {page}
+      {slideshowActive && portfolio.hint && slideIndex === 0 ? (
+        <button
+          type="button"
+          className={`lkr-scroll-hint${portfolio.hintAnimate ? " is-animated" : ""}`}
+          onClick={() => goToSlide(1)}
+          aria-label={portfolio.hintText || "Scroll to portfolio"}
+        >
+          <span aria-hidden="true">↓</span>
+        </button>
+      ) : null}
       {slideshowActive && slideCount > 1 && portfolio.indicators ? (
         <nav className="lkr-slide-dots" aria-label="Slideshow pages">
           {Array.from({ length: slideCount }, (_, index) => (

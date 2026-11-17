@@ -70,6 +70,16 @@ export type JoinDateFormat = "relative" | "us" | "eu";
 export type AboutMetadata = {
   /** Custom tab title. Empty = the account's name + tourn.lol. */
   title: string;
+  /** The title shown by Discord, Slack, iMessage and search results. */
+  shareTitle: string;
+  /** The paragraph under a shared link. Empty = the profile bio. */
+  shareDescription: string;
+  /** Public image URL used for link previews (or an uploaded data URL preview). */
+  shareImageUrl: string;
+  /** Browser chrome colour for the public page. */
+  themeColor: string;
+  /** Keep the page out of search-engine results. */
+  noIndex: boolean;
   /** How the join date reads on the public page. */
   joinFormat?: JoinDateFormat;
   /** How dates are written across the dashboard. */
@@ -381,6 +391,11 @@ export type About = {
 
 export const DEFAULT_METADATA: AboutMetadata = {
   title: "",
+  shareTitle: "",
+  shareDescription: "",
+  shareImageUrl: "",
+  themeColor: "#0a0a0c",
+  noIndex: false,
   faviconUrl: "",
   animation: "none",
   messages: [],
@@ -610,6 +625,11 @@ function loadMetadata(input: unknown): AboutMetadata {
     : [];
   return {
     title: textIn(raw.title, DEFAULT_METADATA.title, 60),
+    shareTitle: textIn(raw.shareTitle, DEFAULT_METADATA.shareTitle, 80),
+    shareDescription: textIn(raw.shareDescription, DEFAULT_METADATA.shareDescription, 220),
+    shareImageUrl: textIn(raw.shareImageUrl, DEFAULT_METADATA.shareImageUrl, 1_500_000),
+    themeColor: validColor(raw.themeColor, DEFAULT_METADATA.themeColor),
+    noIndex: boolIn(raw.noIndex, DEFAULT_METADATA.noIndex),
     joinFormat: oneOf(raw.joinFormat, ["relative", "us", "eu"] as const, "relative"),
     dateFormat: raw.dateFormat === "eu" ? "eu" : "us",
     faviconUrl: textIn(raw.faviconUrl, DEFAULT_METADATA.faviconUrl, 250_000),

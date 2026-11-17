@@ -10,7 +10,8 @@
 import { useEffect, useState } from "react";
 import { accountUid, useAuth } from "../lib/auth";
 import { formatJoined } from "../lib/format";
-import { Button, Card, CardHead, Chip, Field, Icon, TextInput } from "../dash/ui";
+import { api } from "../lib/backend";
+import { Button, Card, CardHead, Chip, Field, Icon, TextInput, Toggle } from "../dash/ui";
 import { UploadEmbedCard, UploadResponseCard } from "./UploadSettings";
 
 const CLAIM_COOLDOWN_MS = 2 * 24 * 60 * 60 * 1000;
@@ -31,6 +32,15 @@ function claimCooldown(updatedAt?: string | null): string | null {
 }
 
 type SettingsNavigateTarget = "about" | "widgets" | "links";
+type SettingsSection = "account" | "sharing" | "security" | "plan";
+type WebhookConfig = {
+  url: string;
+  enabled: boolean;
+  lastStatus: number | null;
+  lastError: string | null;
+  lastSentAt: string | null;
+  updatedAt: string | null;
+};
 
 export function SettingsPage({
   onNavigate,
@@ -57,6 +67,7 @@ export function SettingsPage({
   const [aliasMsg, setAliasMsg] = useState<string | null>(null);
   const [alias2Msg, setAlias2Msg] = useState<string | null>(null);
   const [aliasBusy, setAliasBusy] = useState(false);
+  const [section, setSection] = useState<SettingsSection>("account");
 
   useEffect(() => {
     setAliasDraft(user?.alias ?? "");
@@ -120,6 +131,10 @@ export function SettingsPage({
               <Icon name="eye" size={15} />
               Public page
             </a>
+            <a className="tw-btn tw-btn--ghost" href="#/dashboard/profile-main">
+              <Icon name="share" size={15} />
+              Page metadata
+            </a>
             {onNavigate ? (
               <Button icon="grid" onClick={() => onNavigate("widgets")}>
                 Edit widgets
@@ -129,6 +144,28 @@ export function SettingsPage({
         </div>
       </Card>
 
+      <div className="tw-set-tabs" role="tablist" aria-label="Settings sections">
+        {([
+          { id: "account", label: "Account", icon: "user" },
+          { id: "sharing", label: "Sharing", icon: "share" },
+          { id: "security", label: "Security", icon: "shield" },
+          { id: "plan", label: "Plan & reset", icon: "crown" },
+        ] as { id: SettingsSection; label: string; icon: "user" | "share" | "shield" | "crown" }[]).map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={section === item.id}
+            className={section === item.id ? "is-on" : ""}
+            onClick={() => setSection(item.id)}
+          >
+            <Icon name={item.icon} size={14} />
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {section === "account" ? <>
       <Card>
         <CardHead
           icon="link"
@@ -300,10 +337,15 @@ export function SettingsPage({
         </p>
       </Card>
 
-      <UploadEmbedCard />
+      </> : null}
 
-      <UploadResponseCard />
+      {section === "sharing" ? <>
+        <UploadEmbedCard />
+        <UploadResponseCard />
+        <WebhookCard />
+      </> : null}
 
+      {section === "security" ? <>
       <Card>
         <CardHead
           icon="shield"
@@ -312,7 +354,9 @@ export function SettingsPage({
         />
         <SecurityPanel security={security} configured={configured} isAdmin={isAdmin} />
       </Card>
+      </> : null}
 
+      {section === "plan" ? <>
       <Card>
         <CardHead
           icon="crown"
@@ -382,7 +426,151 @@ export function SettingsPage({
           </Button>
         </div>
       </Card>
+      </> : null}
     </div>
+  );
+}
+
+/* ----------------------------------------------------------------- webhook */
+
+function WebhookCard() {
+  const [hook, setHook] = useState<WebhookConfig | null>(null);
+  const [url, setUrl] = useState("");
+  const [enabled, setEnabled] = useState(true);
+  const [busy, setBusy] = useState<"load" | "save" | "test" | "remove" | null>("load");
+  const [message, setMessage] = useState<string | null>(null);
+
+  const apply = (next: WebhookConfig | null) => {
+    setHook(next);
+    setUrl(next?.url ?? "");
+    setEnabled(next?.enabled ?? true);
+  };
+
+  useEffect(() => {
+    let active = true;
+    void api<{ webhook: WebhookConfig | null }>("/api/settings/webhook").then((result) => {
+      if (!active) return;
+      setBusy(null);
+      if (result.ok) apply(result.data.webhook);
+      else setMessage(result.error);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const save = async () => {
+    setBusy("save");
+    setMessage(null);
+    const result = await api<{ webhook: WebhookConfig | null }>("/api/settings/webhook", {
+      method: "PUT",
+      body: JSON.stringify({ url, enabled }),
+    });
+    setBusy(null);
+    if (!result.ok) {
+      setMessage(result.error);
+      return;
+    }
+    apply(result.data.webhook);
+    setMessage(result.data.webhook ? "Webhook saved. New saves will be delivered there." : "Webhook removed.");
+  };
+
+  const test = async () => {
+    setBusy("test");
+    setMessage(null);
+    const result = await api<{ ok: boolean; status: number; webhook: WebhookConfig | null }>(
+      "/api/settings/webhook/test",
+      { method: "POST" },
+    );
+    setBusy(null);
+    if (result.ok) {
+      apply(result.data.webhook);
+      setMessage(`Test delivered — the endpoint answered HTTP ${result.data.status}.`);
+    } else {
+      if (result.data?.webhook) apply(result.data.webhook);
+      setMessage(result.error);
+    }
+  };
+
+  const remove = async () => {
+    setBusy("remove");
+    setMessage(null);
+    const result = await api<{ webhook: null }>("/api/settings/webhook", { method: "DELETE" });
+    setBusy(null);
+    if (!result.ok) {
+      setMessage(result.error);
+      return;
+    }
+    apply(null);
+    setMessage("Webhook removed.");
+  };
+
+  const dirty = url.trim() !== (hook?.url ?? "") || enabled !== (hook?.enabled ?? true);
+  const lastSent = hook?.lastSentAt ? new Date(hook.lastSentAt).toLocaleString() : null;
+
+  return (
+    <Card>
+      <CardHead
+        icon="code"
+        title="Profile webhook"
+        subtitle="POST the complete published profile to an endpoint you own after every successful save."
+      />
+      <Field
+        label="Endpoint URL"
+        hint="HTTPS only. One JSON request is sent after a save succeeds, and failures never block the save."
+      >
+        <TextInput
+          type="url"
+          value={url}
+          placeholder="https://example.com/hooks/tourn"
+          autoComplete="url"
+          spellCheck={false}
+          disabled={busy === "load"}
+          onChange={(event) => setUrl(event.target.value)}
+        />
+      </Field>
+      <div className="tw-inline-toggle">
+        <span>
+          <b>Deliver profile updates</b>
+          <small>The payload includes your account, revision, about, widgets, badges and links.</small>
+        </span>
+        <Toggle label="Deliver profile updates" checked={enabled} onChange={setEnabled} />
+      </div>
+      <div className="tw-row">
+        <Button variant="primary" disabled={busy !== null || !url.trim()} onClick={() => void save()}>
+          {busy === "save" ? "Saving…" : hook ? "Save webhook" : "Add webhook"}
+        </Button>
+        <Button disabled={busy !== null || !hook || dirty} onClick={() => void test()}>
+          {busy === "test" ? "Sending…" : "Send test"}
+        </Button>
+        <Button icon="trash" disabled={busy !== null || !hook} onClick={() => void remove()}>
+          {busy === "remove" ? "Removing…" : "Remove"}
+        </Button>
+      </div>
+      {message ? <p className="tw-set-note">{message}</p> : null}
+      {hook ? (
+        <p className="tw-set-note tw-webhook-status">
+          {hook.lastStatus && hook.lastStatus >= 200 && hook.lastStatus < 300 ? (
+            <Chip tone="success">HTTP {hook.lastStatus}</Chip>
+          ) : hook.lastStatus ? (
+            <Chip tone="amber">HTTP {hook.lastStatus}</Chip>
+          ) : null}
+          {hook.lastError ? <span>{hook.lastError}</span> : null}
+          {lastSent ? <span>Last attempt {lastSent}.</span> : <span>No delivery attempted yet.</span>}
+        </p>
+      ) : null}
+      <details className="tw-webhook-payload">
+        <summary>What the request contains</summary>
+        <pre>{`{
+  "event": "profile.updated",
+  "sentAt": "2026-01-01T00:00:00.000Z",
+  "account": { "id": "…", "username": "…", "alias": "…", "premium": false },
+  "revision": 42,
+  "profile": { "about": { … }, "widgets": { … }, "badges": { … }, "links": { … } },
+  "settings": { "about": { … }, "widgets": { … }, "badges": { … }, "links": { … } }
+}`}</pre>
+      </details>
+    </Card>
   );
 }
 

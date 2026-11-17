@@ -4626,9 +4626,9 @@
 }
 
 .pv-react-btn.is-on {
-  border-color: var(--pv-accent, #ff8f92);
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--pv-accent, #ff8f92);
+  border-color: transparent;
+  background: transparent;
+  color: #ffffff;
 }
 
 .pv-react-btn:disabled {
@@ -6760,8 +6760,9 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   font-size: calc(11px * var(--pv-scale, 1));
 }
 .pv-react--card .pv-react-btn.is-on {
-  background: color-mix(in srgb, var(--pv-accent) 16%, transparent);
+  background: transparent;
   border-color: transparent;
+  color: #ffffff;
 }
 
 .pv-react--ghost {
@@ -6823,6 +6824,22 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .ap-popup--mute .ap-popup-glyph svg {
   width: 46%;
   height: 46%;
+}
+.ap-popup--mute .ap-popup-icon {
+  border-color: color-mix(in srgb, var(--popup-color, #fff) 22%, transparent);
+  background: color-mix(in srgb, var(--popup-background, #151515) calc(var(--popup-opacity, .9) * 100%), transparent);
+  box-shadow: 0 10px 28px -14px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .16);
+  backdrop-filter: blur(14px) saturate(1.1);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.ap-popup--mute .ap-popup-icon:hover {
+  border-color: color-mix(in srgb, var(--popup-color, #fff) 52%, transparent);
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .95), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+.ap-popup--mute .ap-popup-icon:active { transform: scale(.94); }
+.ap-popup--mute.is-muted .ap-popup-icon {
+  color: color-mix(in srgb, var(--popup-color, #fff) 72%, transparent);
+  border-color: color-mix(in srgb, var(--popup-color, #fff) 14%, transparent);
 }
 
 /* ── the six detail slots ────────────────────────────────────────────── */

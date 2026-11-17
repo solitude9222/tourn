@@ -3694,8 +3694,8 @@
 .tw-audio-settings-grid {align-items:start;}
 .tw-audio-settings-grid>.tw-slider {grid-column:1;}
 .tw-audio-settings-grid>.tw-color-field {grid-column:2;}
-.tw-page-content {animation:twPageReveal .32s cubic-bezier(.2,.7,.2,1) both;}
-@keyframes twPageReveal {from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tw-page-content {animation:twPageReveal .12s cubic-bezier(.2,.7,.2,1) both;}
+@keyframes twPageReveal {from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 
 .tw-dashboard {background-color:var(--page);background-image:conic-gradient(#ffffff03 25%,transparent 0 50%,#ffffff03 0 75%,transparent 0);background-size:24px 24px;}
 .tw-history-row {display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid #ffffff12;}

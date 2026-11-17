@@ -46,6 +46,9 @@ export function LayoutPreview() {
     window.addEventListener("keydown", escape);
     return () => { observer.disconnect(); window.removeEventListener("resize", resize); window.removeEventListener("keydown", escape); if (frameRef.current) cancelAnimationFrame(frameRef.current); };
   }, []);
+  const joined = Number.isNaN(Date.parse(user.joinedAt))
+    ? "Nov 2026"
+    : new Date(user.joinedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" });
   const previewAbout = useMemo(() => ({ ...about, design: { ...about.design, slideshow: false, slideshowLinks: false, slideshowBadges: false, slideshowAbout: false, cardStyle: about.design.cardStyle === "slide" ? "default" as const : about.design.cardStyle, tilt: 0, stackTilt: false } }), [about]);
   const targetAt = (x: number, y: number) => {
     const target = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-slot]");
@@ -84,7 +87,7 @@ export function LayoutPreview() {
             ? "Views"
             : kind === "location"
               ? "Location"
-              : "Account date";
+              : "Account creation";
     notify("Placed", `${label} moved. Changes publish automatically.`);
     stop();
   };
@@ -158,6 +161,7 @@ export function LayoutPreview() {
             interactive={false}
             showEntry={false}
             showMetadata={false}
+            joined={joined}
           />
         </div>
         {dragging ? (

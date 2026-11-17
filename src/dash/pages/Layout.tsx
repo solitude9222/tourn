@@ -11,7 +11,7 @@ import { createProfileSection, type AboutLayout, type ProfileSection, type Profi
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { FontPicker } from "../../components/FontPicker";
-import { TECH_STACK, techCategory, techIconUrl } from "../../lib/techStack";
+import { SkillPicker } from "../SkillPicker";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
 import { FileUpload, Button, Card, CardHead, ColorField, Field, Icon, Select, Slider, Toggle, TextInput, Textarea } from "../ui";
@@ -425,43 +425,10 @@ export function LayoutPage({
                 <b>Speciality tags</b>
                 <small>{design.aboutSlide.tags.length ? `${design.aboutSlide.tags.length} selected` : "Pick the skills this is about"}</small>
               </summary>
-            <div className="tw-about-tag-groups">
-              {["Languages", "Frontend", "Backend & data", "Tools & platforms"].map((group) => {
-                const items = TECH_STACK.filter((tech) => (techCategory(tech.id) === group ? true : group === "Tools & platforms" && !["Languages", "Frontend", "Backend & data"].includes(techCategory(tech.id))));
-                if (!items.length) return null;
-                return (
-                  <div className="tw-tag-group" key={group}>
-                    <span className="tw-tag-group-label">{group === "Tools & platforms" ? "Apps & tools" : group}</span>
-                    <div className="tw-tag-row">
-                      {items.map((tech) => {
-                        const on = design.aboutSlide.tags.includes(tech.id);
-                        return (
-                          <button
-                            key={tech.id}
-                            type="button"
-                            className={`tw-tag-pill${on ? " is-on" : ""}`}
-                            aria-pressed={on}
-                            onClick={() =>
-                              updateDesign({
-                                aboutSlide: {
-                                  ...design.aboutSlide,
-                                  tags: on
-                                    ? design.aboutSlide.tags.filter((id) => id !== tech.id)
-                                    : [...design.aboutSlide.tags, tech.id].slice(0, 40),
-                                },
-                              })
-                            }
-                          >
-                            <img src={techIconUrl(tech)} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />
-                            {tech.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <SkillPicker
+              value={design.aboutSlide.tags}
+              onChange={(tags) => updateDesign({ aboutSlide: { ...design.aboutSlide, tags: tags.slice(0, 40) } })}
+            />
             </details>
           </details>
         ) : null}
