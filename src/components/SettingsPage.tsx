@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { accountUid, useAuth } from "../lib/auth";
 import { formatJoined } from "../lib/format";
 import { Button, Card, CardHead, Chip, Field, Icon, TextInput } from "../dash/ui";
-import { UploadEmbedCard, UploadResponseCard } from "./UploadSettings";
+import { UploadResponseCard } from "./UploadSettings";
 import { PageMetadataSettings } from "./ShareSettings";
 import { DiscordWebhookCard } from "./DiscordWebhookCard";
 
@@ -334,7 +334,6 @@ export function SettingsPage({
         <div className="tw-sharing-grid">
           <div className="tw-sharing-col">
             <PageMetadataSettings />
-            <UploadEmbedCard />
             <UploadResponseCard />
           </div>
           <div className="tw-sharing-col">

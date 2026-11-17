@@ -34,7 +34,13 @@ function absolute(origin, value) {
 function publicImage(origin, value) {
   const raw = String(value ?? "").trim();
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return "";
-  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^https?:\/\//i.test(raw)) {
+    // Discord profile avatars default to 256px, which is too small for a
+    // large preview. Request the largest CDN rendition instead.
+    return /(^|\.)discordapp\.com\/avatars\//i.test(raw)
+      ? raw.replace(/([?&])size=\d+/, "$1size=1024")
+      : raw;
+  }
   return `${origin}${raw.startsWith("/") ? raw : `/${raw}`}`;
 }
 

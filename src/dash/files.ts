@@ -121,8 +121,38 @@ export async function imageToDataUrl(
   });
 }
 
+export async function bannerToDataUrl(file: File, width = 1200, height = 630, quality = 0.9): Promise<string> {
+  const raw = await fileToDataUrl(file);
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return raw;
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.max(width / image.width, height / image.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        resolve(raw);
+        return;
+      }
+      context.drawImage(
+        image,
+        (width - image.width * scale) / 2,
+        (height - image.height * scale) / 2,
+        image.width * scale,
+        image.height * scale,
+      );
+      const type = file.type === "image/png" ? "image/png" : "image/jpeg";
+      resolve(canvas.toDataURL(type, quality));
+    };
+    image.onerror = () => resolve(raw);
+    image.src = raw;
+  });
+}
+
 export async function uploadShareImage(file: File): Promise<string> {
-  const dataUrl = await imageToDataUrl(file, 1200, 630, 0.9);
+  const dataUrl = await bannerToDataUrl(file, 1200, 630, 0.9);
   const result = await api<{ url: string }>("/api/media/image", {
     method: "POST",
     body: JSON.stringify({ dataUrl }),
