@@ -107,7 +107,9 @@ export function ProfileMedia() {
         ...current.assets,
         background: {
           ...current.assets.background,
-          style: "gradient",
+          // Removing the upload falls back to the owner's solid colour, not
+          // the gradient they may never have chosen.
+          style: "solid",
           imageUrl: "",
           videoUrl: "",
         },
