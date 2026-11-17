@@ -123,10 +123,12 @@ function drawHero(ctx: CanvasRenderingContext2D, input: ShareCardInput, avatar: 
       cursor += 35;
     }
   }
-  ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(236, 239, 245, .58)";
-  ctx.font = "500 22px Outfit, Inter, sans-serif";
-  ctx.fillText(`tourn.lol/${input.handle}`, cx, H - 52, 700);
+  if (input.title || input.description) {
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(236, 239, 245, .58)";
+    ctx.font = "500 22px Outfit, Inter, sans-serif";
+    ctx.fillText(`tourn.lol/${input.handle}`, cx, H - 52, 700);
+  }
 }
 
 function drawTextBox(ctx: CanvasRenderingContext2D, input: ShareCardInput) {
@@ -172,9 +174,11 @@ function drawTextBox(ctx: CanvasRenderingContext2D, input: ShareCardInput) {
       cursor += 34;
     }
   }
-  ctx.fillStyle = "rgba(236, 239, 245, .48)";
-  ctx.font = "500 20px Outfit, Inter, sans-serif";
-  ctx.fillText(`tourn.lol/${input.handle}`, x + 60, y + panelH - 44, panelW - 120);
+  if (input.title || input.description) {
+    ctx.fillStyle = "rgba(236, 239, 245, .48)";
+    ctx.font = "500 20px Outfit, Inter, sans-serif";
+    ctx.fillText(`tourn.lol/${input.handle}`, x + 60, y + panelH - 44, panelW - 120);
+  }
 }
 
 /** Compose a public 1200x630 share image from the profile's own artwork. */
