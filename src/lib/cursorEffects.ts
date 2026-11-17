@@ -15,6 +15,31 @@ import {
   type CursorTrailType,
 } from "./profileAssets";
 
+type TrailArt = {
+  image: HTMLImageElement;
+  hotspot: { x: number; y: number };
+  ready: boolean;
+};
+
+/** First visible pixel of an uploaded cursor; the same point the real CSS cursor uses. */
+function measureCursorArt(image: HTMLImageElement): { x: number; y: number } {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return { x: 0, y: 0 };
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        if (pixels[(y * canvas.width + x) * 4 + 3] > 24) return { x, y };
+      }
+    }
+  } catch { /* Cross-origin or broken image — fall back to 0 0. */ }
+  return { x: 0, y: 0 };
+}
+
 type Point = [number, number];
 
 type Particle = {
@@ -158,15 +183,19 @@ export function mountCursorEffects(
   const skin = settings.style;
   // Uploaded cursors are shared by the trailing-cursor effect, so a custom
   // cursor never falls back to eight identical white arrows.
-  const cursorArt = [...new Set([
+  const cursorArt: TrailArt[] = [...new Set([
     ...(settings.style === "custom" ? [settings.imageUrl] : []),
     ...settings.customCursorUrls,
   ].map((url) => url.trim()).filter(Boolean))]
     .slice(0, 8)
     .map((url) => {
-      const image = new Image();
-      image.src = url;
-      return image;
+      const art: TrailArt = { image: new Image(), hotspot: { x: 0, y: 0 }, ready: false };
+      art.image.onload = () => {
+        art.hotspot = measureCursorArt(art.image);
+        art.ready = true;
+      };
+      art.image.src = url;
+      return art;
     });
 
   let width = 1;
@@ -388,12 +417,24 @@ export function mountCursorEffects(
       for (let i = n - 1; i >= 1; i--) {
         const alpha = (1 - i / n) * 0.75;
         const art = cursorArt.length ? cursorArt[(n - i) % cursorArt.length] : null;
-        if (art?.complete && art.naturalWidth) {
+        if (art?.image.complete && art.image.naturalWidth) {
           const size = 22 * S;
-          const ratio = art.naturalHeight / art.naturalWidth || 1;
+          const ratio = art.image.naturalHeight / art.image.naturalWidth || 1;
+          // The real cursor places its hotspot under the pointer. Draw the
+          // duplicate with that same inset instead of its top-left corner.
+          const manual = settings.hotspotX !== 0 || settings.hotspotY !== 0;
+          const hotspotX = manual ? settings.hotspotX : art.ready ? art.hotspot.x : 0;
+          const hotspotY = manual ? settings.hotspotY : art.ready ? art.hotspot.y : 0;
+          const scale = size / art.image.naturalWidth;
           ctx.save();
           ctx.globalAlpha = alpha;
-          ctx.drawImage(art, points[i].x, points[i].y, size, size * ratio);
+          ctx.drawImage(
+            art.image,
+            points[i].x - hotspotX * scale,
+            points[i].y - hotspotY * scale,
+            size,
+            size * ratio,
+          );
           ctx.restore();
         } else {
           arrow(ctx, points[i].x, points[i].y, S, alpha, fill);

@@ -72,7 +72,7 @@ export function AccountProfilePage({ section = "details" }: { section?: "details
 
   const uploadCursor = async (file: File) => {
     const url = await cursorToDataUrl(file);
-    updateAssets({ cursor: { ...assets.cursor, style: "custom", imageUrl: url } });
+    updateAssets({ cursor: { ...assets.cursor, style: "custom", imageUrl: url, hotspotX: 0, hotspotY: 0 } });
     notify("Cursor", "Cursor image updated — save to publish.");
   };
 
