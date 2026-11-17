@@ -7185,13 +7185,13 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .profile-preview[data-scattered="true"] {
   --pv-scatter-font: "Pixelify Sans", "VT323", "Lexend", monospace;
   --pv-scatter-shadow:
-    1px 0 0 currentColor,
-    -1px 0 0 currentColor,
-    0 1px 0 currentColor,
-    0 -1px 0 currentColor,
-    2px 2px 0 color-mix(in srgb, currentColor 38%, transparent),
-    -2px 1px 0 color-mix(in srgb, currentColor 30%, transparent),
-    2px -2px 0 color-mix(in srgb, currentColor 22%, transparent);
+    2px 0 0 currentColor,
+    -2px 0 0 currentColor,
+    0 2px 0 currentColor,
+    0 -2px 0 currentColor,
+    3px 3px 0 color-mix(in srgb, currentColor 42%, transparent),
+    -3px 2px 0 color-mix(in srgb, currentColor 32%, transparent),
+    3px -3px 0 color-mix(in srgb, currentColor 24%, transparent);
 }
 
 .lkr-page[data-scattered="true"] :is(
@@ -7202,9 +7202,18 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   h1, h2, h3, h4, h5, h6, p, span, b, strong, em, small, li,
   a, button, label, blockquote, figcaption, time
 ) {
-  font-family: var(--pv-scatter-font);
-  letter-spacing: 0.012em;
-  text-shadow: var(--pv-scatter-shadow);
+  font-family: var(--pv-scatter-font) !important;
+  letter-spacing: 0.03em;
+  word-spacing: 0.04em;
+  text-shadow: var(--pv-scatter-shadow) !important;
+}
+
+/* Widget titles and effect spans already carry their own inline font or an
+   animated glow; the scattered treatment still wins over both. */
+.lkr-page[data-scattered="true"] .fx-text,
+.profile-preview[data-scattered="true"] .fx-text {
+  font-family: var(--pv-scatter-font) !important;
+  text-shadow: var(--pv-scatter-shadow) !important;
 }
 
 .lkr-page[data-scattered="true"] .widget-card,

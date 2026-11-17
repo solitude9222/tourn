@@ -309,7 +309,7 @@ export function BadgesPage() {
             <Field label="Animation">
               <Select value={style.animation} options={BADGE_ANIMATIONS.map((animation) => ({ value: animation.id, label: animation.name }))} onChange={(animation) => updateStyle({ animation: animation as typeof style.animation })} />
             </Field>
-            <Slider label="Badge size" value={style.size} min={14} max={32} suffix="px" onChange={(size) => updateStyle({ size })} />
+            <Slider label="Badge size" value={style.size} min={24} max={80} suffix="px" onChange={(size) => updateStyle({ size })} />
           </div>
         </div>
 

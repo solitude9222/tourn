@@ -41,7 +41,9 @@ export type BadgeStyle = {
   overlayColor: string;
   overlayStrength: number; // 0–100
   animation: BadgeAnimationStyle;
-  size: number; // 14–32px
+  size: number; // 24–80px
+  /** Bumped when the size scale changes so old saved sizes migrate once. */
+  sizeVersion?: number;
   /** The little shelf the badges sit on. */
   rowBackground: string;
   rowOpacity: number; // 0–1
@@ -85,7 +87,8 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   overlayStrength: 50,
   // Badges carry a light sweep by default so they never look like flat stickers.
   animation: "shimmer",
-  size: 22,
+  size: 40,
+  sizeVersion: 2,
   rowBackground: "#ffffff",
   rowOpacity: 0.07,
   rowBorderColor: "#ffffff",
@@ -318,6 +321,11 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
   try {
     const parsed = (input ?? {}) as Partial<BadgeStore>;
     const style = (parsed.style ?? {}) as Partial<BadgeStyle>;
+    // Sizes saved before the larger badge scale topped out at 32px. Scale those
+    // once instead of leaving every existing profile stuck at the old cap.
+    const storedSize = Number(style.size);
+    const legacySize = Number.isFinite(storedSize) && (style.sizeVersion ?? 1) < 2;
+    const rawSize = Number.isFinite(storedSize) ? storedSize : DEFAULT_BADGE_STYLE.size;
     const seen = new Set<string>();
     const equipped = Array.isArray(parsed.equipped)
       ? parsed.equipped
@@ -338,7 +346,8 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
         overlayColor: hex(style.overlayColor, DEFAULT_BADGE_STYLE.overlayColor),
         overlayStrength: clamp(style.overlayStrength, DEFAULT_BADGE_STYLE.overlayStrength, 0, 100),
         animation: animIn(style.animation, DEFAULT_BADGE_STYLE.animation),
-        size: clamp(style.size, DEFAULT_BADGE_STYLE.size, 14, 32),
+        size: clamp(legacySize ? Math.round(rawSize * 1.75) : rawSize, DEFAULT_BADGE_STYLE.size, 24, 80),
+        sizeVersion: 2,
         rowBackground: hex(style.rowBackground, DEFAULT_BADGE_STYLE.rowBackground),
         rowOpacity: clamp(style.rowOpacity, DEFAULT_BADGE_STYLE.rowOpacity, 0, 1),
         rowBorderColor: hex(style.rowBorderColor, DEFAULT_BADGE_STYLE.rowBorderColor),
