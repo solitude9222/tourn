@@ -41,7 +41,7 @@ export type BadgeStyle = {
   overlayColor: string;
   overlayStrength: number; // 0–100
   animation: BadgeAnimationStyle;
-  size: number; // 24–80px
+  size: number; // 18–64px
   /** Bumped when the size scale changes so old saved sizes migrate once. */
   sizeVersion?: number;
   /** The little shelf the badges sit on. */
@@ -87,8 +87,8 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   overlayStrength: 50,
   // Badges carry a light sweep by default so they never look like flat stickers.
   animation: "shimmer",
-  size: 40,
-  sizeVersion: 2,
+  size: 32,
+  sizeVersion: 3,
   rowBackground: "#ffffff",
   rowOpacity: 0.07,
   rowBorderColor: "#ffffff",
@@ -321,11 +321,14 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
   try {
     const parsed = (input ?? {}) as Partial<BadgeStore>;
     const style = (parsed.style ?? {}) as Partial<BadgeStyle>;
-    // Sizes saved before the larger badge scale topped out at 32px. Scale those
-    // once instead of leaving every existing profile stuck at the old cap.
+    // v1 sizes were capped at 32px; v2 sizes used the oversized 40px default.
+    // Bring both to the current middle ground once, then leave v3 alone.
     const storedSize = Number(style.size);
-    const legacySize = Number.isFinite(storedSize) && (style.sizeVersion ?? 1) < 2;
-    const rawSize = Number.isFinite(storedSize) ? storedSize : DEFAULT_BADGE_STYLE.size;
+    const sizeVersion = Number(style.sizeVersion ?? 1);
+    const hasStoredSize = Number.isFinite(storedSize);
+    let migratedSize = hasStoredSize ? storedSize : DEFAULT_BADGE_STYLE.size;
+    if (hasStoredSize && sizeVersion < 2) migratedSize *= 1.4;
+    else if (hasStoredSize && sizeVersion < 3) migratedSize *= 0.8;
     const seen = new Set<string>();
     const equipped = Array.isArray(parsed.equipped)
       ? parsed.equipped
@@ -346,8 +349,8 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
         overlayColor: hex(style.overlayColor, DEFAULT_BADGE_STYLE.overlayColor),
         overlayStrength: clamp(style.overlayStrength, DEFAULT_BADGE_STYLE.overlayStrength, 0, 100),
         animation: animIn(style.animation, DEFAULT_BADGE_STYLE.animation),
-        size: clamp(legacySize ? Math.round(rawSize * 1.75) : rawSize, DEFAULT_BADGE_STYLE.size, 24, 80),
-        sizeVersion: 2,
+        size: clamp(Math.round(migratedSize), DEFAULT_BADGE_STYLE.size, 18, 64),
+        sizeVersion: 3,
         rowBackground: hex(style.rowBackground, DEFAULT_BADGE_STYLE.rowBackground),
         rowOpacity: clamp(style.rowOpacity, DEFAULT_BADGE_STYLE.rowOpacity, 0, 1),
         rowBorderColor: hex(style.rowBorderColor, DEFAULT_BADGE_STYLE.rowBorderColor),

@@ -26,7 +26,13 @@ type Filter = "all" | "earned" | "shown";
 
 function BadgeArt({ badge, size = 36, swappable = true }: { badge: BadgeDef; size?: number; swappable?: boolean }) {
   const [animated, setAnimated] = useState(true);
+  const [revision, setRevision] = useState(0);
   const [broken, setBroken] = useState(false);
+  const chooseArt = (next: boolean) => {
+    setAnimated(next);
+    // Reloading the GIF restarts it, so the preview always shows motion.
+    setRevision((value) => value + 1);
+  };
   const art = animated ? badge.art : badge.artStatic || badge.art;
   const canSwap = swappable && Boolean(badge.artStatic) && badge.art !== badge.artStatic;
   return (
@@ -36,6 +42,7 @@ function BadgeArt({ badge, size = 36, swappable = true }: { badge: BadgeDef; siz
     >
       {art && !broken ? (
         <img
+          key={`${animated ? "animated" : "still"}-${revision}`}
           src={art}
           alt=""
           width={size}
@@ -51,9 +58,23 @@ function BadgeArt({ badge, size = 36, swappable = true }: { badge: BadgeDef; siz
         {badge.name.slice(0, 1).toUpperCase()}
       </i>
       {canSwap ? (
-        <span className="tw-badge-art-swap">
-          <button type="button" aria-label={`Show static ${badge.name}`} title="Static" onClick={() => setAnimated(false)}>‹</button>
-          <button type="button" aria-label={`Show animated ${badge.name}`} title="Animated" onClick={() => setAnimated(true)}>›</button>
+        <span className="tw-badge-art-swap" role="group" aria-label={`${badge.name} preview`}>
+          <button
+            type="button"
+            className={animated ? "is-active" : ""}
+            aria-label={`Show animated ${badge.name}`}
+            aria-pressed={animated}
+            title="Animated preview"
+            onClick={() => chooseArt(true)}
+          >GIF</button>
+          <button
+            type="button"
+            className={!animated ? "is-active" : ""}
+            aria-label={`Show still ${badge.name}`}
+            aria-pressed={!animated}
+            title="Still preview"
+            onClick={() => chooseArt(false)}
+          >PNG</button>
         </span>
       ) : null}
     </span>
@@ -309,7 +330,7 @@ export function BadgesPage() {
             <Field label="Animation">
               <Select value={style.animation} options={BADGE_ANIMATIONS.map((animation) => ({ value: animation.id, label: animation.name }))} onChange={(animation) => updateStyle({ animation: animation as typeof style.animation })} />
             </Field>
-            <Slider label="Badge size" value={style.size} min={24} max={80} suffix="px" onChange={(size) => updateStyle({ size })} />
+            <Slider label="Badge size" value={style.size} min={18} max={64} suffix="px" onChange={(size) => updateStyle({ size })} />
           </div>
         </div>
 

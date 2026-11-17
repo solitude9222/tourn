@@ -434,14 +434,18 @@ export function mountCursorEffects(
         ctx.fill();
       }
     } else if (mode === "ghost") {
-      ghostX += (mx + 20 - ghostX) * 0.1;
-      ghostY += (my + 20 - ghostY) * 0.1;
+      // Float the ghost a little farther to the lower-right of the pointer so
+      // it reads as a separate companion rather than part of the cursor.
+      const ghostOffsetX = 30;
+      const ghostOffsetY = 22;
+      ghostX += (mx + ghostOffsetX - ghostX) * 0.1;
+      ghostY += (my + ghostOffsetY - ghostY) * 0.1;
       ghostHistory.push({ x: ghostX, y: ghostY });
       if (ghostHistory.length > 18) ghostHistory.shift();
       const bob = Math.sin(now / 250) * 3;
       const size = 26 * S;
       const rgb = tint("255,255,255", trailCfg);
-      const tilt = Math.max(-0.35, Math.min(0.35, (mx + 20 - ghostX) * 0.004));
+      const tilt = Math.max(-0.35, Math.min(0.35, (mx + ghostOffsetX - ghostX) * 0.004));
       ([[0, 0.08], [6, 0.16], [12, 0.3]] as const).forEach(([index, alpha]) => {
         const point = ghostHistory[index];
         if (point) ghostShape(ctx, point.x, point.y + bob, size, alpha, rgb, 0);
@@ -641,7 +645,7 @@ export function mountCursorEffects(
     mx = x;
     my = y;
     if (points[0].x < 0) points.forEach((point) => { point.x = x; point.y = y; });
-    if (ghostX < 0) { ghostX = x; ghostY = y; }
+    if (ghostX < 0) { ghostX = x + 30; ghostY = y + 22; }
     if (orbitX < 0) { orbitX = x; orbitY = y; }
     if (skinX < 0) { skinX = x; skinY = y; }
     start();
