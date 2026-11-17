@@ -1584,6 +1584,71 @@
   cursor: default;
 }
 
+/* Opacity 0 is a transparent entry screen: the live profile stays visible
+   underneath, softened by the owner's entry blur. */
+.lkr-entry--clear {
+  -webkit-backdrop-filter: blur(var(--lkr-entry-blur, 0px));
+  backdrop-filter: blur(var(--lkr-entry-blur, 0px));
+}
+
+.lkr-entry--clear .lkr-entry-bg {
+  background: transparent;
+}
+
+.lkr-alias-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .34);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+}
+
+.lkr-alias-lock-card {
+  display: grid;
+  width: min(390px, 100%);
+  gap: 11px;
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 18px;
+  background: rgba(12, 12, 15, .82);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .45);
+  color: #f4f6fb;
+  text-align: left;
+}
+
+.lkr-alias-lock-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 10px;
+  color: #b4bffa;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.lkr-alias-lock-card h2 { margin: 0; font-size: 24px; letter-spacing: -.04em; }
+.lkr-alias-lock-card p { margin: 0; color: #a8b0bd; font-size: 12.5px; line-height: 1.6; }
+.lkr-alias-lock-card small { color: #858d9b; font-size: 10.5px; }
+.lkr-alias-lock-cta {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 3px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: #f2f5f7;
+  color: #0b0d10;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.lkr-alias-lock-cta:hover { background: #fff; }
+
 .lkr-entry-content {
   position: relative;
   z-index: 1;

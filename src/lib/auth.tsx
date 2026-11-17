@@ -23,6 +23,10 @@ export type Account = {
   uid?: number | null;
   username: string;
   alias?: string | null;
+  /** True after a Discord-derived alias was released; the dashboard gates on this. */
+  aliasRequired?: boolean;
+  /** When the automatic Discord-username alias was released. */
+  aliasResetAt?: string | null;
   /** Premium second claim — shown as swats.bio/<alias2>. */
   alias2?: string | null;
   /** Last primary-claim change — drives the 2-day cooldown. */
@@ -407,4 +411,9 @@ export function useAuth(): AuthValue {
   const value = useContext(AuthContext);
   if (!value) throw new Error("useAuth must be used inside <AuthProvider>");
   return value;
+}
+
+/** For standalone previews that render outside the app shell. */
+export function useOptionalAuth(): AuthValue | null {
+  return useContext(AuthContext);
 }

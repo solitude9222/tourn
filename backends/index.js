@@ -5,6 +5,7 @@ import { TRADE_SCHEMA, registerTradeRoutes } from "./trades.js";
 import { TEMPLATE_SCHEMA, registerTemplateRoutes } from "./templates.js";
 import { createDiscordAutomation, registerDiscordAutomation, DISCORD_AUTOMATION_SCHEMA } from "./discordAutomation.js";
 import { createProfileWebhooks, registerProfileWebhookRoutes, PROFILE_WEBHOOK_SCHEMA } from "./webhooks.js";
+import { aliasMatchesDiscord, releaseDiscordUsernameAlias, resetDiscordDerivedAliases } from "./discordAliases.js";
 /* ---------------------------------------------------------------------------
    tourn.lol backend — one Express app on Railway Postgres.
 
@@ -151,6 +152,9 @@ create table if not exists users (
   discord_id text unique,
   alias text unique,
   alias2 text unique,
+  alias_required boolean not null default false,
+  alias_reset_at timestamptz,
+  discord_username text,
   alias_updated_at timestamptz,
   alias2_updated_at timestamptz,
   premium boolean not null default false,
@@ -241,6 +245,9 @@ async function initDb() {
   // Claim cooldowns for databases created before the columns existed.
   await pool.query("alter table users add column if not exists alias_updated_at timestamptz");
   await pool.query("alter table users add column if not exists alias2_updated_at timestamptz");
+  await pool.query("alter table users add column if not exists alias_required boolean not null default false");
+  await pool.query("alter table users add column if not exists alias_reset_at timestamptz");
+  await pool.query("alter table users add column if not exists discord_username text");
   await pool.query(MARKET_SCHEMA);
   await pool.query(COMMERCE_SCHEMA);
   await pool.query(TRADE_SCHEMA);
@@ -349,6 +356,8 @@ function accountOf(row) {
     username: row.username,
     alias: row.alias ?? null,
     alias2: row.alias2 ?? null,
+    aliasRequired: Boolean(row.alias_required),
+    aliasResetAt: row.alias_reset_at ?? null,
     aliasUpdatedAt: row.alias_updated_at ?? null,
     alias2UpdatedAt: row.alias2_updated_at ?? null,
     email: row.email ?? null,
@@ -470,6 +479,7 @@ function publicAccountOf(row) {
     username: row.username,
     alias: row.alias ?? null,
     alias2: row.alias2 ?? null,
+    aliasRequired: Boolean(row.alias_required),
     avatarUrl: row.avatar_url ?? null,
     joinedAt: row.created_at,
     premium: Boolean(row.premium),
@@ -1335,8 +1345,8 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
     // rain effect (and the rest of the cosmetic plan) survives turning it off.
     const rainGift = await premiumRainEnabled();
     const inserted = await pool.query(
-      `insert into users (username, email, password_hash, is_owner, is_admin, premium, invited_by)
-       values ($1, $2, $3, $4, $5, $6, $7) returning *`,
+      `insert into users (username, email, password_hash, is_owner, is_admin, premium, invited_by, alias_required)
+       values ($1, $2, $3, $4, $5, $6, $7, true) returning *`,
       [
         username,
         email,
@@ -1628,8 +1638,8 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       // than dead-ending the person who just proved they own the mailbox.
       if (existing) {
         const adopted = await pool.query(
-          "update users set discord_id = $1, avatar_url = coalesce($2, avatar_url) where id = $3 returning *",
-          [discordId, avatar, existing.id],
+          "update users set discord_id = $1, avatar_url = coalesce($2, avatar_url), discord_username = $3 where id = $4 returning *",
+          [discordId, avatar, me.username, existing.id],
         );
         user = adopted.rows[0];
       }
@@ -1658,22 +1668,26 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       }
       const linked = await pool.query(
         `update users set discord_id = $1, avatar_url = coalesce($2, avatar_url),
-           is_owner = is_owner or $3, is_admin = is_admin or $4
-         where id = $5 returning *`,
-        [discordId, avatar, isOwner, isAdmin, target.id],
+           is_owner = is_owner or $3, is_admin = is_admin or $4, discord_username = $5
+         where id = $6 returning *`,
+        [discordId, avatar, isOwner, isAdmin, me.username, target.id],
       );
-      setSession(res, linked.rows[0]);
+      const linkedUser = await releaseDiscordUsernameAlias(linked.rows[0], me.username, {
+        pool,
+        sendDirectMessage: sendDiscordDm,
+      });
+      setSession(res, linkedUser);
       return res.redirect(
-        `${returnOrigin}/#/dashboard/settings?linked=discord&login=${encodeURIComponent(loginTicket(linked.rows[0]))}`,
+        `${returnOrigin}/#/dashboard/settings?linked=discord&login=${encodeURIComponent(loginTicket(linkedUser))}`,
       );
     }
 
     if (user) {
       const updated = await pool.query(
         `update users set discord_id = $1, avatar_url = coalesce($2, avatar_url),
-           is_owner = is_owner or $3, is_admin = is_admin or $4
-         where id = $5 returning *`,
-        [discordId, avatar, isOwner, isAdmin, user.id],
+           is_owner = is_owner or $3, is_admin = is_admin or $4, discord_username = $5
+         where id = $6 returning *`,
+        [discordId, avatar, isOwner, isAdmin, me.username, user.id],
       );
       user = updated.rows[0];
     } else {
@@ -1694,12 +1708,13 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       const username = await uniqueUsername(email ? email.split("@")[0] : "player");
       const rainGift = await premiumRainEnabled();
       const inserted = await pool.query(
-        `insert into users (username, email, discord_id, avatar_url, is_owner, is_admin, premium, invited_by)
-         values ($1, $2, $3, $4, $5, $6, $7, $8) returning *`,
+        `insert into users (username, email, discord_id, discord_username, avatar_url, is_owner, is_admin, premium, invited_by, alias_required)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, true) returning *`,
         [
           username,
           email,
           discordId,
+          me.username,
           avatar,
           isOwner,
           isAdmin,
@@ -1713,6 +1728,10 @@ app.get("/api/auth/discord/callback", async (req, res) => {
       }
     }
 
+    user = await releaseDiscordUsernameAlias(user, me.username, {
+      pool,
+      sendDirectMessage: sendDiscordDm,
+    });
     setSession(res, user);
     // The callback normally runs on the API host, where the cookie is useless
     // to the site; hand back a ticket the site trades for a first-party one.
@@ -1897,6 +1916,9 @@ app.post("/api/profile/alias", requireAuth, async (req, res) => {
     if (!user) return res.status(401).json({ error: "Sign in again." });
     const clean = cleanHandle(req.body?.alias);
     const next = clean || null;
+    if (clean && user.discord_username && aliasMatchesDiscord(clean, user.discord_username)) {
+      return res.status(400).json({ error: "That is your Discord username — choose a different alias." });
+    }
     if (next === (user.alias ?? null)) return res.json({ account: accountOf(user) });
     if (clean && !freeHandleValid(clean)) {
       // One character and symbols are stock, not a free choice: only the
@@ -1914,10 +1936,10 @@ app.post("/api/profile/alias", requireAuth, async (req, res) => {
       return cooldownResponse(res, "Your primary claim", user.alias_updated_at);
     }
     const { rows } = await pool.query(
-      `update users set alias = $1, alias_updated_at = now()
+      `update users set alias = $1, alias_required = $3, alias_updated_at = now()
        where id = $2 and (alias_updated_at is null or alias_updated_at <= now() - interval '2 days')
        returning *`,
-      [next, user.id],
+      [next, user.id, !next],
     );
     if (!rows[0]) {
       const fresh = await pool.query("select alias_updated_at from users where id = $1", [user.id]);
@@ -1947,6 +1969,9 @@ app.post("/api/profile/alias2", requireAuth, async (req, res) => {
       if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
       if (RESERVED.has(clean) || clean === user.username) {
         return res.status(400).json({ error: `"${clean}" is already taken.` });
+      }
+      if (user.discord_username && aliasMatchesDiscord(clean, user.discord_username)) {
+        return res.status(400).json({ error: "That is your Discord username — choose a different alias." });
       }
       if (await claimTaken(clean, user.id)) {
         return res.status(400).json({ error: `@${clean} is already claimed — try another.` });
@@ -2394,6 +2419,9 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
       }
       patch[field] = clean || null;
     }
+    if (Object.prototype.hasOwnProperty.call(req.body ?? {}, "alias")) {
+      patch.alias_required = !patch.alias;
+    }
 
     let views = null;
     if (req.body?.views !== undefined) {
@@ -2599,6 +2627,19 @@ initDb()
         `[tourn] frontend: ${[...FRONTEND_ORIGINS].join(", ")} · backend: ${BACKEND_URL}`,
       );
     });
+    if (DISCORD_BOT_TOKEN) {
+      void resetDiscordDerivedAliases({
+        pool,
+        readSetting,
+        writeSetting,
+        getDiscordUser: discordAutomation.discordUser,
+        sendDirectMessage: sendDiscordDm,
+      })
+        .then((result) => {
+          if (result.changed) profilePageCache.clear();
+        })
+        .catch((error) => console.error("[tourn] alias cleanup failed:", error.message));
+    }
   })
   .catch((error) => {
     console.error("[tourn] database init failed:", error.message);

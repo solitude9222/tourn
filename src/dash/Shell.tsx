@@ -13,6 +13,7 @@ import { TradeThread } from "./Trades";
 import { useDashTheme, useDashAccent, accentForeground } from "./theme";
 import { usePreference } from "./preferences";
 import { NAV, navHome } from "./nav";
+import { AliasRequiredGate } from "./AliasGate";
 
 type ShellTrade = {
   id: string;
@@ -649,6 +650,7 @@ export function Shell({
       ) : null}
 
       <Toasts />
+      <AliasRequiredGate />
     </div>
   );
 }

@@ -54,7 +54,7 @@ export async function fulfillUsername(pool, session) {
     if (item.checkout_id && item.checkout_id !== session.id) throw new Error('Username checkout mismatch.');
     if (item.owner_id) { await db.query('commit'); return; }
     await db.query('update username_inventory set owner_id=buyer_id, checkout_id=$2, acquired_at=now() where handle=$1', [item.handle,session.id]);
-    await db.query('update users set alias=$1 where id=$2', [item.handle, item.buyer_id]);
+    await db.query('update users set alias=$1,alias_required=false where id=$2', [item.handle, item.buyer_id]);
     await db.query('commit');
   } catch (error) { await db.query('rollback'); throw error; }
   finally { db.release(); }
@@ -221,12 +221,12 @@ export function registerUsernameMarket(app, { pool, stripe, requireAuth, require
       // The account's own name is never inventory: switching back to it means
       // clearing the alias, which is what the first row in Inventory offers.
       if (me && handle === String(me.username).toLowerCase()) {
-        await db.query('update users set alias=null where id=$1',[req.auth.sub]);
+        await db.query('update users set alias=null,alias_required=true where id=$1',[req.auth.sub]);
         await db.query('commit'); invalidate(); return res.json({ok:true});
       }
       const item = (await db.query('select * from username_inventory where handle=$1 for update',[handle])).rows[0];
       if (!item || item.owner_id !== req.auth.sub) throw fail(403,'You do not own this username.');
-      await db.query('update users set alias=$1 where id=$2',[item.handle,req.auth.sub]);
+      await db.query('update users set alias=$1,alias_required=false where id=$2',[item.handle,req.auth.sub]);
       await db.query('commit'); invalidate(); res.json({ok:true});
     } catch(error){await db.query('rollback');throw error;} finally{db.release();}
   }));

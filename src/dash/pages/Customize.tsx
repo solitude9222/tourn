@@ -785,7 +785,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           <div className="tw-split-col">
             <span className="tw-split-label">Sizes &amp; sliders</span>
             <Slider
-              label="Opacity"
+              label="Opacity — 0 shows your live page behind"
               value={entry.dim}
               min={0}
               max={100}

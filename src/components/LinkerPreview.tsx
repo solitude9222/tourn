@@ -3,7 +3,7 @@ import { DEFAULT_GALLERY, DEFAULT_PORTFOLIO } from "../lib/gallery";
 import {TECH_BY_ID,techIconUrl} from "../lib/techStack";
 import { useTilt } from "../lib/useTilt";
 import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import type { Account } from "../lib/auth";
+import { useOptionalAuth, type Account } from "../lib/auth";
 import { hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import type { WidgetStore } from "../lib/widgets";
@@ -123,7 +123,7 @@ export function EntryOverlay({
     <div
       className={`lkr-entry lkr-entry--${entry.animation} lkr-entry--${entry.align}${
         entry.imageMode === "background" && entry.imageUrl ? " lkr-entry--image-bg" : ""
-      }${leaving ? " is-leaving" : ""}${preview ? " lkr-entry--preview" : ""}`}
+      }${leaving ? " is-leaving" : ""}${preview ? " lkr-entry--preview" : ""}${entry.dim === 0 ? " lkr-entry--clear" : ""}`}
       data-layers={(entry.layers ?? ["text", "image", "background"]).join(" ")}
       role={preview ? undefined : "button"}
       tabIndex={preview ? -1 : 0}
@@ -186,6 +186,34 @@ export function EntryOverlay({
   );
 }
 
+function AliasRequiredOverlay({
+  account,
+  owner,
+}: {
+  account: Pick<Account, "alias" | "aliasRequired">;
+  owner: boolean;
+}) {
+  return (
+    <div className="lkr-alias-lock" role="dialog" aria-modal="true" aria-labelledby="lkr-alias-lock-title">
+      <div className="lkr-alias-lock-card">
+        <span className="lkr-alias-lock-mark" aria-hidden="true">@</span>
+        <h2 id="lkr-alias-lock-title">{owner ? "Set your alias" : "Profile setup in progress"}</h2>
+        <p>
+          {owner
+            ? "Your old handle was your Discord username, so it has been released. Pick the name people will see on your page."
+            : "This profile is being set up. Check back once the owner has chosen their alias."}
+        </p>
+        {owner ? (
+          <a className="lkr-alias-lock-cta" href="#/dashboard/settings">Set your alias</a>
+        ) : null}
+        {account.alias?.startsWith("user_") && owner ? (
+          <small>Temporary handle: @{account.alias}</small>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function PageSection({
   id,
   className = "",
@@ -224,7 +252,7 @@ export function LinkerPreview({
   /** Render the page as a preview: visible player, no playback. */
   preview = false,
 }: {
-  user: Pick<Account, "id" | "username" | "alias" | "avatarUrl">;
+  user: Pick<Account, "id" | "username" | "alias" | "aliasRequired" | "avatarUrl">;
   about: About;
   widgets: WidgetStore;
   badges?: BadgeStore;
@@ -244,6 +272,7 @@ export function LinkerPreview({
   /** Show the player but never start it — dashboard and demo previews. */
   preview?: boolean;
 }) {
+  const viewer = useOptionalAuth()?.user ?? null;
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const previewMode = preview || !interactive;
@@ -689,6 +718,7 @@ export function LinkerPreview({
       {hasTrack && assets.audio.muteButton && !previewMode ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
       <OverlayEffectLayer settings={assets.effects.overlay} />
       <CursorTrailLayer settings={assets.cursor} />
+      {user.aliasRequired && interactive ? <AliasRequiredOverlay account={user} owner={viewer?.id === user.id} /> : null}
       {entryOpen ? (
         <EntryOverlay
           about={about}

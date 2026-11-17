@@ -97,7 +97,7 @@ export async function redeemCommerceCode(db,code,userId){
   const owned=(await db.query('select owner_id from username_inventory where handle=$1 for update',[item.handle])).rows[0];
   if(owned.owner_id && owned.owner_id!==userId)throw fail(409,'This username is already owned. Contact support with your receipt.');
   await db.query('update username_inventory set owner_id=$2,acquired_at=coalesce(acquired_at,now()),listed=false where handle=$1',[item.handle,userId]);
-  await db.query('update users set alias=$1 where id=$2',[item.handle,userId]);
+  await db.query('update users set alias=$1,alias_required=false where id=$2',[item.handle,userId]);
  }
  await db.query('update commerce_codes set redeemed_by=$2,redeemed_at=now() where digest=$1',[item.digest,userId]);return {kind:item.kind,handle:item.handle};
 }
