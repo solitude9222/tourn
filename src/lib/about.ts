@@ -76,6 +76,8 @@ export type AboutMetadata = {
   shareDescription: string;
   /** Public image URL used for link previews. */
   shareImageUrl: string;
+  /** Generated card style used by the share-image composer. */
+  shareStyle: "hero" | "text";
   /** Browser chrome colour for the public page. */
   themeColor: string;
   /** Keep the page out of search-engine results. */
@@ -394,6 +396,7 @@ export const DEFAULT_METADATA: AboutMetadata = {
   shareTitle: "",
   shareDescription: "",
   shareImageUrl: "",
+  shareStyle: "hero",
   themeColor: "#0a0a0c",
   noIndex: false,
   faviconUrl: "",
@@ -628,6 +631,7 @@ function loadMetadata(input: unknown): AboutMetadata {
     shareTitle: textIn(raw.shareTitle, DEFAULT_METADATA.shareTitle, 100),
     shareDescription: textIn(raw.shareDescription, DEFAULT_METADATA.shareDescription, 300),
     shareImageUrl: textIn(raw.shareImageUrl, DEFAULT_METADATA.shareImageUrl, 1_500_000),
+    shareStyle: raw.shareStyle === "text" ? "text" : "hero",
     themeColor: validColor(raw.themeColor, DEFAULT_METADATA.themeColor),
     noIndex: boolIn(raw.noIndex, DEFAULT_METADATA.noIndex),
     joinFormat: oneOf(raw.joinFormat, ["relative", "us", "eu"] as const, "relative"),

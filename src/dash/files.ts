@@ -151,14 +151,17 @@ export async function bannerToDataUrl(file: File, width = 1200, height = 630, qu
   });
 }
 
-export async function uploadShareImage(file: File): Promise<string> {
-  const dataUrl = await bannerToDataUrl(file, 1200, 630, 0.9);
+export async function uploadImageDataUrl(dataUrl: string): Promise<string> {
   const result = await api<{ url: string }>("/api/media/image", {
     method: "POST",
     body: JSON.stringify({ dataUrl }),
   });
   if (!result.ok) throw new Error(result.error);
   return result.data.url;
+}
+
+export async function uploadShareImage(file: File): Promise<string> {
+  return uploadImageDataUrl(await bannerToDataUrl(file, 1200, 630, 0.9));
 }
 
 export async function copyText(value: string): Promise<boolean> {

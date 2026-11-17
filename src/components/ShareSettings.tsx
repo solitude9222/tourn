@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDash } from "../dash/context";
-import { copyText, imageToDataUrl, uploadShareImage } from "../dash/files";
+import { copyText, imageToDataUrl, uploadImageDataUrl, uploadShareImage } from "../dash/files";
+import { renderShareCard } from "../lib/shareCard";
 import {
   Button,
   Card,
@@ -20,6 +21,7 @@ export function PageMetadataSettings() {
   const { about, user, setAbout, notify } = useDash();
   const metadata = about.metadata;
   const [shareUploading, setShareUploading] = useState(false);
+  const [cardBusy, setCardBusy] = useState(false);
   const update = (patch: Partial<typeof metadata>) =>
     setAbout((current) => ({ ...current, metadata: { ...current.metadata, ...patch } }));
 
@@ -59,6 +61,31 @@ export function PageMetadataSettings() {
       notify("Preview image not added", error instanceof Error ? error.message : "The upload failed. Try again.");
     } finally {
       setShareUploading(false);
+    }
+  };
+
+  const generateCard = async () => {
+    setCardBusy(true);
+    try {
+      const dataUrl = await renderShareCard({
+        style: metadata.shareStyle,
+        title: metadata.shareTitle.trim(),
+        description: metadata.shareDescription.trim(),
+        name: displayName,
+        handle,
+        accent: metadata.themeColor,
+        avatarUrl: authorAvatar,
+        backgroundUrl: about.assets.background.imageUrl,
+        backgroundStyle: about.assets.background.style,
+        backgroundFrom: about.assets.background.from,
+        backgroundTo: about.assets.background.to,
+      });
+      update({ shareImageUrl: await uploadImageDataUrl(dataUrl) });
+      notify("Styled card generated", "The new image is live. Use a fresh link to refresh Discord's cache.");
+    } catch (error) {
+      notify("Card not generated", error instanceof Error ? error.message : "Try another image or upload one directly.");
+    } finally {
+      setCardBusy(false);
     }
   };
 
@@ -105,6 +132,31 @@ export function PageMetadataSettings() {
                   placeholder="A short line under the title."
                   onChange={(event) => update({ shareDescription: event.target.value })}
                 />
+              </Field>
+            </div>
+          </section>
+
+          <section className="tw-meta-section">
+            <div className="tw-meta-section-head">
+              <b>Card style</b>
+              <small>Generate a styled 1200×630 image from your profile. Discord shows images, not custom CSS.</small>
+            </div>
+            <div className="tw-form-grid">
+              <Field label="Layout" hint="Generate again after changing the style or text.">
+                <Select
+                  ariaLabel="Share card style"
+                  value={metadata.shareStyle}
+                  options={[
+                    { value: "hero", label: "Wide profile — background + centered pfp" },
+                    { value: "text", label: "Text box — small centered card" },
+                  ]}
+                  onChange={(shareStyle) => update({ shareStyle: shareStyle as "hero" | "text" })}
+                />
+              </Field>
+              <Field label="Build image" hint={cardBusy ? "Rendering and uploading…" : "Uses your background, or your pfp when the background is a video."}>
+                <Button disabled={cardBusy || shareUploading} onClick={() => void generateCard()}>
+                  {cardBusy ? "Generating…" : "Generate styled image"}
+                </Button>
               </Field>
             </div>
           </section>
