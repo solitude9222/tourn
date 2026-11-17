@@ -30,6 +30,22 @@ function absolute(origin, value) {
   return `${origin}${raw.startsWith("/") ? raw : `/${raw}`}`;
 }
 
+/** Crawlers need a public URL; uploaded data images are not fetchable. */
+function publicImage(origin, value) {
+  const raw = String(value ?? "").trim();
+  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `${origin}${raw.startsWith("/") ? raw : `/${raw}`}`;
+}
+
+function firstPublicImage(origin, ...values) {
+  for (const value of values) {
+    const image = publicImage(origin, value);
+    if (image) return image;
+  }
+  return `${origin}/logo.png`;
+}
+
 function meta(html, attr, key, content) {
   const pattern = new RegExp(`<meta\\s+${attr}="${key}"[^>]*>`, "i");
   const tag = `<meta ${attr}="${key}" content="${escapeHtml(content)}">`;
@@ -55,7 +71,7 @@ export function rewriteProfileHtml(html, { origin, account, profile }) {
     String(metadata.shareDescription ?? "").trim() ||
     String(about.bio ?? "").trim() ||
     `Check out ${displayName} on tourn.lol.`;
-  const image = absolute(origin, metadata.shareImageUrl || about.assets?.avatarUrl || account?.avatarUrl);
+  const image = firstPublicImage(origin, metadata.shareImageUrl, about.assets?.avatarUrl, account?.avatarUrl);
   const shareLayout = metadata.shareLayout === "compact" ? "summary" : "summary_large_image";
   const faviconRaw = String(metadata.faviconUrl ?? "").trim() || about.assets?.avatarUrl || account?.avatarUrl;
   const favicon = /^https?:\/\//i.test(faviconRaw) || String(faviconRaw).startsWith("data:")
