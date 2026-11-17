@@ -342,6 +342,11 @@ export function LinkerPreview({
     .filter(Boolean)
     .join(" ");
 
+  const customCursorUrl = assets.cursor.style === "custom"
+    ? (assets.cursor.imageUrl.trim() || assets.cursor.customCursorUrls[0]?.trim() || "")
+    : "";
+  const customCursorHotspot = `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`;
+
   const style = {
     "--lkr-bg-filter": bgFilter || "none",
     "--pv-accent": design.colors.accent,
@@ -393,11 +398,11 @@ export function LinkerPreview({
     "--lkr-bg-saturation": assets.background.saturation,
     "--lkr-bg-contrast": assets.background.contrast,
     "--lkr-bg-brightness": assets.background.brightness,
-    cursor: assets.cursor.style === "custom" && assets.cursor.imageUrl.trim()
-      ? `url("${assets.cursor.imageUrl.trim().replace(/"/g, '\\"')}") 4 4, auto`
+    cursor: customCursorUrl
+      ? `url("${customCursorUrl.replace(/"/g, '\\"')}") ${customCursorHotspot}, auto`
       : assets.cursor.style !== "system" && assets.cursor.style !== "custom" ? "none" : undefined,
     ...(assets.cursor.pointerImageUrl.trim()
-      ? { "--lkr-pointer-cursor": `url(${assets.cursor.pointerImageUrl.trim()}) 4 4, pointer` }
+      ? { "--lkr-pointer-cursor": `url("${assets.cursor.pointerImageUrl.trim().replace(/"/g, '\\"')}") ${customCursorHotspot}, pointer` }
       : {}),
   } as CSSProperties;
 

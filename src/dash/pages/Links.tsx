@@ -8,7 +8,7 @@ import {SkillPicker} from "../SkillPicker";
    --------------------------------------------------------------------------- */
 
 import { useState } from "react";
-import { ICON_SIZES, createLink, linkIconUrl, type LinkInstance } from "../../lib/links";
+import { ICON_GAPS, ICON_SIZES, createLink, linkIconUrl, type LinkInstance } from "../../lib/links";
 import { PLATFORMS, getPlatform, placeholderFor } from "../../lib/linkPlatforms";
 import { PlatformIcon } from "../../components/PlatformIcons";
 import { LinkGlyph } from "../../components/LinkGlyph";
@@ -365,6 +365,14 @@ export function LinksPage() {
               max={ICON_SIZES.max}
               suffix="px"
               onChange={(value) => updateDesign({ iconSize: value })}
+            />
+            <Slider
+              label="Icon spacing"
+              value={links.design.iconGap}
+              min={ICON_GAPS.min}
+              max={ICON_GAPS.max}
+              suffix="px"
+              onChange={(value) => updateDesign({ iconGap: value })}
             />
             {links.design.glow ? (
               <Slider

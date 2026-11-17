@@ -547,6 +547,38 @@ export function WidgetsPage() {
             </div>
           </div>
 
+          <div className="tw-widget-avatar-controls">
+            <div className="tw-widget-avatar-controls-head">
+              <b>Widget avatars</b>
+              <small>Choose the shape and framing of every platform picture.</small>
+            </div>
+            <div className="tw-form-grid">
+              <Field label="Avatar shape">
+                <Select
+                  value={design.avatarShape}
+                  options={[
+                    { value: "circle", label: "Circle" },
+                    { value: "rounded", label: "Rounded" },
+                    { value: "squircle", label: "Squircle" },
+                    { value: "square", label: "Square" },
+                    { value: "hexagon", label: "Hexagon" },
+                  ]}
+                  onChange={(avatarShape) => setDesign({ avatarShape: avatarShape as WidgetDesign["avatarShape"] })}
+                />
+              </Field>
+              <Slider label="Avatar size" value={design.avatarSize} min={28} max={112} suffix="px" onChange={(avatarSize) => setDesign({ avatarSize })} />
+              <Slider label="Avatar border" value={design.avatarBorderWidth} min={0} max={6} suffix="px" onChange={(avatarBorderWidth) => setDesign({ avatarBorderWidth })} />
+              <ColorField label="Avatar border colour" value={design.avatarBorderColor} onChange={(avatarBorderColor) => setDesign({ avatarBorderColor })} />
+              <div className="tw-inline-toggle">
+                <span>
+                  <b>Avatar shadow</b>
+                  <small>A soft drop shadow under each picture.</small>
+                </span>
+                <Toggle checked={design.avatarShadow} onChange={(avatarShadow) => setDesign({ avatarShadow })} label="Avatar shadow" />
+              </div>
+            </div>
+          </div>
+
           <aside className="tw-widget-preview tw-widget-preview--panel" aria-label="Widget preview">
             <div className="tw-widget-preview-head">
               <div>

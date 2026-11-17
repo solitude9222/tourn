@@ -118,6 +118,10 @@ export function BadgeRow({
   const rowStyle = {
     "--badge-row-bg": bareShelf ? "transparent" : hexToRgba(style.rowBackground, style.rowOpacity),
     "--badge-row-border": bareShelf ? "transparent" : hexToRgba(style.rowBorderColor, style.rowBorderOpacity),
+    "--badge-row-border-width": `${style.rowBorderWidth}px`,
+    "--badge-row-shadow": bareShelf ? "transparent" : hexToRgba(style.rowShadowColor, style.rowShadowOpacity),
+    "--badge-row-shadow-blur": `${style.rowShadowBlur}px`,
+    "--badge-row-offset": `${style.rowOffsetY}px`,
     "--badge-row-radius": `${style.rowRadius}px`,
     "--badge-row-blur": bareShelf ? "0px" : `${style.rowBlur}px`,
     "--badge-row-pad": bareShelf ? "0px" : `${style.rowPadding}px`,

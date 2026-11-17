@@ -62,7 +62,12 @@ export function MediaCard() {
         cursor: {
           ...assets.cursor,
           style: "custom",
-          ...(pointer ? { pointerImageUrl: url } : { imageUrl: url }),
+          ...(pointer
+            ? { pointerImageUrl: url }
+            : {
+                imageUrl: url,
+                customCursorUrls: [url, ...assets.cursor.customCursorUrls.filter((item) => item !== url)].slice(0, 8),
+              }),
         },
       });
       notify("Cursor", pointer ? "Pointer cursor set." : "Default cursor set.");
@@ -73,8 +78,9 @@ export function MediaCard() {
 
   const avatar = assets.avatarUrl.trim();
   const backgroundImage = assets.background.imageUrl.trim();
-  const cursorUrl = assets.cursor.imageUrl.trim();
+  const cursorUrl = assets.cursor.imageUrl.trim() || assets.cursor.customCursorUrls[0]?.trim() || "";
   const pointerUrl = assets.cursor.pointerImageUrl.trim();
+  const cursorHotspot = `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`;
   const initial = (about.displayName.trim() || "?").slice(0, 1).toUpperCase();
 
   return (
@@ -136,7 +142,7 @@ export function MediaCard() {
               type="button"
               className="tw-media-cursor"
               onClick={() => cursorInput.current?.click()}
-              style={{ cursor: cursorUrl ? `url("${cursorUrl}") 4 4, auto` : "default" }}
+              style={{ cursor: cursorUrl ? `url("${cursorUrl}") ${cursorHotspot}, auto` : "default" }}
               aria-label="Upload default cursor"
             >
               {cursorUrl ? <img src={cursorUrl} alt="" /> : <span className="tw-cursor-glyph" aria-hidden="true">↖</span>}
@@ -146,7 +152,7 @@ export function MediaCard() {
               type="button"
               className="tw-media-cursor"
               onClick={() => pointerInput.current?.click()}
-              style={{ cursor: pointerUrl ? `url("${pointerUrl}") 4 4, pointer` : "pointer" }}
+              style={{ cursor: pointerUrl ? `url("${pointerUrl}") ${cursorHotspot}, pointer` : "pointer" }}
               aria-label="Upload pointer cursor"
             >
               {pointerUrl ? <img src={pointerUrl} alt="" /> : <span className="tw-cursor-glyph tw-cursor-glyph--pointer" aria-hidden="true">↗</span>}

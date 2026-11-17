@@ -47,6 +47,11 @@ export type BadgeStyle = {
   rowOpacity: number; // 0–1
   rowBorderColor: string;
   rowBorderOpacity: number; // 0–1
+  rowBorderWidth: number; // px
+  rowShadowColor: string;
+  rowShadowOpacity: number; // 0–1
+  rowShadowBlur: number; // px
+  rowOffsetY: number; // px
   rowRadius: number; // px
   rowBlur: number; // px
   rowPadding: number; // px
@@ -85,6 +90,11 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   rowOpacity: 0.07,
   rowBorderColor: "#ffffff",
   rowBorderOpacity: 0.12,
+  rowBorderWidth: 1,
+  rowShadowColor: "#000000",
+  rowShadowOpacity: 0.32,
+  rowShadowBlur: 18,
+  rowOffsetY: 0,
   rowRadius: 999,
   rowBlur: 6,
   rowPadding: 7,
@@ -333,6 +343,11 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
         rowOpacity: clamp(style.rowOpacity, DEFAULT_BADGE_STYLE.rowOpacity, 0, 1),
         rowBorderColor: hex(style.rowBorderColor, DEFAULT_BADGE_STYLE.rowBorderColor),
         rowBorderOpacity: clamp(style.rowBorderOpacity, DEFAULT_BADGE_STYLE.rowBorderOpacity, 0, 1),
+        rowBorderWidth: clamp(style.rowBorderWidth, DEFAULT_BADGE_STYLE.rowBorderWidth, 0, 6),
+        rowShadowColor: hex(style.rowShadowColor, DEFAULT_BADGE_STYLE.rowShadowColor),
+        rowShadowOpacity: clamp(style.rowShadowOpacity, DEFAULT_BADGE_STYLE.rowShadowOpacity, 0, 1),
+        rowShadowBlur: clamp(style.rowShadowBlur, DEFAULT_BADGE_STYLE.rowShadowBlur, 0, 48),
+        rowOffsetY: clamp(style.rowOffsetY, DEFAULT_BADGE_STYLE.rowOffsetY, -24, 24),
         rowRadius: clamp(style.rowRadius, DEFAULT_BADGE_STYLE.rowRadius, 0, 999),
         rowBlur: clamp(style.rowBlur, DEFAULT_BADGE_STYLE.rowBlur, 0, 30),
         rowPadding: clamp(style.rowPadding, DEFAULT_BADGE_STYLE.rowPadding, 0, 18),

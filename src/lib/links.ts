@@ -35,6 +35,8 @@ export type LinkDesign = {
   glowIntensity: number;
   /** Icon button size in px. */
   iconSize: number;
+  /** Space between link icons in px. */
+  iconGap: number;
 };
 
 export type LinkStore = {
@@ -49,9 +51,11 @@ export const DEFAULT_LINK_DESIGN: LinkDesign = {
   glowIntensity: 45,
   // Sized for the reference card: 40px icons on a 726px-wide card.
   iconSize: 40,
+  iconGap: 20,
 };
 
-export const ICON_SIZES = { min: 22, max: 56 } as const;
+export const ICON_SIZES = { min: 22, max: 160 } as const;
+export const ICON_GAPS = { min: 0, max: 48 } as const;
 
 export const EMPTY_LINK_STORE: LinkStore = {
   links: [],
@@ -170,6 +174,7 @@ export function normalizeLinkStore(input: unknown): LinkStore {
           colorOrInherit(d.glowColor) || DEFAULT_LINK_DESIGN.glowColor,
         glowIntensity: clamp(d.glowIntensity, DEFAULT_LINK_DESIGN.glowIntensity, 0, 100),
         iconSize: clamp(d.iconSize, DEFAULT_LINK_DESIGN.iconSize, ICON_SIZES.min, ICON_SIZES.max),
+        iconGap: clamp(d.iconGap, DEFAULT_LINK_DESIGN.iconGap, ICON_GAPS.min, ICON_GAPS.max),
       },
     };
   } catch {

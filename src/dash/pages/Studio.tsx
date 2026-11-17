@@ -2,15 +2,18 @@ import { useDash } from "../context";
 import { ProfileMedia } from "../ProfileMedia";
 import { DecorationsPanel } from "../DecorationsPanel";
 import { AccountProfilePage } from "./Account";
-import { Button, Card, CardHead, ColorField, Field, Select, TextInput, Textarea, Toggle } from "../ui";
+import { Button, Card, CardHead, ColorField, Field, FileUpload, Select, TextInput, Textarea, Toggle } from "../ui";
 import { ONEKO_CATS } from "../../lib/oneko";
+import { FontPicker } from "../../components/FontPicker";
+import { fileToDataUrl } from "../files";
 
 export function AppearanceStudioPage() {
-  const { about, setAbout } = useDash();
+  const { about, setAbout, notify } = useDash();
   return <div className="tw-studio-page">
     <ProfileMedia />
     <details className="tw-advanced tw-media-advanced"><summary>Background, banner and image settings</summary><AccountProfilePage section="artwork" /></details>
     <DecorationsPanel />
+    <Card><CardHead icon="palette" title="Font" subtitle="Choose the profile typeface, or upload your own font file." /><div className="tw-form-grid"><FontPicker label="Profile font" value={about.design.font} onChange={(font) => setAbout(current => ({ ...current, design: { ...current.design, font } }))} /><Field label="Custom font file" hint="Upload your own WOFF, WOFF2, TTF or OTF file under 500 KB."><FileUpload aria-label="Custom profile font" accept=".woff,.woff2,.ttf,.otf" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 500_000 || !/\.(woff2?|ttf|otf)$/i.test(file.name)) { notify("Font", "Choose a font file under 500 KB."); return; } const customFontUrl = await fileToDataUrl(file); setAbout(current => ({ ...current, design: { ...current.design, customFontUrl } })); notify("Font", "Custom font added. Save to publish it."); }} />{about.design.customFontUrl ? <Button onClick={() => setAbout(current => ({ ...current, design: { ...current.design, customFontUrl: "" } }))}>Remove custom font</Button> : null}</Field></div></Card>
     <Card><CardHead icon="sparkles" title="Oneko" subtitle="A small companion that follows your pointer on the public page." /><div className="tw-form-grid"><div className="tw-inline-toggle"><span><b>Enable Oneko</b><small>Respects reduced-motion preferences.</small></span><Toggle label="Enable Oneko" checked={Boolean(about.design.oneko)} onChange={oneko => setAbout(current => ({ ...current, design: { ...current.design, oneko } }))} /></div><Field label="Companion color"><Select value={about.design.onekoCat || "classic"} options={ONEKO_CATS.map(cat => ({ value: cat.id, label: cat.label }))} onChange={onekoCat => setAbout(current => ({ ...current, design: { ...current.design, onekoCat: onekoCat as typeof current.design.onekoCat } }))} /></Field></div></Card>
   </div>;
 }

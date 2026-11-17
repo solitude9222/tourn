@@ -44,6 +44,7 @@ export function ProfileLinks({
 
   const rowStyle = {
     "--lnk-size": `${design.iconSize}px`,
+    "--lnk-gap": `${design.iconGap}px`,
     "--lnk-glow": design.glowColor,
     "--lnk-glow-strength": design.glowIntensity / 100,
     "--lnk-colour": design.iconColor || undefined,

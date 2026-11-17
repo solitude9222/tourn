@@ -247,6 +247,11 @@ export type CursorSettings = {
   imageUrl: string;
   /** The clickable (pointer) cursor, uploaded on its own. */
   pointerImageUrl: string;
+  /** Extra uploaded cursors, used by the multi-cursor trail and as fallbacks. */
+  customCursorUrls: string[];
+  /** Hotspot offset for uploaded cursors, in image pixels. */
+  hotspotX: number;
+  hotspotY: number;
 };
 
 export type BackgroundSettings = {
@@ -451,6 +456,9 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     clickSettings: motionMap(CLICK_EFFECTS),
     imageUrl: "",
     pointerImageUrl: "",
+    customCursorUrls: [],
+    hotspotX: 0,
+    hotspotY: 0,
   },
   background: {
     style: "solid",
@@ -726,7 +734,13 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
   const text = (effects.text ?? {}) as Partial<Record<TextEffectTarget, TextEffectSettings>>;
   // Uploads are stored as compressed data URLs, so this field is no longer
   // limited to the length of a normal https:// URL.
-  const cursorImage = textIn(cursor.imageUrl, "", 250_000);
+  const cursorImage = textIn(cursor.imageUrl, "", 750_000);
+  const cursorSet = Array.isArray(cursor.customCursorUrls)
+    ? cursor.customCursorUrls
+        .filter((url): url is string => typeof url === "string" && Boolean(url.trim()))
+        .slice(0, 8)
+        .map((url) => url.slice(0, 750_000))
+    : [];
 
   return {
     interactions: {
@@ -759,7 +773,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
     cursor: (() => {
       const rawStyle = String(cursor.style ?? "");
       const style: CursorStyle = rawStyle === "custom"
-        ? (cursorImage ? "custom" : "system")
+        ? (cursorImage || cursorSet.length ? "custom" : "system")
         : rawStyle === "default" ? "system"
         : rawStyle === "glow" ? "dotRing"
         : choiceIn(rawStyle, ["system", "dot", "ring", "dotRing", "crosshair"] as const, "system");
@@ -790,8 +804,11 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
         trailSettings,
         click,
         clickSettings,
-        imageUrl: cursorImage,
+        imageUrl: cursorImage || cursorSet[0] || "",
         pointerImageUrl: textIn(cursor.pointerImageUrl, "", 750_000),
+        customCursorUrls: cursorSet,
+        hotspotX: numberIn(cursor.hotspotX, DEFAULT_PROFILE_ASSETS.cursor.hotspotX, 0, 64),
+        hotspotY: numberIn(cursor.hotspotY, DEFAULT_PROFILE_ASSETS.cursor.hotspotY, 0, 64),
       };
     })(),
     background: {

@@ -420,16 +420,16 @@ export function LayoutPage({
 
             <div className="tw-inline-toggle tw-about-projects-toggle"><span><b>Show projects on this page</b><small>Repeat your project cards under the writing.</small></span><Toggle label="Show projects on the About slide" checked={design.aboutSlide.showProjects === true} onChange={showProjects => updateDesign({ aboutSlide: { ...design.aboutSlide, showProjects } })} /></div>
 
-            <details className="tw-tag-drawer">
-              <summary>
+            <div className="tw-tag-drawer tw-tag-drawer--open">
+              <div className="tw-tag-drawer-head">
                 <b>Speciality tags</b>
                 <small>{design.aboutSlide.tags.length ? `${design.aboutSlide.tags.length} selected` : "Pick the skills this is about"}</small>
-              </summary>
+              </div>
             <SkillPicker
               value={design.aboutSlide.tags}
-              onChange={(tags) => updateDesign({ aboutSlide: { ...design.aboutSlide, tags: tags.slice(0, 40) } })}
+              onChange={(tags) => updateDesign({ aboutSlide: { ...design.aboutSlide, tags: tags.slice(0, 150) } })}
             />
-            </details>
+            </div>
           </details>
         ) : null}
 

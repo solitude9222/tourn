@@ -244,6 +244,10 @@ function WidgetCardSurface({
     "--wg-brand": platform.color,
     "--wg-edge": design.outlineColor,
     "--wg-edge-speed": `${design.outlineSpeed || 4}s`,
+    "--wg-avatar-size": `${design.avatarSize}px`,
+    "--wg-avatar-border": `${design.avatarBorderWidth}px`,
+    "--wg-avatar-border-color": design.avatarBorderColor,
+    "--wg-avatar-shadow": design.avatarShadow ? "0 6px 18px rgba(0, 0, 0, 0.32)" : "none",
   } as CSSProperties;
 
   if (platform.id === "timezone") {
@@ -281,7 +285,7 @@ function WidgetCardSurface({
       }
       onPointerMove={tilt > 0 ? cardTilt.onPointerMove : undefined}
       onPointerLeave={tilt > 0 ? cardTilt.onPointerLeave : undefined}
-      className={`widget-card${tilt > 0 ? " has-tilt" : ""} widget-card--bg-${background}${hasArt ? " has-art" : ""}${
+      className={`widget-card wg-avatar-${design.avatarShape}${tilt > 0 ? " has-tilt" : ""} widget-card--bg-${background}${hasArt ? " has-art" : ""}${
         live?.status ? ` is-${live.status}` : ""
       }${loading && !live ? " is-loading" : ""}${error ? " has-error" : ""}${
         bare ? " is-bare" : ""}${preview ? " widget-card--preview" : ""}${

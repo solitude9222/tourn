@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { SKILL_CATEGORIES, TECH_BY_ID, TECH_STACK, techIconUrl, type SkillCategory } from "../lib/techStack";
 
-const MAX_SKILLS = 100;
+const MAX_SKILLS = 150;
 type SortMode = "category" | "az" | "selected";
 type CategoryFilter = "All" | SkillCategory;
 
@@ -62,8 +62,8 @@ export function SkillPicker({ value, onChange }: { value: string[]; onChange: (i
 
   return (
     <div className="tw-skills">
-      <details className="tw-tech-picker">
-        <summary>
+      <div className="tw-tech-picker is-open">
+        <div className="tw-skill-panel-head">
           <span>
             <b>{selected.length ? `${selected.length} skills selected` : "Choose skills"}</b>
             <small>
@@ -72,8 +72,8 @@ export function SkillPicker({ value, onChange }: { value: string[]; onChange: (i
                 : `${TECH_STACK.length} languages, tools and platforms`}
             </small>
           </span>
-          <span className="tw-tech-summary-action">{selected.length ? "Edit" : "Browse"}</span>
-        </summary>
+          <span className="tw-tech-summary-action">Always open</span>
+        </div>
 
         <div className="tw-skill-tools">
           <label className="tw-skill-search">
@@ -172,7 +172,7 @@ export function SkillPicker({ value, onChange }: { value: string[]; onChange: (i
             ? `You have all ${MAX_SKILLS} skill slots filled. Remove one to add another.`
             : `${selected.length} of ${MAX_SKILLS} selected · shown on your public Skills section.`}
         </p>
-      </details>
+      </div>
     </div>
   );
 }

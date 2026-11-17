@@ -156,6 +156,18 @@ export function mountCursorEffects(
   const clickCfg = settings.clickSettings[settings.click] ?? DEFAULT_CURSOR_MOTION;
   const chars = Array.from(settings.trailText.trim());
   const skin = settings.style;
+  // Uploaded cursors are shared by the trailing-cursor effect, so a custom
+  // cursor never falls back to eight identical white arrows.
+  const cursorArt = [...new Set([
+    ...(settings.style === "custom" ? [settings.imageUrl] : []),
+    ...settings.customCursorUrls,
+  ].map((url) => url.trim()).filter(Boolean))]
+    .slice(0, 8)
+    .map((url) => {
+      const image = new Image();
+      image.src = url;
+      return image;
+    });
 
   let width = 1;
   let height = 1;
@@ -373,7 +385,20 @@ export function mountCursorEffects(
         points[i].y += (points[i - 1].y - points[i].y) * 0.3;
       }
       const fill = trailCfg.color || trailCfg.rainbow ? `rgb(${trailColor})` : "#fff";
-      for (let i = n - 1; i >= 1; i--) arrow(ctx, points[i].x, points[i].y, S, (1 - i / n) * 0.75, fill);
+      for (let i = n - 1; i >= 1; i--) {
+        const alpha = (1 - i / n) * 0.75;
+        const art = cursorArt.length ? cursorArt[(n - i) % cursorArt.length] : null;
+        if (art?.complete && art.naturalWidth) {
+          const size = 22 * S;
+          const ratio = art.naturalHeight / art.naturalWidth || 1;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(art, points[i].x, points[i].y, size, size * ratio);
+          ctx.restore();
+        } else {
+          arrow(ctx, points[i].x, points[i].y, S, alpha, fill);
+        }
+      }
     } else if (mode === "tracer") {
       if (mx > 0) history.push({ x: mx, y: my });
       const maxLength = Math.max(6, Math.round(40 * trailCfg.life));

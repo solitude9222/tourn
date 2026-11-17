@@ -94,3 +94,86 @@
 /* The live pointer preview needs to hear the pointer, while clicks still bubble
    to the selector button underneath. */
 .fx-choice > .fx-tile-preview .fx-pointer-demo.is-live { pointer-events:auto; }
+
+/* Multi-cursor set: the uploaded cursors used by the trailing-cursor effect. */
+.tw-cursor-set {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0b0b0e;
+}
+
+.tw-cursor-set > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tw-cursor-set b {
+  color: var(--title);
+  font-size: 11px;
+}
+
+.tw-cursor-set small {
+  color: var(--sub);
+  font-size: 10px;
+}
+
+.tw-cursor-set-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tw-cursor-set-item {
+  position: relative;
+  display: block;
+  width: 46px;
+  height: 46px;
+}
+
+.tw-cursor-set-item > button:first-child {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  padding: 7px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #121216;
+  cursor: pointer;
+}
+
+.tw-cursor-set-item > button:first-child.is-on {
+  border-color: var(--accent, #ff8f92);
+  box-shadow: 0 0 0 1px var(--accent, #ff8f92);
+}
+
+.tw-cursor-set-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.tw-cursor-set-remove {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #3a2527;
+  border-radius: 999px;
+  background: #1a1113;
+  color: #ffb3b5;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}

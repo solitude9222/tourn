@@ -340,6 +340,11 @@ export function BadgesPage() {
             <Slider label="Shelf opacity" value={Math.round(style.rowOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowOpacity) => updateStyle({ rowOpacity: rowOpacity / 100 })} />
             <ColorField label="Border colour" value={style.rowBorderColor} onChange={(rowBorderColor) => updateStyle({ rowBorderColor })} />
             <Slider label="Border opacity" value={Math.round(style.rowBorderOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowBorderOpacity) => updateStyle({ rowBorderOpacity: rowBorderOpacity / 100 })} />
+            <Slider label="Border width" value={style.rowBorderWidth} min={0} max={6} suffix="px" onChange={(rowBorderWidth) => updateStyle({ rowBorderWidth })} />
+            <ColorField label="Shelf shadow" value={style.rowShadowColor} onChange={(rowShadowColor) => updateStyle({ rowShadowColor })} />
+            <Slider label="Shadow opacity" value={Math.round(style.rowShadowOpacity * 100)} min={0} max={100} suffix="%" onChange={(rowShadowOpacity) => updateStyle({ rowShadowOpacity: rowShadowOpacity / 100 })} />
+            <Slider label="Shadow blur" value={style.rowShadowBlur} min={0} max={48} suffix="px" onChange={(rowShadowBlur) => updateStyle({ rowShadowBlur })} />
+            <Slider label="Shelf offset" value={style.rowOffsetY} min={-24} max={24} suffix="px" onChange={(rowOffsetY) => updateStyle({ rowOffsetY })} />
             <Slider label="Corner radius" value={style.rowRadius} min={0} max={999} suffix="px" onChange={(rowRadius) => updateStyle({ rowRadius })} />
             <Slider label="Backdrop blur" value={style.rowBlur} min={0} max={30} suffix="px" onChange={(rowBlur) => updateStyle({ rowBlur })} />
             <Slider label="Shelf padding" value={style.rowPadding} min={0} max={18} suffix="px" onChange={(rowPadding) => updateStyle({ rowPadding })} />

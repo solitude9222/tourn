@@ -153,6 +153,14 @@ export type WidgetDesign = {
   outlineSpeed: number;
   /** Lift the card a pixel on hover. */
   hoverLift: boolean;
+  /** Shape of the platform avatar on every widget. */
+  avatarShape: "circle" | "rounded" | "squircle" | "square" | "hexagon";
+  /** Avatar size in px. */
+  avatarSize: number;
+  avatarBorderWidth: number;
+  avatarBorderColor: string;
+  /** Soft shadow under the avatar. */
+  avatarShadow: boolean;
 };
 
 export type WidgetStore = {
@@ -176,6 +184,11 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   gap: 10,
   showMeta: true,
   showBadges: true,
+  avatarShape: "circle",
+  avatarSize: 56,
+  avatarBorderWidth: 1,
+  avatarBorderColor: "#ffffff",
+  avatarShadow: true,
   outlineEffect: "none",
   outlineColor: "#ff8f92",
   outlineSpeed: 4,
@@ -981,6 +994,13 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
           : DEFAULT_WIDGET_DESIGN.outlineEffect,
         outlineColor: color(rawDesign.outlineColor, DEFAULT_WIDGET_DESIGN.outlineColor),
         outlineSpeed: clamp(rawDesign.outlineSpeed, DEFAULT_WIDGET_DESIGN.outlineSpeed, 1, 12),
+        avatarShape: (["circle", "rounded", "squircle", "square", "hexagon"] as const).includes(rawDesign.avatarShape as WidgetDesign["avatarShape"])
+          ? rawDesign.avatarShape as WidgetDesign["avatarShape"]
+          : DEFAULT_WIDGET_DESIGN.avatarShape,
+        avatarSize: clamp(rawDesign.avatarSize, DEFAULT_WIDGET_DESIGN.avatarSize, 28, 112),
+        avatarBorderWidth: clamp(rawDesign.avatarBorderWidth, DEFAULT_WIDGET_DESIGN.avatarBorderWidth, 0, 6),
+        avatarBorderColor: color(rawDesign.avatarBorderColor, DEFAULT_WIDGET_DESIGN.avatarBorderColor),
+        avatarShadow: typeof rawDesign.avatarShadow === "boolean" ? rawDesign.avatarShadow : DEFAULT_WIDGET_DESIGN.avatarShadow,
         hoverLift: rawDesign.hoverLift !== false,
       },
     };

@@ -6,7 +6,7 @@ import { VIDEO_MAX_BYTES, uploadVideoFile } from "../lib/videoUpload";
 import { AudioSettingsCard } from "./pages/Customize";
 import { Button, Card, CardHead, Icon, Modal, Slider, Toggle } from "./ui";
 
-type MediaKind = "avatar" | "background" | "cursor" | "pointer";
+type MediaKind = "avatar" | "background" | "cursor" | "pointer" | "cursors";
 export function ProfileMedia() {
   const { about, user, setAbout, go, notify, isPremium } = useDash();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -22,12 +22,40 @@ export function ProfileMedia() {
     setAccept(kind === "background" ? "image/*,video/mp4,video/webm,video/quicktime" : "image/*");
     window.setTimeout(() => fileInput.current?.click(), 0);
   };
-  const upload = async (file?: File) => {
+  const upload = async (files?: FileList) => {
+    const file = files?.[0];
     if (!file) return;
     const kind = kindRef.current;
     setBusy(kind);
     setProgress(null);
     try {
+      if (kind === "cursors") {
+        const picked = Array.from(files ?? []).slice(0, 8);
+        const urls: string[] = [];
+        for (const image of picked) {
+          if (!image.type.startsWith("image/") || image.size > 12_000_000) continue;
+          const url = await imageToDataUrl(image, 128, 128);
+          if (url.length <= 700_000) urls.push(url);
+        }
+        if (!urls.length) throw new Error("Choose PNG, JPG, WebP or GIF cursor images under 12 MB.");
+        setAbout(current => {
+          const merged = [...urls, ...current.assets.cursor.customCursorUrls].slice(0, 8);
+          return {
+            ...current,
+            assets: {
+              ...current.assets,
+              cursor: {
+                ...current.assets.cursor,
+                style: "custom",
+                imageUrl: merged[0] ?? "",
+                customCursorUrls: merged,
+              },
+            },
+          };
+        });
+        notify("Cursor set updated", `${urls.length} cursor${urls.length === 1 ? "" : "s"} added.`);
+        return;
+      }
       if (kind === "background" && file.type.startsWith("video/")) {
         const cap = isPremium ? VIDEO_MAX_BYTES : 4_000_000;
         if (file.size > cap) {
@@ -56,7 +84,7 @@ export function ProfileMedia() {
       setAbout(current => ({ ...current, assets: { ...current.assets,
         ...(kind === "avatar" ? { avatarUrl: url } : {}),
         ...(kind === "background" ? { background: { ...current.assets.background, style: "image", imageUrl: url } } : {}),
-        ...(kind === "cursor" || kind === "pointer" ? { cursor: { ...current.assets.cursor, ...(kind === "cursor" ? { style: "custom", imageUrl: url } : { pointerImageUrl: url }) } } : {}),
+        ...(kind === "cursor" || kind === "pointer" ? { cursor: { ...current.assets.cursor, ...(kind === "cursor" ? { style: "custom", imageUrl: url, customCursorUrls: [url, ...current.assets.cursor.customCursorUrls.filter((item) => item !== url)].slice(0, 8) } : { pointerImageUrl: url }) } } : {}),
       } }));
       notify("Media updated", "Your changes publish automatically.");
     } catch (error) { notify("Media not uploaded", error instanceof Error ? error.message : "Try a different file."); }
@@ -79,7 +107,9 @@ export function ProfileMedia() {
       <div><b className="tw-media-heading">Cursor</b><div className="tw-profile-media-tile tw-media-pointer-pair">
         <button type="button" disabled={Boolean(busy)} onClick={() => choose("cursor")} aria-label="Upload cursor image">{assets.cursor.imageUrl ? <img src={assets.cursor.imageUrl} alt="Cursor" /> : <Icon name="plus" size={24} />}<small>{busy === "cursor" ? "Processing…" : "Default cursor"}</small></button>
         <button type="button" disabled={Boolean(busy)} onClick={() => choose("pointer")} aria-label="Upload link pointer image">{assets.cursor.pointerImageUrl ? <img src={assets.cursor.pointerImageUrl} alt="Link pointer" /> : <Icon name="move" size={24} />}<small>{busy === "pointer" ? "Processing…" : "Link pointer"}</small></button>
-      </div><div className="tw-media-reset-row"><Button disabled={!assets.cursor.imageUrl && !assets.cursor.pointerImageUrl} onClick={() => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, style: "system", imageUrl: "", pointerImageUrl: "" } } }))}>Use default</Button><Button onClick={() => go("appearance", undefined, "decorations")}>Pointer effects</Button></div></div>
+      </div><div className="tw-media-reset-row"><Button disabled={!assets.cursor.imageUrl && !assets.cursor.pointerImageUrl && !assets.cursor.customCursorUrls.length} onClick={() => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, style: "system", imageUrl: "", pointerImageUrl: "", customCursorUrls: [], hotspotX: 0, hotspotY: 0 } } }))}>Use default</Button><Button onClick={() => choose("cursors")} disabled={Boolean(busy) || assets.cursor.customCursorUrls.length >= 8}>Add cursor set</Button><Button onClick={() => go("appearance", undefined, "decorations")}>Pointer effects</Button></div>
+      </div>
+      {assets.cursor.customCursorUrls.length ? <div className="tw-cursor-set"><div><b>Custom cursor set</b><small>{assets.cursor.customCursorUrls.length} of 8 · the trailing-cursor effect uses them in order.</small></div><div className="tw-cursor-set-grid">{assets.cursor.customCursorUrls.map((url, index) => <span className="tw-cursor-set-item" key={`${url.slice(-24)}-${index}`}><button type="button" className={assets.cursor.imageUrl === url ? "is-on" : ""} title="Use as default cursor" onClick={() => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, style: "custom", imageUrl: url } } }))}><img src={url} alt={`Cursor ${index + 1}`} /></button><button type="button" className="tw-cursor-set-remove" aria-label={`Remove cursor ${index + 1}`} onClick={() => setAbout(current => { const customCursorUrls = current.assets.cursor.customCursorUrls.filter((item) => item !== url); return { ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, customCursorUrls, imageUrl: current.assets.cursor.imageUrl === url ? (customCursorUrls[0] ?? "") : current.assets.cursor.imageUrl } } }; })}>×</button></span>)}</div></div> : null}
     </div>
     <div className="tw-profile-media-settings">
       <div className="tw-media-zoom">
@@ -99,6 +129,13 @@ export function ProfileMedia() {
           }))}
         />
       </div>
+      {assets.cursor.imageUrl || assets.cursor.customCursorUrls.length ? (
+        <div className="tw-media-zoom">
+          <div className="tw-media-setting-head"><b>Cursor hotspot</b><small>Move the click point if an uploaded cursor feels offset. 0 0 is the top-left pixel.</small></div>
+          <Slider label="Hotspot X" value={assets.cursor.hotspotX} min={0} max={64} suffix="px" onChange={(hotspotX) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotX } } }))} />
+          <Slider label="Hotspot Y" value={assets.cursor.hotspotY} min={0} max={64} suffix="px" onChange={(hotspotY) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotY } } }))} />
+        </div>
+      ) : null}
       {background.style === "video" ? (
         <div className="tw-media-video-sound">
           <div className="tw-inline-toggle"><span><b>Video sound</b><small>Unmutes after the visitor clicks the page.</small></span><Toggle label="Video sound" checked={background.videoAudio} onChange={(videoAudio) => setAbout(current => ({ ...current, assets: { ...current.assets, background: { ...current.assets.background, videoAudio } } }))} /></div>
@@ -106,6 +143,6 @@ export function ProfileMedia() {
         </div>
       ) : null}
     </div>
-    <input ref={fileInput} type="file" accept={accept} hidden onChange={event => { void upload(event.target.files?.[0]); event.target.value = ""; }} />
+    <input ref={fileInput} type="file" accept={accept} multiple hidden onChange={event => { void upload(event.target.files ?? undefined); event.target.value = ""; }} />
   </Card><Modal open={audioOpen} title="Audio player" subtitle="Upload the track, manage the playlist and style the player." onClose={() => setAudioOpen(false)} width={1040}><div className="tw-audio-modal"><AudioSettingsCard /></div></Modal></>;
 }
