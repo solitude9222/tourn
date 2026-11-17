@@ -41,11 +41,10 @@ export function ProfileMetadata({
   const baseTitle =
     meta.title.trim() ||
     `${about.displayName.trim() || user.alias?.trim() || user.username} · tourn.lol`;
-  const embedTitle = meta.shareTitle.trim() || about.displayName.trim() || user.alias?.trim() || user.username;
-  const embedDescription =
-    meta.shareDescription.trim() ||
-    about.bio.trim() ||
-    `Check out ${about.displayName.trim() || user.alias?.trim() || user.username} on tourn.lol.`;
+  // Share text is opt-in. Blank fields intentionally leave an image-only card
+  // instead of filling the embed with the profile bio or display name.
+  const embedTitle = meta.shareTitle.trim();
+  const embedDescription = meta.shareDescription.trim();
   const shareImage = absoluteUrl(meta.shareImageUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png");
   const favicon = meta.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
 

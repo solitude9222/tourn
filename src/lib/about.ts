@@ -67,20 +67,15 @@ export type TabAnimation = "none" | "cycle" | "typewriter" | "marquee";
 
 export type JoinDateFormat = "relative" | "us" | "eu";
 
-/** How a shared tourn.lol link is presented in a link-preview card. */
-export type ShareLayout = "card" | "hero" | "compact";
-
 export type AboutMetadata = {
   /** Custom tab title. Empty = the account's name + tourn.lol. */
   title: string;
   /** The title shown by Discord, Slack, iMessage and search results. */
   shareTitle: string;
-  /** The paragraph under a shared link. Empty = the profile bio. */
+  /** The paragraph under a shared link. Empty = an image-only embed. */
   shareDescription: string;
-  /** Public image URL used for link previews (or an uploaded data URL preview). */
+  /** Public image URL used for link previews. */
   shareImageUrl: string;
-  /** Visual layout used by the in-app share preview. */
-  shareLayout: ShareLayout;
   /** Browser chrome colour for the public page. */
   themeColor: string;
   /** Keep the page out of search-engine results. */
@@ -399,7 +394,6 @@ export const DEFAULT_METADATA: AboutMetadata = {
   shareTitle: "",
   shareDescription: "",
   shareImageUrl: "",
-  shareLayout: "card",
   themeColor: "#0a0a0c",
   noIndex: false,
   faviconUrl: "",
@@ -631,10 +625,9 @@ function loadMetadata(input: unknown): AboutMetadata {
     : [];
   return {
     title: textIn(raw.title, DEFAULT_METADATA.title, 60),
-    shareTitle: textIn(raw.shareTitle, DEFAULT_METADATA.shareTitle, 80),
-    shareDescription: textIn(raw.shareDescription, DEFAULT_METADATA.shareDescription, 220),
+    shareTitle: textIn(raw.shareTitle, DEFAULT_METADATA.shareTitle, 100),
+    shareDescription: textIn(raw.shareDescription, DEFAULT_METADATA.shareDescription, 300),
     shareImageUrl: textIn(raw.shareImageUrl, DEFAULT_METADATA.shareImageUrl, 1_500_000),
-    shareLayout: oneOf(raw.shareLayout, ["card", "hero", "compact"] as const, "card"),
     themeColor: validColor(raw.themeColor, DEFAULT_METADATA.themeColor),
     noIndex: boolIn(raw.noIndex, DEFAULT_METADATA.noIndex),
     joinFormat: oneOf(raw.joinFormat, ["relative", "us", "eu"] as const, "relative"),

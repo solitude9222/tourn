@@ -1,10 +1,11 @@
 /* ---------------------------------------------------------------------------
    Dashboard file helpers.
 
-   Uploads stay in the browser: profile assets are data URLs in the same store
-   the public page reads, and the asset browser keeps a small per-account
-   library so an upload can be re-used without picking the file again.
+   Profile assets stay in the browser as data URLs. Share previews are the
+   exception: Discord needs a public URL, so those uploads go to the backend.
    --------------------------------------------------------------------------- */
+
+import { api } from "../lib/backend";
 
 export type LibraryAssetType = "Avatar" | "Audio" | "Background" | "Cursor";
 
@@ -118,6 +119,16 @@ export async function imageToDataUrl(
     image.onerror = () => resolve(raw);
     image.src = raw;
   });
+}
+
+export async function uploadShareImage(file: File): Promise<string> {
+  const dataUrl = await imageToDataUrl(file, 1200, 630, 0.9);
+  const result = await api<{ url: string }>("/api/media/image", {
+    method: "POST",
+    body: JSON.stringify({ dataUrl }),
+  });
+  if (!result.ok) throw new Error(result.error);
+  return result.data.url;
 }
 
 export async function copyText(value: string): Promise<boolean> {

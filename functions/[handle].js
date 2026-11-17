@@ -66,13 +66,11 @@ export function rewriteProfileHtml(html, { origin, account, profile }) {
     String(account?.alias ?? "").trim() ||
     String(account?.username ?? "").trim() ||
     "tourn.lol";
-  const title = String(metadata.shareTitle ?? "").trim() || displayName;
-  const description =
-    String(metadata.shareDescription ?? "").trim() ||
-    String(about.bio ?? "").trim() ||
-    `Check out ${displayName} on tourn.lol.`;
+  // Share text is deliberately opt-in: an empty title or description leaves
+  // the crawler tag empty instead of substituting the bio or display name.
+  const title = String(metadata.shareTitle ?? "").trim();
+  const description = String(metadata.shareDescription ?? "").trim();
   const image = firstPublicImage(origin, metadata.shareImageUrl, about.assets?.avatarUrl, account?.avatarUrl);
-  const shareLayout = metadata.shareLayout === "compact" ? "summary" : "summary_large_image";
   const faviconRaw = String(metadata.faviconUrl ?? "").trim() || about.assets?.avatarUrl || account?.avatarUrl;
   const favicon = /^https?:\/\//i.test(faviconRaw) || String(faviconRaw).startsWith("data:")
     ? faviconRaw
@@ -89,7 +87,7 @@ export function rewriteProfileHtml(html, { origin, account, profile }) {
   output = meta(output, "property", "og:description", description);
   output = meta(output, "property", "og:url", pageUrl);
   output = meta(output, "property", "og:image", image);
-  output = meta(output, "name", "twitter:card", shareLayout);
+  output = meta(output, "name", "twitter:card", "summary_large_image");
   output = meta(output, "name", "twitter:title", title);
   output = meta(output, "name", "twitter:description", description);
   output = meta(output, "name", "twitter:image", image);

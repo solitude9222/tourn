@@ -4077,230 +4077,31 @@
   align-items: flex-start;
 }
 
-.tw-share-layout-picker {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
+.tw-share-preview .tw-discord-embed {
+  max-width: none;
+  gap: 8px;
 }
 
-.tw-share-layout-picker button {
-  display: grid;
-  gap: 6px;
-  padding: 7px;
-  border: 1px solid #ffffff12;
-  border-radius: 9px;
-  background: #111114;
-  color: #8d7b7c;
-  font: inherit;
-  font-size: 9px;
-  text-align: left;
-  cursor: pointer;
+.tw-share-preview .tw-discord-embed b {
+  font-size: 11.5px;
 }
 
-.tw-share-layout-picker button:hover,
-.tw-share-layout-picker button.is-on {
-  border-color: #ffffff2e;
-  background: #19191e;
-  color: var(--title);
+.tw-share-preview .tw-discord-image img {
+  max-height: 260px;
 }
 
-.tw-share-layout-thumb {
-  position: relative;
-  display: block;
-  aspect-ratio: 1.9 / 1;
-  overflow: hidden;
-  border-radius: 5px;
-  background: #25272c;
+.tw-share-preview .tw-discord-footer {
+  padding-top: 2px;
 }
 
-.tw-share-layout-thumb i,
-.tw-share-layout-thumb b {
-  position: absolute;
-  display: block;
-  border-radius: 3px;
+.tw-share-image-actions {
+  align-items: end;
+  align-self: end;
+  min-height: 42px;
 }
 
-.tw-share-layout-thumb i {
-  inset: 13% 12% 46%;
-  background: #5a5e69;
-}
-
-.tw-share-layout-thumb b {
-  left: 12%;
-  right: 34%;
-  bottom: 20%;
-  height: 5px;
-  background: #8b909c;
-}
-
-.tw-share-layout-thumb--hero i {
-  inset: 0;
-  border-radius: 0;
-  background: linear-gradient(145deg, #484c5a, #20232a);
-}
-
-.tw-share-layout-thumb--hero::after {
-  content: "";
-  position: absolute;
-  top: 27%;
-  left: 50%;
-  width: 17px;
-  height: 17px;
-  border: 2px solid #c3c8d3;
-  border-radius: 50%;
-  background: #3a3e48;
-  transform: translateX(-50%);
-}
-
-.tw-share-layout-thumb--hero b {
-  left: 27%;
-  right: 27%;
-  bottom: 15%;
-  height: 4px;
-  background: #c3c8d3;
-}
-
-.tw-share-layout-thumb--compact i {
-  inset: 10% 48% 12% 8%;
-  background: #5a5e69;
-}
-
-.tw-share-layout-thumb--compact b {
-  left: 56%;
-  right: 8%;
-  bottom: 36%;
-  height: 4px;
-  background: #8b909c;
-  box-shadow: 0 8px 0 #4d515c;
-}
-
-.tw-embed-card--hero {
-  background: #202225;
-}
-
-.tw-embed-hero-art {
-  position: relative;
-  display: grid;
-  min-height: 170px;
-  place-items: center;
-  overflow: hidden;
-  background: linear-gradient(145deg, #333745, #17191e);
-  background-position: center;
-  background-size: cover;
-}
-
-.tw-embed-hero-art::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: inherit;
-  background-position: center;
-  background-size: cover;
-  filter: blur(1px);
-}
-
-.tw-embed-hero-shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #090a0d33, #090a0dd9);
-}
-
-.tw-embed-hero-avatar {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  width: 68px;
-  height: 68px;
-  place-items: center;
-  overflow: hidden;
-  border: 2px solid #ffffffb8;
-  border-radius: 50%;
-  background: #1a1c22;
-  box-shadow: 0 12px 30px #0008;
-}
-
-.tw-embed-hero-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.tw-embed-hero-copy {
-  position: absolute;
-  z-index: 1;
-  right: 12px;
-  bottom: 10px;
-  left: 12px;
-  display: grid;
-  gap: 2px;
-  text-align: center;
-}
-
-.tw-embed-hero-copy b {
-  overflow: hidden;
-  color: #f2f3f5;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tw-embed-hero-copy small {
-  color: #aeb4bf;
-  font-size: 8.5px;
-}
-
-.tw-embed-card--hero .tw-embed-copy {
-  border-left-color: #5865f2;
-}
-
-.tw-embed-compact-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 88px;
-  gap: 10px;
-  padding: 10px 11px 13px;
-  border-left: 3px solid #5865f2;
-}
-
-.tw-embed-compact-copy {
-  display: grid;
-  min-width: 0;
-  gap: 4px;
-}
-
-.tw-embed-compact-copy b {
-  color: #f2f3f5;
-  font-size: 10.5px;
-}
-
-.tw-embed-compact-copy p {
-  display: -webkit-box;
-  margin: 0;
-  overflow: hidden;
-  color: #b5bac1;
-  font-size: 9.5px;
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-.tw-embed-compact-copy small {
-  color: #949ba4;
-  font-size: 8.5px;
-}
-
-.tw-embed-compact-thumb {
-  display: block;
-  width: 88px;
-  height: 88px;
-  overflow: hidden;
-  border-radius: 4px;
-  background: #2b2d31;
-}
-
-.tw-embed-compact-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.tw-share-browser-settings {
+  margin-top: 16px;
 }
 
 /* Discord webhook composer */

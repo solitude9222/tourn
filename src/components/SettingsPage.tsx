@@ -12,7 +12,7 @@ import { accountUid, useAuth } from "../lib/auth";
 import { formatJoined } from "../lib/format";
 import { Button, Card, CardHead, Chip, Field, Icon, TextInput } from "../dash/ui";
 import { UploadEmbedCard, UploadResponseCard } from "./UploadSettings";
-import { PageMetadataSettings } from "../dash/pages/Studio";
+import { PageMetadataSettings } from "./ShareSettings";
 import { DiscordWebhookCard } from "./DiscordWebhookCard";
 
 const CLAIM_COOLDOWN_MS = 2 * 24 * 60 * 60 * 1000;

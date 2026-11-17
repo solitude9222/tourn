@@ -29,6 +29,7 @@ import { aliasMatchesDiscord, releaseDiscordUsernameAlias, resetDiscordDerivedAl
 import "dotenv/config";
 import { registerDataTransfer } from "./dataTransfer.js";
 import { AUDIO_SCHEMA, registerAudioRoutes } from "./audio.js";
+import { IMAGE_SCHEMA, registerImageRoutes } from "./images.js";
 import { SUPPORT_SCHEMA, registerSupportRoutes } from "./support.js";
 import express from "express";
 import cors from "cors";
@@ -254,6 +255,7 @@ async function initDb() {
   await pool.query(TEMPLATE_SCHEMA);
   startUsernameReconciliation(pool,stripe);
   await pool.query(AUDIO_SCHEMA);
+  await pool.query(IMAGE_SCHEMA);
   await pool.query(SUPPORT_SCHEMA);
   await pool.query(DISCORD_AUTOMATION_SCHEMA);
   await pool.query(PROFILE_WEBHOOK_SCHEMA);
@@ -810,6 +812,7 @@ const PROFILE_JSON_LIMIT = "36mb";
 const PROFILE_DOCUMENT_LIMIT = 32_000_000;
 
 registerAudioRoutes(app, pool, requireAuth);
+registerImageRoutes(app, pool, requireAuth);
 registerSupportRoutes(app, { pool, requireAuth, requireAdmin, limiter: billingLimiter, env: process.env });
 registerDataTransfer(app,pool,requireOwner,()=>profilePageCache.clear());
 
