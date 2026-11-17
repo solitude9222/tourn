@@ -7,11 +7,13 @@ create table if not exists profile_webhooks (
   user_id uuid primary key references users(id) on delete cascade,
   url text not null,
   enabled boolean not null default true,
+  config jsonb not null default '{}'::jsonb,
   last_status integer,
   last_error text,
   last_sent_at timestamptz,
   updated_at timestamptz not null default now()
 );
+alter table profile_webhooks add column if not exists config jsonb not null default '{}'::jsonb;
 `;
 
 const MAX_URL_LENGTH = 2048;
@@ -87,11 +89,81 @@ async function assertPublicEndpoint(url) {
   }
 }
 
+export const DEFAULT_WEBHOOK_CONFIG = {
+  format: "discord",
+  username: "",
+  avatarUrl: "",
+  content: "",
+  embed: true,
+  title: "",
+  description: "",
+  color: "#5865f2",
+  image: "background",
+  thumbnail: "avatar",
+  footer: "",
+  footerIcon: "avatar",
+  timestamp: true,
+  fields: true,
+  buttons: [],
+};
+
+const WEBHOOK_IMAGES = new Set(["background", "banner", "avatar", "share", "none"]);
+const WEBHOOK_THUMBS = new Set(["avatar", "share", "favicon", "none"]);
+const WEBHOOK_FOOTER_ICONS = new Set(["avatar", "logo", "none"]);
+
+const cleanText = (value, max) => String(value ?? "").trim().slice(0, max);
+const webUrl = (value, max = 2048) => {
+  const text = cleanText(value, max);
+  return /^https?:\/\//i.test(text) ? text : "";
+};
+const hexColour = (value) => (/^#[0-9a-f]{6}$/i.test(String(value ?? "")) ? String(value) : DEFAULT_WEBHOOK_CONFIG.color);
+
+/** The public, validated shape stored for a webhook endpoint. */
+export function normalizeWebhookConfig(input, url = "") {
+  const raw = input && typeof input === "object" ? input : {};
+  let inferred = "discord";
+  if (url) {
+    try {
+      inferred = /(^|\.)discord(?:app)?\.com$/i.test(new URL(url).hostname) ? "discord" : "raw";
+    } catch {
+      inferred = "raw";
+    }
+  }
+  const format = raw.format === "raw" || raw.format === "discord" ? raw.format : inferred;
+  const buttons = Array.isArray(raw.buttons)
+    ? raw.buttons
+        .map((button) => ({
+          label: cleanText(button?.label, 80),
+          url: webUrl(button?.url, 512),
+        }))
+        .filter((button) => button.label && button.url)
+        .slice(0, 5)
+    : [];
+  return {
+    format,
+    username: cleanText(raw.username, 80),
+    avatarUrl: webUrl(raw.avatarUrl),
+    content: cleanText(raw.content, 2000),
+    embed: raw.embed !== false,
+    title: cleanText(raw.title, 256),
+    description: cleanText(raw.description, 2000),
+    color: hexColour(raw.color),
+    image: WEBHOOK_IMAGES.has(raw.image) ? raw.image : DEFAULT_WEBHOOK_CONFIG.image,
+    thumbnail: WEBHOOK_THUMBS.has(raw.thumbnail) ? raw.thumbnail : DEFAULT_WEBHOOK_CONFIG.thumbnail,
+    footer: cleanText(raw.footer, 2048),
+    footerIcon: WEBHOOK_FOOTER_ICONS.has(raw.footerIcon) ? raw.footerIcon : DEFAULT_WEBHOOK_CONFIG.footerIcon,
+    timestamp: raw.timestamp !== false,
+    fields: raw.fields !== false,
+    buttons,
+  };
+}
+
 function publicConfig(row) {
   if (!row) return null;
   return {
     url: row.url,
     enabled: row.enabled !== false,
+    config: normalizeWebhookConfig(row.config, row.url),
     lastStatus: row.last_status == null ? null : Number(row.last_status),
     lastError: row.last_error ?? null,
     lastSentAt: row.last_sent_at ?? null,
@@ -99,7 +171,82 @@ function publicConfig(row) {
   };
 }
 
-export function createProfileWebhooks({ pool, fetchImpl = fetch, allowHttp = false, onDelivered } = {}) {
+function publicImage(value, siteUrl = "") {
+  const text = String(value ?? "").trim();
+  if (/^https?:\/\//i.test(text)) return text;
+  return siteUrl && text.startsWith("/") ? `${siteUrl}${text}` : "";
+}
+
+function pickImage(kind, { about, account, siteUrl }) {
+  if (kind === "background") return publicImage(about.assets?.background?.imageUrl, siteUrl);
+  if (kind === "banner") return publicImage(about.assets?.banner?.imageUrl, siteUrl);
+  if (kind === "avatar") return publicImage(about.assets?.avatarUrl, siteUrl) || publicImage(account.avatarUrl, siteUrl);
+  if (kind === "share") return publicImage(about.metadata?.shareImageUrl, siteUrl);
+  if (kind === "favicon") return publicImage(about.metadata?.faviconUrl, siteUrl) || publicImage(about.assets?.avatarUrl, siteUrl) || publicImage(account.avatarUrl, siteUrl);
+  return "";
+}
+
+function discordColour(hex) {
+  return Number.parseInt(String(hex).replace("#", ""), 16);
+}
+
+function buildDiscordPayload({ account, profile, config, siteUrl, revision }) {
+  const about = profile?.about ?? {};
+  const metadata = about.metadata ?? {};
+  const handle = account.alias?.trim() || account.username;
+  const pageUrl = `${siteUrl}/${encodeURIComponent(handle)}`;
+  const name = String(about.displayName ?? "").trim() || account.alias?.trim() || account.username;
+  const image = pickImage(config.image, { about, account, siteUrl });
+  const thumb = pickImage(config.thumbnail, { about, account, siteUrl });
+  const footerIcon =
+    config.footerIcon === "logo"
+      ? `${siteUrl}/logo.png`
+      : config.footerIcon === "avatar"
+        ? publicImage(account.avatarUrl, siteUrl)
+        : "";
+  const buttons = config.buttons.map((button) => ({
+    type: 2,
+    style: 5,
+    label: button.label,
+    url: button.url,
+  }));
+  const embed = {
+    title: config.title || name,
+    description: config.description || String(about.bio ?? "").trim() || `Check out ${name} on tourn.lol.`,
+    url: pageUrl,
+    color: discordColour(config.color),
+    ...(image ? { image: { url: image } } : {}),
+    ...(thumb ? { thumbnail: { url: thumb } } : {}),
+    ...(config.fields
+      ? {
+          fields: [
+            { name: "Profile", value: `[tourn.lol/${handle}](${pageUrl})`, inline: true },
+            { name: "Member since", value: account.joinedAt ? new Date(account.joinedAt).toLocaleDateString("en-US") : "Unknown", inline: true },
+            ...(revision != null ? [{ name: "Revision", value: String(revision), inline: true }] : []),
+          ],
+        }
+      : {}),
+    ...(config.footer || config.timestamp
+      ? {
+          footer: { text: config.footer || "tourn.lol", ...(footerIcon ? { icon_url: footerIcon } : {}) },
+          ...(config.timestamp ? { timestamp: new Date().toISOString() } : {}),
+        }
+      : {}),
+  };
+  const payload = {
+    allowed_mentions: { parse: [] },
+    ...(config.username ? { username: config.username } : {}),
+    ...(config.avatarUrl ? { avatar_url: config.avatarUrl } : {}),
+    ...(config.content ? { content: config.content } : {}),
+    ...(config.embed ? { embeds: [embed] } : {}),
+    ...(buttons.length ? { components: [{ type: 1, components: buttons }] } : {}),
+  };
+  if (!config.embed && !config.content) payload.content = `Check out ${name}: ${pageUrl}`;
+  return payload;
+}
+
+export function createProfileWebhooks({ pool, fetchImpl = fetch, allowHttp = false, onDelivered, siteUrl = process.env.FRONTEND_URL || "https://tourn.lol" } = {}) {
+  const webSite = String(siteUrl).replace(/\/+$/, "");
   const load = async (userId) => {
     const { rows } = await pool.query("select * from profile_webhooks where user_id = $1", [userId]);
     return rows[0] ?? null;
@@ -141,15 +288,22 @@ export function createProfileWebhooks({ pool, fetchImpl = fetch, allowHttp = fal
     const timeout = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS);
     try {
       await assertPublicEndpoint(new URL(url));
-      const body = JSON.stringify({
-        event,
-        sentAt: new Date().toISOString(),
-        account: await account(userId),
-        revision: revision ?? null,
-        updatedAt: updatedAt ?? null,
-        profile: document ?? (await profile(userId)).profile,
-        settings: document ?? null,
-      });
+      const config = normalizeWebhookConfig(row.config, url);
+      const accountData = await account(userId);
+      const profileData = document ?? (await profile(userId)).profile;
+      const body = JSON.stringify(
+        config.format === "discord"
+          ? buildDiscordPayload({ account: accountData, profile: profileData, config, siteUrl: webSite, revision })
+          : {
+              event,
+              sentAt: new Date().toISOString(),
+              account: accountData,
+              revision: revision ?? null,
+              updatedAt: updatedAt ?? null,
+              profile: profileData,
+              settings: document ?? null,
+            },
+      );
       const response = await fetchImpl(url, {
         method: "POST",
         redirect: "manual",
@@ -212,18 +366,20 @@ export function registerProfileWebhookRoutes(app, { pool, requireAuth, limiter, 
         return res.status(400).json({ error: error.message });
       }
       const enabled = req.body?.enabled !== false;
+      const config = normalizeWebhookConfig(req.body?.config, url);
       const { rows } = await pool.query(
-        `insert into profile_webhooks (user_id, url, enabled, last_status, last_error, last_sent_at)
-         values ($1, $2, $3, null, null, null)
+        `insert into profile_webhooks (user_id, url, enabled, config, last_status, last_error, last_sent_at)
+         values ($1, $2, $3, $4::jsonb, null, null, null)
          on conflict (user_id) do update set
            url = excluded.url,
            enabled = excluded.enabled,
+           config = excluded.config,
            last_status = null,
            last_error = null,
            last_sent_at = null,
            updated_at = now()
          returning *`,
-        [req.auth.sub, url, enabled],
+        [req.auth.sub, url, enabled, JSON.stringify(config)],
       );
       res.json({ webhook: publicConfig(rows[0]) });
     } catch (error) {

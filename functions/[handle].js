@@ -56,6 +56,7 @@ export function rewriteProfileHtml(html, { origin, account, profile }) {
     String(about.bio ?? "").trim() ||
     `Check out ${displayName} on tourn.lol.`;
   const image = absolute(origin, metadata.shareImageUrl || about.assets?.avatarUrl || account?.avatarUrl);
+  const shareLayout = metadata.shareLayout === "compact" ? "summary" : "summary_large_image";
   const faviconRaw = String(metadata.faviconUrl ?? "").trim() || about.assets?.avatarUrl || account?.avatarUrl;
   const favicon = /^https?:\/\//i.test(faviconRaw) || String(faviconRaw).startsWith("data:")
     ? faviconRaw
@@ -72,7 +73,7 @@ export function rewriteProfileHtml(html, { origin, account, profile }) {
   output = meta(output, "property", "og:description", description);
   output = meta(output, "property", "og:url", pageUrl);
   output = meta(output, "property", "og:image", image);
-  output = meta(output, "name", "twitter:card", "summary_large_image");
+  output = meta(output, "name", "twitter:card", shareLayout);
   output = meta(output, "name", "twitter:title", title);
   output = meta(output, "name", "twitter:description", description);
   output = meta(output, "name", "twitter:image", image);

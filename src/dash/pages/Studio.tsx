@@ -5,7 +5,13 @@ import { AccountProfilePage } from "./Account";
 import { Button, Card, CardHead, ColorField, Field, FileUpload, Select, Slider, TextInput, Textarea, Toggle } from "../ui";
 import { copyText, imageToDataUrl } from "../files";
 import { ONEKO_CATS } from "../../lib/oneko";
-import type { TabAnimation } from "../../lib/about";
+import type { ShareLayout, TabAnimation } from "../../lib/about";
+
+const SHARE_LAYOUTS: { id: ShareLayout; label: string; hint: string }[] = [
+  { id: "card", label: "Classic card", hint: "Image above the title" },
+  { id: "hero", label: "Hero profile", hint: "Background with your pfp centered" },
+  { id: "compact", label: "Compact", hint: "Text with a small thumbnail" },
+];
 
 export function AppearanceStudioPage() {
   const { about, setAbout } = useDash();
@@ -26,7 +32,13 @@ export function PageMetadataSettings() {
   const displayName = about.displayName.trim() || user.alias?.trim() || user.username;
   const previewTitle = metadata.shareTitle.trim() || displayName;
   const previewDescription = metadata.shareDescription.trim() || about.bio.trim() || `Check out ${displayName} on tourn.lol.`;
+  const authorAvatar = about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
   const previewImage = metadata.shareImageUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
+  const heroImage =
+    metadata.shareImageUrl.trim() ||
+    about.assets.banner.imageUrl.trim() ||
+    about.assets.background.imageUrl.trim() ||
+    authorAvatar;
   const favicon = metadata.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
   const uploadImage = async (file: File | undefined, width: number, height: number, apply: (url: string) => void) => {
     if (!file) return;
@@ -43,7 +55,7 @@ export function PageMetadataSettings() {
   const copyLink = () => void copyText(pageUrl).then(ok => notify(ok ? "Page link copied" : "Couldn't copy the link", ok ? "Paste it wherever you want the embed to appear." : "Select the address shown beside the preview instead."));
 
   return <Card className="tw-meta-card">
-    <CardHead icon="share" title="Page metadata & sharing" subtitle="Choose the favicon, tab title and the title, description and image people see when your link is sent." actions={<Button icon="copy" onClick={copyLink}>Copy page link</Button>} />
+    <CardHead icon="share" title="Link preview" subtitle="Choose your share card layout, favicon and the title, description and image people see when your link is sent." actions={<Button icon="copy" onClick={copyLink}>Copy page link</Button>} />
     <div className="tw-meta-layout">
       <div className="tw-meta-form">
         <section className="tw-meta-section">
@@ -85,12 +97,50 @@ export function PageMetadataSettings() {
       </div>
 
       <aside className="tw-meta-preview" aria-label="Shared link preview">
-        <div className="tw-meta-preview-head"><b>Share preview</b><small>Live preview of your embed</small></div>
-        <div className="tw-embed-card">
-          <div className="tw-embed-app"><span className="tw-embed-favicon"><img src={favicon} alt="" /></span><span><b>{previewTitle}</b><small>tourn.lol</small></span></div>
-          <div className="tw-embed-image">{previewImage ? <img src={previewImage} alt="" /> : <span>No preview image</span>}</div>
-          <div className="tw-embed-copy"><b>{previewTitle}</b><p>{previewDescription}</p><small>{pageUrl.replace(/^https?:\/\//, "")}</small></div>
+        <div className="tw-meta-preview-head"><b>Share preview</b><small>Twitter / Discord</small></div>
+        <div className="tw-share-layout-picker" role="radiogroup" aria-label="Share card layout">
+          {SHARE_LAYOUTS.map((layout) => (
+            <button
+              key={layout.id}
+              type="button"
+              role="radio"
+              aria-checked={metadata.shareLayout === layout.id}
+              className={metadata.shareLayout === layout.id ? "is-on" : ""}
+              onClick={() => update({ shareLayout: layout.id })}
+              title={layout.hint}
+            >
+              <span className={`tw-share-layout-thumb tw-share-layout-thumb--${layout.id}`} aria-hidden="true"><i /><b /></span>
+              <span>{layout.label}</span>
+            </button>
+          ))}
         </div>
+        {metadata.shareLayout === "hero" ? (
+          <div className="tw-embed-card tw-embed-card--hero">
+            <div
+              className="tw-embed-hero-art"
+              style={heroImage ? { backgroundImage: `url("${heroImage.replace(/"/g, '\\"')}")` } : undefined}
+            >
+              <span className="tw-embed-hero-shade" />
+              <span className="tw-embed-hero-avatar"><img src={authorAvatar} alt="" /></span>
+              <div className="tw-embed-hero-copy"><b>{previewTitle}</b><small>{pageUrl.replace(/^https?:\/\//, "")}</small></div>
+            </div>
+            <div className="tw-embed-copy"><p>{previewDescription}</p></div>
+          </div>
+        ) : metadata.shareLayout === "compact" ? (
+          <div className="tw-embed-card tw-embed-card--compact">
+            <div className="tw-embed-app"><span className="tw-embed-favicon"><img src={favicon} alt="" /></span><span><b>{previewTitle}</b><small>tourn.lol</small></span></div>
+            <div className="tw-embed-compact-row">
+              <div className="tw-embed-compact-copy"><b>{previewTitle}</b><p>{previewDescription}</p><small>{pageUrl.replace(/^https?:\/\//, "")}</small></div>
+              <span className="tw-embed-compact-thumb"><img src={previewImage} alt="" /></span>
+            </div>
+          </div>
+        ) : (
+          <div className="tw-embed-card">
+            <div className="tw-embed-app"><span className="tw-embed-favicon"><img src={favicon} alt="" /></span><span><b>{previewTitle}</b><small>tourn.lol</small></span></div>
+            <div className="tw-embed-image">{previewImage ? <img src={previewImage} alt="" /> : <span>No preview image</span>}</div>
+            <div className="tw-embed-copy"><b>{previewTitle}</b><p>{previewDescription}</p><small>{pageUrl.replace(/^https?:\/\//, "")}</small></div>
+          </div>
+        )}
         <div className="tw-meta-identity">
           <span><small>Public link</small><code>{pageUrl.replace(/^https?:\/\//, "")}</code></span>
           <span><small>Account ID</small><code>{user.id.slice(0, 8)}</code></span>
@@ -113,5 +163,5 @@ export function ProfileGeneralPage() {
     <Field label="Join date format"><Select value={about.metadata.joinFormat || "relative"} options={[{value:"relative",label:"Relative"},{value:"us",label:"US (12/23/2026)"},{value:"eu",label:"EU (23/12/2026)"}]} onChange={joinFormat => setAbout(current => ({ ...current, metadata: { ...current.metadata, joinFormat: joinFormat as typeof current.metadata.joinFormat } }))} /></Field>
     <Field label="Date format"><Select value={about.metadata.dateFormat || "us"} options={[{value:"us",label:"US (12/23/2026)"},{value:"eu",label:"EU (23/12/2026)"}]} onChange={dateFormat => setAbout(current => ({ ...current, metadata: { ...current.metadata, dateFormat: dateFormat as "us" | "eu" } }))} /></Field>
     <div className="tw-profile-address"><small>Your profile address</small><b>tourn.lol/{user.alias || user.username}</b><Button onClick={() => go("settings")}>Manage addresses</Button></div>
-  </div></Card><PageMetadataSettings /></div>;
+  </div></Card></div>;
 }
