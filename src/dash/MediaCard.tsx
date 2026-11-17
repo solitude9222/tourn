@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDash } from "./context";
 import { Card, CardHead, Icon } from "./ui";
 import { cursorToDataUrl, imageToDataUrl } from "./files";
-import { detectCursorHotspot, type CursorHotspot } from "../lib/cursorImage";
+import { normalizeCursorArt, type CursorHotspot } from "../lib/cursorImage";
 
 export function MediaCard() {
   const { about, setAbout, go, notify } = useDash();
@@ -83,29 +83,34 @@ export function MediaCard() {
   const backgroundImage = assets.background.imageUrl.trim();
   const cursorUrl = assets.cursor.imageUrl.trim() || assets.cursor.customCursorUrls[0]?.trim() || "";
   const pointerUrl = assets.cursor.pointerImageUrl.trim();
-  const [autoHotspots, setAutoHotspots] = useState<{ cursor: CursorHotspot; pointer: CursorHotspot }>({
-    cursor: { x: 0, y: 0 },
-    pointer: { x: 0, y: 0 },
-  });
+  // Same 32px normalisation as the public card: the browser does not scale a
+  // CSS hotspot with the image, so a padded 128px cursor pointed off-screen.
+  const [preparedCursors, setPreparedCursors] = useState<{
+    cursor: { url: string; hotspot: CursorHotspot } | null;
+    pointer: { url: string; hotspot: CursorHotspot } | null;
+  }>({ cursor: null, pointer: null });
   useEffect(() => {
     let active = true;
+    setPreparedCursors({ cursor: null, pointer: null });
     const measure = (key: "cursor" | "pointer", url: string) => {
       if (!url) return;
-      void detectCursorHotspot(url).then((hotspot) => {
-        if (active) setAutoHotspots((current) => ({ ...current, [key]: hotspot }));
+      void normalizeCursorArt(url).then((result) => {
+        if (active) setPreparedCursors((current) => ({ ...current, [key]: result }));
       });
     };
     measure("cursor", cursorUrl);
     measure("pointer", pointerUrl);
     return () => { active = false; };
   }, [cursorUrl, pointerUrl]);
+  const displayCursorUrl = preparedCursors.cursor?.url ?? cursorUrl;
+  const displayPointerUrl = preparedCursors.pointer?.url ?? pointerUrl;
   const manualHotspot = assets.cursor.hotspotX !== 0 || assets.cursor.hotspotY !== 0;
   const cursorHotspot = manualHotspot
     ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
-    : `${autoHotspots.cursor.x} ${autoHotspots.cursor.y}`;
+    : `${preparedCursors.cursor?.hotspot.x ?? 0} ${preparedCursors.cursor?.hotspot.y ?? 0}`;
   const pointerHotspot = manualHotspot
     ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
-    : `${autoHotspots.pointer.x} ${autoHotspots.pointer.y}`;
+    : `${preparedCursors.pointer?.hotspot.x ?? 0} ${preparedCursors.pointer?.hotspot.y ?? 0}`;
   const initial = (about.displayName.trim() || "?").slice(0, 1).toUpperCase();
 
   return (
@@ -167,7 +172,7 @@ export function MediaCard() {
               type="button"
               className="tw-media-cursor"
               onClick={() => cursorInput.current?.click()}
-              style={{ cursor: cursorUrl ? `url("${cursorUrl}") ${cursorHotspot}, auto` : "default" }}
+              style={{ cursor: displayCursorUrl ? `url("${displayCursorUrl}") ${cursorHotspot}, auto` : "default" }}
               aria-label="Upload default cursor"
             >
               {cursorUrl ? <img src={cursorUrl} alt="" /> : <span className="tw-cursor-glyph" aria-hidden="true">↖</span>}
@@ -177,7 +182,7 @@ export function MediaCard() {
               type="button"
               className="tw-media-cursor"
               onClick={() => pointerInput.current?.click()}
-              style={{ cursor: pointerUrl ? `url("${pointerUrl}") ${pointerHotspot}, pointer` : "pointer" }}
+              style={{ cursor: displayPointerUrl ? `url("${displayPointerUrl}") ${pointerHotspot}, pointer` : "pointer" }}
               aria-label="Upload pointer cursor"
             >
               {pointerUrl ? <img src={pointerUrl} alt="" /> : <span className="tw-cursor-glyph tw-cursor-glyph--pointer" aria-hidden="true">↗</span>}

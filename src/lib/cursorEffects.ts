@@ -423,15 +423,21 @@ export function mountCursorEffects(
           // The real cursor places its hotspot under the pointer. Draw the
           // duplicate with that same inset instead of its top-left corner.
           const manual = settings.hotspotX !== 0 || settings.hotspotY !== 0;
-          const hotspotX = manual ? settings.hotspotX : art.ready ? art.hotspot.x : 0;
-          const hotspotY = manual ? settings.hotspotY : art.ready ? art.hotspot.y : 0;
+          // Auto mode: hide the image's transparent padding, so the artwork
+          // starts on the pointer. Manual mode: the real cursor is moved by
+          // exactly that many CSS pixels, so move the duplicate by the same
+          // amount instead of scaling the offset with the trail size.
+          const offsetX = manual ? settings.hotspotX : 0;
+          const offsetY = manual ? settings.hotspotY : 0;
           const scale = size / art.image.naturalWidth;
+          const insetX = art.ready ? art.hotspot.x * scale : 0;
+          const insetY = art.ready ? art.hotspot.y * scale : 0;
           ctx.save();
           ctx.globalAlpha = alpha;
           ctx.drawImage(
             art.image,
-            points[i].x - hotspotX * scale,
-            points[i].y - hotspotY * scale,
+            points[i].x - offsetX - insetX,
+            points[i].y - offsetY - insetY,
             size,
             size * ratio,
           );

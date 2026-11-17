@@ -87,8 +87,8 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   overlayStrength: 50,
   // Badges carry a light sweep by default so they never look like flat stickers.
   animation: "shimmer",
-  size: 32,
-  sizeVersion: 3,
+  size: 24,
+  sizeVersion: 4,
   rowBackground: "#ffffff",
   rowOpacity: 0.07,
   rowBorderColor: "#ffffff",
@@ -321,14 +321,15 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
   try {
     const parsed = (input ?? {}) as Partial<BadgeStore>;
     const style = (parsed.style ?? {}) as Partial<BadgeStyle>;
-    // v1 sizes were capped at 32px; v2 sizes used the oversized 40px default.
-    // Bring both to the current middle ground once, then leave v3 alone.
+    // v1 sizes were capped at 32px; v2 used an oversized 40px default; v3 was
+    // still too large on real profiles. Bring every old scale down once.
     const storedSize = Number(style.size);
     const sizeVersion = Number(style.sizeVersion ?? 1);
     const hasStoredSize = Number.isFinite(storedSize);
     let migratedSize = hasStoredSize ? storedSize : DEFAULT_BADGE_STYLE.size;
     if (hasStoredSize && sizeVersion < 2) migratedSize *= 1.4;
     else if (hasStoredSize && sizeVersion < 3) migratedSize *= 0.8;
+    if (hasStoredSize && sizeVersion < 4) migratedSize *= 0.75;
     const seen = new Set<string>();
     const equipped = Array.isArray(parsed.equipped)
       ? parsed.equipped
@@ -350,7 +351,7 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
         overlayStrength: clamp(style.overlayStrength, DEFAULT_BADGE_STYLE.overlayStrength, 0, 100),
         animation: animIn(style.animation, DEFAULT_BADGE_STYLE.animation),
         size: clamp(Math.round(migratedSize), DEFAULT_BADGE_STYLE.size, 18, 64),
-        sizeVersion: 3,
+        sizeVersion: 4,
         rowBackground: hex(style.rowBackground, DEFAULT_BADGE_STYLE.rowBackground),
         rowOpacity: clamp(style.rowOpacity, DEFAULT_BADGE_STYLE.rowOpacity, 0, 1),
         rowBorderColor: hex(style.rowBorderColor, DEFAULT_BADGE_STYLE.rowBorderColor),

@@ -8,7 +8,7 @@ import { hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import type { WidgetStore } from "../lib/widgets";
 import { DEFAULT_BADGE_STYLE, EMPTY_BADGE_STORE, type BadgeStore } from "../lib/badges";
-import { detectCursorHotspot, type CursorHotspot } from "../lib/cursorImage";
+import { normalizeCursorArt, type CursorHotspot } from "../lib/cursorImage";
 import { DEFAULT_LINK_DESIGN, EMPTY_LINK_STORE, type LinkStore } from "../lib/links";
 import { ProfilePreview } from "./ProfilePreview";
 import { ProfileLinks } from "./ProfileLinks";
@@ -347,32 +347,38 @@ export function LinkerPreview({
     ? (assets.cursor.imageUrl.trim() || assets.cursor.customCursorUrls[0]?.trim() || "")
     : "";
   const pointerCursorUrl = assets.cursor.pointerImageUrl.trim();
-  const [autoHotspots, setAutoHotspots] = useState<{ pointer: CursorHotspot; cursor: CursorHotspot }>({
-    pointer: { x: 0, y: 0 },
-    cursor: { x: 0, y: 0 },
-  });
+  // The browser scales an oversized cursor image down but leaves the CSS
+  // hotspot in the image's own pixels, which throws the visible arrow far away
+  // from the pointer. Crop/resize once, then the artwork starts exactly at 0 0.
+  const [preparedCursors, setPreparedCursors] = useState<{
+    cursor: { url: string; hotspot: CursorHotspot } | null;
+    pointer: { url: string; hotspot: CursorHotspot } | null;
+  }>({ cursor: null, pointer: null });
   useEffect(() => {
     let active = true;
-    const apply = (key: "pointer" | "cursor", url: string) => {
+    setPreparedCursors({ cursor: null, pointer: null });
+    const apply = (key: "cursor" | "pointer", url: string) => {
       if (!url) return;
-      void detectCursorHotspot(url).then((hotspot) => {
-        if (active) setAutoHotspots((current) => ({ ...current, [key]: hotspot }));
+      void normalizeCursorArt(url).then((result) => {
+        if (active) setPreparedCursors((current) => ({ ...current, [key]: result }));
       });
     };
     apply("cursor", customCursorUrl);
     apply("pointer", pointerCursorUrl);
     return () => { active = false; };
   }, [customCursorUrl, pointerCursorUrl]);
+  const displayCursorUrl = preparedCursors.cursor?.url ?? customCursorUrl;
+  const displayPointerUrl = preparedCursors.pointer?.url ?? pointerCursorUrl;
   // Automatic padding detection only drives the default. As soon as the owner
   // moves a hotspot slider their exact value wins, so an old manual correction
   // is never added to the detected inset twice.
   const manualHotspot = assets.cursor.hotspotX !== 0 || assets.cursor.hotspotY !== 0;
   const customCursorHotspot = manualHotspot
     ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
-    : `${autoHotspots.cursor.x} ${autoHotspots.cursor.y}`;
+    : `${preparedCursors.cursor?.hotspot.x ?? 0} ${preparedCursors.cursor?.hotspot.y ?? 0}`;
   const pointerCursorHotspot = manualHotspot
     ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
-    : `${autoHotspots.pointer.x} ${autoHotspots.pointer.y}`;
+    : `${preparedCursors.pointer?.hotspot.x ?? 0} ${preparedCursors.pointer?.hotspot.y ?? 0}`;
 
   const style = {
     "--lkr-bg-filter": bgFilter || "none",
@@ -425,11 +431,11 @@ export function LinkerPreview({
     "--lkr-bg-saturation": assets.background.saturation,
     "--lkr-bg-contrast": assets.background.contrast,
     "--lkr-bg-brightness": assets.background.brightness,
-    cursor: customCursorUrl
-      ? `url("${customCursorUrl.replace(/"/g, '\\"')}") ${customCursorHotspot}, auto`
+    cursor: displayCursorUrl
+      ? `url("${displayCursorUrl.replace(/"/g, '\\"')}") ${customCursorHotspot}, auto`
       : assets.cursor.style !== "system" && assets.cursor.style !== "custom" ? "none" : undefined,
-    ...(pointerCursorUrl
-      ? { "--lkr-pointer-cursor": `url("${pointerCursorUrl.replace(/"/g, '\\"')}") ${pointerCursorHotspot}, pointer` }
+    ...(displayPointerUrl
+      ? { "--lkr-pointer-cursor": `url("${displayPointerUrl.replace(/"/g, '\\"')}") ${pointerCursorHotspot}, pointer` }
       : {}),
   } as CSSProperties;
 
