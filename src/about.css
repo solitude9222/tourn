@@ -5187,7 +5187,7 @@
 .profile-preview > .pv-beam-glow--br { right:0; bottom:0; }
 @keyframes pvBeamOpacity { 0%,100% { opacity:calc(var(--pv-card-fx-strength,.7)*.4); } 50% { opacity:calc(var(--pv-card-fx-strength,.7)*.8); } }
 
-.profile-preview .pv-head-text .pv-id h3 { font-size:clamp(22px,var(--pv-name,36px),64px); }
+.profile-preview .pv-head-text .pv-id h3 { font-size:clamp(28px,var(--pv-name,36px),64px); }
 .profile-preview .pv-head-text .pv-handle { font-size:clamp(12px,calc(18px * var(--pv-scale,1)),20px); line-height:1.45; }
 .profile-preview .pv-bio { font-size:clamp(13px,calc(var(--pv-bio-size,18px) * var(--pv-scale,1)),30px); }
 .profile-preview .pv-topline .pv-avatar { width:clamp(64px,var(--pv-avatar,100px),180px); height:clamp(64px,var(--pv-avatar,100px),180px); }

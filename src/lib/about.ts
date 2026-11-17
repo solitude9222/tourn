@@ -860,7 +860,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     cardStyle,
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
     scattered: boolIn(raw.scattered, false),
-    scatteredSize: numberIn(raw.scatteredSize, 86, 48, 160),
+    scatteredSize: numberIn(raw.scatteredSize, 86, 64, 160),
     scatteredCell: numberIn(raw.scatteredCell, 3, 2, 8),
     scatteredGlow: numberIn(raw.scatteredGlow, 6, 0, 24),
     scatteredShimmer: boolIn(raw.scatteredShimmer, true),

@@ -93,7 +93,9 @@ export function ProfilePreview({
   // Public names come from the owner: the alias they claimed, or the display
   // name they typed. The auto-generated account username is only a fallback for
   // accounts that have not chosen either yet.
-  const displayName = about.displayName.trim() || alias || user.username;
+  // The profile shows one name: the claimed alias. The free-text display name
+  // is no longer a second, conflicting line under the header.
+  const displayName = alias || about.displayName.trim() || user.username;
   const bio = about.bio.trim();
   const location = about.location.trim();
   const avatar = assets.avatarUrl.trim() || user.avatarUrl;
@@ -378,15 +380,6 @@ export function ProfilePreview({
                 ? badgeRow
                 : null}
             </div>
-
-            {alias ? (
-              <div className="pv-ident">
-                <span className="pv-handle">
-                  <EffectText text={`@${alias}`} settings={assets.effects.text.alias} />
-                </span>
-              </div>
-            ) : null}
-
 
             <div
               className={`pv-bio${bio ? "" : " is-empty"}${
