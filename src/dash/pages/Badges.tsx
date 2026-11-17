@@ -24,28 +24,38 @@ const LISTS: { id: "earnable" | "buyable"; label: string; hint: string; items: B
 
 type Filter = "all" | "earned" | "shown";
 
-function BadgeArt({ badge, size = 36 }: { badge: BadgeDef; size?: number }) {
+function BadgeArt({ badge, size = 36, swappable = true }: { badge: BadgeDef; size?: number; swappable?: boolean }) {
+  const [animated, setAnimated] = useState(true);
+  const [broken, setBroken] = useState(false);
+  const art = animated ? badge.art : badge.artStatic || badge.art;
+  const canSwap = swappable && Boolean(badge.artStatic) && badge.art !== badge.artStatic;
   return (
     <span
-      className={`tw-badge-art${badge.art ? "" : " is-fallback"}`}
+      className={`tw-badge-art${art && !broken ? "" : " is-fallback"}${canSwap ? " has-swap" : ""}`}
       style={{ width: size, height: size }}
     >
-      {badge.art ? (
+      {art && !broken ? (
         <img
-          src={badge.art}
+          src={art}
           alt=""
           width={size}
           height={size}
           loading="lazy"
-          onError={(event) => {
-            event.currentTarget.style.display = "none";
-            event.currentTarget.parentElement?.classList.add("is-fallback");
+          onError={() => {
+            if (animated && badge.artStatic) setAnimated(false);
+            else setBroken(true);
           }}
         />
       ) : null}
       <i className="tw-badge-art-letter" aria-hidden="true">
         {badge.name.slice(0, 1).toUpperCase()}
       </i>
+      {canSwap ? (
+        <span className="tw-badge-art-swap">
+          <button type="button" aria-label={`Show static ${badge.name}`} title="Static" onClick={() => setAnimated(false)}>‹</button>
+          <button type="button" aria-label={`Show animated ${badge.name}`} title="Animated" onClick={() => setAnimated(true)}>›</button>
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -136,7 +146,7 @@ export function BadgesPage() {
                   }))
                 }
               >
-                <BadgeArt badge={badge} size={22} />
+                <BadgeArt badge={badge} size={22} swappable={false} />
                 {badge.name}
                 <Icon name="x" size={12} />
               </button>

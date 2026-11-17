@@ -12,7 +12,7 @@ import type { Account } from "./auth";
 import { api, apiBase } from "./backend";
 import { normalizeAbout, type About } from "./about";
 import { normalizeWidgetStore, type WidgetStore } from "./widgets";
-import { normalizeBadgeStore, type BadgeStore } from "./badges";
+import { canonicalBadgeId, normalizeBadgeStore, type BadgeStore } from "./badges";
 import { normalizeLinkStore, type LinkStore } from "./links";
 
 export type ProfileDocument = {
@@ -40,7 +40,7 @@ export type ProfilePayload = {
 export function normalizeDocument(input: unknown, autoBadges?: string[]): ProfileDocument {
   const raw = (input ?? {}) as Partial<ProfileDocument>;
   const badges=normalizeBadgeStore(raw.badges);
-  if(Array.isArray(autoBadges)){badges.equipped=badges.equipped.filter(badge=>!badge.automatic || autoBadges.includes(badge.id));for(const id of autoBadges)if(!badges.equipped.some(badge=>badge.id===id))badges.equipped.push({id,visible:true,automatic:true});}
+  if(Array.isArray(autoBadges)){const automatic=new Set(autoBadges.map(canonicalBadgeId));badges.equipped=badges.equipped.filter(badge=>!badge.automatic || automatic.has(badge.id));for(const id of automatic)if(!badges.equipped.some(badge=>badge.id===id))badges.equipped.push({id,visible:true,automatic:true});}
   return {
     about: normalizeAbout(raw.about),
     widgets: normalizeWidgetStore(raw.widgets),
@@ -54,7 +54,7 @@ function withDocument(payload: Omit<ProfilePayload, "profile"> & { profile: unkn
   return {
     account: payload.account,
     earned: Array.isArray(payload.earned)
-      ? payload.earned.filter((id): id is string => typeof id === "string")
+      ? [...new Set(payload.earned.filter((id): id is string => typeof id === "string").map(canonicalBadgeId))]
       : null,
     profile: payload.profile ? normalizeDocument(payload.profile,payload.autoBadges) : null,
     autoBadges: payload.autoBadges,

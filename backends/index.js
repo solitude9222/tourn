@@ -542,7 +542,7 @@ async function earnedBadges(user, profile) {
   if (user.is_admin) earned.push("staff");
   if (user.premium) earned.push("premium");
   if (user.is_admin) earned.push("administrator");
-  if (rank <= 100) earned.push("early-supporter");
+  if (rank <= 100) earned.push("og");
   try {
     // Gifter: has sent a username to someone else.
     const gifts = await pool.query("select 1 from username_transfers where sender_id = $1 limit 1", [user.id]);

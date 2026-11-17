@@ -14,15 +14,16 @@ export function BadgeChip({
   size?: number;
 }) {
   const def = badgeDef(badge.id);
-  // A failed image (art not uploaded yet) falls back to a monogram, so a badge
-  // never renders as a broken-image icon on someone's card.
-  const [artBroken, setArtBroken] = useState(false);
+  // Animated art is the default. If it cannot load, try the still version, then
+  // fall back to a monogram rather than a broken-image icon.
+  const [artStage, setArtStage] = useState(0);
   if (!def || !badge.visible) return null;
 
   const px = size ?? style.size;
   const glowAlpha = Math.round((style.glowIntensity / 100) * 255).toString(16).padStart(2, "0");
   const glowRadius = 2 + (style.glowIntensity / 100) * 6;
-  const art = !artBroken ? def.art : "";
+  const art = artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
+  const maskArt = def.artStatic || def.art;
   const tint = style.monochrome ? style.monoColor : def.color;
 
   const chipStyle: CSSProperties = {
@@ -32,12 +33,12 @@ export function BadgeChip({
     "--badge-glow-radius": `${glowRadius}px`,
     "--badge-glow-opacity": style.glow ? style.glowIntensity / 100 : 0,
     "--badge-tint": tint,
-    ...(style.animation === "shimmer" && art ? { "--badge-shimmer-mask": `url("${art}")` } : {}),
+    ...(style.animation === "shimmer" && maskArt ? { "--badge-shimmer-mask": `url("${maskArt}")` } : {}),
   } as CSSProperties;
 
   const maskStyle: CSSProperties = {
-    WebkitMaskImage: `url("${art}")`,
-    maskImage: `url("${art}")`,
+    WebkitMaskImage: `url("${maskArt}")`,
+    maskImage: `url("${maskArt}")`,
     WebkitMaskSize: "cover",
     maskSize: "cover",
     WebkitMaskRepeat: "no-repeat",
@@ -72,7 +73,7 @@ export function BadgeChip({
           height={px}
           decoding="async"
           draggable={false}
-          onError={() => setArtBroken(true)}
+          onError={() => setArtStage((stage) => (stage === 0 && def.artStatic ? 1 : 2))}
         />
       ) : (
         <span className="badge-chip-initial" aria-hidden="true">

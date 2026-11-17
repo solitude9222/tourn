@@ -12,7 +12,7 @@ create table if not exists discord_dm_intros (
 /* The bot only ever works in the tourn.lol server. Every guild selector is gone:
    other servers the bot happens to be in are ignored entirely. */
 export const TOURN_GUILD_ID = '1557276191050698782';
-export const ROLE_BADGE_IDS=['owner','staff','verified','partner','donator','coder','bughunter','newbie','user','premium','booster','halloween_2026','christmas_2026','dc_indiscord'];
+export const ROLE_BADGE_IDS=['owner','staff','helper','premium','verified','partner','donator','donor','coder','bughunter','bug-hunter','newbie','user','ivera','og','gifter','booster','server-booster','developer','administrator','event-winner','winner','event-second','second-place','event-third','third-place','beta-tester','early-supporter','inviter','server-tag','innovator','orion','the-million','halloween_2026','christmas-2025','christmas_2026','christmas-2026','easter-2025','easter','easter-2026','autumn','summer','summer-2026','dc_indiscord','discord'];
 const snowflake=id=>typeof id==='string' && /^\d{16,20}$/.test(id);
 export function normalizeAutomation(raw={}){
  const board=raw.leaderboard && typeof raw.leaderboard==='object'?raw.leaderboard:{};

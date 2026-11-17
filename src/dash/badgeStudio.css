@@ -192,6 +192,50 @@
   color: #ffeaeb;
 }
 
+/* Animated badges have a still fallback. The arrows let people choose either
+   without changing the badge they earned. */
+.tw-badge-art.has-swap img {
+  padding-bottom: 10px;
+}
+
+.tw-badge-art-swap {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  left: 2px;
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+
+.tw-badge-art:hover .tw-badge-art-swap,
+.tw-badge-art:focus-within .tw-badge-art-swap {
+  opacity: 1;
+}
+
+.tw-badge-art-swap button {
+  display: grid;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #ffffff24;
+  border-radius: 4px;
+  background: #09090ce8;
+  color: #e6e6eb;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tw-badge-art-swap button:hover,
+.tw-badge-art-swap button:focus-visible {
+  border-color: var(--accent, #ffb3ae);
+  color: #fff;
+}
+
 @media (max-width: 700px) {
   .tw-badge-style-grid {
     grid-template-columns: minmax(0, 1fr);
