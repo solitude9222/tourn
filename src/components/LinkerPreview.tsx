@@ -630,7 +630,6 @@ export function LinkerPreview({
             <BadgeRow
               badges={badges.equipped}
               style={badges.style ?? DEFAULT_BADGE_STYLE}
-              size={26}
               tooltipStyle={tooltips.style}
               tooltipEnabled={tooltips.enabled}
               tooltipAnimation={tooltips.animation}

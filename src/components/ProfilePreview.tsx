@@ -142,7 +142,6 @@ export function ProfilePreview({
           <BadgeRow
             badges={badges}
             style={badgeStyle ?? DEFAULT_BADGE_STYLE}
-            size={20}
             tooltipStyle={tooltips.style}
             tooltipEnabled={tooltips.enabled}
             tooltipAnimation={tooltips.animation}
