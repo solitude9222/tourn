@@ -3950,7 +3950,7 @@
   backdrop-filter: blur(var(--pv-pill-blur, 6px));
 }
 
-/* Badges sit in one rail: a 34px pill, 20px art, 10px between them. */
+/* Badges sit in one rail: a 38px pill, 24px art, 6px between them. */
 .pv-badges {
   display: inline-flex;
   align-items: center;
