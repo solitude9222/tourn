@@ -29,7 +29,7 @@ export function PageMetadataSettings() {
   const previewTitle = metadata.shareTitle.trim();
   const previewDescription = metadata.shareDescription.trim();
   const authorAvatar = about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
-  const previewImage = metadata.shareImageUrl.trim() || authorAvatar;
+  const previewImage = metadata.shareImageUrl.trim() || `/api/profile/${encodeURIComponent(handle)}/embed-image`;
   const favicon = metadata.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
 
   const uploadAvatarOrFavicon = async (file: File | undefined) => {
@@ -134,7 +134,7 @@ export function PageMetadataSettings() {
               </Field>
               <div className="tw-inline-toggle tw-share-image-actions">
                 <span><b>Use profile avatar</b><small>Clear the custom image and fall back to your avatar.</small></span>
-                <Button disabled={!metadata.shareImageUrl || shareUploading} onClick={() => update({ shareImageUrl: "" })}>
+                <Button disabled={!metadata.shareImageUrl || shareUploading} onClick={() => update({ shareImageUrl: user.avatarUrl || "" })}>
                   Use avatar
                 </Button>
               </div>

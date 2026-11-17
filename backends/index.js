@@ -2067,6 +2067,45 @@ app.get('/api/profile/history',requireAuth,async(req,res)=>{
 app.get('/api/profile/history/:revision',requireAuth,async(req,res)=>{
  try{if(!/^\d+$/.test(req.params.revision))return res.status(400).json({error:'Choose a saved revision.'});const {rows}=await pool.query('select data,revision,saved_at from profile_history where user_id=$1 and revision=$2',[req.auth.sub,req.params.revision]);if(!rows[0])return res.status(404).json({error:'Saved revision not found.'});res.set('Cache-Control','no-store').json(rows[0]);}catch{res.status(500).json({error:'Could not load that revision.'});}
 });
+/* Public image behind a profile link preview. Profile artwork is stored as a
+   data URL in the profile document, which Discord cannot fetch directly; this
+   route turns it into a normal image response. */
+app.get("/api/profile/:handle/embed-image", async (req, res) => {
+  try {
+    const user = await userByHandle(req.params.handle);
+    if (!user) return res.sendStatus(404);
+    const profile = await profileRow(user.id);
+    const about = profile?.about ?? {};
+    const candidates = [
+      about.metadata?.shareImageUrl,
+      about.assets?.background?.imageUrl,
+      about.assets?.banner?.imageUrl,
+      about.assets?.avatarUrl,
+    ];
+    for (const candidate of candidates) {
+      const raw = String(candidate ?? "").trim();
+      const data = /^data:(image\/(?:png|jpeg|webp|gif));base64,([\s\S]+)$/i.exec(raw);
+      if (data) {
+        const bytes = Buffer.from(data[2].replace(/\s+/g, ""), "base64");
+        if (!bytes.length) continue;
+        res.set({
+          "Content-Type": data[1].toLowerCase(),
+          "Content-Length": String(bytes.length),
+          "Cache-Control": "public, max-age=60, must-revalidate",
+          "X-Content-Type-Options": "nosniff",
+        });
+        return res.send(bytes);
+      }
+      if (/^https?:\/\//i.test(raw)) return res.redirect(302, raw);
+      if (raw.startsWith("/")) return res.redirect(302, `${req.protocol}://${req.get("host")}${raw}`);
+    }
+    if (user.avatar_url) return res.redirect(302, user.avatar_url);
+    return res.sendStatus(404);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get("/api/profile/:handle", async (req, res) => {
   try {
     const user = await userByHandle(req.params.handle);

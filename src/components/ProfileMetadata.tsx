@@ -45,7 +45,7 @@ export function ProfileMetadata({
   // instead of filling the embed with the profile bio or display name.
   const embedTitle = meta.shareTitle.trim();
   const embedDescription = meta.shareDescription.trim();
-  const shareImage = absoluteUrl(meta.shareImageUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png");
+  const shareImage = absoluteUrl(meta.shareImageUrl.trim() || `/api/profile/${encodeURIComponent(handle)}/embed-image`);
   const favicon = meta.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
 
   useEffect(() => {

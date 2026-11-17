@@ -76,7 +76,9 @@ export function rewriteProfileHtml(html, { origin, account, profile }) {
   // the crawler tag empty instead of substituting the bio or display name.
   const title = String(metadata.shareTitle ?? "").trim();
   const description = String(metadata.shareDescription ?? "").trim();
-  const image = firstPublicImage(origin, metadata.shareImageUrl, about.assets?.avatarUrl, account?.avatarUrl);
+  const handle = account?.alias || account?.username || "";
+  const profileImage = handle ? `${origin}/api/profile/${encodeURIComponent(handle)}/embed-image` : "";
+  const image = firstPublicImage(origin, metadata.shareImageUrl, profileImage);
   const faviconRaw = String(metadata.faviconUrl ?? "").trim() || about.assets?.avatarUrl || account?.avatarUrl;
   const favicon = /^https?:\/\//i.test(faviconRaw) || String(faviconRaw).startsWith("data:")
     ? faviconRaw
