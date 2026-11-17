@@ -7183,59 +7183,14 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   height: auto;
   overflow: visible;
   filter:
-    drop-shadow(0 0 6px color-mix(in srgb, var(--dot-glow-color, #fff) 55%, transparent))
-    drop-shadow(0 0 15px color-mix(in srgb, var(--dot-glow-color, #fff) 25%, transparent));
+    drop-shadow(0 0 var(--dot-glow, 6px) color-mix(in srgb, var(--dot-glow-color, #fff) 55%, transparent))
+    drop-shadow(0 0 calc(var(--dot-glow, 6px) * 2.5) color-mix(in srgb, var(--dot-glow-color, #fff) 25%, transparent));
 }
 
 .pv-id h3.pv-dot-name-wrap {
   min-width: 0;
   max-width: 100%;
   overflow: visible;
-}
-
-/* ── Scattered type ─────────────────────────────────────────────
-   The "Scattered" switch in Appearance → Font gives every profile
-   text run a pixel face and a hard, stepped pixel fringe. The shadow
-   lives on the page root so it is inherited by text only — artwork,
-   avatars, badges and link icons are untouched. */
-.lkr-page[data-scattered="true"],
-.profile-preview[data-scattered="true"] {
-  --pv-scatter-font: "Pixelify Sans", "VT323", "Lexend", monospace;
-  --pv-scatter-shadow:
-    2px 0 0 currentColor,
-    -2px 0 0 currentColor,
-    0 2px 0 currentColor,
-    0 -2px 0 currentColor,
-    3px 3px 0 color-mix(in srgb, currentColor 42%, transparent),
-    -3px 2px 0 color-mix(in srgb, currentColor 32%, transparent),
-    3px -3px 0 color-mix(in srgb, currentColor 24%, transparent);
-}
-
-.lkr-page[data-scattered="true"] :is(
-  h1, h2, h3, h4, h5, h6, p, span, b, strong, em, small, li,
-  a, button, label, blockquote, figcaption, time
-),
-.profile-preview[data-scattered="true"] :is(
-  h1, h2, h3, h4, h5, h6, p, span, b, strong, em, small, li,
-  a, button, label, blockquote, figcaption, time
-) {
-  font-family: var(--pv-scatter-font) !important;
-  letter-spacing: 0.03em;
-  word-spacing: 0.04em;
-  text-shadow: var(--pv-scatter-shadow) !important;
-}
-
-/* Widget titles and effect spans already carry their own inline font or an
-   animated glow; the scattered treatment still wins over both. */
-.lkr-page[data-scattered="true"] .fx-text,
-.profile-preview[data-scattered="true"] .fx-text {
-  font-family: var(--pv-scatter-font) !important;
-  text-shadow: var(--pv-scatter-shadow) !important;
-}
-
-.lkr-page[data-scattered="true"] .widget-card,
-.profile-preview[data-scattered="true"] .widget-card {
-  text-shadow: var(--pv-scatter-shadow);
 }
 
 /* ── effect readability guard ──────────────────────────────────

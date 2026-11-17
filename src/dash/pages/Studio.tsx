@@ -2,13 +2,13 @@ import { useDash } from "../context";
 import { ProfileMedia } from "../ProfileMedia";
 import { DecorationsPanel } from "../DecorationsPanel";
 import { AccountProfilePage } from "./Account";
-import { Button, Card, CardHead, ColorField, Field, FileUpload, Select, TextInput, Textarea, Toggle } from "../ui";
+import { Button, Card, CardHead, ColorField, Field, FileUpload, Select, Slider, TextInput, Textarea, Toggle } from "../ui";
 import { ONEKO_CATS } from "../../lib/oneko";
 import { FontPicker } from "../../components/FontPicker";
 import { DotMatrixText } from "../../components/DotMatrixText";
 import { fileToDataUrl } from "../files";
 
-function ScatteredPreview({ active, text, color, onToggle }: { active: boolean; text: string; color: string; onToggle: () => void }) {
+function ScatteredPreview({ active, text, color, size, cell, glow, shimmer, onToggle }: { active: boolean; text: string; color: string; size: number; cell: number; glow: number; shimmer: boolean; onToggle: () => void }) {
   return <button
     type="button"
     className={`tw-scattered-preview${active ? " is-active" : ""}`}
@@ -17,11 +17,11 @@ function ScatteredPreview({ active, text, color, onToggle }: { active: boolean; 
     aria-label="Toggle scattered dot-matrix text"
   >
     <span className="tw-scattered-preview-head">
-      <span><b>Scattered preview</b><small>Dot matrix with a soft glow</small></span>
+      <span><b>Shatter preview</b><small>Dot matrix with a soft glow</small></span>
       <span className="tw-scattered-state">{active ? "On" : "Off"}</span>
     </span>
     <span className="tw-scattered-stage">
-      <DotMatrixText text={text} fontSize={54} cell={2} color={color} />
+      <DotMatrixText text={text} fontSize={Math.min(110, size)} cell={cell} glow={glow} shimmer={shimmer} color={color} />
     </span>
   </button>;
 }
@@ -32,7 +32,7 @@ export function AppearanceStudioPage() {
     <ProfileMedia />
     <details className="tw-advanced tw-media-advanced"><summary>Background, banner and image settings</summary><AccountProfilePage section="artwork" /></details>
     <DecorationsPanel />
-    <Card><CardHead icon="palette" title="Font" subtitle="Choose the profile typeface, or upload your own font file." /><div className="tw-form-grid"><FontPicker label="Profile font" value={about.design.font} onChange={(font) => setAbout(current => ({ ...current, design: { ...current.design, font } }))} /><div className="tw-inline-toggle"><span><b>Scattered</b><small>Dot-matrix name with a glowing shimmer; bio and supporting text stay readable.</small></span><Toggle label="Scattered text" checked={Boolean(about.design.scattered)} onChange={(scattered) => setAbout(current => ({ ...current, design: { ...current.design, scattered } }))} /></div><Field label="Custom font file" hint="Upload your own WOFF, WOFF2, TTF or OTF file under 500 KB."><FileUpload aria-label="Custom profile font" accept=".woff,.woff2,.ttf,.otf" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 500_000 || !/\.(woff2?|ttf|otf)$/i.test(file.name)) { notify("Font", "Choose a font file under 500 KB."); return; } const customFontUrl = await fileToDataUrl(file); setAbout(current => ({ ...current, design: { ...current.design, customFontUrl } })); notify("Font", "Custom font added. Save to publish it."); }} />{about.design.customFontUrl ? <Button onClick={() => setAbout(current => ({ ...current, design: { ...current.design, customFontUrl: "" } }))}>Remove custom font</Button> : null}</Field></div><ScatteredPreview active={Boolean(about.design.scattered)} text={about.displayName.trim() || "salvatore"} color={about.design.colors.text} onToggle={() => setAbout(current => ({ ...current, design: { ...current.design, scattered: !current.design.scattered } }))} /></Card>
+    <Card><CardHead icon="palette" title="Font" subtitle="Choose the profile typeface, or upload your own font file." /><div className="tw-form-grid"><FontPicker label="Profile font" value={about.design.font} onChange={(font) => setAbout(current => ({ ...current, design: { ...current.design, font } }))} /><div className="tw-inline-toggle"><span><b>Scattered</b><small>Dot-matrix name with a glowing shimmer; bio and supporting text stay readable.</small></span><Toggle label="Scattered text" checked={Boolean(about.design.scattered)} onChange={(scattered) => setAbout(current => ({ ...current, design: { ...current.design, scattered } }))} /></div><Field label="Custom font file" hint="Upload your own WOFF, WOFF2, TTF or OTF file under 500 KB."><FileUpload aria-label="Custom profile font" accept=".woff,.woff2,.ttf,.otf" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 500_000 || !/\.(woff2?|ttf|otf)$/i.test(file.name)) { notify("Font", "Choose a font file under 500 KB."); return; } const customFontUrl = await fileToDataUrl(file); setAbout(current => ({ ...current, design: { ...current.design, customFontUrl } })); notify("Font", "Custom font added. Save to publish it."); }} />{about.design.customFontUrl ? <Button onClick={() => setAbout(current => ({ ...current, design: { ...current.design, customFontUrl: "" } }))}>Remove custom font</Button> : null}</Field></div><ScatteredPreview active={Boolean(about.design.scattered)} text="shatter" color="#ffffff" size={about.design.scatteredSize ?? 86} cell={about.design.scatteredCell ?? 3} glow={about.design.scatteredGlow ?? 6} shimmer={about.design.scatteredShimmer !== false} onToggle={() => setAbout(current => ({ ...current, design: { ...current.design, scattered: !current.design.scattered } }))} /><div className="tw-scattered-controls"><Slider label="Dot size" value={about.design.scatteredSize ?? 86} min={48} max={140} suffix="px" onChange={scatteredSize => setAbout(current => ({ ...current, design: { ...current.design, scatteredSize } }))} /><Slider label="Dot grid" value={about.design.scatteredCell ?? 3} min={2} max={8} suffix="px" onChange={scatteredCell => setAbout(current => ({ ...current, design: { ...current.design, scatteredCell } }))} /><Slider label="Glow" value={about.design.scatteredGlow ?? 6} min={0} max={24} suffix="px" onChange={scatteredGlow => setAbout(current => ({ ...current, design: { ...current.design, scatteredGlow } }))} /><div className="tw-inline-toggle"><span><b>Shimmer</b><small>Move a soft highlight across the dots.</small></span><Toggle label="Scattered shimmer" checked={about.design.scatteredShimmer !== false} onChange={scatteredShimmer => setAbout(current => ({ ...current, design: { ...current.design, scatteredShimmer } }))} /></div></div></Card>
     <Card><CardHead icon="sparkles" title="Oneko" subtitle="A small companion that follows your pointer on the public page." /><div className="tw-form-grid"><div className="tw-inline-toggle"><span><b>Enable Oneko</b><small>Respects reduced-motion preferences.</small></span><Toggle label="Enable Oneko" checked={Boolean(about.design.oneko)} onChange={oneko => setAbout(current => ({ ...current, design: { ...current.design, oneko } }))} /></div><Field label="Companion color"><Select value={about.design.onekoCat || "classic"} options={ONEKO_CATS.map(cat => ({ value: cat.id, label: cat.label }))} onChange={onekoCat => setAbout(current => ({ ...current, design: { ...current.design, onekoCat: onekoCat as typeof current.design.onekoCat } }))} /></Field></div></Card>
   </div>;
 }

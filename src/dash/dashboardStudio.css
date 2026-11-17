@@ -151,6 +151,9 @@
 .tw-scattered-preview.is-active .tw-scattered-state { border-color:var(--accent-border,var(--border)); background:var(--accent-soft); color:var(--title); }
 .tw-scattered-stage { display:flex; min-height:142px; align-items:center; justify-content:center; padding:22px 14px; background:radial-gradient(circle at 50% 42%,#1b1b20 0%,#0a0a0c 72%); overflow:hidden; }
 .tw-scattered-preview:not(.is-active) .tw-scattered-stage { opacity:.62; }
+.tw-scattered-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px 18px; margin-top:14px; padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--tile); }
+.tw-scattered-controls .tw-inline-toggle { grid-column:1/-1; }
+@media(max-width:800px) { .tw-scattered-controls { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:700px) { .tw-profile-media-settings { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:1100px) { .tw-dash .tw-toggle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:900px) { .tw-dash .tw-tab { flex:1 0 110px; } }

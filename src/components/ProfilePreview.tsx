@@ -239,9 +239,8 @@ export function ProfilePreview({
     return () => observer.disconnect();
   }, [tilt.ref]);
   useEffect(() => {
-    if (design.scattered) loadGoogleFont("Pixelify Sans");
-    else if (design.font) loadGoogleFont(design.font);
-  }, [design.font, design.scattered]);
+    if (design.font) loadGoogleFont(design.font);
+  }, [design.font]);
   useEffect(() => {
     if (!design.customFontUrl || !window.FontFace) return;
     let active = true;
@@ -256,13 +255,11 @@ export function ProfilePreview({
     "--pv-scale": scale,
     // Lexend is the site font, so an untouched card matches the rest of tourn.lol
     // instead of falling back to Segoe UI.
-    "--pv-font": design.scattered
-      ? '"Pixelify Sans", "VT323", "Lexend", monospace'
-      : design.customFontUrl
-        ? `"tourn-${user.id}", "Lexend", sans-serif`
-        : design.font
-          ? `"${design.font.replace(/["\\]/g, "")}", "Lexend", sans-serif`
-          : '"Lexend", "Segoe UI", system-ui, sans-serif',
+    "--pv-font": design.customFontUrl
+      ? `"tourn-${user.id}", "Lexend", sans-serif`
+      : design.font
+        ? `"${design.font.replace(/["\\]/g, "")}", "Lexend", sans-serif`
+        : '"Lexend", "Segoe UI", system-ui, sans-serif',
     "--pv-accent": design.colors.accent,
     "--pv-text": design.colors.text,
     "--pv-muted": design.colors.muted,
@@ -365,8 +362,10 @@ export function ProfilePreview({
                   {design.scattered ? (
                     <DotMatrixText
                       text={displayName}
-                      fontSize={Math.max(16, Math.round(design.nameSize * scale))}
-                      cell={Math.max(2, Math.round((design.nameSize * scale) / 30))}
+                      fontSize={design.scatteredSize ?? 86}
+                      cell={design.scatteredCell ?? 3}
+                      glow={design.scatteredGlow ?? 6}
+                      shimmer={design.scatteredShimmer !== false}
                       color={design.colors.text}
                       className="pv-dot-name"
                     />

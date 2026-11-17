@@ -335,8 +335,16 @@ export type AboutDesign = {
   /** Card font family — kept for saved documents only; the card always uses
    *  the site font (Lexend) now. */
   font: string;
-  /** Pixel-scattered type treatment applied to every piece of profile text. */
+  /** Dot-matrix scattered display name. */
   scattered?: boolean;
+  /** Dot size for the scattered name canvas, in px. */
+  scatteredSize?: number;
+  /** Dot grid spacing for the scattered name canvas, in px. */
+  scatteredCell?: number;
+  /** Glow radius for the scattered name canvas, in px. */
+  scatteredGlow?: number;
+  /** Moving highlight across the scattered dots. */
+  scatteredShimmer?: boolean;
   /** Sizing revision. Documents without it are lifted to the current
    *  reference card once, then keep whatever the owner sets afterwards. */
   version?: number;
@@ -470,6 +478,10 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   cardStyle: "default",
   font: "",
   scattered: false,
+  scatteredSize: 86,
+  scatteredCell: 3,
+  scatteredGlow: 6,
+  scatteredShimmer: true,
   version: 3,
   // The reference card is 720px wide: 32px padding, a 24px radius, a 120px
   // avatar, a 36px name and a 20px bio, with a dark glass surface (55% fill,
@@ -848,6 +860,10 @@ function loadDesignRaw(input: unknown): AboutDesign {
     cardStyle,
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
     scattered: boolIn(raw.scattered, false),
+    scatteredSize: numberIn(raw.scatteredSize, 86, 48, 160),
+    scatteredCell: numberIn(raw.scatteredCell, 3, 2, 8),
+    scatteredGlow: numberIn(raw.scatteredGlow, 6, 0, 24),
+    scatteredShimmer: boolIn(raw.scatteredShimmer, true),
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
     version: 3,
     // Profiles saved against the old 620px card move to the wider one; a width

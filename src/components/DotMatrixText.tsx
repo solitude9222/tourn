@@ -11,6 +11,7 @@ export function DotMatrixText({
   text,
   fontSize = 44,
   cell = 2,
+  glow = 6,
   color = "#ffffff",
   shimmer = true,
   className = "",
@@ -18,6 +19,7 @@ export function DotMatrixText({
   text: string;
   fontSize?: number;
   cell?: number;
+  glow?: number;
   color?: string;
   shimmer?: boolean;
   className?: string;
@@ -133,7 +135,7 @@ export function DotMatrixText({
       className={`dot-matrix-text${className ? ` ${className}` : ""}`}
       role="img"
       aria-label={text}
-      style={{ "--dot-glow-color": color } as CSSProperties}
+      style={{ "--dot-glow-color": color, "--dot-glow": `${Math.max(0, glow)}px` } as CSSProperties}
     />
   );
 }
