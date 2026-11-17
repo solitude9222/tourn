@@ -9,6 +9,7 @@ import { DEFAULT_LINK_DESIGN, type LinkDesign, type LinkInstance } from "../lib/
 import { loadGoogleFont } from "../lib/fonts";
 import { useTilt } from "../lib/useTilt";
 import { EffectText, SparkleLayer, textEffectClass, textEffectStyle } from "./ProfileEffects";
+import { DotMatrixText } from "./DotMatrixText";
 import { BadgeRow } from "./BadgeRow";
 import { ProfileLinks } from "./ProfileLinks";
 import { AudioPlayer } from "./AudioPlayer";
@@ -353,7 +354,7 @@ export function ProfilePreview({
             {/* name and badges share one line, so the rail sits right beside
                 the name instead of floating to the far edge of the card */}
             <div className="pv-id">
-              <h3>
+              <h3 className={design.scattered ? "pv-dot-name-wrap" : undefined}>
                 {/* The account number belongs to the name, not the picture:
                     hover the name to read it. */}
                 <Tooltip
@@ -361,7 +362,17 @@ export function ProfilePreview({
                   style={tooltips.style}
                   animation={tooltips.animation}
                 >
-                  <EffectText text={displayName} settings={assets.effects.text.name} />
+                  {design.scattered ? (
+                    <DotMatrixText
+                      text={displayName}
+                      fontSize={Math.max(16, Math.round(design.nameSize * scale))}
+                      cell={Math.max(2, Math.round((design.nameSize * scale) / 30))}
+                      color={design.colors.text}
+                      className="pv-dot-name"
+                    />
+                  ) : (
+                    <EffectText text={displayName} settings={assets.effects.text.name} />
+                  )}
                 </Tooltip>
               </h3>
               {inlineBadges || design.badgePosition === "default" || design.badgePosition === "above-name"
@@ -387,7 +398,7 @@ export function ProfilePreview({
               {bio ? (
                 <>
                   <RichText text={bio} />
-                  <SparkleLayer settings={bioEffect} />
+                  <SparkleLayer settings={bioEffect} spread />
                 </>
               ) : (
                 <span>A bio is on the way.</span>

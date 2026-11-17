@@ -97,16 +97,34 @@ export function ProfileMedia() {
   const busyLabel = (kind: MediaKind, idle: string) =>
     busy === kind ? (progress === null ? "Processing…" : `Uploading ${progress}%`) : idle;
   const background = assets.background;
+  const hasBackgroundMedia =
+    (background.style === "image" && Boolean(background.imageUrl)) ||
+    (background.style === "video" && Boolean(background.videoUrl));
+  const removeBackground = () => {
+    setAbout(current => ({
+      ...current,
+      assets: {
+        ...current.assets,
+        background: {
+          ...current.assets.background,
+          style: "gradient",
+          imageUrl: "",
+          videoUrl: "",
+        },
+      },
+    }));
+    notify("Background", "Background image removed.");
+  };
   return <><Card className="tw-profile-media"><CardHead icon="image" title="Media" subtitle="Avatar, background, audio and cursor" />
     <div className="tw-profile-media-grid">
       <div><b className="tw-media-heading">Avatar</b><button className="tw-profile-media-tile" type="button" disabled={Boolean(busy)} onClick={() => choose("avatar")} aria-label="Upload avatar">
         {assets.avatarUrl || user.avatarUrl ? <img className="tw-media-avatar" src={assets.avatarUrl || user.avatarUrl || ""} alt="Your avatar" /> : <span className="tw-media-avatar-fallback">{(about.displayName || user.username).slice(0, 1).toUpperCase()}</span>}
         <span className="tw-media-hover">{busyLabel("avatar", "Change avatar")}</span>
       </button></div>
-      <div><b className="tw-media-heading">Background</b><button className="tw-profile-media-tile" type="button" disabled={Boolean(busy)} onClick={() => choose("background")} aria-label="Upload background">
+      <div className="tw-profile-media-background"><b className="tw-media-heading">Background</b><button className="tw-profile-media-tile" type="button" disabled={Boolean(busy)} onClick={() => choose("background")} aria-label="Upload background">
         {background.style === "video" && background.videoUrl ? <video className="tw-media-background" src={background.videoUrl} muted loop playsInline preload="metadata" /> : background.style === "image" && background.imageUrl ? <img className="tw-media-background" src={background.imageUrl} alt="Your background" /> : <span className="tw-media-background-placeholder" style={{ background: background.style === "gradient" ? `linear-gradient(${background.angle ?? 135}deg, ${background.from}, ${background.to})` : background.color }}><Icon name="image" size={30} /></span>}
         <span className="tw-media-hover">{busyLabel("background", "Change background")}</span>
-      </button></div>
+      </button>{hasBackgroundMedia ? <button type="button" className="tw-media-remove-bg" onClick={removeBackground} aria-label="Remove background image" title="Remove background">×</button> : null}</div>
       <div><b className="tw-media-heading">Audio</b><button className="tw-profile-media-tile tw-media-audio" type="button" onClick={() => setAudioOpen(true)} aria-label="Open audio manager"><Icon name="music" size={34} /><span>{assets.audio.title || "Open the audio player"}</span><small>{assets.audio.fileUrl ? `${1 + assets.audio.queue.length} of 3 tracks` : "Manage up to 3 audio files"}</small></button></div>
       <div><b className="tw-media-heading">Cursor</b><div className="tw-profile-media-tile tw-media-pointer-pair">
         <button type="button" disabled={Boolean(busy)} onClick={() => choose("cursor")} aria-label="Upload cursor image">{assets.cursor.imageUrl ? <img src={assets.cursor.imageUrl} alt="Cursor" /> : <Icon name="plus" size={24} />}<small>{busy === "cursor" ? "Processing…" : "Default cursor"}</small></button>

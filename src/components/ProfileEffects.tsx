@@ -118,7 +118,8 @@ export function textEffectStyle(settings: TextEffectSettings): CSSProperties {
     "--fx-strength": settings.strength,
     "--fx-amp": `${amount}px`,
     "--fx-band": `${100 + amount * 2}%`,
-    "--fx-dim": `${1 - settings.params.amount / 100}`,
+    // Keep a readable floor; the old 0.2 "dim to" value effectively erased text.
+    "--fx-dim": `${Math.max(0.55, 1 - settings.params.amount / 100)}`,
     "--fx-line-gap": `${amount}px`,
     fontFamily: settings.font ? `"${settings.font.replace(/["\\]/g, "")}", sans-serif` : undefined,
   } as CSSProperties;
@@ -141,18 +142,22 @@ export function textEffectClass(settings: TextEffectSettings): string {
   return ["fx-text-wrap", ...active.map((id) => `fx-text-wrap--${id}`), ...flagClasses].join(" ");
 }
 
-function Sparkles({ settings }: { settings: TextEffectSettings }) {
+function Sparkles({ settings, spread = false }: { settings: TextEffectSettings; spread?: boolean }) {
   const schemaDensity = TEXT_EFFECT_PARAM.sparkle?.kind === "slider" ? settings.params.amount : 10;
   const count = Math.max(3, Math.min(14, Math.round(schemaDensity)));
   return (
-    <span className="fx-sparkles" aria-hidden="true">
+    <span className={`fx-sparkles${spread ? " fx-sparkles--spread" : ""}`} aria-hidden="true">
       {Array.from({ length: count }, (_, index) => (
         <i
           key={index}
           style={
             {
               left: `${Math.round(randomish(index, 10) * 96)}%`,
-              top: `${index % 2 === 0 ? -6 - Math.round(randomish(index, 11) * 10) : 90 + Math.round(randomish(index, 11) * 16)}%`,
+              // Names sparkle around the top/bottom edge. A bio can wrap onto
+              // many lines, so its stars spread over the whole text block.
+              top: spread
+                ? `${5 + Math.round(randomish(index, 11) * 88)}%`
+                : `${index % 2 === 0 ? -6 - Math.round(randomish(index, 11) * 10) : 90 + Math.round(randomish(index, 11) * 16)}%`,
               animationDelay: `${-(randomish(index, 12) * settings.speed).toFixed(2)}s`,
               "--fx-spark": `${2 + Math.round(randomish(index, 13) * 4)}px`,
             } as CSSProperties
@@ -247,9 +252,9 @@ export function EffectText({
   );
 }
 
-export function SparkleLayer({ settings }: { settings: TextEffectSettings }) {
+export function SparkleLayer({ settings, spread = false }: { settings: TextEffectSettings; spread?: boolean }) {
   if (settings.effect !== "sparkle" && !(settings.effects ?? []).includes("sparkle")) return null;
-  return <Sparkles settings={settings} />;
+  return <Sparkles settings={settings} spread={spread} />;
 }
 
 export function EffectLayer({

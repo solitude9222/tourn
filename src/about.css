@@ -2714,18 +2714,18 @@
 
 @keyframes fxFlicker {
   0% { opacity: 1; }
-  4% { opacity: 0.3; }
+  4% { opacity: 0.58; }
   6% { opacity: 1; }
-  12% { opacity: 0.45; }
+  12% { opacity: 0.68; }
   14% { opacity: 1; }
   30% { opacity: 1; }
-  32% { opacity: 0.15; }
+  32% { opacity: 0.55; }
   34% { opacity: 0.9; }
-  36% { opacity: 0.2; }
+  36% { opacity: 0.6; }
   38% { opacity: 1; }
   68% { opacity: 1; }
-  70% { opacity: 0.35; }
-  72% { opacity: 0.85; }
+  70% { opacity: 0.62; }
+  72% { opacity: 0.88; }
   100% { opacity: 1; }
 }
 
@@ -7176,6 +7176,23 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   gap: 18px;
 }
 
+/* ── Dot-matrix scattered name ───────────────────────────────── */
+.dot-matrix-text {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+  filter:
+    drop-shadow(0 0 6px color-mix(in srgb, var(--dot-glow-color, #fff) 55%, transparent))
+    drop-shadow(0 0 15px color-mix(in srgb, var(--dot-glow-color, #fff) 25%, transparent));
+}
+
+.pv-id h3.pv-dot-name-wrap {
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
 /* ── Scattered type ─────────────────────────────────────────────
    The "Scattered" switch in Appearance → Font gives every profile
    text run a pixel face and a hard, stepped pixel fringe. The shadow
@@ -7219,4 +7236,52 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .lkr-page[data-scattered="true"] .widget-card,
 .profile-preview[data-scattered="true"] .widget-card {
   text-shadow: var(--pv-scatter-shadow);
+}
+
+/* ── effect readability guard ──────────────────────────────────
+   Several effects paint their fill with a clipped gradient or lines.
+   Keep a faint text-coloured silhouette behind that fill so a dark
+   gradient stop or a transparent line gap can never erase the words. */
+.fx-text-wrap--rgb,
+.fx-text-wrap--shimmer,
+.fx-text--aurora,
+.fx-text--metallic,
+.fx-text-wrap--liner,
+.fx-text--liner {
+  text-shadow:
+    0 0 1px var(--pv-text, #fff),
+    0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+/* Liner's gaps need a readable base fill, not just hairlines. */
+.fx-text-wrap--liner,
+.fx-text--liner {
+  background-color: color-mix(in srgb, var(--pv-text, #fff) 45%, transparent);
+}
+
+/* Outline at 1px was almost invisible on small bio text. */
+.fx-text--outline {
+  color: color-mix(in srgb, var(--fx-color-a) 30%, transparent);
+  -webkit-text-stroke: max(1px, 0.045em) var(--fx-color-a);
+  text-shadow: 0 0 5px color-mix(in srgb, var(--fx-color-a) 45%, transparent);
+}
+
+/* Bright tube effects need an edge when the card behind them is light. */
+.fx-text-wrap--glow,
+.fx-text-wrap--neon,
+.fx-text-wrap--flicker {
+  -webkit-text-stroke: 0.35px rgba(0, 0, 0, 0.38);
+}
+
+/* A bio can wrap, so its sparkle stars fill the whole block instead of
+   forming two strips across the first and last line. */
+.pv-bio .fx-sparkles--spread {
+  inset: -4px -8px;
+}
+.pv-bio .fx-sparkles::before,
+.pv-bio .fx-sparkles::after {
+  display: none;
+}
+.pv-bio .fx-sparkles i {
+  opacity: 0.9;
 }

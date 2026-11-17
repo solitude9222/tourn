@@ -137,6 +137,20 @@
 .tw-media-setting-head small { color:var(--sub); font-size:11px; line-height:17px; }
 .tw-media-video-sound { display:flex; flex-direction:column; gap:14px; }
 .tw-media-background { display:block; object-fit:cover; }
+
+/* Scattered control: the canvas itself is the preview, and clicking it is the
+   same as flipping the switch above. */
+.tw-scattered-preview { display:block; width:100%; margin-top:18px; padding:0; overflow:hidden; border:1px solid var(--border); border-radius:14px; background:var(--tile); color:inherit; font:inherit; text-align:left; cursor:pointer; transition:border-color 160ms ease,box-shadow 160ms ease; }
+.tw-scattered-preview:hover, .tw-scattered-preview:focus-visible { border-color:var(--input-border); }
+.tw-scattered-preview.is-active { border-color:var(--accent-border,var(--border)); box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 25%,transparent); }
+.tw-scattered-preview-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; border-bottom:1px solid var(--border); background:var(--bar); }
+.tw-scattered-preview-head > span:first-child { display:flex; flex-direction:column; gap:2px; }
+.tw-scattered-preview-head b { color:var(--title); font-size:12px; line-height:18px; }
+.tw-scattered-preview-head small { color:var(--sub); font-size:11px; line-height:16px; }
+.tw-scattered-state { flex:none; padding:3px 8px; border:1px solid var(--border); border-radius:999px; color:var(--sub); font-size:10px; line-height:14px; letter-spacing:.05em; text-transform:uppercase; }
+.tw-scattered-preview.is-active .tw-scattered-state { border-color:var(--accent-border,var(--border)); background:var(--accent-soft); color:var(--title); }
+.tw-scattered-stage { display:flex; min-height:142px; align-items:center; justify-content:center; padding:22px 14px; background:radial-gradient(circle at 50% 42%,#1b1b20 0%,#0a0a0c 72%); overflow:hidden; }
+.tw-scattered-preview:not(.is-active) .tw-scattered-stage { opacity:.62; }
 @media(max-width:700px) { .tw-profile-media-settings { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:1100px) { .tw-dash .tw-toggle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:900px) { .tw-dash .tw-tab { flex:1 0 110px; } }

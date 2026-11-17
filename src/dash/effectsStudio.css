@@ -16,6 +16,8 @@
 .tw-media-pointer-pair > button:last-child { border-right:0; }
 .tw-media-pointer-pair img { width:30px; height:30px; object-fit:contain; }
 .tw-media-pointer-pair small { font-size:10px; }
+.tw-media-remove-bg { position:absolute; top:37px; right:8px; z-index:3; display:grid; width:25px; height:25px; padding:0; place-items:center; border:1px solid rgba(255,255,255,.24); border-radius:50%; background:rgba(9,9,11,.82); color:#fff; font:600 17px/1 system-ui,sans-serif; cursor:pointer; backdrop-filter:blur(8px); transition:background 140ms ease,border-color 140ms ease,transform 140ms ease; }
+.tw-media-remove-bg:hover, .tw-media-remove-bg:focus-visible { border-color:rgba(255,255,255,.55); background:rgba(180,30,40,.92); transform:scale(1.06); }
 .tw-media-reset-row { display:flex; gap:6px; position:absolute; bottom:8px; left:8px; right:8px; }
 .tw-media-reset-row .tw-btn { height:24px; padding:0 7px; font-size:9px; }
 .tw-decoration-tabs { display:flex; gap:5px; padding:4px; border:1px solid var(--border); border-radius:10px; margin-bottom:18px; }
