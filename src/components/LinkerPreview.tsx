@@ -675,6 +675,7 @@ export function LinkerPreview({
       className={`lkr-page lkr-card-${design.cardStyle}${className ? ` ${className}` : ""}`}
       style={style}
       data-interactive={interactive ? "true" : undefined}
+      data-scattered={design.scattered ? "true" : undefined}
       data-fx-filter={assets.effects.overlay.id}
     >
       {interactive ? <ProfileInteractions settings={assets.interactions} /> : null}

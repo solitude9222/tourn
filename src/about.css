@@ -7175,3 +7175,39 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   margin: 0;
   gap: 18px;
 }
+
+/* ── Scattered type ─────────────────────────────────────────────
+   The "Scattered" switch in Appearance → Font gives every profile
+   text run a pixel face and a hard, stepped pixel fringe. The shadow
+   lives on the page root so it is inherited by text only — artwork,
+   avatars, badges and link icons are untouched. */
+.lkr-page[data-scattered="true"],
+.profile-preview[data-scattered="true"] {
+  --pv-scatter-font: "Pixelify Sans", "VT323", "Lexend", monospace;
+  --pv-scatter-shadow:
+    1px 0 0 currentColor,
+    -1px 0 0 currentColor,
+    0 1px 0 currentColor,
+    0 -1px 0 currentColor,
+    2px 2px 0 color-mix(in srgb, currentColor 38%, transparent),
+    -2px 1px 0 color-mix(in srgb, currentColor 30%, transparent),
+    2px -2px 0 color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.lkr-page[data-scattered="true"] :is(
+  h1, h2, h3, h4, h5, h6, p, span, b, strong, em, small, li,
+  a, button, label, blockquote, figcaption, time
+),
+.profile-preview[data-scattered="true"] :is(
+  h1, h2, h3, h4, h5, h6, p, span, b, strong, em, small, li,
+  a, button, label, blockquote, figcaption, time
+) {
+  font-family: var(--pv-scatter-font);
+  letter-spacing: 0.012em;
+  text-shadow: var(--pv-scatter-shadow);
+}
+
+.lkr-page[data-scattered="true"] .widget-card,
+.profile-preview[data-scattered="true"] .widget-card {
+  text-shadow: var(--pv-scatter-shadow);
+}

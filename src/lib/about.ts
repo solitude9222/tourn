@@ -335,6 +335,8 @@ export type AboutDesign = {
   /** Card font family — kept for saved documents only; the card always uses
    *  the site font (Lexend) now. */
   font: string;
+  /** Pixel-scattered type treatment applied to every piece of profile text. */
+  scattered?: boolean;
   /** Sizing revision. Documents without it are lifted to the current
    *  reference card once, then keep whatever the owner sets afterwards. */
   version?: number;
@@ -467,6 +469,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   layout: "stacked",
   cardStyle: "default",
   font: "",
+  scattered: false,
   version: 3,
   // The reference card is 720px wide: 32px padding, a 24px radius, a 120px
   // avatar, a 36px name and a 20px bio, with a dark glass surface (55% fill,
@@ -844,6 +847,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     layout,
     cardStyle,
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
+    scattered: boolIn(raw.scattered, false),
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
     version: 3,
     // Profiles saved against the old 620px card move to the wider one; a width
