@@ -1,7 +1,7 @@
 import "./effectsStudio.css";
 import { useRef, useState } from "react";
 import { useDash } from "./context";
-import { fileToDataUrl, imageToDataUrl } from "./files";
+import { cursorToDataUrl, fileToDataUrl, imageToDataUrl } from "./files";
 import { VIDEO_MAX_BYTES, uploadVideoFile } from "../lib/videoUpload";
 import { AudioSettingsCard } from "./pages/Customize";
 import { Button, Card, CardHead, Icon, Modal, Slider, Toggle } from "./ui";
@@ -34,7 +34,7 @@ export function ProfileMedia() {
         const urls: string[] = [];
         for (const image of picked) {
           if (!image.type.startsWith("image/") || image.size > 12_000_000) continue;
-          const url = await imageToDataUrl(image, 128, 128);
+          const url = await cursorToDataUrl(image);
           if (url.length <= 700_000) urls.push(url);
         }
         if (!urls.length) throw new Error("Choose PNG, JPG, WebP or GIF cursor images under 12 MB.");
@@ -49,6 +49,8 @@ export function ProfileMedia() {
                 style: "custom",
                 imageUrl: merged[0] ?? "",
                 customCursorUrls: merged,
+                hotspotX: 0,
+                hotspotY: 0,
               },
             },
           };
@@ -79,12 +81,14 @@ export function ProfileMedia() {
       if (!file.type.startsWith("image/")) throw new Error("Choose a PNG, JPG, WebP, GIF, MP4, WebM or MOV file.");
       if (file.size > 12_000_000) throw new Error("Choose an image under 12 MB.");
       const limit = kind === "avatar" ? 512 : kind === "background" ? 2000 : 128;
-      const url = await imageToDataUrl(file, limit, limit);
+      const url = kind === "cursor" || kind === "pointer"
+        ? await cursorToDataUrl(file)
+        : await imageToDataUrl(file, limit, limit);
       if (url.length > ((kind === "cursor" || kind === "pointer") ? 700_000 : 2_500_000)) throw new Error("That image is still too large. Resize it or choose a smaller animation.");
       setAbout(current => ({ ...current, assets: { ...current.assets,
         ...(kind === "avatar" ? { avatarUrl: url } : {}),
         ...(kind === "background" ? { background: { ...current.assets.background, style: "image", imageUrl: url } } : {}),
-        ...(kind === "cursor" || kind === "pointer" ? { cursor: { ...current.assets.cursor, ...(kind === "cursor" ? { style: "custom", imageUrl: url, customCursorUrls: [url, ...current.assets.cursor.customCursorUrls.filter((item) => item !== url)].slice(0, 8) } : { pointerImageUrl: url }) } } : {}),
+        ...(kind === "cursor" || kind === "pointer" ? { cursor: { ...current.assets.cursor, ...(kind === "cursor" ? { style: "custom", imageUrl: url, customCursorUrls: [url, ...current.assets.cursor.customCursorUrls.filter((item) => item !== url)].slice(0, 8), hotspotX: 0, hotspotY: 0 } : { pointerImageUrl: url }) } } : {}),
       } }));
       notify("Media updated", "Your changes publish automatically.");
     } catch (error) { notify("Media not uploaded", error instanceof Error ? error.message : "Try a different file."); }
@@ -131,7 +135,7 @@ export function ProfileMedia() {
       </div>
       {assets.cursor.imageUrl || assets.cursor.customCursorUrls.length ? (
         <div className="tw-media-zoom">
-          <div className="tw-media-setting-head"><b>Cursor hotspot</b><small>Move the click point if an uploaded cursor feels offset. 0 0 is the top-left pixel.</small></div>
+          <div className="tw-media-setting-head"><b>Cursor hotspot</b><small>Transparent padding is compensated automatically. Use these sliders to fine-tune the click point.</small></div>
           <Slider label="Hotspot X" value={assets.cursor.hotspotX} min={0} max={64} suffix="px" onChange={(hotspotX) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotX } } }))} />
           <Slider label="Hotspot Y" value={assets.cursor.hotspotY} min={0} max={64} suffix="px" onChange={(hotspotY) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotY } } }))} />
         </div>

@@ -8,10 +8,11 @@
    visibly different from a chosen one.
    --------------------------------------------------------------------------- */
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDash } from "./context";
 import { Card, CardHead, Icon } from "./ui";
-import { fileToDataUrl, imageToDataUrl } from "./files";
+import { cursorToDataUrl, imageToDataUrl } from "./files";
+import { detectCursorHotspot, type CursorHotspot } from "../lib/cursorImage";
 
 export function MediaCard() {
   const { about, setAbout, go, notify } = useDash();
@@ -57,7 +58,7 @@ export function MediaCard() {
       return;
     }
     try {
-      const url = await fileToDataUrl(file);
+      const url = await cursorToDataUrl(file);
       patch({
         cursor: {
           ...assets.cursor,
@@ -67,6 +68,8 @@ export function MediaCard() {
             : {
                 imageUrl: url,
                 customCursorUrls: [url, ...assets.cursor.customCursorUrls.filter((item) => item !== url)].slice(0, 8),
+                hotspotX: 0,
+                hotspotY: 0,
               }),
         },
       });
@@ -80,7 +83,29 @@ export function MediaCard() {
   const backgroundImage = assets.background.imageUrl.trim();
   const cursorUrl = assets.cursor.imageUrl.trim() || assets.cursor.customCursorUrls[0]?.trim() || "";
   const pointerUrl = assets.cursor.pointerImageUrl.trim();
-  const cursorHotspot = `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`;
+  const [autoHotspots, setAutoHotspots] = useState<{ cursor: CursorHotspot; pointer: CursorHotspot }>({
+    cursor: { x: 0, y: 0 },
+    pointer: { x: 0, y: 0 },
+  });
+  useEffect(() => {
+    let active = true;
+    const measure = (key: "cursor" | "pointer", url: string) => {
+      if (!url) return;
+      void detectCursorHotspot(url).then((hotspot) => {
+        if (active) setAutoHotspots((current) => ({ ...current, [key]: hotspot }));
+      });
+    };
+    measure("cursor", cursorUrl);
+    measure("pointer", pointerUrl);
+    return () => { active = false; };
+  }, [cursorUrl, pointerUrl]);
+  const manualHotspot = assets.cursor.hotspotX !== 0 || assets.cursor.hotspotY !== 0;
+  const cursorHotspot = manualHotspot
+    ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
+    : `${autoHotspots.cursor.x} ${autoHotspots.cursor.y}`;
+  const pointerHotspot = manualHotspot
+    ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
+    : `${autoHotspots.pointer.x} ${autoHotspots.pointer.y}`;
   const initial = (about.displayName.trim() || "?").slice(0, 1).toUpperCase();
 
   return (
@@ -152,7 +177,7 @@ export function MediaCard() {
               type="button"
               className="tw-media-cursor"
               onClick={() => pointerInput.current?.click()}
-              style={{ cursor: pointerUrl ? `url("${pointerUrl}") ${cursorHotspot}, pointer` : "pointer" }}
+              style={{ cursor: pointerUrl ? `url("${pointerUrl}") ${pointerHotspot}, pointer` : "pointer" }}
               aria-label="Upload pointer cursor"
             >
               {pointerUrl ? <img src={pointerUrl} alt="" /> : <span className="tw-cursor-glyph tw-cursor-glyph--pointer" aria-hidden="true">↗</span>}

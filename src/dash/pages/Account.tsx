@@ -7,7 +7,7 @@ import { formatJoined } from "../../lib/format";
 import { ProfileMedia } from "../ProfileMedia";
 import { DecorationsPanel } from "../DecorationsPanel";
 import { useDash } from "../context";
-import { copyText, imageToDataUrl, fileToDataUrl } from "../files";
+import { copyText, cursorToDataUrl, imageToDataUrl, fileToDataUrl } from "../files";
 import { VIDEO_MAX_BYTES, uploadVideoFile } from "../../lib/videoUpload";
 import { FileUpload,
   Button,
@@ -71,7 +71,7 @@ export function AccountProfilePage({ section = "details" }: { section?: "details
   };
 
   const uploadCursor = async (file: File) => {
-    const url = await imageToDataUrl(file, 128, 128);
+    const url = await cursorToDataUrl(file);
     updateAssets({ cursor: { ...assets.cursor, style: "custom", imageUrl: url } });
     notify("Cursor", "Cursor image updated — save to publish.");
   };

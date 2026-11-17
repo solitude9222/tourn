@@ -87,6 +87,82 @@ export function fileToDataUrl(file: File, onProgress?: (percent: number) => void
 }
 
 /** Downscale an image in the browser so a phone photo doesn't blow the store. */
+export async function cursorToDataUrl(file: File, max = 64): Promise<string> {
+  const raw = await fileToDataUrl(file);
+  // Animated cursors must keep their frames; the browser handles their own
+  // hotspot and we leave the original file alone.
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return raw;
+
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onerror = () => resolve(raw);
+    image.onload = () => {
+      try {
+        const width = image.naturalWidth;
+        const height = image.naturalHeight;
+        if (!width || !height) {
+          resolve(raw);
+          return;
+        }
+        const source = document.createElement("canvas");
+        source.width = width;
+        source.height = height;
+        const sourceContext = source.getContext("2d", { willReadFrequently: true });
+        if (!sourceContext) {
+          resolve(raw);
+          return;
+        }
+        sourceContext.drawImage(image, 0, 0);
+        const pixels = sourceContext.getImageData(0, 0, width, height).data;
+        const threshold = 24;
+        let minX = width;
+        let minY = height;
+        let maxX = -1;
+        let maxY = -1;
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            if (pixels[(y * width + x) * 4 + 3] <= threshold) continue;
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          }
+        }
+        if (maxX < 0) {
+          resolve(raw);
+          return;
+        }
+        const cropWidth = maxX - minX + 1;
+        const cropHeight = maxY - minY + 1;
+        const scale = Math.min(1, max / cropWidth, max / cropHeight);
+        const output = document.createElement("canvas");
+        output.width = Math.max(1, Math.round(cropWidth * scale));
+        output.height = Math.max(1, Math.round(cropHeight * scale));
+        const outputContext = output.getContext("2d");
+        if (!outputContext) {
+          resolve(raw);
+          return;
+        }
+        outputContext.drawImage(
+          image,
+          minX,
+          minY,
+          cropWidth,
+          cropHeight,
+          0,
+          0,
+          output.width,
+          output.height,
+        );
+        resolve(output.toDataURL("image/png"));
+      } catch {
+        resolve(raw);
+      }
+    };
+    image.src = raw;
+  });
+}
+
 export async function imageToDataUrl(
   file: File,
   maxWidth = 1200,

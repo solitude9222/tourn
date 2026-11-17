@@ -8,6 +8,7 @@ import { hexToRgba, type About } from "../lib/about";
 import { DEFAULT_PROFILE_ASSETS } from "../lib/profileAssets";
 import type { WidgetStore } from "../lib/widgets";
 import { DEFAULT_BADGE_STYLE, EMPTY_BADGE_STORE, type BadgeStore } from "../lib/badges";
+import { detectCursorHotspot, type CursorHotspot } from "../lib/cursorImage";
 import { DEFAULT_LINK_DESIGN, EMPTY_LINK_STORE, type LinkStore } from "../lib/links";
 import { ProfilePreview } from "./ProfilePreview";
 import { ProfileLinks } from "./ProfileLinks";
@@ -345,7 +346,33 @@ export function LinkerPreview({
   const customCursorUrl = assets.cursor.style === "custom"
     ? (assets.cursor.imageUrl.trim() || assets.cursor.customCursorUrls[0]?.trim() || "")
     : "";
-  const customCursorHotspot = `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`;
+  const pointerCursorUrl = assets.cursor.pointerImageUrl.trim();
+  const [autoHotspots, setAutoHotspots] = useState<{ pointer: CursorHotspot; cursor: CursorHotspot }>({
+    pointer: { x: 0, y: 0 },
+    cursor: { x: 0, y: 0 },
+  });
+  useEffect(() => {
+    let active = true;
+    const apply = (key: "pointer" | "cursor", url: string) => {
+      if (!url) return;
+      void detectCursorHotspot(url).then((hotspot) => {
+        if (active) setAutoHotspots((current) => ({ ...current, [key]: hotspot }));
+      });
+    };
+    apply("cursor", customCursorUrl);
+    apply("pointer", pointerCursorUrl);
+    return () => { active = false; };
+  }, [customCursorUrl, pointerCursorUrl]);
+  // Automatic padding detection only drives the default. As soon as the owner
+  // moves a hotspot slider their exact value wins, so an old manual correction
+  // is never added to the detected inset twice.
+  const manualHotspot = assets.cursor.hotspotX !== 0 || assets.cursor.hotspotY !== 0;
+  const customCursorHotspot = manualHotspot
+    ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
+    : `${autoHotspots.cursor.x} ${autoHotspots.cursor.y}`;
+  const pointerCursorHotspot = manualHotspot
+    ? `${Math.round(assets.cursor.hotspotX)} ${Math.round(assets.cursor.hotspotY)}`
+    : `${autoHotspots.pointer.x} ${autoHotspots.pointer.y}`;
 
   const style = {
     "--lkr-bg-filter": bgFilter || "none",
@@ -401,8 +428,8 @@ export function LinkerPreview({
     cursor: customCursorUrl
       ? `url("${customCursorUrl.replace(/"/g, '\\"')}") ${customCursorHotspot}, auto`
       : assets.cursor.style !== "system" && assets.cursor.style !== "custom" ? "none" : undefined,
-    ...(assets.cursor.pointerImageUrl.trim()
-      ? { "--lkr-pointer-cursor": `url("${assets.cursor.pointerImageUrl.trim().replace(/"/g, '\\"')}") ${customCursorHotspot}, pointer` }
+    ...(pointerCursorUrl
+      ? { "--lkr-pointer-cursor": `url("${pointerCursorUrl.replace(/"/g, '\\"')}") ${pointerCursorHotspot}, pointer` }
       : {}),
   } as CSSProperties;
 
