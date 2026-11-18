@@ -1,0 +1,14 @@
+<!-- Derived from Lucide leaf; ISC license: ./LICENSE. Motion by Tourn. --><svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="32"
+  height="32"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="#fb923c"
+  stroke-width="2.2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+ role="img" aria-label="Autumn"><title>Autumn</title>
+  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/></path>
+  <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.1s" repeatCount="indefinite"/></path>
+</svg>

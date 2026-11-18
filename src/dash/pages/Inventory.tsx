@@ -18,7 +18,6 @@ type OwnedNames = {
 
 const TABS: { id: InventoryTab; label: string }[] = [
   { id: "usernames", label: "Usernames" },
-  { id: "badges", label: "Badges" },
   { id: "collectables", label: "Collectables" },
 ];
 

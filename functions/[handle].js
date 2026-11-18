@@ -25,7 +25,7 @@ function escapeHtml(value) {
 
 function absolute(origin, value) {
   const raw = String(value ?? "").trim();
-  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return `${origin}/logo.png`;
+  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return `${origin}/brand/tourn-logo-generated.png`;
   if (/^https?:\/\//i.test(raw)) return raw;
   return `${origin}${raw.startsWith("/") ? raw : `/${raw}`}`;
 }
@@ -49,7 +49,7 @@ function firstPublicImage(origin, ...values) {
     const image = publicImage(origin, value);
     if (image) return image;
   }
-  return `${origin}/logo.png`;
+  return `${origin}/brand/tourn-logo-generated.png`;
 }
 
 function meta(html, attr, key, content) {

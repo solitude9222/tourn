@@ -17,6 +17,63 @@ import {
   type ReactNode,
 } from "react";
 
+import { createPortal } from "react-dom";
+
+const activeGestures = new Set<symbol>();
+/** Keep gesture feedback local; serializing the profile belongs at release. */
+function useCommittedValue<T>(value: T, onChange: (value: T) => void) {
+  const [draft, setDraft] = useState(value);
+  const latest = useRef(value);
+  const callback = useRef(onChange);
+  const pending = useRef(false);
+  const dragging = useRef(false);
+  const timer = useRef(0);
+  const token = useRef(Symbol());
+  callback.current = onChange;
+
+  const endGesture = () => {
+    activeGestures.delete(token.current);
+    if (!activeGestures.size) delete document.documentElement.dataset.editorGesture;
+  };
+  const finish = () => {
+    window.clearTimeout(timer.current);
+    dragging.current = false;
+    endGesture();
+    if (pending.current) {
+      pending.current = false;
+      callback.current(latest.current);
+    }
+  };
+  useEffect(() => {
+    if (!pending.current && !dragging.current) {
+      latest.current = value;
+      setDraft(value);
+    }
+  }, [value]);
+  useEffect(() => () => {
+    window.clearTimeout(timer.current);
+    endGesture();
+    if (pending.current) callback.current(latest.current);
+  }, []);
+
+  return {
+    draft,
+    begin: () => {
+      dragging.current = true;
+      activeGestures.add(token.current);
+      document.documentElement.dataset.editorGesture = "true";
+    },
+    finish,
+    change: (next: T) => {
+      latest.current = next;
+      pending.current = true;
+      setDraft(next);
+      window.clearTimeout(timer.current);
+      if (!dragging.current) timer.current = window.setTimeout(finish, 140);
+    },
+  };
+}
+
 /* ------------------------------------------------------------------ icons */
 
 export type IconName =
@@ -865,6 +922,7 @@ export function ColorField({
   label?: ReactNode;
   disabled?: boolean;
 }) {
+  const control = useCommittedValue(value,onChange);
   const [open, setOpen] = useState(false);
   const [hsv, setHsv] = useState<Hsv>(() =>
     rgbToHsv(hexToRgb(value) ?? { r: 0, g: 0, b: 0 }),
@@ -875,6 +933,7 @@ export function ColorField({
   // so the field keeps its own text while it has focus.
   const [draftHex, setDraftHex] = useState(value.toUpperCase());
   const editingHex = useRef(false);
+  const hexDirty=useRef(false);
   const [placement, setPlacement] = useState({ top: 0, left: 0, up: false, ready: false });
 
   // Cards and panels scroll, so an absolutely positioned popup gets clipped at
@@ -891,10 +950,10 @@ export function ColorField({
       const height = popRef.current?.offsetHeight || 208;
       const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - width - 8));
       const up = rect.bottom + height + 12 > window.innerHeight && rect.top - height - 12 > 8;
-      setPlacement({ top: up ? rect.top - height - 8 : rect.bottom + 8, left, up, ready: true });
+      setPlacement({ top: Math.max(8,Math.min(up ? rect.top-height-8 : rect.bottom+8,innerHeight-height-8)), left, up, ready: true });
     };
     place();
-    frame = window.requestAnimationFrame(place);
+    frame = window.requestAnimationFrame(()=>{place();popRef.current?.querySelector<HTMLInputElement>("input")?.focus({preventScroll:true});});
     window.addEventListener("scroll", place, true);
     window.addEventListener("resize", place);
     return () => {
@@ -914,10 +973,11 @@ export function ColorField({
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      if (!rootRef.current?.contains(event.target as Node) && !popRef.current?.contains(event.target as Node)) { control.finish(); setOpen(false); }
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") { control.finish(); setOpen(false); rootRef.current?.querySelector("button")?.focus({preventScroll:true}); }
+      if(event.key==="Tab"&&popRef.current){const items=Array.from(popRef.current.querySelectorAll<HTMLElement>('input,button,[tabindex="0"]'));const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKey);
@@ -927,21 +987,7 @@ export function ColorField({
     };
   }, [open]);
 
-  // Same rule as the sliders: the picker repaints locally, the store gets one
-  // update per frame instead of one per pointer move.
-  const pending = useRef<string | null>(null);
-  const frame = useRef(0);
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
-
-  const commit = (next: Hsv) => {
-    setHsv(next);
-    pending.current = hsvToHex(next);
-    if (frame.current) return;
-    frame.current = requestAnimationFrame(() => {
-      frame.current = 0;
-      if (pending.current) onChange(pending.current);
-    });
-  };
+  const commit = (next: Hsv) => { setHsv(next); control.change(hsvToHex(next)); };
 
   // Saturation runs left → right, brightness bottom → top, and the band under
   // the square picks the hue — the arrangement every other colour picker uses,
@@ -961,8 +1007,8 @@ export function ColorField({
 
   const shiftHue = (hue: number) => commit({ ...hsv, h: (hue + 360) % 360 });
   const hueColor = `hsl(${hsv.h} 100% 50%)`;
-  const valid = /^#[0-9a-f]{6}$/i.test(value);
-  const readout = valid ? value.toUpperCase() : "#000000";
+  const valid = /^#[0-9a-f]{6}$/i.test(control.draft);
+  const readout = valid ? control.draft.toUpperCase() : "#000000";
 
   return (
     <div className="tw-color-field" ref={rootRef}>
@@ -971,8 +1017,8 @@ export function ColorField({
         <button
           type="button"
           className="tw-swatch"
-          style={{ background: valid ? value : "#000000" }}
-          onClick={() => setOpen((current) => !current)}
+          style={{ background: valid ? control.draft : "#000000" }}
+          onClick={() => { control.finish(); setOpen(current => !current); }}
           disabled={disabled}
           aria-label={typeof label === "string" ? `${label} picker` : "Colour picker"}
           aria-expanded={open}
@@ -980,7 +1026,7 @@ export function ColorField({
         <button
           type="button"
           className="tw-color-value"
-          onClick={() => setOpen((current) => !current)}
+          onClick={() => { control.finish(); setOpen(current => !current); }}
           disabled={disabled}
           aria-expanded={open}
         >
@@ -988,10 +1034,11 @@ export function ColorField({
         </button>
       </span>
 
-      {open ? (
-        <div
+      {open ? createPortal(
+        <div className="tw-dash tw-control-portal"><div
           className={`tw-color-pop${placement.up ? " is-up" : ""}`}
           ref={popRef}
+          role="dialog" aria-label="Color picker"
           style={{ top: placement.top, left: placement.left, visibility: placement.ready ? "visible" : "hidden" }}
         >
           <div className="tw-color-top">
@@ -1000,18 +1047,18 @@ export function ColorField({
               className="tw-color-input"
               value={editingHex.current ? draftHex : readout}
               onFocus={() => {
-                editingHex.current = true;
+                editingHex.current = true; hexDirty.current=false;
                 setDraftHex(readout);
               }}
               onChange={(event) => {
-                const next = event.target.value;
+                const next = event.target.value; hexDirty.current=true;
                 setDraftHex(next);
-                if (/^#[0-9a-f]{6}$/i.test(next)) onChange(next);
+                if (/^#[0-9a-f]{6}$/i.test(next)) { control.change(next); setHsv(rgbToHsv(hexToRgb(next)!)); }
               }}
               onBlur={() => {
                 editingHex.current = false;
                 const raw = draftHex.trim();
-                if (/^#[0-9a-f]{6}$/i.test(raw)) onChange(raw);
+                if (hexDirty.current && /^#[0-9a-f]{6}$/i.test(raw)) { control.change(raw); control.finish(); }
                 else setDraftHex(readout);
               }}
               spellCheck={false}
@@ -1020,7 +1067,7 @@ export function ColorField({
             <button
               type="button"
               className="tw-color-close"
-              onClick={() => setOpen(false)}
+              onClick={() => { control.finish(); setOpen(false); }}
               aria-label="Close colour picker"
             >
               ×
@@ -1033,12 +1080,20 @@ export function ColorField({
               backgroundImage: `linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, ${hueColor})`,
             }}
             onPointerDown={(event) => {
+              popRef.current?.querySelector<HTMLInputElement>("input")?.blur();
+              control.begin();
               event.currentTarget.setPointerCapture(event.pointerId);
               squareFromPointer(event);
             }}
             onPointerMove={(event) => {
               if (event.currentTarget.hasPointerCapture(event.pointerId)) squareFromPointer(event);
             }}
+            onKeyDown={(event)=>{if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();const step=event.shiftKey ? 0.1 : 0.01;commit({...hsv,s:Math.max(0,Math.min(1,hsv.s+(event.key==="ArrowRight"?step:event.key==="ArrowLeft"?-step:0))),v:Math.max(0,Math.min(1,hsv.v+(event.key==="ArrowUp"?step:event.key==="ArrowDown"?-step:0)))});}}
+            onPointerUp={control.finish}
+            onPointerCancel={control.finish}
+            onLostPointerCapture={control.finish}
+            onKeyUp={control.finish}
+            onBlur={control.finish}
             role="slider"
             aria-label="Saturation and brightness"
             aria-valuemin={0}
@@ -1060,6 +1115,8 @@ export function ColorField({
           <div
             className="tw-hue"
             onPointerDown={(event) => {
+              popRef.current?.querySelector<HTMLInputElement>("input")?.blur();
+              control.begin();
               event.currentTarget.setPointerCapture(event.pointerId);
               hueFromPointer(event);
             }}
@@ -1071,6 +1128,11 @@ export function ColorField({
               event.preventDefault();
               shiftHue(hsv.h + (event.key === "ArrowRight" ? 4 : -4));
             }}
+            onPointerUp={control.finish}
+            onPointerCancel={control.finish}
+            onLostPointerCapture={control.finish}
+            onKeyUp={control.finish}
+            onBlur={control.finish}
             role="slider"
             aria-label="Hue"
             aria-valuemin={0}
@@ -1083,7 +1145,7 @@ export function ColorField({
               style={{ left: `${(hsv.h / 360) * 100}%`, background: hueColor }}
             />
           </div>
-        </div>
+        </div></div>, document.body
       ) : null}
     </div>
   );
@@ -1113,29 +1175,8 @@ export function Slider({
   disabled?: boolean;
   format?: (value: number) => string;
 }) {
-  // The thumb follows the pointer locally and the store is updated once per
-  // frame, so dragging never queues a full dashboard render per pixel.
-  const [draft, setDraft] = useState(value);
-  const latest = useRef(value);
-  const frame = useRef(0);
-  const dragging = useRef(false);
-  latest.current = draft;
-
-  useEffect(() => {
-    if (!dragging.current) setDraft(value);
-  }, [value]);
-
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
-
-  const flush = (next: number) => {
-    latest.current = next;
-    if (frame.current) return;
-    frame.current = requestAnimationFrame(() => {
-      frame.current = 0;
-      onChange(latest.current);
-    });
-  };
-
+  const control=useCommittedValue(value,onChange);
+  const draft=control.draft;
   const percent = ((draft - min) / (max - min || 1)) * 100;
   return (
     <div className={`tw-slider${disabled ? " is-disabled" : ""}`}>
@@ -1152,18 +1193,16 @@ export function Slider({
         step={step}
         value={draft}
         disabled={disabled}
-        onPointerDown={() => {
-          dragging.current = true;
-        }}
+        onPointerDown={(event) => { control.begin(); event.currentTarget.setPointerCapture(event.pointerId); }}
         onChange={(event) => {
           const next = Number(event.target.value);
-          setDraft(next);
-          flush(next);
+          control.change(next);
         }}
-        onPointerUp={() => {
-          dragging.current = false;
-          onChange(latest.current);
-        }}
+        onPointerUp={control.finish}
+        onPointerCancel={control.finish}
+        onLostPointerCapture={control.finish}
+        onKeyUp={control.finish}
+        onBlur={control.finish}
         style={{ ["--tw-fill" as string]: `${percent}%` }}
         aria-label={typeof label === "string" ? label : "Slider"}
       />
@@ -1444,7 +1483,7 @@ export function Modal({
     const focusable = () => Array.from(root.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
     (focusable()[0] || root).focus();
     const trap = (event: KeyboardEvent) => {
-      if (event.key !== "Tab") return;
+      if (event.key !== "Tab" || document.querySelector(".tw-color-pop")) return;
       // Only the topmost dialog traps focus when a picker opens a second dialog.
       const dialogs = document.querySelectorAll('.tw-modal');
       if (dialogs[dialogs.length - 1] !== root) return;
@@ -1460,7 +1499,7 @@ export function Modal({
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && document.querySelectorAll(".tw-modal")[document.querySelectorAll(".tw-modal").length - 1] === panel.current) { event.stopImmediatePropagation(); closeRef.current(); }
+      if (event.key === "Escape" && !document.querySelector(".tw-color-pop") && document.querySelectorAll(".tw-modal")[document.querySelectorAll(".tw-modal").length - 1] === panel.current) { event.stopImmediatePropagation(); closeRef.current(); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);

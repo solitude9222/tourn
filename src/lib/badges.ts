@@ -41,7 +41,7 @@ export type BadgeStyle = {
   overlayColor: string;
   overlayStrength: number; // 0–100
   animation: BadgeAnimationStyle;
-  size: number; // 18–64px
+  size: number; // Fixed at 24px; retained for stored-document compatibility.
   /** Bumped when the size scale changes so old saved sizes migrate once. */
   sizeVersion?: number;
   /** The little shelf the badges sit on. */
@@ -86,9 +86,9 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   overlayColor: "#ff8f92",
   overlayStrength: 50,
   // Badges carry a light sweep by default so they never look like flat stickers.
-  animation: "shimmer",
+  animation: "none",
   size: 24,
-  sizeVersion: 6,
+  sizeVersion: 7,
   rowBackground: "#ffffff",
   rowOpacity: 0.07,
   rowBorderColor: "#ffffff",
@@ -281,7 +281,7 @@ const DISCORD: BadgeDef[] = [
 
 /* ── full catalogue ────────────────────────────────────────── */
 
-export const BADGE_CATALOGUE: BadgeDef[] = [...PLATFORM, ...EXTRA, ...SEASONAL, ...DISCORD];
+export const BADGE_CATALOGUE: BadgeDef[] = [...PLATFORM, ...EXTRA, ...SEASONAL, ...DISCORD].map(badge => ({...badge, art: `/badges/v2/${badge.id}.svg`, artStatic: `/badges/v2/still/${badge.id}.svg`}));
 /** Unlocked by activity, dates or staff. */
 export const EARNABLE_BADGES: BadgeDef[] = BADGE_CATALOGUE.filter((badge) => !badge.buyable);
 /** Bought from the store and granted on delivery. */
@@ -321,18 +321,7 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
   try {
     const parsed = (input ?? {}) as Partial<BadgeStore>;
     const style = (parsed.style ?? {}) as Partial<BadgeStyle>;
-    // Match the reference rail: 24px art in a 38px pill. The earlier passes
-    // overshot in both directions, so each old version is folded into this one
-    // scale once; every historical default lands back on 24.
-    const storedSize = Number(style.size);
-    const sizeVersion = Number(style.sizeVersion ?? 1);
-    const hasStoredSize = Number.isFinite(storedSize);
-    let migratedSize = hasStoredSize ? storedSize : DEFAULT_BADGE_STYLE.size;
-    if (hasStoredSize && sizeVersion < 2) migratedSize *= 1.4;
-    else if (hasStoredSize && sizeVersion < 3) migratedSize *= 0.8;
-    if (hasStoredSize && sizeVersion < 4) migratedSize *= 0.75;
-    if (hasStoredSize && sizeVersion < 5) migratedSize *= 0.85;
-    if (hasStoredSize && sizeVersion < 6) migratedSize *= 1.2;
+    // A single 24px scale replaces every legacy shrink/minimize setting.
     const seen = new Set<string>();
     const equipped = Array.isArray(parsed.equipped)
       ? parsed.equipped
@@ -353,8 +342,8 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
         overlayColor: hex(style.overlayColor, DEFAULT_BADGE_STYLE.overlayColor),
         overlayStrength: clamp(style.overlayStrength, DEFAULT_BADGE_STYLE.overlayStrength, 0, 100),
         animation: animIn(style.animation, DEFAULT_BADGE_STYLE.animation),
-        size: clamp(Math.round(migratedSize), DEFAULT_BADGE_STYLE.size, 18, 64),
-        sizeVersion: 6,
+        size: 24,
+        sizeVersion: 7,
         rowBackground: hex(style.rowBackground, DEFAULT_BADGE_STYLE.rowBackground),
         rowOpacity: clamp(style.rowOpacity, DEFAULT_BADGE_STYLE.rowOpacity, 0, 1),
         rowBorderColor: hex(style.rowBorderColor, DEFAULT_BADGE_STYLE.rowBorderColor),

@@ -17,9 +17,7 @@ export type CursorTrailType =
   | "fairyDust"
   | "snowflakes"
   | "trailingCursor"
-  | "emojiRain"
   | "ghost"
-  | "characterRain"
   | "sparkler"
   | "lightning"
   | "tracer"
@@ -50,9 +48,7 @@ export const CURSOR_TRAILS: { id: CursorTrailType; name: string; hint: string }[
   { id: "fairyDust", name: "Fairy Dust", hint: "Glittering sparkles drifting from the pointer" },
   { id: "snowflakes", name: "Snowflakes", hint: "Snowflakes that fall and spin behind the pointer" },
   { id: "trailingCursor", name: "Trailing Cursor", hint: "A trail of cursor arrows lagging behind the pointer" },
-  { id: "emojiRain", name: "Emoji Rain", hint: "Emoji spill out and fall as you move" },
   { id: "ghost", name: "Ghost Following", hint: "A little ghost floats behind the pointer" },
-  { id: "characterRain", name: "Character Rain", hint: "Letters and symbols rain from the pointer" },
   { id: "sparkler", name: "Sparkler", hint: "Bright sparks shooting out from the pointer" },
   { id: "lightning", name: "Lightning", hint: "Small electric bolts crackle off the pointer" },
   { id: "tracer", name: "Tracer", hint: "A thin line follows the path of the pointer" },
@@ -98,8 +94,8 @@ function motionMap<T extends string>(items: readonly { id: T }[]): Record<T, Cur
 const LEGACY_TRAILS: Record<string, CursorTrailType> = {
   dots: "trailingCursor", line: "tracer", ribbon: "trailingCursor", smoke: "tracer",
   glow: "fairyDust", sparkle: "fairyDust", fairy: "fairyDust",
-  snow: "snowflakes", trailing: "trailingCursor", emoji: "emojiRain",
-  characters: "characterRain", comet: "sparkler", bubbles: "petals",
+  snow: "snowflakes", trailing: "trailingCursor", emoji: "none",
+  characters: "none", comet: "sparkler", bubbles: "petals",
   hearts: "petals", stars: "sparkler", custom: "constellation",
 };
 export type ProfileBackgroundStyle = "solid" | "gradient" | "image" | "video";
@@ -779,6 +775,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
         : choiceIn(rawStyle, ["system", "dot", "ring", "dotRing", "crosshair"] as const, "system");
       const trailType = (() => {
         const raw = String(cursor.trailType ?? "");
+        if (["emojiRain","characterRain","emoji","characters"].includes(raw)) return "none";
         if (CURSOR_TRAILS.some((entry) => entry.id === raw)) return raw as CursorTrailType;
         return LEGACY_TRAILS[raw] ?? DEFAULT_PROFILE_ASSETS.cursor.trailType;
       })();

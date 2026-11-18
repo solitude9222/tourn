@@ -1,0 +1,33 @@
+{
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "units": "CSS pixels",
+  "modalSizes": {
+    "avatar": {
+      "x": 330,
+      "y": 80,
+      "width": 940,
+      "height": 453
+    },
+    "background": {
+      "x": 350,
+      "y": 80,
+      "width": 900,
+      "height": 816
+    },
+    "colorPicker": {
+      "x": 375,
+      "y": 667,
+      "width": 232,
+      "height": 252
+    },
+    "audio": {
+      "x": 280,
+      "y": 80,
+      "width": 1040,
+      "height": 794.625
+    }
+  }
+}

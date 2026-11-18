@@ -262,7 +262,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url("/logo.png"), url("/logo.png");
+  background-image: url("/brand/tourn-mark.svg"), url("/brand/tourn-mark.svg");
   background-position: 0 0, 55px 55px;
   background-size: 110px 110px;
   background-repeat: repeat;
@@ -1104,7 +1104,7 @@ button.hm-metric:focus-visible {
 .hm-cta-logo {
   position: absolute;
   inset: 0;
-  background-image: url("/logo.png"), url("/logo.png");
+  background-image: url("/brand/tourn-mark.svg"), url("/brand/tourn-mark.svg");
   background-repeat: repeat;
   background-position: 0 0, 55px 55px;
   background-size: 110px 110px;

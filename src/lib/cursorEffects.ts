@@ -70,7 +70,6 @@ type Particle = {
 };
 
 const TAU = Math.PI * 2;
-const EMOJIS = ["😀", "😂", "🔥", "💖", "✨", "🎉", "🌟", "😎"];
 const CONTINUOUS: CursorTrailType[] = ["trailingCursor", "ghost", "tracer", "orbit"];
 const rnd = (a: number, b: number) => Math.random() * (b - a) + a;
 const pick = <T,>(arr: T[]): T => arr[(Math.random() * arr.length) | 0];
@@ -179,7 +178,6 @@ export function mountCursorEffects(
   const mode: CursorTrailType = settings.trail ? settings.trailType : "none";
   const trailCfg = settings.trailSettings[mode] ?? DEFAULT_CURSOR_MOTION;
   const clickCfg = settings.clickSettings[settings.click] ?? DEFAULT_CURSOR_MOTION;
-  const chars = Array.from(settings.trailText.trim());
   const skin = settings.style;
   // Uploaded cursors are shared by the trailing-cursor effect, so a custom
   // cursor never falls back to eight identical white arrows.
@@ -201,6 +199,7 @@ export function mountCursorEffects(
   let width = 1;
   let height = 1;
   let particles: Particle[] = [];
+  let spawnBudget=24;
   let mx = -100;
   let my = -100;
   let px: number | null = null;
@@ -234,6 +233,9 @@ export function mountCursorEffects(
     if (particle.w) particle.w *= motion.size;
     if (particle.h) particle.h *= motion.size;
     if (particle.R) particle.R *= motion.size;
+    if(spawnBudget<=0)return;
+    spawnBudget--;
+    if(particles.length>=160)particles.shift();
     particles.push(particle);
   };
 
@@ -257,20 +259,6 @@ export function mountCursorEffects(
           t: "flake", x, y, vx: rnd(-0.3, 0.3), vy: rnd(0.5, 1.2), g: 0,
           life: 0, max: rnd(70, 110), s: rnd(5, 9), col: tint("210,235,255", motion),
           sway: rnd(0, 6), rot: rnd(0, TAU), vr: rnd(-0.05, 0.05),
-        }, motion);
-        break;
-      case "emojiRain":
-        addParticle({
-          t: "text", ch: pick(chars.length ? chars : EMOJIS), x, y,
-          vx: rnd(-0.5, 0.5), vy: rnd(-0.5, 0.5), g: 0.14, life: 0, max: 75,
-          s: rnd(14, 22), col: "255,255,255", rot: rnd(-0.4, 0.4), vr: rnd(-0.05, 0.05),
-        }, motion);
-        break;
-      case "characterRain":
-        addParticle({
-          t: "text", ch: pick(chars.length ? chars : ["0", "1"]), x: x + rnd(-6, 6), y,
-          vx: 0, vy: rnd(1.2, 2.6), g: 0.04, life: 0, max: 60,
-          s: rnd(12, 16), col: tint("90,255,140", motion), rot: 0, vr: 0,
         }, motion);
         break;
       case "sparkler":
@@ -400,6 +388,7 @@ export function mountCursorEffects(
   };
 
   const paint = (now: number) => {
+    if(document.documentElement.hasAttribute("data-editor-gesture")){raf=active?requestAnimationFrame(paint):0;return;}
     ctx.clearRect(0, 0, width, height);
     ctx.globalCompositeOperation = "source-over";
     const S = trailCfg.size;
@@ -614,8 +603,8 @@ export function mountCursorEffects(
     if (mode === "constellation") {
       const rgb = tint("200,220,255", trailCfg);
       ctx.lineWidth = 1;
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
+      for (let i = 0; i < Math.min(60,particles.length); i++) {
+        for (let j = i + 1; j < Math.min(60,particles.length); j++) {
           const a = particles[i];
           const b = particles[j];
           if (a.t !== "dot" || b.t !== "dot") continue;
@@ -636,7 +625,7 @@ export function mountCursorEffects(
       ctx.fillStyle = "rgba(255,245,200,.9)";
       ctx.fill();
     }
-    if (particles.length > 600) particles.splice(0, particles.length - 600);
+    if (particles.length > 160) particles.splice(0, particles.length - 160);
 
     // Skins are drawn on the same canvas so they line up exactly with trails.
     skinX += (mx - skinX) * 0.25;
@@ -673,19 +662,20 @@ export function mountCursorEffects(
       }
     }
 
-    if (active) raf = requestAnimationFrame(paint);
+    spawnBudget=24;
+    if (active && (CONTINUOUS.includes(mode) || particles.length > 0 || Math.hypot(skinX-mx,skinY-my)>.15)) raf = requestAnimationFrame(paint);
     else raf = 0;
   };
 
   const start = () => {
-    if (active) return;
+    if (active && raf) return;
     active = true;
     onActive(true);
     if (!raf) raf = requestAnimationFrame(paint);
   };
 
   const onMove = (event: PointerEvent) => {
-    if (event.pointerType === "touch" || document.hidden) return;
+    if (event.pointerType === "touch" || document.hidden || document.documentElement.hasAttribute("data-editor-gesture")) return;
     const rect = host.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -701,7 +691,7 @@ export function mountCursorEffects(
     const dx = x - px;
     const dy = y - py;
     const distance = Math.hypot(dx, dy);
-    const steps = Math.min(Math.max(Math.round(distance / 8), 1), 12);
+    const steps = Math.min(Math.max(Math.round(distance / 10), 1), 6);
     for (let i = 1; i <= steps; i++) {
       for (let k = trailCfg.amount; k > 0; k -= 1) {
         if (k >= 1 || Math.random() < k) {

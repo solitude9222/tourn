@@ -93,7 +93,6 @@ export function EffectsPage({ category = "background", embedded = false }: { cat
         <div className="fx-trail-column">
           <div className="fx-trail-head"><span className="fx-subheading">Pointer trail</span><Toggle label="Show cursor trail" checked={assets.cursor.trail} onChange={(trail) => setCursor({ trail })} /></div>
           {chooser("trail")}
-          {["emojiRain", "characterRain"].includes(assets.cursor.trailType) ? <div className="tw-form-grid"><Field label="Characters" hint="Emoji or letters used by this trail. Leave blank for the preset set."><TextInput maxLength={32} value={assets.cursor.trailText} onChange={(event) => setCursor({ trailText: event.target.value })} /></Field></div> : null}
           {trailType !== "none" ? <><div className="fx-subheading">Settings for {CURSOR_TRAILS.find((trail) => trail.id === trailType)?.name}</div><MotionSettings label="Trail" value={trailMotion} showAmount={!CONTINUOUS_TRAILS.has(trailType)} onChange={updateTrailMotion} /></> : null}
           <div className="fx-trail-head"><span className="fx-subheading">Click effect</span></div>
           {chooser("click")}

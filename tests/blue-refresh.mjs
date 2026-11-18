@@ -76,7 +76,7 @@ await page.setViewportSize({width:1920,height:1080});
 await page.goto('http://127.0.0.1:5180/#/dashboard/home');
 await page.locator('.tw-welcome').waitFor();await page.locator('.tw-home-leaders a').first().waitFor();
 assert.equal(await page.locator('.tw-home-metric').count(),4);assert.equal(await page.locator('.tw-home-leaders a').count(),5);
-assert.equal(await page.locator('.tw-dash').evaluate(el=>getComputedStyle(el).getPropertyValue('--accent').trim()),'#3b82f6');
+assert.equal(await page.locator('.tw-dash').evaluate(el=>getComputedStyle(el).getPropertyValue('--accent').trim()),'#4a6cf7');
 const nav=await page.evaluate(async()=>{const {NAV}=await import('/src/dash/nav.ts');return NAV.map(item=>({label:item.label,group:item.group,pages:item.tabs.map(tab=>tab.page)}));});
 assert.equal(new Set(nav.map(item=>item.label)).size,nav.length);const routes=nav.flatMap(item=>item.pages);assert.equal(new Set(routes).size,routes.length);
 assert.deepEqual([...new Set(nav.map(item=>item.group))],['OVERVIEW','PROFILE','CONTENT','LIBRARY','ACCOUNT']);

@@ -70,7 +70,7 @@ function toLiveCard(data: ProfilePayload): LiveCard | null {
     alias: data.account.alias ?? null,
     id: data.account.id,
     uid: data.account.uid,
-    avatar: data.account.avatarUrl || "/logo.png",
+    avatar: data.account.avatarUrl || "/brand/tourn-mark.svg",
     joined: formatJoined(new Date(data.account.joinedAt)),
   };
 }
@@ -175,7 +175,7 @@ export function ProfileCard() {
           uid: live?.uid || 1,
           username: live?.username ?? "tourn",
           alias: live?.alias ?? "tourn",
-          avatarUrl: live?.avatar ?? "/logo.png",
+          avatarUrl: live?.avatar ?? "/brand/tourn-mark.svg",
         }}
         about={about}
         badges={live?.badges ?? FALLBACK_BADGES}

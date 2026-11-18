@@ -46,7 +46,7 @@ export function ProfileMetadata({
   const embedTitle = meta.shareTitle.trim();
   const embedDescription = meta.shareDescription.trim();
   const shareImage = absoluteUrl(meta.shareImageUrl.trim() || `/api/profile/${encodeURIComponent(handle)}/embed-image`);
-  const favicon = meta.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
+  const favicon = meta.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/brand/tourn-mark.svg";
 
   useEffect(() => {
     const previousTitle = document.title;

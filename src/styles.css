@@ -2051,7 +2051,7 @@ button {
   top: -38%;
   width: 620px;
   height: 620px;
-  background: url("/logo.png") center / contain no-repeat;
+  background: url("/brand/tourn-mark.svg") center / contain no-repeat;
   opacity: 0.04;
   transform: rotate(-10deg);
   animation: markFloat 24s ease-in-out infinite alternate;
@@ -2264,7 +2264,7 @@ button {
   width: min(760px, 90vw);
   height: min(760px, 90vw);
   transform: translate(-50%, -50%) rotate(-8deg);
-  background: url("/logo.png") center / contain no-repeat;
+  background: url("/brand/tourn-mark.svg") center / contain no-repeat;
   opacity: 0.045;
   pointer-events: none;
   animation: markFloat 20s ease-in-out infinite alternate;
@@ -4980,7 +4980,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .app--home .site-mark {
   position: absolute;
   display: block;
-  background-image: url("/favicon-rounded.png");
+  background-image: url("/brand/tourn-mark.svg");
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
@@ -5409,4 +5409,4 @@ button:active,
 html { scrollbar-color:#315b92 #080a0e; }
 ::-webkit-scrollbar-thumb { border-color:#080a0e; background:#315b92; }
 ::-webkit-scrollbar-thumb:hover { background:#3b82f6; }
-.app .brand img,.app .brand-mark img { filter:hue-rotate(210deg); }
+.app .brand img,.app .brand-mark img { filter:none; }

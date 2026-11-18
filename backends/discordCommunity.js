@@ -19,12 +19,12 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 const count = (value) => Number(value || 0).toLocaleString("en-US");
 const profileUrl = (username) => `${SITE_URL}/${encodeURIComponent(String(username || ""))}`;
 const safeIcon = (value) =>
-  typeof value === "string" && /^https?:\/\//i.test(value) ? value : `${SITE_URL}/logo.png`;
+  typeof value === "string" && /^https?:\/\//i.test(value) ? value : `${SITE_URL}/brand/tourn-logo-generated.png`;
 
 /** Discord CDN avatar for a user object, with the default avatar as fallback. */
 export function discordAvatar(user) {
   const id = String(user?.id || "");
-  if (!/^\d{16,20}$/.test(id)) return `${SITE_URL}/logo.png`;
+  if (!/^\d{16,20}$/.test(id)) return `${SITE_URL}/brand/tourn-logo-generated.png`;
   if (user?.avatar) return `https://cdn.discordapp.com/avatars/${id}/${user.avatar}.png?size=128`;
   let index = 0;
   try {

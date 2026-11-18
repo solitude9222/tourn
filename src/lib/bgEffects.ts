@@ -634,6 +634,7 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   function loop(now: number) {
     raf = 0;
     if (!visible || document.hidden) return;
+    if(document.documentElement.hasAttribute("data-editor-gesture")){last=now;raf=requestAnimationFrame(loop);return;}
     const dt = Math.min(64, now - last);
     last = now;
     // The clock always advances; only the paint is throttled.

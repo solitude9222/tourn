@@ -179,7 +179,7 @@ export function AuthDialog({
       <div className="dialog dialog--auth" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <header className="dialog-head">
           <div>
-            <img className="auth-logo" src="/logo.png" alt="" width={34} height={34} />
+            <img className="auth-logo" src="/brand/tourn-mark.svg" alt="" width={34} height={34} />
             <h2 id="auth-title">{signingUp ? "Claim your link" : "Welcome back"}</h2>
             <p>
               {signingUp

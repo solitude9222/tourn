@@ -1,0 +1,15 @@
+<!-- Derived from Lucide ghost; ISC license: ./LICENSE. Motion by Tourn. --><svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="32"
+  height="32"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="#f97316"
+  stroke-width="2.2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+ role="img" aria-label="Halloween 2026"><title>Halloween 2026</title>
+  <path d="M9 10h.01" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/></path>
+  <path d="M15 10h.01" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.1s" repeatCount="indefinite"/></path>
+  <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.2s" repeatCount="indefinite"/></path>
+</svg>

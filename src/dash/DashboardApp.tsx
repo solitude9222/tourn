@@ -105,6 +105,7 @@ import "./dash.css";
 import "./pages.css";
 import "./dashboardStudio.css";
 import "./blueRefresh.css";
+import "./simpleStudio.css";
 import "./managePages.css";
 
 export type DashboardProps = {
@@ -397,13 +398,22 @@ export function Dashboard(props: DashboardProps) {
 
   const draftRef=useRef({about:aboutDraft,widgets:widgetsDraft,badges:badgesDraft,links:linksDraft});
   useLayoutEffect(()=>{draftRef.current={about:aboutDraft,widgets:widgetsDraft,badges:badgesDraft,links:linksDraft};},[aboutDraft,widgetsDraft,badgesDraft,linksDraft]);
+  // Paint control feedback before normalizing/serializing large uploaded media.
+  const draftCallback=useRef(onDraftChange);draftCallback.current=onDraftChange;
+  const draftJob=useRef<{value:ProfileDocument;frame:number;timer:number}|null>(null);
+  const queueDraft=useCallback((value:ProfileDocument)=>{
+    if(draftJob.current){draftJob.current.value=value;return;}
+    const job={value,frame:0,timer:0};draftJob.current=job;
+    job.frame=requestAnimationFrame(()=>{job.timer=window.setTimeout(()=>{if(draftJob.current===job){draftJob.current=null;draftCallback.current(job.value);}},0);});
+  },[]);
+  useEffect(()=>()=>{const job=draftJob.current;if(job){cancelAnimationFrame(job.frame);clearTimeout(job.timer);draftJob.current=null;draftCallback.current(job.value);}},[]);
   const history = useRef<{ past: ProfileDocument[]; future: ProfileDocument[]; at: number; section: string }>({ past: [], future: [], at: 0, section: "" });
   const [historyVersion, setHistoryVersion] = useState(0);
   const restoreDraft = useCallback((next: ProfileDocument) => {
     draftRef.current = next;
     setAboutDraft(next.about); setWidgetsDraft(next.widgets); setBadgesDraft(next.badges); setLinksDraft(next.links);
-    onDraftChange(next);
-  }, [onDraftChange]);
+    queueDraft(next);
+  }, [queueDraft]);
   const undo = useCallback(() => {
     if (!user || authLoading) return;
     const previous = history.current.past.pop();
@@ -421,13 +431,13 @@ export function Dashboard(props: DashboardProps) {
   const changeDraft=(section:keyof ProfileDocument,updater:(value:any)=>any)=>{
     if(!user || authLoading)return;
     const next={...draftRef.current,[section]:updater(draftRef.current[section])};
-    if (serialized(next) === serialized(draftRef.current)) return;
+    if (Object.is(next[section], draftRef.current[section])) return;
     const h = history.current, now = Date.now();
     // Coalesce typing and slider gestures, retaining the state before the gesture.
     if (h.section !== section || now - h.at > 600 || !h.past.length) h.past = [...h.past.slice(-39), draftRef.current];
     h.at = now; h.section = section; h.future = [];
     setHistoryVersion(v => v + 1); draftRef.current=next;
-    onDraftChange(next);
+    queueDraft(next);
     if(section==='about')setAboutDraft(next.about);if(section==='widgets')setWidgetsDraft(next.widgets);if(section==='badges')setBadgesDraft(next.badges);if(section==='links')setLinksDraft(next.links);
   };
   const lastProps = useRef({ about, widgets, badges, profileLinks });
@@ -516,11 +526,11 @@ export function Dashboard(props: DashboardProps) {
     return () => window.cancelAnimationFrame(frame);
   }, [page, profileTab]);
 
-  const dirty =
-    serialized(aboutDraft) !== serialized(about) ||
-    serialized(widgetsDraft) !== serialized(widgets) ||
-    serialized(badgesDraft) !== serialized(badges) ||
-    serialized(linksDraft) !== serialized(profileLinks);
+  const aboutChanged = useMemo(() => serialized(aboutDraft) !== serialized(about), [aboutDraft,about]);
+  const widgetsChanged = useMemo(() => serialized(widgetsDraft) !== serialized(widgets), [widgetsDraft,widgets]);
+  const badgesChanged = useMemo(() => serialized(badgesDraft) !== serialized(badges), [badgesDraft,badges]);
+  const linksChanged = useMemo(() => serialized(linksDraft) !== serialized(profileLinks), [linksDraft,profileLinks]);
+  const dirty = aboutChanged || widgetsChanged || badgesChanged || linksChanged;
 
   useEffect(() => {
     if (!dirty && publishStatus === "saved") return;
@@ -631,7 +641,7 @@ export function Dashboard(props: DashboardProps) {
     return (
       <div className="tw-gate">
         <a className="tw-brand tw-gate-brand" href="#/">
-          <img src="/logo.png" alt="" width={37} height={37} />
+          <img src="/brand/tourn-mark.svg" alt="" width={37} height={37} />
           <span className="tw-brand-text">
             tourn<i>.</i>lol
           </span>

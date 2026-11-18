@@ -200,7 +200,7 @@ function buildDiscordPayload({ account, profile, config, siteUrl, revision }) {
   const thumb = pickImage(config.thumbnail, { about, account, siteUrl });
   const footerIcon =
     config.footerIcon === "logo"
-      ? `${siteUrl}/logo.png`
+      ? `${siteUrl}/brand/tourn-logo-generated.png`
       : config.footerIcon === "avatar"
         ? publicImage(account.avatarUrl, siteUrl)
         : "";

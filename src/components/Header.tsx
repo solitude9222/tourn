@@ -94,7 +94,7 @@ export function Header({
     <header className={`site-head${scrolled ? " is-scrolled" : ""}`}>
       <div className="head-inner">
         <a className="brand" href={hrefFor("")} aria-label="tourn.lol home">
-          <img className="brand-logo" src="/logo.png" alt="" width={30} height={30} />
+          <img className="brand-logo" src="/brand/tourn-mark.svg" alt="" width={30} height={30} />
           <span className="brand-text">
             tourn<span className="brand-dot">.</span>lol
           </span>

@@ -30,9 +30,9 @@ export function PageMetadataSettings() {
   const displayName = about.displayName.trim() || user.alias?.trim() || user.username;
   const previewTitle = metadata.shareTitle.trim();
   const previewDescription = metadata.shareDescription.trim();
-  const authorAvatar = about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
+  const authorAvatar = about.assets.avatarUrl.trim() || user.avatarUrl || "/brand/tourn-logo-generated.png";
   const previewImage = metadata.shareImageUrl.trim() || `/api/profile/${encodeURIComponent(handle)}/embed-image`;
-  const favicon = metadata.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/logo.png";
+  const favicon = metadata.faviconUrl.trim() || about.assets.avatarUrl.trim() || user.avatarUrl || "/brand/tourn-mark.svg";
 
   const uploadAvatarOrFavicon = async (file: File | undefined) => {
     if (!file) return;

@@ -274,7 +274,7 @@ export function Shell({
     <div className={`tw-dash${mobileOpen ? " is-menu-open" : ""}`} style={accent ? { "--accent": accent, "--accent-on": accentForeground(accent), "--accent-bright": accent, "--accent-text": accent, "--accent-soft": `color-mix(in srgb, ${accent} 16%, var(--page))`, "--accent-border": `color-mix(in srgb, ${accent} 45%, var(--border))` } as CSSProperties : undefined}>
       <aside className="tw-rail" aria-label="Dashboard navigation">
         <a className="tw-brand" href="#/" aria-label="tourn.lol home">
-          <img src="/logo.png" alt="" width={37} height={37} />
+          <img src="/brand/tourn-mark.svg" alt="" width={37} height={37} />
           <span className="tw-brand-text">
             tourn<i>.</i>lol
           </span>

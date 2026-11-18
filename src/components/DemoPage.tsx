@@ -71,7 +71,7 @@ export function DemoPage({
       <section className="profile-page demo-page">
         <SiteBackdrop />
         <div className="demo-claim">
-          <img className="demo-claim-logo" src="/logo.png" alt="" width={72} height={72} />
+          <img className="demo-claim-logo" src="/brand/tourn-mark.svg" alt="" width={72} height={72} />
           <span className="demo-claim-brand">
             tourn<span>.</span>lol
           </span>

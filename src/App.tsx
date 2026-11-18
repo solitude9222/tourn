@@ -167,7 +167,7 @@ function ProfileNotice({
             {kind === "missing" ? (
               <b className="pn-mark-bang">!</b>
             ) : (
-              <img src="/logo.png" alt="" width={34} height={34} />
+              <img src="/brand/tourn-mark.svg" alt="" width={34} height={34} />
             )}
           </span>
 

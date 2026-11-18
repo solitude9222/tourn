@@ -17,9 +17,9 @@ const NAME_EFFECTS: EffectOption[] = [
   ...TEXT_EFFECTS.filter(effect => effect.id !== "none" && effect.id !== "sparkle" && effect.id !== "typewriter"),
 ];
 
-export function DecorationsPanel() {
+export function DecorationsPanel({ avatarOnly = false }: {avatarOnly?:boolean} = {}) {
   const { user, about, setAbout } = useDash();
-  const [tab, setTab] = useState(() => { const section = new URLSearchParams(location.hash.split("?")[1]).get("section") || "name"; return ["name","avatar","background","overlay","card","cursor"].includes(section) ? section : "name"; });
+  const [tab, setTab] = useState(() => { const section = new URLSearchParams(location.hash.split("?")[1]).get("section") || "name"; return avatarOnly ? "avatar" : ["name","background","overlay","card","cursor"].includes(section) ? section : "name"; });
   const [textTarget, setTextTarget] = useState<"name" | "alias" | "bio">("name");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -33,11 +33,11 @@ export function DecorationsPanel() {
   const avatarOptions = [{ id: "none", label: "None", url: "" }, ...decorations].filter(item => (!onlyFavorites || favorites.includes(item.id)) && `${item.label} ${"category" in item ? item.category : ""}`.toLowerCase().includes(query.trim().toLowerCase()));
   const pages = Math.max(1, Math.ceil(avatarOptions.length / 8)), currentPage = Math.min(page, pages);
   const chooseAvatar = (url: string) => setAbout(current => ({ ...current, assets: { ...current.assets, decoration: { ...current.assets.decoration, discordUrl: url } } }));
-  return <Card className="tw-decorations-panel"><CardHead icon="sparkles" title="Decorations" subtitle="Every text, avatar, background, overlay, card and pointer effect in one place." />
-    <div className="tw-decoration-tabs" role="tablist" aria-label="Decoration types">
-      {[["name",`Name Effects (${NAME_EFFECTS.length})`],["avatar",`Avatar Effects (${decorations.length})`],["background","Background Effects"],["overlay","Overlays"],["card","Card Effects"],["cursor","Pointer Effects"]].map(([id,label])=><button type="button" role="tab" key={id} aria-selected={tab===id} onClick={()=>setTab(id)}>{label}</button>)}
+  return <Card className="tw-decorations-panel"><CardHead icon="sparkles" title="Decorations" subtitle="Text, backgrounds, overlays, card lighting and pointer effects." />
+    {!avatarOnly ? <div className="tw-decoration-tabs" role="tablist" aria-label="Decoration types">
+      {[["name",`Name Effects (${NAME_EFFECTS.length})`],["avatar",`Avatar Effects (${decorations.length})`],["background","Background Effects"],["overlay","Overlays"],["card","Card Effects"],["cursor","Pointer Effects"]].filter(([id])=>id!=="avatar").map(([id,label])=><button type="button" role="tab" key={id} aria-selected={tab===id} onClick={()=>setTab(id)}>{label}</button>)}
 
-    </div>
+    </div> : null}
     {tab === "name" ? <><div className="fx-categories">{(["name","alias","bio"] as const).map(id=><button type="button" key={id} aria-pressed={id===textTarget} onClick={()=>setTextTarget(id)}>{({name:"Display name",alias:"Username",bio:"Bio"})[id]}</button>)}</div><EffectBrowser key={textTarget} kind="text" options={NAME_EFFECTS} value={nameValue} previewText={textTarget === "name" ? about.displayName || user.username : textTarget === "alias" ? `@${user.alias || user.username}` : about.bio.slice(0,32) || "Your bio"} onApply={id => {
       const option = NAME_EFFECTS.find(item => item.id === id);
       const effect = (option?.effect || id) as TextEffectId;

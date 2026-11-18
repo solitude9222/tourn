@@ -6,7 +6,7 @@
  --accent-soft:#122440; --accent-border:#274d7e;
  --title:#f4f7fc; --sub:#a5afbe; --desc:#7d889a; --nav:#8f9bad; --icon:#92a2ba; --subnav:#b6c0cf;
 }
-.tw-dash .tw-brand img { filter:hue-rotate(210deg); }
+.tw-dash .tw-brand img { filter:none; }
 .tw-dash .tw-btn--primary { background:var(--accent); border-color:var(--accent); box-shadow:none; }
 .tw-dash .tw-btn--primary:hover { background:color-mix(in srgb,var(--accent) 85%,white); }
 .tw-dash .tw-nav-item { min-height:38px; height:38px; font-size:13px; }

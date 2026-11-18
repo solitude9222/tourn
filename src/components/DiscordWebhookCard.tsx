@@ -115,7 +115,7 @@ function DiscordWebhookPreview({
   const name = about.displayName.trim() || user.alias?.trim() || user.username;
   const image = chosenImage(config.image, about, user);
   const thumb = chosenThumb(config.thumbnail, about, user);
-  const avatar = about.assets.avatarUrl || user.avatarUrl || "/logo.png";
+  const avatar = about.assets.avatarUrl || user.avatarUrl || "/brand/tourn-logo-generated.png";
   const title = config.title.trim() || name;
   const description = config.description.trim() || about.bio.trim() || `Check out ${name} on tourn.lol.`;
   const footer = config.footer.trim() || "tourn.lol";
@@ -157,7 +157,7 @@ function DiscordWebhookPreview({
                 </div>
               ) : null}
               <div className="tw-discord-footer">
-                {config.footerIcon !== "none" ? <img src={config.footerIcon === "logo" ? "/logo.png" : avatar} alt="" /> : null}
+                {config.footerIcon !== "none" ? <img src={config.footerIcon === "logo" ? "/brand/tourn-logo-generated.png" : avatar} alt="" /> : null}
                 <span>{footer}</span>
                 {config.timestamp ? <span>· Today at 12:00</span> : null}
               </div>

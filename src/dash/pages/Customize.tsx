@@ -82,6 +82,7 @@ const FILTERS = [
 export function AudioSettingsCard() {
   const { about, setAbout, notify } = useDash();
   const audio = about.assets.audio;
+  const [audioTab,setAudioTab]=useState("tracks");
   const audioInput = useRef<HTMLInputElement>(null);
   const lyricsInput = useRef<HTMLInputElement>(null);
   const queueInput = useRef<HTMLInputElement>(null);
@@ -172,7 +173,7 @@ export function AudioSettingsCard() {
   const songCount = audio.fileUrl ? 1 + audio.queue.length : 0;
 
   return (
-    <Card>
+    <Card className="tw-audio-manager">
       <CardHead
         icon="music"
         title="Audio player"
@@ -198,6 +199,8 @@ export function AudioSettingsCard() {
         <span>{placementName}</span>
       </div>
 
+      <div className="tw-editor-tabs" role="tablist" aria-label="Audio manager sections">{[["tracks","Tracks"],["playback","Playback"],["design","Appearance"],["lyrics","Lyrics"]].map(([id,label])=><button type="button" role="tab" key={id} aria-selected={audioTab===id} onClick={()=>setAudioTab(id)}>{label}</button>)}</div>
+      {audioTab==="tracks" ? <section className="tw-audio-tab-panel" aria-label="tracks">
       <SectionLabel hint="One main track plus up to two more. Shuffle picks one per visit.">
         Songs
       </SectionLabel>
@@ -283,6 +286,8 @@ export function AudioSettingsCard() {
         </Field>
       </div>
 
+      </section> : null}
+      {audioTab==="playback" ? <section className="tw-audio-tab-panel" aria-label="playback">
       <SectionLabel hint="How the song behaves when someone opens your profile.">Playback</SectionLabel>
       <div className="tw-audio-group">
         <div className="tw-audio-sliders">
@@ -310,6 +315,44 @@ export function AudioSettingsCard() {
         </div>
       </div>
 
+      <SectionLabel hint="A floating control that silences the track. It is not a player.">
+        Mute button
+      </SectionLabel>
+      <div className="tw-audio-group">
+        <div className="tw-inline-toggle">
+          <span><b>Show mute button</b><small>Floats in a corner of the page and mutes the track.</small></span>
+          <Toggle label="Mute button" checked={audio.muteButton} onChange={(muteButton) => updateAudio({ muteButton })} />
+        </div>
+        {audio.muteButton ? (
+          <>
+            <div className="tw-form-grid">
+              <Field label="Corner" hint="Where the mute button sits on the page.">
+                <Select
+                  value={audio.popupSide}
+                  options={[
+                    { value: "left", label: "Top left" },
+                    { value: "right", label: "Top right" },
+                    { value: "bottom-left", label: "Bottom left" },
+                    { value: "bottom-right", label: "Bottom right" },
+                  ]}
+                  onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })}
+                />
+              </Field>
+              <ColorField label="Button background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
+              <ColorField label="Icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
+            </div>
+            <div className="tw-audio-sliders">
+              <Slider label="Button size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
+              <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
+              <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
+              <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      </section> : null}
+      {audioTab==="design" ? <section className="tw-audio-tab-panel" aria-label="design">
       <SectionLabel hint="Same four places the Layout preview drops it on.">Placement and style</SectionLabel>
       <div className="tw-form-grid">
         <Field label="Player style" hint="How the player looks on your profile.">
@@ -381,42 +424,8 @@ export function AudioSettingsCard() {
         </details>
       </div>
 
-      <SectionLabel hint="A floating control that silences the track. It is not a player.">
-        Mute button
-      </SectionLabel>
-      <div className="tw-audio-group">
-        <div className="tw-inline-toggle">
-          <span><b>Show mute button</b><small>Floats in a corner of the page and mutes the track.</small></span>
-          <Toggle label="Mute button" checked={audio.muteButton} onChange={(muteButton) => updateAudio({ muteButton })} />
-        </div>
-        {audio.muteButton ? (
-          <>
-            <div className="tw-form-grid">
-              <Field label="Corner" hint="Where the mute button sits on the page.">
-                <Select
-                  value={audio.popupSide}
-                  options={[
-                    { value: "left", label: "Top left" },
-                    { value: "right", label: "Top right" },
-                    { value: "bottom-left", label: "Bottom left" },
-                    { value: "bottom-right", label: "Bottom right" },
-                  ]}
-                  onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })}
-                />
-              </Field>
-              <ColorField label="Button background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
-              <ColorField label="Icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
-            </div>
-            <div className="tw-audio-sliders">
-              <Slider label="Button size" value={audio.popupSize} min={28} max={64} suffix="px" onChange={(popupSize) => updateAudio({ popupSize })} />
-              <Slider label="Volume bar width" value={audio.popupBarWidth} min={60} max={180} suffix="px" onChange={(popupBarWidth) => updateAudio({ popupBarWidth })} />
-              <Slider label="Corner spacing" value={audio.popupOffset} min={8} max={80} suffix="px" onChange={(popupOffset) => updateAudio({ popupOffset })} />
-              <Slider label="Reveal duration" value={audio.popupDuration} min={100} max={700} step={25} suffix="ms" onChange={(popupDuration) => updateAudio({ popupDuration })} />
-            </div>
-          </>
-        ) : null}
-      </div>
-
+      </section> : null}
+      {audioTab==="lyrics" ? <section className="tw-audio-tab-panel" aria-label="lyrics">
       <SectionLabel hint="Optional synced words over the player.">Lyrics</SectionLabel>
       <div className="tw-audio-group">
         <div className="tw-row">
@@ -444,6 +453,7 @@ export function AudioSettingsCard() {
         </Field>
       </div>
 
+      </section> : null}
       <input
         ref={audioInput}
         type="file"

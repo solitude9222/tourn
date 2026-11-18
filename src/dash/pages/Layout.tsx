@@ -230,11 +230,10 @@ export function LayoutPage({
       {section === "layout" && design.advancedLayout === true ? <Card><CardHead icon="user" title="Card composition" subtitle="Make the same layout centred or portrait-led." />
         <div className="tw-form-grid">            
           <Field label="Avatar placement"><Select value={design.pfpPosition} options={["default", "left", "right", "above", "center", "top-right"].map((value) => ({ value, label: value }))} onChange={(pfpPosition) => updateDesign({ pfpPosition: pfpPosition as typeof design.pfpPosition })} /></Field>
-          <Field label="Badge placement"><Select value={design.badgePosition} options={["default", "above-name", "top-right", "bottom", "beside-avatar", "hidden"].map((value) => ({ value, label: value }))} onChange={(badgePosition) => updateDesign({ badgePosition: badgePosition as typeof design.badgePosition })} /></Field>
+          <Field label="Badge placement"><Select value={design.badgePosition} options={["default", "above-name", "top-right", "bottom", "beside-avatar"].map((value) => ({ value, label: value }))} onChange={(badgePosition) => updateDesign({ badgePosition: badgePosition as typeof design.badgePosition })} /></Field>
           <Field label="Name alignment"><Select value={design.namePosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(namePosition) => updateDesign({ namePosition: namePosition as typeof design.namePosition })} /></Field>
           <Field label="Bio alignment"><Select value={design.bioPosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(bioPosition) => updateDesign({ bioPosition: bioPosition as typeof design.bioPosition })} /></Field>
           <Field label="Avatar shape"><Select value={design.avatarShape} options={["circle", "rounded", "square", "hexagon"].map((value) => ({ value, label: value }))} onChange={(avatarShape) => updateDesign({ avatarShape: avatarShape as typeof design.avatarShape })} /></Field>
-          <Field label="Custom profile font" hint="Upload your own WOFF, WOFF2 or TTF file under 500 KB."><FileUpload aria-label="Custom profile font" accept=".woff,.woff2,.ttf,.otf" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 500_000 || !/\.(woff2?|ttf|otf)$/i.test(file.name)) { notify("Font", "Choose a font file under 500 KB."); return; } const customFontUrl = await fileToDataUrl(file); updateDesign({ customFontUrl }); }} />{design.customFontUrl ? <Button onClick={() => updateDesign({ customFontUrl: "" })}>Remove custom font</Button> : null}</Field>
           <Slider label="Avatar size" value={design.avatarSize} min={40} max={180} suffix="px" onChange={(avatarSize) => updateDesign({ avatarSize })} />
           <Slider label="Name size" value={design.nameSize} min={16} max={64} suffix="px" onChange={(nameSize) => updateDesign({ nameSize })} />
           <Slider label="Bio size" value={design.bioSize} min={12} max={30} suffix="px" onChange={(bioSize) => updateDesign({ bioSize })} />
@@ -337,36 +336,6 @@ export function LayoutPage({
         </div>
       </Card> : null}
 
-      {section === "style" ? <Card>
-        <CardHead
-          icon="user"
-          title="Profile picture"
-          subtitle="Discord avatar decorations, plus how your picture sits inside the frame."
-        />
-
-        <div className="tw-form-grid" style={{ marginTop: 16 }}>
-          <Field label="Picture zoom">
-            <Slider
-              label="Zoom"
-              value={Math.round((about.assets.decoration.zoom ?? 1) * 100)}
-              min={60}
-              max={250}
-              suffix="%"
-              onChange={(value) => updateDecoration({ zoom: value / 100 })}
-            />
-          </Field>
-          <Field label="Picture rotation">
-            <Slider
-              label="Rotation"
-              value={about.assets.decoration.rotate ?? 0}
-              min={-180}
-              max={180}
-              suffix="°"
-              onChange={(value) => updateDecoration({ rotate: value })}
-            />
-          </Field>
-        </div>
-      </Card> : null}
       {section === "sections" ? <Card><CardHead icon="layers" title={filterKind === "project" ? "Projects" : filterKind === "interest" ? "Interests" : "Sections"} subtitle="Everything below your card: projects, games and the animes you like. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
         <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime and game libraries.</p>
         {!filterKind ? <div className="tw-row"><Button onClick={()=>go("portfolio-general")}>Portfolio settings</Button></div> : null}
