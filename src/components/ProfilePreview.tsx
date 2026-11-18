@@ -236,7 +236,7 @@ export function ProfilePreview({
   ) : null;
   const hasCardSlot = slots.some((entry) => entry.node && entry.slot.startsWith("card-"));
 
-  // Every size in the card is expressed against a 726px reference card, so a
+  // Every size in the card is expressed against a 648px reference card, so a
   // narrower card shrinks its type, avatar and spacing with it instead of
   // keeping full-size text in a small box.
   const narrow = useNarrowCard();
@@ -259,7 +259,7 @@ export function ProfilePreview({
     return () => { active = false; document.fonts.delete(face); };
   }, [design.customFontUrl, user.id]);
   const renderedWidth = measuredWidth || (narrow ? Math.min(design.cardWidth, 400) : design.cardWidth);
-  const scale = Math.max(0.45, Math.min(1.6, renderedWidth / 726));
+  const scale = Math.max(0.45, Math.min(1.6, renderedWidth / 648));
 
   const style = {
     "--pv-scale": scale,
@@ -384,13 +384,15 @@ export function ProfilePreview({
                   )}
                 </Tooltip>
               </h3>
-              {inlineBadges || design.badgePosition === "default" || design.badgePosition === "above-name"
-                ? badgeRow
-                : null}
+              {design.badgePosition === "above-name" ? badgeRow : null}
             </div>
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
         </div>
+
+        {/* The badge rail is its own centred row under the head, exactly as
+            wide as the reference card's pill. */}
+        {design.badgePosition === "default" ? badgeRow : null}
 
         <div
           className={`pv-bio${bio ? "" : " is-empty"}${

@@ -181,7 +181,7 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   scrimOpacity: 1,
   backgroundBlur: 0,
   radius: 16,
-  gap: 10,
+  gap: 13,
   showMeta: true,
   showBadges: true,
   avatarShape: "circle",

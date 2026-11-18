@@ -7492,3 +7492,136 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   .profile-preview .pv-topline { gap: 12px; }
   .profile-preview .pv-head-text .pv-id { justify-content: center; }
 }
+
+/* ── the reference composition ──────────────────────────────────────────
+   One compact card, measured from the supplied reference: 30px padding, a
+   105px avatar, a 46px name set 12px below the avatar's top edge, a 60px
+   badge rail centred under the head, the description 13px beneath it, four
+   social cards on a 2×2 grid (288×70 with 13px between columns and 11px
+   between rows), then one centred row of 30px icons. Every number is
+   multiplied by --pv-scale, so the composition holds at any card width.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* The body stacks its blocks itself now: each block owns its own gap, so
+   the header, the rail and the grid can sit at the reference distances. */
+.profile-preview[data-pfp="left"] .pv-body {
+  gap: 0;
+}
+
+.profile-preview[data-pfp="left"] .pv-topline {
+  align-items: flex-start !important;
+  gap: calc(16px * var(--pv-scale, 1));
+  margin-bottom: 0;
+}
+
+.profile-preview[data-pfp="left"] .pv-avatar-wrap {
+  align-self: flex-start;
+}
+
+.profile-preview[data-pfp="left"] .pv-head-text {
+  justify-content: flex-start;
+}
+
+.profile-preview[data-pfp="left"] .pv-id {
+  padding-top: calc(12px * var(--pv-scale, 1));
+}
+
+/* Badge rail: one 60px pill, centred on the card, right under the head. */
+.profile-preview .pv-body > .pv-badges--default {
+  justify-content: center;
+  margin: calc(9px * var(--pv-scale, 1)) auto 0;
+}
+
+.profile-preview .pv-body > .pv-badges--default .pv-badge-pill {
+  padding: calc(8px * var(--pv-scale, 1)) calc(14px * var(--pv-scale, 1));
+  border: 1px solid var(--pv-pill-border, rgba(255, 255, 255, 0.1));
+  border-radius: 999px;
+  background: var(--pv-pill-bg, rgba(255, 255, 255, 0.06));
+  backdrop-filter: blur(var(--pv-pill-blur, 6px));
+}
+
+/* The pill is the surface, so the badge row's own shelf is turned off. */
+.profile-preview .pv-body > .pv-badges--default .badge-row {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.profile-preview .pv-body > .pv-badges--default .badge-chip {
+  width: calc(42px * var(--pv-scale, 1)) !important;
+  height: calc(42px * var(--pv-scale, 1)) !important;
+}
+
+/* Description: one quiet line of centred copy under the rail. */
+.profile-preview[data-pfp="left"] .pv-bio {
+  margin-top: calc(13px * var(--pv-scale, 1));
+  max-width: calc(420px * var(--pv-scale, 1));
+  font-size: calc(var(--pv-bio-size, 18px) * var(--pv-scale, 1));
+  line-height: 1.35;
+  opacity: 0.8;
+}
+
+.profile-preview[data-pfp="left"][data-bio="center"] .pv-bio {
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* Social cards: four boxes, two to a line, 21px under the description. */
+.profile-preview[data-pfp="left"] .lkr-widgets-block {
+  margin-top: calc(21px * var(--pv-scale, 1));
+}
+
+.profile-preview .lkr-widgets .widget-card {
+  min-height: calc(70px * var(--pv-scale, 1));
+  padding: calc(10px * var(--pv-scale, 1)) calc(12px * var(--pv-scale, 1));
+}
+
+.profile-preview .lkr-widgets .widget-card-avatar {
+  width: calc(48px * var(--pv-scale, 1));
+  height: calc(48px * var(--pv-scale, 1));
+}
+
+.profile-preview .lkr-widgets .widget-card-head {
+  gap: calc(10px * var(--pv-scale, 1));
+}
+
+.profile-preview .lkr-widgets .widget-card-name b {
+  font-size: calc(13px * var(--pv-scale, 1));
+}
+
+.profile-preview .lkr-widgets .widget-card-handle,
+.profile-preview .lkr-widgets .widget-card-chip {
+  font-size: calc(11px * var(--pv-scale, 1));
+}
+
+.profile-preview .lkr-widgets .widget-card-meta {
+  gap: calc(8px * var(--pv-scale, 1));
+  margin-top: 1px;
+}
+
+/* Icon row: 30px marks, 13px apart, centred 18px under the last card row. */
+.profile-preview[data-pfp="left"] .pv-links-block {
+  margin-top: calc(18px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-links-block .pv-link-icons {
+  gap: calc(13px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-links-block .pv-link-icon {
+  width: calc(30px * var(--pv-scale, 1));
+  height: calc(30px * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-links-block .pv-link-icon svg,
+.profile-preview .pv-links-block .pv-link-icon img {
+  width: calc(22px * var(--pv-scale, 1));
+  height: calc(22px * var(--pv-scale, 1));
+}
+
+.profile-preview[data-pfp="left"] .pv-audio-block {
+  margin-top: calc(18px * var(--pv-scale, 1));
+}

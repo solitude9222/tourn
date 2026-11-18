@@ -452,7 +452,10 @@ export function LinkerPreview({
 
   const widgetStack = orderedWidgets.length ? (
     <div className="lkr-widgets-block" data-detail="widgets">
-      <div className="lkr-widgets" style={{ gap: widgets.design.gap }}>
+      <div
+        className="lkr-widgets"
+        style={{ columnGap: widgets.design.gap, rowGap: Math.max(0, widgets.design.gap - 2) }}
+      >
         {orderedWidgets.map((widget) => (
           <WidgetCard
             key={widget.id}

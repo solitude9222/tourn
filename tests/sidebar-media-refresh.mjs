@@ -109,7 +109,7 @@ const library=page.getByRole('dialog',{name:'Anime library',exact:true});await l
 assert.equal(await library.evaluate(el=>el.closest('.tw-dialog-portal').parentElement===document.body),true);
 const libbox=await library.boundingBox();assert.ok(libbox.height>200&&libbox.y>=0&&libbox.y+libbox.height<=1000);
 await page.evaluate(()=>window.showPublic());await page.locator('#portal-check .pv-id h3').waitFor();
-assert.equal(await page.evaluate(()=>window.refreshDesign.cardWidth),800);assert.equal(await page.evaluate(()=>window.refreshDesign.nameSize),42);
+assert.equal(await page.evaluate(()=>window.refreshDesign.cardWidth),648);assert.equal(await page.evaluate(()=>window.refreshDesign.nameSize),46);
 await page.locator('#portal-check .pv-location').hover();await page.getByRole('tooltip').filter({hasText:'Location: Berlin'}).waitFor();
 await page.locator('#portal-check .pv-views').hover();await page.getByRole('tooltip').filter({hasText:'1,234 profile views'}).waitFor();
 await page.evaluate(()=>{window.refreshRoot.unmount();document.getElementById('portal-check').remove();});

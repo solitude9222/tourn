@@ -520,20 +520,20 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   scatteredGlow: 6,
   scatteredShimmer: true,
   version: 3,
-  // The reference card is 720px wide: 32px padding, a 24px radius, a 120px
-  // avatar, a 36px name and a 20px bio, with a dark glass surface (55% fill,
-  // 12px blur) and a 1px border at 12%. Every other metric is scaled from the
-  // card's width, so these are "px at 720 wide".
-  cardWidth: 800,
+  // The reference card is 648px wide: 30px padding, a 35px radius, a 105px
+  // avatar and a 46px name, with a dark glass surface (55% fill, 12px blur)
+  // and a 1px border at 12%. Every other metric is scaled from the card's
+  // width, so these are "px at 648 wide".
+  cardWidth: 648,
   cardRadius: 35,
   borderWidth: 1,
   borderOpacity: 0.12,
   backgroundOpacity: 0.55,
   backgroundBlur: 12,
-  avatarSize: 118,
-  widgetGap: 10,
+  avatarSize: 105,
+  widgetGap: 13,
   cardPadding: 30,
-  nameSize: 42,
+  nameSize: 46,
   bioSize: 18,
   tilt: 0,
   stackTilt: false,
@@ -759,6 +759,13 @@ function loadDesign(input: unknown): AboutDesign {
       (design.cardPadding === 32 || design.cardPadding === 22)) {
     design.cardWidth = 800;
     design.nameSize = 42;
+  }
+  // The 800px card was the next default; untouched cards move onto the compact
+  // 648px composition. A card with any custom measurement keeps its own.
+  if (design.cardWidth === 800 && design.nameSize === 42 && design.avatarSize === 118) {
+    design.cardWidth = 648;
+    design.nameSize = 46;
+    design.avatarSize = 105;
   }
   return design;
 }

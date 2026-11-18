@@ -21,33 +21,54 @@
   min-width: 0;
   margin-inline: auto;
 }
+/* Four social cards, two to a line: 288×70 at the 648px reference, with 13px
+   between the columns and 11px between the rows. The gaps come from the
+   widget store so the dashboard gap setting still reaches the card. */
 .lkr-page .lkr-flow .lkr-widgets {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   width: 100%;
-  max-width: 664px;
+  max-width: 100%;
   margin-inline: auto;
 }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card {
-  flex: 0 0 320px;
-  width: 320px;
-  max-width: 100%;
+  width: auto;
+  max-width: none;
   min-width: 0;
-  height: 88px;
-  min-height: 88px;
-  padding: 11px 12px;
+  height: auto;
+  min-height: calc(70px * var(--pv-scale, 1));
+  padding: calc(10px * var(--pv-scale, 1)) calc(12px * var(--pv-scale, 1));
   box-sizing: border-box;
 }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-avatar {
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
+  width: calc(48px * var(--pv-scale, 1));
+  height: calc(48px * var(--pv-scale, 1));
+  flex: 0 0 calc(48px * var(--pv-scale, 1));
 }
-.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-name b { font-size: 15px; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-name b { font-size: calc(13px * var(--pv-scale, 1)); line-height: 1.15; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-chip { padding: 1px 5px; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-handle { font-size: calc(11px * var(--pv-scale, 1)); }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-inner { padding: 0; gap: 8px; }
+
+/* The Discord card used to stretch across the row; the reference puts four
+   equal cards on a 2×2 grid, so every platform is the same 288×70 box. */
+.lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] {
+  grid-column: span 1;
+  min-height: calc(70px * var(--pv-scale, 1));
+  padding: calc(10px * var(--pv-scale, 1)) calc(12px * var(--pv-scale, 1));
+}
+.lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-avatar {
+  width: calc(48px * var(--pv-scale, 1));
+  height: calc(48px * var(--pv-scale, 1));
+  border-radius: var(--wg-avatar-radius, 50%);
+}
+.lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-name b {
+  font-size: calc(13px * var(--pv-scale, 1));
+}
+.lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-meta {
+  font-size: calc(10px * var(--pv-scale, 1));
+}
 .lkr-page .lkr-flow .lkr-stacked-widgets,
 .lkr-page .lkr-flow .lkr-stack {
   width: 100%;
@@ -146,12 +167,19 @@
 .fx-cursor-particle--comet { width:calc(var(--fx-p-size) * 2); height:3px; border-radius:99px; background:linear-gradient(90deg,var(--fx-p-color),transparent); box-shadow:0 0 6px var(--fx-p-color); }
 @media(prefers-reduced-motion:reduce) { .profile-cursor-trail, .fx-cursor-particles, .fx-cursor-ghost { display:none; } }
 
-/* Compact reference composition: identity across the top, bio across the card. */
-.lkr-page .profile-preview .pv-body { gap:16px; }
-.lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { margin-bottom:0; align-items:center; }
+/* Compact reference composition: identity across the top, the badge rail and
+   the description centred under it, the social cards in a 2×2 grid and one
+   centred icon row beneath them. Each block owns its own gap now, so the
+   header, rail and grid sit at the reference distances. */
+.lkr-page .profile-preview .pv-body { gap:0; }
+.lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { margin-bottom:0; align-items:flex-start; }
 .lkr-page .profile-preview[data-pfp="left"] .pv-head-text { flex:1; min-width:0; }
-.lkr-page .profile-preview .pv-body > .pv-bio { width:100%; max-width:none; margin:0; padding:0; opacity:1; max-height:none; overflow:visible; font-size:var(--pv-bio-size,18px); line-height:1.5; }
+.lkr-page .profile-preview .pv-body > .pv-bio { width:100%; max-width:calc(420px * var(--pv-scale, 1)); margin:calc(13px * var(--pv-scale, 1)) auto 0; padding:0; opacity:.8; max-height:none; overflow:visible; font-size:calc(var(--pv-bio-size,18px) * var(--pv-scale, 1)); line-height:1.35; }
+.lkr-page .profile-preview[data-bio="center"] .pv-body > .pv-bio { text-align:center; }
+.lkr-page .profile-preview[data-bio="left"] .pv-body > .pv-bio { margin-inline:0; text-align:left; }
+.lkr-page .profile-preview[data-bio="right"] .pv-body > .pv-bio { margin-inline:auto 0; text-align:right; }
 .lkr-page .profile-preview .pv-body > .pv-bio.is-empty { display:none; }
 .lkr-page .profile-preview[data-pfp="left"] .pv-id { flex-wrap:wrap; justify-content:flex-start; row-gap:8px; }
-.lkr-page .profile-preview .pv-body > .pv-bio + .lkr-widgets-block { margin-top:0; }
-@media(max-width:600px) { .lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { gap:14px; margin-bottom:0; }.lkr-page .profile-preview .pv-body > .pv-bio { margin-bottom:0; font-size:max(14px,calc(var(--pv-bio-size,18px)*.88)); } }
+.lkr-page .profile-preview .lkr-widgets-block { margin-top:calc(21px * var(--pv-scale, 1)); }
+.lkr-page .profile-preview .pv-body > .pv-bio + .lkr-widgets-block { margin-top:calc(21px * var(--pv-scale, 1)); }
+@media(max-width:600px) { .lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { gap:14px; margin-bottom:0; }.lkr-page .profile-preview .pv-body > .pv-bio { margin-bottom:0; font-size:max(12px,calc(var(--pv-bio-size,18px)*.88)); } }

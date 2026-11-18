@@ -194,7 +194,13 @@ export function ProfileCard() {
       >
         {heroCards.length ? (
           <div className="lkr-widgets-block">
-            <div className="lkr-widgets" style={{ gap: heroWidgets.design.gap }}>
+            <div
+              className="lkr-widgets"
+              style={{
+                columnGap: heroWidgets.design.gap,
+                rowGap: Math.max(0, heroWidgets.design.gap - 2),
+              }}
+            >
               {heroCards}
             </div>
           </div>

@@ -85,13 +85,23 @@ await page.evaluate(async()=>{
  window.renderStable();
 });
 await page.locator('#stable-preview .widget-card').first().waitFor();
-const dimensions=()=>page.locator('#stable-preview').evaluate(host=>({widgets:[...host.querySelectorAll('.lkr-widgets>.widget-card')].map(el=>({width:el.offsetWidth,height:el.offsetHeight})),audio:host.querySelector('[data-detail="audio"]').offsetWidth,player:{width:host.querySelector('[data-detail="audio"] .ap').offsetWidth,height:host.querySelector('[data-detail="audio"] .ap').offsetHeight}}));
+// Social cards are fluid now: two to a line, both sharing one width inside the
+// profile card. The player keeps its own fixed width whatever the composition.
+const dimensions=()=>page.locator('#stable-preview').evaluate(host=>{
+ const cards=[...host.querySelectorAll('.lkr-widgets>.widget-card')].map(el=>{const r=el.getBoundingClientRect();return {width:Math.round(r.width),top:Math.round(r.top)};});
+ const rows=new Map();cards.forEach(card=>{const row=rows.get(card.top)||[];row.push(card.width);rows.set(card.top,row);});
+ return {rows:[...rows.values()].map(widths=>({count:widths.length,width:widths[0],equal:new Set(widths).size===1})),cards:cards.length,audio:host.querySelector('[data-detail="audio"]').offsetWidth,player:{width:host.querySelector('[data-detail="audio"] .ap').offsetWidth,height:host.querySelector('[data-detail="audio"] .ap').offsetHeight}};
+});
+const twoUp=sizes=>sizes.cards>0&&sizes.rows.every(row=>row.count<=2&&row.equal);
 const baseline=await dimensions();
-assert(baseline.widgets.every(card=>card.width===320&&card.height===88),JSON.stringify(baseline));assert.equal(baseline.audio,360);
+assert(twoUp(baseline),JSON.stringify(baseline));assert.equal(baseline.audio,360);
 for(const layout of ['left','centered','stacked'])for(const cardStyle of ['compact','default'])for(const cardWidth of [480,720])for(const audioSlot of ['below-card','card-bottom','page-top','page-bottom'])for(const widgetsPosition of ['below','inside']) {
  await page.evaluate(patch=>window.renderStable(patch),{layout,cardStyle,cardWidth,audioSlot,widgetsPosition});
  await page.waitForTimeout(25);
- assert.deepEqual(await dimensions(),baseline,JSON.stringify({layout,cardStyle,cardWidth,audioSlot}));
+ const sizes=await dimensions();
+ assert(twoUp(sizes),JSON.stringify({layout,cardStyle,cardWidth,audioSlot,sizes}));
+ assert.equal(sizes.audio,360,JSON.stringify({layout,cardStyle,cardWidth,audioSlot}));
+ assert(sizes.player.width<=sizes.audio,JSON.stringify({layout,cardStyle,cardWidth,audioSlot,sizes}));
 }
 await page.evaluate(()=>window.renderStable({layout:'stacked',cardStyle:'default',slideshow:true,slideshowAbout:true,audioSlot:'below-card'}));
 await page.setViewportSize({width:1920,height:1080});
