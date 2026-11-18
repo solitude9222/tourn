@@ -1152,7 +1152,7 @@ button.hm-metric:focus-visible {
 .hm-btn--claim {
   height: 48px;
   flex: none;
-  background: #97262a;
+  background: #2a2697;
   color: #e6e6e6;
 }
 
@@ -1417,12 +1417,12 @@ button.hm-metric:focus-visible {
 .hm-live-profile { width:500px; flex:none; zoom:.56; pointer-events:none; }
 .hm-live-profile .about-preview { max-width:100%; }
 .hm-pages-grid--live .hm-page-caption { z-index:3; position:absolute; inset:auto 0 0; display:flex; gap:10px; align-items:center; justify-content:center; padding:20px; background:linear-gradient(transparent,#0a0d13 35%); color:#e4e4e4; }
-.hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #4a2b2d; border-radius:16px; background:var(--panel-solid, #18181c); box-shadow:0 12px 45px #0005; }
+.hm-claim--cta { display:flex; align-items:stretch; gap:8px; padding:7px; border:1px solid #2d2b4a; border-radius:16px; background:var(--panel-solid, #18181c); box-shadow:0 12px 45px #0005; }
 .hm-claim--cta .hm-claim-field { display:flex; flex:1; min-width:0; align-items:center; gap:2px; padding:0 10px; border:0; background:transparent; color:#8a8a8a; font-family:inherit; font-size:15px; }
 .hm-claim--cta input { width:100%; min-width:0; padding:0; border:0; outline:0; background:transparent; color:#fff; font:inherit; box-shadow:none; }
 .hm-claim--cta:focus-within { outline:2px solid #60a5fa; outline-offset:3px; }
 .hm-claim--cta input::placeholder { color:#808080; }
-.hm-btn--claim { border-radius:10px; padding:0 20px; background:#ed5055; color:white; }
+.hm-btn--claim { border-radius:10px; padding:0 20px; background:#5550ed; color:white; }
 @media(max-width:800px){ .hm-pages-grid--live { grid-template-columns:1fr; max-width:480px; margin-inline:auto; } .hm-pages-grid--live .hm-page-preview:first-child,.hm-pages-grid--live .hm-page-preview:last-child,.hm-pages-grid--live .hm-page-preview:nth-child(2){transform:none;} }
 
 /* The three profile previews are a look at the card, not a reading sample. */

@@ -262,6 +262,10 @@ export type BackgroundSettings = {
   videoUrl: string;
   videoAudio: boolean;
   videoVolume: number;
+  videoDelay: number;
+  videoStartAt: number;
+  videoFade: number;
+  videoWaitForEntry: boolean;
   saturation: number;
   contrast: number;
   brightness: number;
@@ -468,6 +472,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     videoUrl: "",
     videoAudio: false,
     videoVolume: 0.5,
+    videoDelay: 0, videoStartAt: 0, videoFade: 700, videoWaitForEntry: true,
     saturation: 1,
     contrast: 1,
     brightness: 1,
@@ -833,6 +838,10 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       videoUrl: textIn(background.videoUrl, "", 6_000_000),
       videoAudio: boolIn(background.videoAudio, false),
       videoVolume: numberIn(background.videoVolume, 0.5, 0, 1),
+      videoDelay: numberIn(background.videoDelay, 0, 0, 30),
+      videoStartAt: numberIn(background.videoStartAt, 0, 0, 3600),
+      videoFade: numberIn(background.videoFade, 700, 0, 3000),
+      videoWaitForEntry: boolIn(background.videoWaitForEntry, true),
       saturation: numberIn(background.saturation, 1, 0, 2),
       contrast: numberIn(background.contrast, 1, .5, 2),
       positionX: numberIn(background.positionX, 50, 0, 100),

@@ -166,6 +166,7 @@ export function Tooltip({
               ref={tipRef}
               className={`tt tt--fixed tt--${style} tt-anim--${animation}${open ? " is-in" : ""}`}
               role="tooltip"
+              data-scattered={wrapRef.current?.closest('[data-scattered="true"]') ? "true" : undefined}
               style={{
                 left: coords?.left ?? 0,
                 top: coords?.top ?? 0,

@@ -142,35 +142,9 @@ export function Header({
             <span className="head-skeleton" aria-label="Checking sign-in state" />
           ) : user ? (
             <div className={`profile-menu${menuOpen ? " is-open" : ""}`} ref={menuRef}>
-              <a
-                className="profile-trigger"
-                href={hrefFor("dashboard")}
-                aria-label="Open your dashboard"
-                onPointerEnter={() => preloadRoute("dashboard")}
-                onPointerDown={() => preloadRoute("dashboard")}
-                onFocus={() => preloadRoute("dashboard")}
-              >
-                {avatarUrl ? (
-                  <img className="avatar avatar--xs" src={avatarUrl} alt="" />
-                ) : (
-                  <span className="avatar avatar--xs avatar--initial">
-                    {publicName.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-                <span className="profile-trigger-copy">
-                  <span className="profile-trigger-name">{publicName}</span>
-                  <span className="profile-trigger-sub">Dashboard</span>
-                </span>
-              </a>
-              <button
-                type="button"
-                className="profile-more"
-                onClick={() => setMenuOpen((open) => !open)}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label="Account menu"
-              >
-                <ChevronIcon size={14} className="profile-chevron" />
+              <button type="button" className="profile-trigger" aria-label="Account menu" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(open=>!open)} onPointerEnter={()=>preloadRoute("dashboard")}>
+                {avatarUrl?<img className="avatar avatar--xs" src={avatarUrl} alt=""/>:<span className="avatar avatar--xs avatar--initial">{publicName.slice(0,1).toUpperCase()}</span>}
+                <span className="profile-trigger-copy"><span className="profile-trigger-name">{publicName}</span><span className="profile-trigger-sub">Account</span></span><ChevronIcon size={14} className="profile-chevron"/>
               </button>
 
               {menuOpen ? (

@@ -158,7 +158,7 @@ export function ProfilePreview({
 
   const locationPill = location && showLocation ? (
     <Tooltip text={`Location: ${location}`} style={tooltips.style} animation={tooltips.animation}><span className="pv-location" tabIndex={0}>
-      <LocationGlyph size={12} />
+      <LocationGlyph size={14} />
       {location}
     </span></Tooltip>
   ) : null;
@@ -170,7 +170,7 @@ export function ProfilePreview({
       animation={tooltips.animation}
     >
       <span className="pv-foot-item" tabIndex={0}>
-        <CalendarIcon size={10} />
+        <CalendarIcon size={14} />
         Joined {joined ?? "—"}
       </span>
     </Tooltip>
@@ -178,7 +178,7 @@ export function ProfilePreview({
 
   const viewsNode = (
     <Tooltip text={`${viewCount.toLocaleString("en-US")} profile views`} style={tooltips.style} animation={tooltips.animation}><span className="pv-foot-item pv-views" tabIndex={0}>
-      <ViewsGlyph size={12} />
+      <ViewsGlyph size={14} />
       {viewCount.toLocaleString("en-US")}
     </span></Tooltip>
   );
@@ -222,7 +222,7 @@ export function ProfilePreview({
   const pageSlotLayer = PAGE_SLOTS.some((slot) =>
     slots.some((entry) => entry.slot === slot && entry.node),
   ) ? (
-    <div className="pv-page-slots" style={{ color: design.colors.muted }}>
+    <div className="pv-page-slots" style={{ color: design.colors.text }}>
       {PAGE_SLOTS.map((slot) => {
         const nodes = nodesFor(slot);
         return nodes.length ? (
@@ -445,40 +445,5 @@ export function ProfilePreview({
 }
 
 /** Views: a solid eye with a punched-out pupil. */
-export function ViewsGlyph({ size = 12 }: { size?: number }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
-      />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  );
-}
-
-/** Location: a solid map pin. */
-export function LocationGlyph({ size = 12 }: { size?: number }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Zm0-9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"
-      />
-    </svg>
-  );
-}
+export function ViewsGlyph({size=14}:{size?:number}) {return <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>;}
+export function LocationGlyph({size=14}:{size?:number}) {return <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 10c0 5-7 12-7 12S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>;}

@@ -7,27 +7,27 @@
   "modalSizes": {
     "avatar": {
       "x": 330,
-      "y": 80,
+      "y": 16,
       "width": 940,
-      "height": 453
+      "height": 461
     },
     "background": {
       "x": 350,
-      "y": 80,
+      "y": 16,
       "width": 900,
-      "height": 816
+      "height": 838
     },
     "colorPicker": {
       "x": 375,
-      "y": 667,
+      "y": 603,
       "width": 232,
       "height": 252
     },
     "audio": {
       "x": 280,
-      "y": 80,
+      "y": 16,
       "width": 1040,
-      "height": 794.625
+      "height": 802.625
     }
   }
 }

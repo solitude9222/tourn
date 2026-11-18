@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./styles.css";
+import "./interfacePolish.css";
 
 // `/demo` is served by the static host as index.html. Turn it into the hash the
 // router understands while keeping the address the visitor typed.

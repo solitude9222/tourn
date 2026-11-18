@@ -23,6 +23,7 @@ import { BadgeRow } from "./BadgeRow";
 import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
 import { ReactionBar, ReactionGhost } from "./Reactions";
 import { createPortal } from "react-dom";
+import { ProfileBackgroundVideo } from "./ProfileBackgroundVideo";
 import { MuteButton } from "./MuteButton";
 import "../about.css";
 import "../profileLayout.css";
@@ -54,7 +55,7 @@ export function EntryOverlay({
     // The screen is gone as soon as it is clicked, not after a fixed 760ms — a
     // long fixed delay made the first click look ignored, so people clicked
     // twice.
-    timerRef.current = window.setTimeout(() => onEnterRef.current(), entry.animationDuration);
+    timerRef.current = window.setTimeout(() => onEnterRef.current(), (matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : Math.min(entry.animationDuration,600)));
   }, [entry.animationDuration]);
 
   useEffect(() => {
@@ -105,6 +106,7 @@ export function EntryOverlay({
         </h2>
       ) : null}
 
+      <span className="lkr-entry-action">Enter profile <ChevronIcon size={14}/></span>
       {entry.divider ? (
         <span
           className="lkr-entry-divider"
@@ -166,7 +168,7 @@ export function EntryOverlay({
         "--lkr-entry-panel-blur": `${entry.panelBlur}px`,
         "--lkr-entry-panel-radius": `${entry.panelRadius}px`,
         "--lkr-entry-vignette": entry.vignette / 100,
-        "--lkr-entry-duration": `${entry.animationDuration}ms`,
+        "--lkr-entry-duration": `${Math.min(entry.animationDuration,600)}ms`,
         "--lkr-entry-fit": entry.imageFit,
       } as CSSProperties}
     >
@@ -281,18 +283,10 @@ export function LinkerPreview({
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const previewMode = preview || !interactive;
-  const videoRef = useRef<HTMLVideoElement>(null);
+
   const sharedTilt = design.layout === "stacked" && design.stackTilt;
   const stackMotion = useTilt(sharedTilt ? design.tilt : 0, Boolean(design.tiltInvert));
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.volume = assets.background.videoVolume;
-    video.muted = true;
-    const unlock = () => { if (interactive && assets.background.videoAudio) { video.muted = false; void video.play().catch(() => undefined); } };
-    document.addEventListener("pointerdown", unlock, { once: true });
-    return () => document.removeEventListener("pointerdown", unlock);
-  }, [assets.background.style, assets.background.videoUrl, assets.background.videoAudio, assets.background.videoVolume, interactive]);
+
   const entrySeenKey = `tourn.lol/entry-seen/v1/${user.username}`;
   // One question, asked both on mount and whenever the entry settings change,
   // so the "seen this visit" flag cannot be ignored (which reopened the entry
@@ -743,7 +737,7 @@ export function LinkerPreview({
             style={{ backgroundImage: `url("${assets.background.imageUrl.replace(/"/g, '\\"')}")`, backgroundPosition: `${assets.background.positionX ?? 50}% ${assets.background.positionY ?? 50}%`, backgroundSize: assets.background.fit || "cover", backgroundRepeat: "no-repeat" }}
           />
         ) : null}
-        {assets.background.style === "video" && assets.background.videoUrl ? <video ref={videoRef} className="lkr-bg-video" src={assets.background.videoUrl} autoPlay muted loop playsInline preload="metadata" /> : null}
+        {assets.background.style === "video" && assets.background.videoUrl ? <ProfileBackgroundVideo settings={assets.background} entryActive={entryOpen} interactive={interactive}/> : null}
         <span className="lkr-bg-dim" />
       </div>
       <BackgroundEffectLayer settings={assets.effects.background} />

@@ -1,0 +1,24 @@
+/* A shared, restrained motion language for navigation and controls. */
+@keyframes uiMenuIn {from{opacity:0;transform:translateY(7px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes uiPanelIn {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.site-head .profile-menu {border:0;background:transparent;padding:0;box-shadow:none;}
+.site-head .profile-trigger {display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px 6px 7px;border:1px solid #30343d;border-radius:12px;background:#12151b;color:#ecf1ff;font:inherit;cursor:pointer;box-shadow:none;}
+.site-head .profile-trigger .avatar {width:30px;height:30px;border:1px solid #394153;border-radius:9px;}
+.site-head .profile-trigger-copy {display:flex;flex-direction:column;align-items:flex-start;gap:1px;}
+.site-head .profile-trigger-name {font-size:12px;max-width:120px;}
+.site-head .profile-trigger-sub {display:block;font-size:9px;color:#939eaf;}
+.site-head .profile-chevron {margin-left:8px;transition:transform .2s;}
+.site-head .profile-menu.is-open .profile-chevron {transform:rotate(180deg);}
+.site-head .head-cart {width:40px;height:40px;border:1px solid #30343d;border-radius:11px;background:#12151b;}
+.site-head .profile-menu .menu {min-width:250px;padding:8px;border:1px solid #30343d;border-radius:14px;background:#11141a;box-shadow:0 16px 50px #0008;transform-origin:top right;}
+.site-head .profile-menu .menu-head {padding:12px;border-bottom:1px solid #292e37;margin-bottom:6px;}
+.site-head .menu-item {border-radius:8px;padding:11px 12px;color:#c5cedd;}
+.site-head .menu-item:hover {background:#1c2941;color:#a9c8ff;}
+.site-head .menu-item--danger {color:#aab8cf;}
+@media(prefers-reduced-motion:no-preference) {
+ .site-head .menu,.tw-dash .tw-user-pop,.tw-dash .tw-note-pop {animation:uiMenuIn .2s cubic-bezier(.16,1,.3,1) both;}
+ .tw-dash .tw-page-swap {animation:uiPanelIn .18s ease-out both;}
+ .tw-dash .tw-modal {animation:uiMenuIn .2s cubic-bezier(.16,1,.3,1) both;}
+ .tw-dash :is(button,a,input),.site-head :is(button,a) {transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s;}
+}
+@media(max-width:650px){.site-head .profile-trigger-copy {display:none;}.site-head .profile-trigger {gap:4px;padding-right:8px;}}

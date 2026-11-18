@@ -128,3 +128,22 @@ html[data-editor-gesture="true"] .tw-dash :is(.tw-card,.tw-modal,.fx-tile-previe
 .tw-dash .tw-nav-item { min-height: 36px; height: 36px; }
 /* Body-level portals keep nested libraries above their originating sections. */
 .tw-dialog-portal .tw-modal-layer { position:fixed; inset:0; z-index:2400; }
+.tw-dash .tw-nav-group {cursor:default;pointer-events:none;}
+.tw-dash .tw-user-pop {padding:8px;border:1px solid #30343d;border-radius:14px;background:#11141a;box-shadow:0 18px 60px #0009;transform-origin:bottom left;max-height:min(560px,calc(100dvh - 190px));overflow:auto;}
+.tw-dash .tw-user-pop-head {padding:12px;border-bottom:1px solid #292e37;}
+.tw-dash :is(.tw-account-row,.tw-account-add,.tw-user-pop-item) {border-radius:9px;color:#c4cedf;padding:11px 12px;}
+.tw-dash :is(.tw-account-row,.tw-account-add,.tw-user-pop-item):hover {background:#1c2941;color:#a9c8ff;}
+.tw-dash .tw-manage-icon {background:#151922!important;border:1px solid #2a3140!important;color:var(--link-color,#8aa6ff)!important;box-shadow:none!important;border-radius:11px;}
+.tw-dash .tw-manage-icon :is(img,svg) {display:block;object-fit:contain;max-width:100%;max-height:100%;}
+.tw-dash .tw-background-presets {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0;}
+.tw-dash .tw-background-presets button {min-height:70px;border:1px solid #35445c;border-radius:12px;color:#d9e6fa;font:inherit;font-size:12px;cursor:pointer;}
+.tw-dash .tw-background-presets button:hover {border-color:#82a5f6;}
+.tw-dash .tw-video-timing {padding:18px;border:1px solid var(--border);border-radius:12px;background:var(--bar);margin:20px 0;}
+.tw-dash .tw-video-timing h3 {font-size:14px;margin:0 0 18px;}
+.tw-dash .tw-video-timing .tw-inline-toggle {margin-bottom:20px;}
+html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
+.tw-dash .tw-user-pop-actions {display:grid;gap:3px;padding:6px 0 0;}
+.tw-dash .tw-user-pop-actions .tw-user-pop-item {display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;margin:0;text-align:left;font-size:12px;min-height:40px;box-sizing:border-box;}
+.tw-dash .tw-user-pop-actions .tw-user-pop-item svg:last-child:not(:first-child) {margin-left:auto;}
+.tw-dash .tw-account-add {display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;text-align:left;border:1px solid #293345;background:#151b26;}
+.tw-dash .tw-user-pop-head b {display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;color:#eef3ff;font-size:12px;}

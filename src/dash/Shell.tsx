@@ -11,7 +11,7 @@ import { Button, Icon, IconButton, navigateTabs, type IconName } from "./ui";
 import { api, post } from "../lib/backend";
 import { TradeThread } from "./Trades";
 import { useDashTheme, useDashAccent, accentForeground } from "./theme";
-import { usePreference } from "./preferences";
+
 import { NAV, navHome } from "./nav";
 import { AliasRequiredGate } from "./AliasGate";
 
@@ -108,7 +108,7 @@ export function Shell({
   const [accent] = useDashAccent();
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const [collapsed, setCollapsed] = usePreference<string[]>("collapsed-nav", []);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notes, setNotes] = useState(false);
@@ -303,11 +303,10 @@ export function Shell({
                 (tab) => !searching || matches(item.label) || matches(tab.label),
               );
               if (searching && !tabs.length) return null;
-              const hidden = !searching && item.group && collapsed.includes(item.group);
               return (
                 <div className="tw-nav-block" key={item.key}>
-                  {heading ? <button type="button" className="tw-nav-group tw-nav-collapse" aria-expanded={!collapsed.includes(heading)} onClick={() => setCollapsed(current => current.includes(heading) ? current.filter(group => group !== heading) : [...current, heading])}>{heading}<Icon name="chevron-down" size={12} /></button> : null}
-                  {!hidden ? <button
+                  {heading ? <div className="tw-nav-group">{heading}</div> : null}
+                  <button
                     type="button"
                     className={`tw-nav-item${active ? " is-active" : ""}`}
                     onClick={() => onNavigate(searching ? tabs[0].page : navHome(item))}
@@ -317,7 +316,7 @@ export function Shell({
                   >
                     <Icon name={item.icon} size={18} className="tw-nav-symbol" />
                     {item.label}
-                  </button> : null}
+                  </button>
                   {searching ? tabs.map(tab => <button className="tw-nav-search-result" type="button" key={tab.page} onClick={() => { onNavigate(tab.page); setQuery(""); }}><Icon name={tab.icon} size={14} />{tab.label}</button>) : null}
                 </div>
               );
@@ -347,7 +346,7 @@ export function Shell({
               <div className="tw-user-pop" role="menu" aria-label="Account menu">
                 <div className="tw-user-pop-head">
                   <small>Signed in as</small>
-                  <b>{user.email ?? (user.alias ? `@${user.alias}` : "Account")}</b>
+                  <b>{user.email ?? `@${user.alias || user.username}`}</b>
                 </div>
 
                 <div className="tw-user-pop-list">

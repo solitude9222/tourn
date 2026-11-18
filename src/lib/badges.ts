@@ -31,6 +31,7 @@ export type BadgeDef = {
 };
 
 export type BadgeStyle = {
+  animated: boolean;
   glow: boolean;
   glowColor: string;
   glowIntensity: number; // 0–100
@@ -76,6 +77,7 @@ export type BadgeStore = {
 /* ── defaults ──────────────────────────────────────────────── */
 
 export const DEFAULT_BADGE_STYLE: BadgeStyle = {
+  animated: true,
   glow: false,
   glowColor: "#8aa6ff",
   glowIntensity: 60,
@@ -332,6 +334,7 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
     return {
       equipped,
       style: {
+        animated: bool(style.animated, true),
         glow: bool(style.glow, DEFAULT_BADGE_STYLE.glow),
         glowColor: hex(style.glowColor, DEFAULT_BADGE_STYLE.glowColor),
         glowIntensity: clamp(style.glowIntensity, DEFAULT_BADGE_STYLE.glowIntensity, 0, 100),

@@ -24,7 +24,7 @@ export function BadgeChip({
   const px = size ?? 24;
   const glowAlpha = Math.round((style.glowIntensity / 100) * 255).toString(16).padStart(2, "0");
   const glowRadius = 2 + (style.glowIntensity / 100) * 6;
-  const art = reduced ? def.artStatic || def.art : artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
+  const art = reduced || style.animated === false ? def.artStatic || def.art : artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
   const maskArt = def.artStatic || def.art;
   const tint = style.monochrome ? style.monoColor : def.color;
 
@@ -57,7 +57,7 @@ export function BadgeChip({
 
   return (
     <span
-      className={`badge-chip${style.glow ? " has-glow" : ""}${style.glowPulse ? " glow-pulse" : ""} badge-anim--${style.animation}${art ? "" : " badge-chip--monogram"}`}
+      className={`badge-chip${style.glow ? " has-glow" : ""}${style.animated !== false && style.glowPulse ? " glow-pulse" : ""} badge-anim--${style.animated === false ? "none" : style.animation}${art ? "" : " badge-chip--monogram"}`}
       style={chipStyle}
       title={def.name}
     >
