@@ -37,7 +37,7 @@
   max-width: none;
   min-width: 0;
   height: auto;
-  min-height: calc(70px * var(--pv-scale, 1));
+  min-height: calc(74px * var(--pv-scale, 1));
   padding: calc(10px * var(--pv-scale, 1)) calc(12px * var(--pv-scale, 1));
   box-sizing: border-box;
 }
@@ -55,7 +55,7 @@
    equal cards on a 2×2 grid, so every platform is the same 288×70 box. */
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] {
   grid-column: span 1;
-  min-height: calc(70px * var(--pv-scale, 1));
+  min-height: calc(74px * var(--pv-scale, 1));
   padding: calc(10px * var(--pv-scale, 1)) calc(12px * var(--pv-scale, 1));
 }
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-avatar {

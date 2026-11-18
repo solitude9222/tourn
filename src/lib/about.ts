@@ -519,12 +519,13 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   scatteredCell: 3,
   scatteredGlow: 6,
   scatteredShimmer: true,
-  version: 4,
-  // The reference card is 648px wide: 30px padding, a 35px radius, a 105px
+  version: 5,
+  // The reference card is 720px wide: 30px padding, a 35px radius, a 105px
   // avatar and a 46px name, with a dark glass surface (55% fill, 12px blur)
   // and a 1px border at 12%. Every other metric is scaled from the card's
-  // width, so these are "px at 648 wide".
-  cardWidth: 648,
+  // width, so these are "px at 648 wide" — the 720px card renders them at
+  // 1.11×, which is what gives the four social cards their room.
+  cardWidth: 720,
   cardRadius: 35,
   borderWidth: 1,
   borderOpacity: 0.12,
@@ -756,29 +757,21 @@ function loadDesign(input: unknown): AboutDesign {
   // Geometry migrations run once per document: the saved version is bumped to 4
   // below, so a width picked in the editor afterwards is never rewritten.
   const storedVersion = Number((input as { version?: unknown } | null)?.version) || 0;
-  const migrateGeometry = storedVersion < 4;
-  // Migrate the previous default geometry; retain explicitly customized sizes.
-  if (migrateGeometry &&
-      (design.cardWidth === 720 || design.cardWidth === 620) &&
-      (design.nameSize === 36 || design.nameSize === 30) &&
-      (design.cardPadding === 32 || design.cardPadding === 22)) {
-    design.cardWidth = 800;
-    design.nameSize = 42;
-  }
-  // Every stored card lands on the compact 648px composition. An untouched
-  // default takes the reference numbers; a card sized by hand keeps its
-  // proportions, so nobody's card comes back looking like someone else's.
-  if (migrateGeometry && design.cardWidth === 800) {
-    if (design.nameSize === 42 && design.avatarSize === 118) {
+  const migrateGeometry = storedVersion < 5;
+  if (migrateGeometry) {
+    // 620, 648 and 800 were the default widths of earlier releases. The card
+    // renders on the 720px reference now; because the card's numbers are "px
+    // at 648", the extra width scales the composition instead of stretching
+    // it. A width someone chose by hand is kept.
+    if (design.cardWidth === 620 || design.cardWidth === 648 || design.cardWidth === 800) {
+      design.cardWidth = 720;
+    }
+    // Untouched old defaults move onto the reference avatar/name pair.
+    if ((design.nameSize === 30 || design.nameSize === 36 || design.nameSize === 42) &&
+        (design.avatarSize === 105 || design.avatarSize === 112 || design.avatarSize === 118)) {
       design.nameSize = 46;
       design.avatarSize = 105;
-    } else {
-      const ratio = 648 / 800;
-      design.nameSize = Math.min(64, Math.max(12, Math.round(design.nameSize * ratio)));
-      design.avatarSize = Math.min(240, Math.max(40, Math.round(design.avatarSize * ratio)));
-      design.cardPadding = Math.min(64, Math.max(0, Math.round(design.cardPadding * ratio)));
     }
-    design.cardWidth = 648;
   }
   return design;
 }
@@ -917,7 +910,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     scatteredGlow: numberIn(raw.scatteredGlow, 6, 0, 24),
     scatteredShimmer: boolIn(raw.scatteredShimmer, true),
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
-    version: 4,
+    version: 5,
     // Profiles saved against the old 620px card move to the wider one; a width
     // the owner picked after that is left alone.
     cardWidth:

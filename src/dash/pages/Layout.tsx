@@ -7,7 +7,7 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
    its widgets take; colour, background and blur stay where they were.
    --------------------------------------------------------------------------- */
 
-import { createProfileSection, type AboutLayout, type ProfileSection, type ProfileSectionKind } from "../../lib/about";
+import { createProfileSection, DEFAULT_ABOUT_DESIGN, type AboutLayout, type ProfileSection, type ProfileSectionKind } from "../../lib/about";
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
 import { SkillPicker } from "../SkillPicker";
@@ -68,6 +68,28 @@ export function LayoutPage({
 
   const updateColors = (patch: Partial<typeof design.colors>) =>
     updateDesign({ colors: { ...design.colors, ...patch } });
+
+  /* Older releases saved their own default sizes (800px and 648px cards,
+     32px padding, bigger badges). One button puts a card back on the
+     reference measurements without touching its colours or content. */
+  const resetSizing = () => {
+    updateDesign({
+      cardWidth: DEFAULT_ABOUT_DESIGN.cardWidth,
+      cardPadding: DEFAULT_ABOUT_DESIGN.cardPadding,
+      cardRadius: DEFAULT_ABOUT_DESIGN.cardRadius,
+      borderWidth: DEFAULT_ABOUT_DESIGN.borderWidth,
+      avatarSize: DEFAULT_ABOUT_DESIGN.avatarSize,
+      nameSize: DEFAULT_ABOUT_DESIGN.nameSize,
+      bioSize: DEFAULT_ABOUT_DESIGN.bioSize,
+      widgetGap: DEFAULT_ABOUT_DESIGN.widgetGap,
+      advancedLayout: false,
+      pfpPosition: DEFAULT_ABOUT_DESIGN.pfpPosition,
+      namePosition: DEFAULT_ABOUT_DESIGN.namePosition,
+      bioPosition: DEFAULT_ABOUT_DESIGN.bioPosition,
+      badgePosition: DEFAULT_ABOUT_DESIGN.badgePosition,
+    });
+    notify("Card sizing", "Reset to the reference measurements.");
+  };
 
   const updateDecoration = (patch: Partial<typeof about.assets.decoration>) =>
     setAbout((current) => ({
@@ -162,6 +184,7 @@ export function LayoutPage({
           icon="layout"
           title="Page layout"
           subtitle="Choose a balanced starting point, then adjust the composition."
+          actions={<Button onClick={resetSizing}>Reset sizing</Button>}
         />
 
         <div className="tw-layout-cards">
