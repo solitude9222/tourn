@@ -25,3 +25,9 @@ All 33 Tourn badges use [Lucide 0.468.0](https://github.com/lucide-icons/lucide/
 Avatar dialog: 940px desktop; Background: 900px; Audio: 1040px. All are constrained by the viewport. Dialog padding is 24px desktop / 18px mobile; avatar preview 240px / 160px; background preview 220px high. Badge catalog: 3 / 2 / 1 columns, 84px minimum row height, 42px symbol wells, 28px catalog art and 24px public badges. Exact sampled dialog bounds: [studio-modal-sizing.json](studio-modal-sizing.json). Full dashboard inventory: [dashboard-sizing.json](dashboard-sizing.json).
 
 Verified: typecheck, production build, 81 dashboard route/viewport combinations, modal flows, pointer and keyboard gestures, final-value persistence, real SVG stroke motion, reduced-motion switching, badge equip/order, editor undo/redo, public profile loading/FPS, and 96 widget/audio placement/layout combinations.
+
+## Name and mute-button follow-up
+
+Profile → Details now starts with Name settings (display name, name size, Name effects, and Manage alias). An explicit display name takes precedence over the alias; clearing it restores the alias without changing the profile address.
+
+Audio player → Playback → Mute button offers Glossy circle, Minimal circle, Glass, and Rounded square, with a live preview. Glossy uses the supplied black circular reference with a bright rim and white speaker. The legacy 42px default migrates to 60px; explicit sizes on the new styles remain editable. Mute/unmute shares the existing audio bus and never adds another audio element.

@@ -7,6 +7,7 @@
    is saved with the audio settings.
    --------------------------------------------------------------------------- */
 
+import "../muteButton.css";
 import { useEffect, useState, type CSSProperties } from "react";
 import type { AudioSettings } from "../lib/profileAssets";
 import { audioBusState, setAudioBus, subscribeAudioBus } from "../lib/audioBus";
@@ -30,7 +31,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
 
   return (
     <div
-      className={`ap-popup ap-popup--mute${silent ? " is-muted" : ""}`}
+      className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}`}
       style={
         {
           "--ap-edge-color": settings.edgeColor,
@@ -53,7 +54,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
         onClick={toggle}
       >
         <span className="ap-popup-glyph">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
             <path d="M11 5 6 9H3v6h3l5 4V5Z" fill="currentColor" strokeLinejoin="round" />
             {silent ? (
               <path d="m16 9 5 6m0-6-5 6" />

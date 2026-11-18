@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { uploadAudioFile } from "../../lib/audioUpload";
 import { AudioPlayer } from "../../components/AudioPlayer";
+import { MuteButton } from "../../components/MuteButton";
 import { imageToDataUrl } from "../files";
 import { AUDIO_STYLES } from "../../lib/profileAssets";
 import { ONEKO_CATS } from "../../lib/oneko";
@@ -325,7 +326,9 @@ export function AudioSettingsCard() {
         </div>
         {audio.muteButton ? (
           <>
+            <div className="tw-mute-style-preview"><MuteButton settings={audio}/><small>Live mute-button preview</small></div>
             <div className="tw-form-grid">
+              <Field label="Mute button style"><Select ariaLabel="Mute button style" value={audio.popupStyle} options={[{value:"glossy",label:"Glossy circle"},{value:"minimal",label:"Minimal circle"},{value:"glass",label:"Glass"},{value:"rounded",label:"Rounded square"}]} onChange={popupStyle=>updateAudio({popupStyle:popupStyle as typeof audio.popupStyle})}/></Field>
               <Field label="Corner" hint="Where the mute button sits on the page.">
                 <Select
                   value={audio.popupSide}

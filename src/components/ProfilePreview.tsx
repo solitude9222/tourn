@@ -93,9 +93,9 @@ export function ProfilePreview({
   // Public names come from the owner: the alias they claimed, or the display
   // name they typed. The auto-generated account username is only a fallback for
   // accounts that have not chosen either yet.
-  // The profile shows one name: the claimed alias. The free-text display name
-  // is no longer a second, conflicting line under the header.
-  const displayName = alias || about.displayName.trim() || user.username;
+  // A chosen display name takes precedence; the claimed alias remains the
+  // fallback and continues to identify the profile URL.
+  const displayName = about.displayName.trim() || alias || user.username;
   const bio = about.bio.trim();
   const location = about.location.trim();
   const avatar = assets.avatarUrl.trim() || user.avatarUrl;

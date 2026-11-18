@@ -35,8 +35,7 @@ export function AppearanceStudioPage() {
 
 export function ProfileGeneralPage() {
   const { about, user, setAbout, go } = useDash();
-  return <div className="tw-studio-page"><Card><CardHead icon="sliders" title="General Customization" subtitle="Profile details and visual styling" /><div className="tw-form-grid">
-    <Field label="Display name"><TextInput icon="user" value={about.displayName} maxLength={32} placeholder={user.username} onChange={event => setAbout(current => ({ ...current, displayName: event.target.value }))} /></Field>
+  return <div className="tw-studio-page"><NameSettings/><Card><CardHead icon="sliders" title="General Customization" subtitle="Profile details and visual styling" /><div className="tw-form-grid">
     <Field label="Location"><TextInput icon="pin" value={about.location} maxLength={64} placeholder="Your location" onChange={event => setAbout(current => ({ ...current, location: event.target.value }))} /></Field>
     <Field label="Description" hint={`${about.bio.length}/800`}><Textarea value={about.bio} rows={3} maxLength={800} onChange={event => setAbout(current => ({ ...current, bio: event.target.value }))} /></Field>
     <Field label="Join date format"><Select value={about.metadata.joinFormat || "relative"} options={[{value:"relative",label:"Relative"},{value:"us",label:"US (12/23/2026)"},{value:"eu",label:"EU (23/12/2026)"}]} onChange={joinFormat => setAbout(current => ({ ...current, metadata: { ...current.metadata, joinFormat: joinFormat as typeof current.metadata.joinFormat } }))} /></Field>
@@ -55,4 +54,9 @@ function BrowserTitleSettings() {
     <Field label="Title animation"><Select ariaLabel="Title animation" value={meta.animation} options={[{value:"none",label:"None"},{value:"cycle",label:"Cycle titles"},{value:"typewriter",label:"Typewriter"},{value:"marquee",label:"Marquee"}]} onChange={value=>update({animation:value as typeof meta.animation})}/></Field>
     {meta.animation!=="none"?<><Field label="Additional titles" hint="One per line, up to eight."><Textarea value={meta.messages.join("\n")} rows={3} onChange={event=>update({messages:event.target.value.split("\n").slice(0,8).map(value=>value.slice(0,60))})}/></Field><Slider label="Pause between titles" min={2} max={30} suffix="s" value={meta.interval} onChange={interval=>update({interval})}/></>:null}
   </div></Card>;
+}
+
+function NameSettings(){
+ const {about,user,setAbout,go}=useDash();
+ return <Card><CardHead icon="user" title="Name settings" subtitle="Change the name visitors see. Your profile address stays the same."/><div className="tw-form-grid"><Field label="Display name" hint="Leave blank to use your alias."><TextInput aria-label="Display name" icon="user" value={about.displayName} maxLength={32} placeholder={user.alias||user.username} onChange={event=>setAbout(current=>({...current,displayName:event.target.value}))}/></Field><Slider label="Name size" value={about.design.nameSize} min={16} max={64} suffix="px" onChange={nameSize=>setAbout(current=>({...current,design:{...current.design,nameSize}}))}/></div><div className="tw-row" style={{marginTop:18}}><Button icon="sparkles" onClick={()=>go("effects",undefined,"name")}>Name effects</Button><Button onClick={()=>go("settings")}>Manage alias</Button></div></Card>;
 }

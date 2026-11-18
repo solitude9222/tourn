@@ -1,0 +1,12 @@
+.ap-popup.ap-popup--mute .ap-popup-icon { position:relative; isolation:isolate; overflow:hidden; padding:0; }
+.ap-popup.ap-popup--mute .ap-popup-glyph { display:grid; place-items:center; position:relative; z-index:1; }
+.ap-popup.ap-popup--mute .ap-popup-glyph svg { width:52%; height:52%; stroke-width:1.9; stroke-linecap:round; }
+.ap-popup.ap-popup--mute.ap-popup-style--glossy .ap-popup-icon { border:0; border-radius:50%; background:linear-gradient(145deg,var(--popup-background,#151515),color-mix(in srgb,var(--popup-background,#151515) 20%,#000) 65%); color:var(--popup-color,#fff); box-shadow:inset 0 1px 2px #ffffff20,0 2px 10px #0007; backdrop-filter:none; }
+.ap-popup.ap-popup--mute.ap-popup-style--glossy .ap-popup-icon::before { content:""; position:absolute; inset:0; border-radius:inherit; padding:2px; background:conic-gradient(from -35deg,#fff9,#ffffff1a 18%,#fff0 36%,#fff9 59%,#fff2 72%,#fff0 89%,#fffb); -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
+.ap-popup.ap-popup--mute.ap-popup-style--minimal .ap-popup-icon { background:var(--popup-background,#151515); border:1px solid #ffffff30; box-shadow:none; backdrop-filter:none; }
+.ap-popup.ap-popup--mute.ap-popup-style--glass .ap-popup-icon { background:color-mix(in srgb,var(--popup-background,#151515) 45%,transparent); border:1px solid #ffffff50; box-shadow:inset 0 1px #ffffff25; backdrop-filter:blur(18px); }
+.ap-popup.ap-popup--mute.ap-popup-style--rounded .ap-popup-icon { border-radius:14px; background:var(--popup-background,#151515); border:1px solid #ffffff35; box-shadow:0 4px 18px #0004; backdrop-filter:none; }
+.ap-popup.ap-popup--mute .ap-popup-icon:focus-visible { outline:2px solid var(--popup-color,#fff); outline-offset:4px; }
+@media(prefers-reduced-motion:reduce) { .ap-popup.ap-popup--mute * { transition:none!important; } }
+
+.tw-mute-style-preview { display:flex; align-items:center; gap:18px; padding:22px; margin:18px 0; border:1px solid var(--border,#28282d); border-radius:12px; background:#09090b; color:var(--sub,#a7a7b2); }.tw-mute-style-preview small { font-size:12px; }
