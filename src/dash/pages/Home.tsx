@@ -1,301 +1,42 @@
-/* ---------------------------------------------------------------------------
-   Home — the account at a glance: who you are, what is left to set up, the
-   numbers, and what people said about the page.
-   --------------------------------------------------------------------------- */
-
 import { useEffect, useState } from "react";
 import { useDash } from "../context";
-import { Button, Card, CardHead, Chip, Icon, SectionLabel, type IconName } from "../ui";
+import { Button, Card, CardHead, Icon, type IconName } from "../ui";
 import { AnalyticsPanel } from "../Analytics";
 import { copyText } from "../files";
-import { DEFAULT_PROFILE_ASSETS } from "../../lib/profileAssets";
-import { accountUid } from "../../lib/auth";
-import { readReactions, type ReactionState } from "../../lib/reactions";
+import { fetchLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
+import type { Page } from "../context";
 
 export function HomePage() {
-  const { user, about, links, widgets, badges, profileViews, isPremium, settings, go, notify } =
-    useDash();
-  const [feedback, setFeedback] = useState<ReactionState | null>(null);
-  const [feedbackTab, setFeedbackTab] = useState<"received" | "given">("received");
-  const [shared, setShared] = useState(() => {
-    try {
-      return localStorage.getItem(`tourn.lol/setup-shared/v1/${user.id}`) === "yes";
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    let active = true;
-    void readReactions(user.username).then((next) => {
-      if (active) setFeedback(next);
-    });
-    return () => {
-      active = false;
-    };
-  }, [user.username]);
-
-  const share = async () => {
-    const url = `${location.origin}/${encodeURIComponent(user.username)}`;
-    if (await copyText(url)) {
-      setShared(true);
-      try {
-        localStorage.setItem(`tourn.lol/setup-shared/v1/${user.id}`, "yes");
-      } catch {
-        /* optional */
-      }
-      notify("Profile link copied", url);
-    } else notify("Could not copy", `Copy this address: ${url}`);
-  };
-
-  const steps: { label: string; done: boolean; target: () => void }[] = [
-    {
-      label: "Upload avatar",
-      done: Boolean(about.assets.avatarUrl || user.avatarUrl),
-      target: () => go("appearance"),
-    },
-    {
-      label: "Add description",
-      done: about.bio.trim().length > 0,
-      target: () => go("profile-main"),
-    },
-    {
-      label: "Add a background",
-      done:
-        Boolean(about.assets.background.imageUrl) ||
-        about.assets.background.style === "gradient" ||
-        about.assets.background.color !== DEFAULT_PROFILE_ASSETS.background.color,
-      target: () => go("appearance"),
-    },
-    {
-      label: "Connect Discord account",
-      done: Boolean(settings.discordUserId),
-      target: () => go("profile-integrations"),
-    },
-    {
-      label: "Add socials",
-      done: links.links.some((link) => link.url.trim() && link.visible),
-      target: () => go("links"),
-    },
-    {
-      label: "Reach 10 profile views",
-      done: (profileViews ?? 0) >= 10,
-      target: () => go("analytics"),
-    },
+  const { user, about, links, widgets, badges, profileViews, go, notify } = useDash();
+  const [leaders,setLeaders]=useState<LeaderboardEntry[]|null>(null);
+  const [boardFailed,setBoardFailed]=useState(false),[attempt,setAttempt]=useState(0);
+  useEffect(()=>{let alive=true;setBoardFailed(false);void fetchLeaderboard("views",5).then(result=>{if(alive)setLeaders(result.entries.slice(0,5));}).catch(()=>{if(alive){setBoardFailed(true);setLeaders([]);}});return()=>{alive=false;};},[attempt]);
+  const handle=user.alias?.trim()||user.username;
+  const publicPath="/"+encodeURIComponent(handle);
+  const socials=links.links.filter(link=>link.visible&&link.url.trim()).length;
+  const liveWidgets=widgets.widgets.filter(widget=>widget.visible!==false).length;
+  const steps:{label:string;hint:string;done:boolean;page:Page;icon:IconName}[]=[
+    {label:"Make it yours",hint:"Add an avatar",done:Boolean(about.assets.avatarUrl||user.avatarUrl),page:"appearance",icon:"image"},
+    {label:"Tell your story",hint:"Write your profile bio",done:Boolean(about.bio.trim()),page:"profile-main",icon:"user"},
+    {label:"Connect your world",hint:"Add a social link",done:socials>0,page:"links",icon:"link"},
+    {label:"Bring it to life",hint:"Connect your first widget",done:liveWidgets>0,page:"widgets",icon:"grid"},
   ];
-
-  const done = steps.filter((step) => step.done).length;
-  const percent = Math.round((done / steps.length) * 100);
-  const uid = accountUid(user);
-  const joinedPercent = Math.max(1, Math.min(99, Math.round((uid % 99) + 1)));
-
-  return (
-    <>
-      <Card>
-        <CardHead
-          icon="user"
-          title="Account Overview"
-          subtitle="Check out information about your account."
-          actions={
-            <Button
-              icon="eye"
-              onClick={() =>
-                window.open(
-                  `/${encodeURIComponent(user.alias?.trim() || user.username)}`,
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-            >
-              View profile
-            </Button>
-          }
-        />
-        <div className="tw-overview">
-          <div className="tw-overview-card">
-            <span>Alias</span>
-            <b>{user.alias?.trim() || user.username}</b>
-            <small>{user.alias?.trim() ? "2-day cooldown between changes" : "claim one in settings"}</small>
-          </div>
-          <div className="tw-overview-card">
-            <span>Second claim</span>
-            <b>{isPremium && user.alias2 ? user.alias2 : "Premium only"}</b>
-            <small>{isPremium ? "2-day cooldown between changes" : "unlock with Premium"}</small>
-          </div>
-          <div className="tw-overview-card">
-            <span>User ID</span>
-            <b>{uid}</b>
-            <small>joined after {joinedPercent}% of all users</small>
-          </div>
-          <div className="tw-overview-card">
-            <span>Profile Views</span>
-            <b>{profileViews ?? 0}</b>
-            <small>{profileViews ? "total since launch" : "0 views since last week"}</small>
-          </div>
-        </div>
-      </Card>
-
-      <div className="tw-home-setup">
-
-      <Card className="tw-setup-card">
-        <CardHead
-          icon="check"
-          title="Profile Setup"
-          subtitle="Finish the core steps and jump into the most useful actions."
-          actions={<span className="tw-home-progress-label">{percent}% complete</span>}
-        />
-        <p className="tw-foot-note">
-          {percent === 100
-            ? "Everything on the list is done — your page is ready to share."
-            : "Your profile is not complete yet. Finish the tasks below to make it more useful and attractive."}
-        </p>
-        <div className="tw-home-progress" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={done}>
-          <span style={{ width: `${percent}%` }} />
-        </div>
-        <div className="tw-checklist">
-          {steps.map((step) => (
-            <button key={step.label} type="button" className="tw-check-row" onClick={step.target}>
-              <span className={`tw-check-mark${step.done ? " is-done" : ""}`}>
-                {step.done ? <Icon name="check" size={12} strokeWidth={2.4} /> : null}
-              </span>
-              <b>{step.label}</b>
-              <Icon name="chevron-right" size={14} className="tw-chevron" />
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <div className="tw-home-setup-side">
-        <Card className="tw-home-actions">
-          <CardHead icon="bolt" title="Quick Actions" subtitle="The shortcuts worth knowing." />
-          <div className="tw-home-actions-buttons">
-            <Button
-              variant="primary"
-              icon="discord"
-              onClick={() => go("profile-integrations")}
-            >
-              {settings.discordUserId ? "Discord connected" : "Connect Discord"}
-            </Button>
-            <Button icon="link" onClick={() => void share()}>
-              {shared ? "Profile link copied" : "Copy profile link"}
-            </Button>
-          </div>
-          <p className="tw-foot-note">
-            {settings.discordUserId
-              ? "Discord is linked to this account, so widgets and the server can find you."
-              : "Link Discord to turn on the Discord widget, server tools and DM verification."}
-          </p>
-
-          <span className="tw-home-guides-label">Guides</span>
-          <div className="tw-docs-list">
-            {[
-              ["Build your profile", "portfolio-general"],
-              ["Style every surface", "profile-appearance"],
-              ["Add a widget", "widgets"],
-              ["Account and security", "settings"],
-            ].map(([label, page]) => (
-              <button
-                key={label}
-                type="button"
-                className="tw-check-row tw-guide-row"
-                onClick={() => go(page as Parameters<typeof go>[0])}
-              >
-                <span className="tw-check-mark is-done">
-                  <Icon name="help" size={11} />
-                </span>
-                <b>{label}</b>
-                <Icon name="chevron-right" size={14} className="tw-chevron" />
-              </button>
-            ))}
-          </div>
-        </Card>
-      </div>
-      </div>
-
-      <div className="tw-home-stats">
-        {(
-          [
-            { icon: "eye", label: "Profile views", value: profileViews ?? "—", page: "analytics" },
-            { icon: "link", label: "Social links", value: links.links.filter((l) => l.visible).length, page: "links" },
-            { icon: "grid", label: "Widgets", value: widgets.widgets.filter((w) => w.visible !== false).length, page: "widgets" },
-            { icon: "shield", label: "Badges", value: badges.equipped.length, page: "badges" },
-          ] as { icon: IconName; label: string; value: string | number; page: Parameters<typeof go>[0] }[]
-        ).map((stat) => (
-          <button key={stat.label} type="button" className="tw-home-stat" onClick={() => go(stat.page)}>
-            <span className="tw-home-stat-icon">
-              <Icon name={stat.icon} size={17} />
-            </span>
-            <span className="tw-home-stat-copy">
-              <b>{stat.value}</b>
-              <small>{stat.label}</small>
-            </span>
-            <Icon name="chevron-right" size={13} className="tw-home-stat-chev" />
-          </button>
-        ))}
-      </div>
-
-      <div className="tw-home-split">
-        <AnalyticsPanel compact />
-
-        <Card>
-          <CardHead
-            icon="comment"
-            title="Profile Feedback"
-            subtitle="What people left on your page."
-            actions={
-              <div className="tw-feedback-tabs" role="tablist" aria-label="Feedback direction">
-                {(["received", "given"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    role="tab"
-                    aria-selected={feedbackTab === tab}
-                    className={feedbackTab === tab ? "is-active" : ""}
-                    onClick={() => setFeedbackTab(tab)}
-                  >
-                    {tab === "received" ? "Received" : "Given"}
-                  </button>
-                ))}
-              </div>
-            }
-          />
-
-          <div className="tw-feedback-counts">
-            <div>
-              <b>0</b>
-              <small>Comments</small>
-            </div>
-            <div>
-              <b>{feedback ? feedback.likes : "—"}</b>
-              <small>Likes</small>
-            </div>
-            <div>
-              <b>{feedback ? feedback.dislikes : "—"}</b>
-              <small>Dislikes</small>
-            </div>
-          </div>
-
-          <SectionLabel hint="One vote per visitor, counted by hashed IP.">
-            {feedbackTab === "received" ? "Recent" : "Your votes"}
-          </SectionLabel>
-
-          {feedbackTab === "received" ? (
-            <div className="tw-feedback-empty">
-              <b>Really quiet here at the moment…</b>
-              <p>No comments yet. Reactions appear on your public page as soon as people vote.</p>
-              {feedback?.mine ? <Chip tone="accent">You voted too</Chip> : null}
-            </div>
-          ) : (
-            <div className="tw-feedback-empty">
-              <b>Nothing given yet</b>
-              <p>Open someone&apos;s page and leave the first like or dislike.</p>
-              <Button icon="link" onClick={() => go("leaderboard")}>
-                Browse profiles
-              </Button>
-            </div>
-          )}
-        </Card>
-      </div>
-    </>
-  );
+  const complete=steps.filter(step=>step.done).length,percent=complete*25;
+  const copy=async()=>{const ok=await copyText(location.origin+publicPath);notify(ok?"Profile link copied":"Could not copy",ok?"Ready to share anywhere.":location.origin+publicPath);};
+  const stats:{label:string;value:string|number;icon:IconName;page:Page;detail:string}[]=[
+    {label:"Profile views",value:profileViews??"—",icon:"eye",page:"analytics",detail:"Lifetime visits"},
+    {label:"Social links",value:socials,icon:"link",page:"links",detail:"Visible on your profile"},
+    {label:"Live widgets",value:liveWidgets,icon:"grid",page:"widgets",detail:"Connected experiences"},
+    {label:"Equipped badges",value:badges.equipped.length,icon:"shield",page:"badges",detail:"Your profile collection"},
+  ];
+  return <div className="tw-home-v2">
+    <section className="tw-welcome">
+      <div className="tw-welcome-copy"><span className="tw-kicker">YOUR SPACE ON THE INTERNET</span><h2>Welcome back, {about.displayName||handle}.</h2><p>Shape your page, connect your favorites, and see who stops by.</p><div className="tw-row"><Button variant="primary" icon="palette" onClick={()=>go("appearance")}>Customize profile</Button><Button icon="external" onClick={()=>window.open(publicPath,"_blank","noopener,noreferrer")}>View profile</Button></div></div>
+      <div className="tw-home-address"><span className="tw-home-avatar">{about.assets.avatarUrl||user.avatarUrl?<img src={about.assets.avatarUrl||user.avatarUrl||""} alt=""/>:<Icon name="user" size={28}/>}</span><small>Your public link</small><b>tourn.lol/{handle}</b><Button icon="copy" onClick={()=>void copy()}>Copy link</Button></div>
+    </section>
+    <div className="tw-home-metrics">{stats.map(stat=><button type="button" key={stat.label} className="tw-home-metric" onClick={()=>go(stat.page)}><span className="tw-metric-icon"><Icon name={stat.icon} size={18}/></span><small>{stat.label}</small><b>{typeof stat.value==="number"?stat.value.toLocaleString():stat.value}</b><span>{stat.detail}<Icon name="arrow-right" size={13}/></span></button>)}</div>
+    <div className="tw-home-columns"><Card className="tw-home-checklist"><CardHead icon="check" title={percent===100?"Ready to share":"Your profile, in four steps"} subtitle={percent===100?"The essentials are in place. Keep making it yours.":"A few finishing touches make your page feel like you."} actions={<span className="tw-completion-label">{complete}/4 complete</span>}/><div className="tw-home-progress" role="progressbar" aria-label="Profile setup" aria-valuemin={0} aria-valuemax={4} aria-valuenow={complete}><span style={{width:percent+"%"}}/></div><div className="tw-home-steps">{steps.map(step=><button type="button" key={step.label} onClick={()=>go(step.page)} className={step.done?"is-complete":""}><span className="tw-step-icon"><Icon name={step.done?"check":step.icon} size={17}/></span><span><b>{step.label}</b><small>{step.hint}</small></span><Icon name="chevron-right" size={14}/></button>)}</div></Card>
+    <Card><CardHead icon="bolt" title="Pick up where you left off" subtitle="Jump straight into your next change."/><div className="tw-home-shortcuts">{([{page:"layout",title:"Arrange your layout",hint:"Drag, drop and preview",icon:"layout"},{page:"effects",title:"Find your signature",hint:"Explore every decoration",icon:"sparkles"},{page:"portfolio-general",title:"Build your portfolio",hint:"Projects, gallery and interests",icon:"layers"},{page:"assets",title:"Manage your media",hint:"Your uploads in one place",icon:"upload"}] as {page:Page;title:string;hint:string;icon:IconName}[]).map(item=><button type="button" key={item.page} onClick={()=>go(item.page)}><Icon name={item.icon} size={19}/><span><b>{item.title}</b><small>{item.hint}</small></span><Icon name="arrow-right" size={14}/></button>)}</div></Card></div>
+    <div className="tw-home-columns"><AnalyticsPanel compact/><Card><CardHead icon="crown" title="Community spotlight" subtitle="The most visited profiles on Tourn." actions={<Button variant="ghost" onClick={()=>go("leaderboard")}>View leaderboard</Button>}/>{boardFailed?<div className="tw-board-empty"><p>Rankings are unavailable right now.</p><Button onClick={()=>setAttempt(value=>value+1)}>Retry rankings</Button></div>:leaders===null?<p className="tw-foot-note" role="status">Loading the community…</p>:leaders.length?<div className="tw-home-leaders">{leaders.map((row,index)=><a key={row.username} href={"/"+encodeURIComponent(row.handle)}><span className="tw-home-leader-rank">{String(index+1).padStart(2,"0")}</span><span className="tw-home-leader-avatar">{row.avatarUrl?<img src={row.avatarUrl} alt="" loading="lazy"/>:<Icon name="user" size={18}/>}</span><span><b>{row.displayName||row.handle}</b><small>@{row.handle}</small></span><strong>{row.views.toLocaleString()}<small>views</small></strong></a>)}</div>:<div className="tw-board-empty"><Icon name="users" size={30}/><p>The community is just getting started.</p><small>Profiles appear here as they receive visits.</small></div>}</Card></div>
+  </div>;
 }

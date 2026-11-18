@@ -8,6 +8,9 @@ export function PortfolioGeneralPage() {
   const update=(patch:Partial<PortfolioSettings>)=>setAbout(current=>({...current,design:{...current.design,portfolio:{...DEFAULT_PORTFOLIO,...current.design.portfolio,...patch}}}));
   const rows:[string,string,string,boolean,(value:boolean)=>void][]=[
     ["enabled","Enable portfolio","Scrollable sections below your profile.",design.slideshow===true,value=>setAbout(current=>({...current,design:{...current.design,slideshow:value,sectionsEnabled:value}}))],
+    ["links","Links section","Show your social links as a portfolio section.",design.slideshowLinks===true,value=>setAbout(current=>({...current,design:{...current.design,slideshowLinks:value}}))],
+    ["badges","Badges section","Show your badge collection in its own section.",design.slideshowBadges===true,value=>setAbout(current=>({...current,design:{...current.design,slideshowBadges:value}}))],
+    ["group","Group interests","Combine games and anime in one interest section.",design.groupInterests===true,value=>setAbout(current=>({...current,design:{...current.design,groupInterests:value}}))],
     ["snap","Snap sections","Snap to the closest section when scrolling.",settings.snap,value=>update({snap:value})],
     ["indicator","Section indicator","Clickable section dots on your public page.",settings.indicators,value=>update({indicators:value})],
     ["hint","Scroll hint","A scroll prompt below the profile.",settings.hint,value=>update({hint:value})],

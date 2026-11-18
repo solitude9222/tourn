@@ -10,7 +10,6 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { createProfileSection, type AboutLayout, type ProfileSection, type ProfileSectionKind } from "../../lib/about";
 import { SectionEditor } from "../SectionEditor";
 import { fileToDataUrl } from "../files";
-import { FontPicker } from "../../components/FontPicker";
 import { SkillPicker } from "../SkillPicker";
 import { LinkerPreview } from "../../components/LinkerPreview";
 import { useDash } from "../context";
@@ -31,13 +30,13 @@ const PAGE_LAYOUTS: {
     id: "stacked",
     name: "Stacked",
     description:
-      "Your profile first, then separate widget cards and music below.",
+      "A compact identity row, centered bio and fixed-size widgets inside your card.",
   },
   {
     id: "left",
     name: "Left aligned",
     description:
-      "Avatar, text and links aligned left inside the centred card, with widgets kept inside.",
+      "A left-aligned identity inside a centered card, with a full-width bio below.",
   },
   {
     id: "centered",
@@ -61,7 +60,7 @@ export function LayoutPage({
     dragRef.current = next;
     setDragState(next);
   };
-  const { about, setAbout, notify, user, badges, links } = useDash();
+  const { about, setAbout, notify, user, badges, links, go } = useDash();
   const design = about.design;
 
   const updateDesign = (patch: Partial<typeof design>) =>
@@ -235,7 +234,6 @@ export function LayoutPage({
           <Field label="Name alignment"><Select value={design.namePosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(namePosition) => updateDesign({ namePosition: namePosition as typeof design.namePosition })} /></Field>
           <Field label="Bio alignment"><Select value={design.bioPosition} options={["default", "left", "center", "right"].map((value) => ({ value, label: value }))} onChange={(bioPosition) => updateDesign({ bioPosition: bioPosition as typeof design.bioPosition })} /></Field>
           <Field label="Avatar shape"><Select value={design.avatarShape} options={["circle", "rounded", "square", "hexagon"].map((value) => ({ value, label: value }))} onChange={(avatarShape) => updateDesign({ avatarShape: avatarShape as typeof design.avatarShape })} /></Field>
-          <FontPicker label="Profile font" value={design.font} onChange={(font) => updateDesign({ font })} />
           <Field label="Custom profile font" hint="Upload your own WOFF, WOFF2 or TTF file under 500 KB."><FileUpload aria-label="Custom profile font" accept=".woff,.woff2,.ttf,.otf" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 500_000 || !/\.(woff2?|ttf|otf)$/i.test(file.name)) { notify("Font", "Choose a font file under 500 KB."); return; } const customFontUrl = await fileToDataUrl(file); updateDesign({ customFontUrl }); }} />{design.customFontUrl ? <Button onClick={() => updateDesign({ customFontUrl: "" })}>Remove custom font</Button> : null}</Field>
           <Slider label="Avatar size" value={design.avatarSize} min={40} max={180} suffix="px" onChange={(avatarSize) => updateDesign({ avatarSize })} />
           <Slider label="Name size" value={design.nameSize} min={16} max={64} suffix="px" onChange={(nameSize) => updateDesign({ nameSize })} />
@@ -371,16 +369,7 @@ export function LayoutPage({
       </Card> : null}
       {section === "sections" ? <Card><CardHead icon="layers" title={filterKind === "project" ? "Projects" : filterKind === "interest" ? "Interests" : "Sections"} subtitle="Everything below your card: projects, games and the animes you like. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
         <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime and game libraries.</p>
-        <div className="tw-toggle-grid">
-          <div className="tw-inline-toggle"><b>Enable sections</b><Toggle label="Enable sections" checked={design.sectionsEnabled===true} onChange={sectionsEnabled=>updateDesign({sectionsEnabled})}/></div>
-          <div className="tw-inline-toggle"><b>Vertical slideshow</b><Toggle label="Vertical slideshow" checked={design.slideshow===true} onChange={slideshow=>updateDesign({slideshow})}/></div>
-          <div className="tw-inline-toggle"><b>One Interests list</b><small>Animes and games share a single section kind.</small><Toggle label="Group games with interests" checked={design.groupInterests===true} onChange={groupInterests=>updateDesign({groupInterests})}/></div>
-          {design.slideshow === true ? <>
-            <div className="tw-inline-toggle"><b>About slide</b><Toggle label="About me slide" checked={design.slideshowAbout===true} onChange={slideshowAbout=>updateDesign({slideshowAbout})}/></div>
-            <div className="tw-inline-toggle"><b>Links slide</b><Toggle label="Links slide" checked={design.slideshowLinks===true} onChange={slideshowLinks=>updateDesign({slideshowLinks})}/></div>
-            <div className="tw-inline-toggle"><b>Badges slide</b><Toggle label="Badges slide" checked={design.slideshowBadges===true} onChange={slideshowBadges=>updateDesign({slideshowBadges})}/></div>
-          </> : null}
-        </div>
+        {!filterKind ? <div className="tw-row"><Button onClick={()=>go("portfolio-general")}>Portfolio settings</Button></div> : null}
         {!filterKind && design.slideshowAbout === true ? (
           <details className="tw-about-editor">
             <summary className="tw-about-editor-head">

@@ -11,7 +11,7 @@ import type { IconName } from "./ui";
 
 export type NavTab = { page: Page; label: string; icon: IconName };
 
-export type NavGroup = "CUSTOMIZE" | "ASSETS" | "ACCOUNT";
+export type NavGroup = "OVERVIEW" | "PROFILE" | "CONTENT" | "LIBRARY" | "ACCOUNT";
 
 export type NavItem = {
   key: string;
@@ -26,29 +26,32 @@ export type NavItem = {
 };
 
 export const NAV: NavItem[] = [
- {key:"dashboard",label:"Home",icon:"home",tabs:[{page:"home",label:"Overview",icon:"home"},{page:"analytics",label:"Analytics",icon:"chart"},{page:"leaderboard",label:"Leaderboard",icon:"crown"}]},
- {key:"appearance",group:"CUSTOMIZE",label:"Appearance",icon:"palette",tabs:[{page:"appearance",label:"Appearance",icon:"palette"}]},
- {key:"profile",group:"CUSTOMIZE",label:"Profile",icon:"user",tabs:[{page:"profile-main",label:"Profile",icon:"user"},{page:"profile-appearance",label:"Appearance",icon:"palette"},{page:"profile-experience",label:"Experience",icon:"sparkles"},{page:"profile-integrations",label:"Integrations",icon:"link"},{page:"profile-switches",label:"Switches",icon:"eye"}]},
- {key:"layout",group:"CUSTOMIZE",label:"Layout",icon:"layout",tabs:[{page:"layout",label:"Layout",icon:"layout"}]},
- {key:"portfolio",group:"CUSTOMIZE",label:"Portfolio",icon:"layers",tabs:[{page:"portfolio-general",label:"General",icon:"sliders"},{page:"portfolio-about",label:"About",icon:"user"},{page:"portfolio-projects",label:"Projects",icon:"layers"},{page:"portfolio-gallery",label:"Gallery",icon:"image"},{page:"portfolio-interests",label:"Interests",icon:"gamepad"}]},
- {key:"importer",group:"CUSTOMIZE",label:"Importer",icon:"upload",tabs:[{page:"assets",label:"Media library",icon:"image"}]},
- {key:"links",group:"CUSTOMIZE",label:"Social Links",icon:"link",tabs:[{page:"links",label:"Links",icon:"link"}]},
- {key:"widgets",group:"CUSTOMIZE",label:"Widgets",icon:"grid",tabs:[{page:"widgets",label:"Widgets",icon:"grid"}]},
- {key:"templates",group:"ASSETS",label:"Templates",icon:"grid",tabs:[{page:"templates",label:"Templates",icon:"grid"}]},
- {key:"badges",group:"ASSETS",label:"Badges",icon:"shield",tabs:[{page:"badges",label:"Badges",icon:"shield"}]},
- {key:"inventory",group:"ASSETS",label:"Inventory",icon:"layers",tabs:[{page:"aliases",label:"Inventory",icon:"layers"}]},
- {key:"settings",group:"ACCOUNT",label:"Settings",icon:"settings",tabs:[{page:"settings",label:"Account",icon:"settings"},{page:"theme",label:"Console theme",icon:"palette"},{page:"affiliates",label:"Affiliates",icon:"users"}]},
- {key:"billing",group:"ACCOUNT",label:"Premium",icon:"crown",tabs:[{page:"billing",label:"Plan & billing",icon:"crown"},{page:"premium",label:"Premium",icon:"star"}]},
+ {key:"dashboard",group:"OVERVIEW",label:"Home",icon:"home",tabs:[{page:"home",label:"Overview",icon:"home"}]},
+ {key:"analytics",group:"OVERVIEW",label:"Analytics",icon:"chart",tabs:[{page:"analytics",label:"Analytics",icon:"chart"}]},
+ {key:"leaderboard",group:"OVERVIEW",label:"Leaderboard",icon:"crown",tabs:[{page:"leaderboard",label:"Leaderboard",icon:"crown"}]},
+ {key:"profile",group:"PROFILE",label:"Profile",icon:"user",tabs:[{page:"profile-main",label:"Details",icon:"user"},{page:"profile-appearance",label:"Card",icon:"palette"},{page:"profile-experience",label:"Entry screen",icon:"sparkles"},{page:"profile-switches",label:"Visibility",icon:"eye"}]},
+ {key:"appearance",group:"PROFILE",label:"Media & fonts",icon:"image",tabs:[{page:"appearance",label:"Media & fonts",icon:"image"}]},
+ {key:"effects",group:"PROFILE",label:"Decorations",icon:"sparkles",tabs:[{page:"effects",label:"All effects",icon:"sparkles"}]},
+ {key:"layout",group:"PROFILE",label:"Layout",icon:"layout",tabs:[{page:"layout",label:"Layout",icon:"layout"}]},
+ {key:"audio",group:"PROFILE",label:"Audio player",icon:"music",tabs:[{page:"portfolio-audio",label:"Audio player",icon:"music"}]},
+ {key:"portfolio",group:"CONTENT",label:"Portfolio",icon:"layers",tabs:[{page:"portfolio-general",label:"General",icon:"sliders"},{page:"portfolio-about",label:"About",icon:"user"},{page:"portfolio-projects",label:"Projects",icon:"layers"},{page:"portfolio-gallery",label:"Gallery",icon:"image"},{page:"portfolio-interests",label:"Interests",icon:"gamepad"}]},
+ {key:"links",group:"CONTENT",label:"Social links",icon:"link",tabs:[{page:"links",label:"Links",icon:"link"}]},
+ {key:"widgets",group:"CONTENT",label:"Widgets",icon:"grid",tabs:[{page:"widgets",label:"Widgets",icon:"grid"}]},
+ {key:"importer",group:"LIBRARY",label:"Uploads",icon:"upload",tabs:[{page:"assets",label:"Media library",icon:"image"}]},
+ {key:"templates",group:"LIBRARY",label:"Templates",icon:"grid",tabs:[{page:"templates",label:"Templates",icon:"grid"}]},
+ {key:"inventory",group:"LIBRARY",label:"Inventory",icon:"layers",tabs:[{page:"aliases",label:"Owned items",icon:"layers"},{page:"badges",label:"Badges",icon:"shield"}]},
+ {key:"settings",group:"ACCOUNT",label:"Settings",icon:"settings",tabs:[{page:"settings",label:"Account",icon:"settings"},{page:"theme",label:"Console theme",icon:"palette"},{page:"affiliates",label:"Addresses",icon:"users"}]},
+ {key:"billing",group:"ACCOUNT",label:"Premium",icon:"crown",tabs:[{page:"billing",label:"Plan & billing",icon:"crown"},{page:"premium",label:"Features",icon:"star"}]},
  {key:"support",group:"ACCOUNT",label:"Support",icon:"help",tabs:[{page:"support",label:"Tickets",icon:"help"}]},
 ];
 
 /** Pages that exist but are reached from inside another place. */
 const OWNER: Partial<Record<Page, string>> = {
   "account-profile": "profile",
-  "customize-profile": "appearance",
+  "customize-profile": "profile",
   assets: "importer",
-  effects: "appearance",
-  music: "portfolio",
+  effects: "effects",
+  music: "audio",
   "portfolio-sections": "portfolio",
   admin: "settings",
   premium: "billing",

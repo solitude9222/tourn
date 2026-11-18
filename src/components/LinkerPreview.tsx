@@ -467,10 +467,10 @@ export function LinkerPreview({
   const audioSlot = design.audioSlot ?? "below-card";
 
   const requestedWidgetsPosition = design.widgetsPosition ?? "auto";
-  const widgetsPosition = requestedWidgetsPosition === "auto" ? (design.layout === "stacked" ? "below" : "inside") : requestedWidgetsPosition;
-  // Stacked has always kept widgets under the card; preserve that even when a
-  // profile saved its placement before the setting existed.
-  const effectiveWidgetsPosition = design.layout === "stacked" ? "below" : widgetsPosition;
+  const widgetsPosition = requestedWidgetsPosition === "auto" ? "inside" : requestedWidgetsPosition;
+  // Automatic placement uses the reference card; explicit below-card choices
+  // stay outside. Both placements share the same fixed widget dimensions.
+  const effectiveWidgetsPosition = widgetsPosition;
   const profileCard = (includeWidgets = true) => (
     <ProfilePreview
       user={user}
@@ -731,7 +731,7 @@ export function LinkerPreview({
           onClick={() => goToSlide(1)}
           aria-label={portfolio.hintText || "Scroll to portfolio"}
         >
-          <span aria-hidden="true">↓</span>
+          <small>{portfolio.hintText || "Scroll to view more"}</small><span aria-hidden="true">⌄</span>
         </button>
       ) : null}
       {slideshowActive && slideCount > 1 && portfolio.indicators ? (

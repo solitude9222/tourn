@@ -40,17 +40,20 @@ export async function fetchLeaderboard(
   const params = new URLSearchParams({ sort, limit: String(limit), offset: String(offset) });
   const result = await api<Payload>(`/api/leaderboard?${params}`);
   if (!result.ok) throw new Error(result.error);
-  const rows = result.data?.profiles ?? [];
+  const rows = Array.isArray(result.data?.profiles) ? result.data.profiles : [];
+  const count = (value: unknown) => { const number = Number(value); return Number.isFinite(number) ? Math.max(0, Math.trunc(number)) : 0; };
+  const seen = new Set<string>();
   const entries = rows
-    .filter((row) => typeof row.username === "string" && row.username)
+    .filter((row) => typeof row.username === "string" && row.username.trim())
+    .filter(row => { const key=row.username!.trim().toLowerCase(); if(seen.has(key))return false;seen.add(key);return true; })
     .map((row) => ({
-      username: String(row.username),
-      handle: String(row.handle ?? row.displayName ?? row.username),
+      username: String(row.username).trim(),
+      handle: String(row.handle || row.username),
       displayName: row.displayName ?? row.display_name ?? null,
       avatarUrl: row.avatarUrl ?? row.avatar_url ?? null,
-      views: Number(row.views) || 0,
-      likes: Number(row.likes) || 0,
+      views: count(row.views),
+      likes: count(row.likes),
     }));
   const total = Number(result.data?.total);
-  return { entries, total: Number.isFinite(total) ? total : entries.length };
+  return { entries, total: Number.isFinite(total) ? Math.max(entries.length, count(total)) : entries.length };
 }

@@ -1,0 +1,45 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "units": "CSS pixels",
+  "fixture": "720px card, 32px configured padding, two widgets, default text sizes",
+  "geometry": {
+    "card": {
+      "x": 600,
+      "y": 386.08184814453125,
+      "width": 720,
+      "height": 327.5
+    },
+    "avatar": {
+      "x": 632.734375,
+      "y": 418.81622314453125,
+      "width": 117.015625,
+      "height": 117.015625
+    },
+    "name": {
+      "x": 765.75,
+      "y": 460.11309814453125,
+      "width": 521.515625,
+      "height": 36.40625
+    },
+    "bio": {
+      "x": 632.734375,
+      "y": 551.8318481445312,
+      "width": 654.53125,
+      "height": 27
+    },
+    "widgets": [
+      {
+        "width": 320,
+        "height": 88
+      },
+      {
+        "width": 320,
+        "height": 88
+      }
+    ],
+    "inside": 2
+  }
+}

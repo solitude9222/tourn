@@ -19,7 +19,7 @@ const NAME_EFFECTS: EffectOption[] = [
 
 export function DecorationsPanel() {
   const { user, about, setAbout } = useDash();
-  const [tab, setTab] = useState("name");
+  const [tab, setTab] = useState(() => { const section = new URLSearchParams(location.hash.split("?")[1]).get("section") || "name"; return ["name","avatar","background","overlay","card","cursor"].includes(section) ? section : "name"; });
   const [textTarget, setTextTarget] = useState<"name" | "alias" | "bio">("name");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);

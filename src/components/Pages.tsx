@@ -1,10 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { naturalCompare, numberCompare, sorted } from "../lib/sort";
 import { api } from "../lib/backend";
+import { fetchLeaderboard } from "../lib/leaderboard";
 import { openSellAuthCheckout } from "../lib/sellAuth";
 import { BUYABLE_BADGES } from "../lib/badges";
 import { addToCart } from "../lib/cart";
-import { useAuth, type Account } from "../lib/auth";
+import { useAuth } from "../lib/auth";
 import { ArrowRight, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
 import "../leaderboard.css";
 import "../pages.css";
@@ -21,57 +22,16 @@ type BoardRow = {
 const profileHrefFor = (handle: string) => `#/profile/${encodeURIComponent(handle)}`;
 
 export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
-  const { first } = useAuth();
   const [rows, setRows] = useState<BoardRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [attempt,setAttempt] = useState(0);
   const [visible, setVisible] = useState(18);
   const [sort, setSort] = useState<"views" | "likes">("views");
-
-  useEffect(() => {
-    let active = true;
-
-    const load = async () => {
-      const board = await api<{ profiles: BoardRow[] }>("/api/leaderboard");
-      if (!active) return;
-      if (board.ok && board.data.profiles.length) {
-        setRows(
-          board.data.profiles.map((row) => ({
-            ...row,
-            handle: row.handle ?? row.displayName ?? row.username,
-            views: Number(row.views) || 0,
-            likes: Number(row.likes) || 0,
-          })),
-        );
-      } else {
-        // Older/offline backend: still show the claimed handles, just without
-        // a view count, rather than an empty page.
-        const fallback = await api<{ profiles: Account[] }>("/api/profiles?limit=25");
-        if (!active) return;
-        const profiles =
-          fallback.ok && fallback.data.profiles.length
-            ? fallback.data.profiles
-            : first
-              ? [first]
-              : [];
-        setRows(
-          profiles.map((row) => ({
-            username: row.username,
-            handle: row.alias ?? row.username,
-            displayName: row.alias ?? null,
-            avatarUrl: row.avatarUrl,
-            views: null,
-            likes: null,
-          })),
-        );
-      }
-      setLoading(false);
-    };
-
-    void load();
-    return () => {
-      active = false;
-    };
-  }, [first]);
+  useEffect(()=>{let alive=true;setLoading(true);setFailed(false);setVisible(18);
+    void fetchLeaderboard(sort,100).then(result=>{if(alive)setRows(result.entries);}).catch(()=>{if(alive){setRows([]);setFailed(true);}}).finally(()=>{if(alive)setLoading(false);});
+    return()=>{alive=false;};
+  },[sort,attempt]);
 
   const metric = (row: BoardRow) => (sort === "likes" ? row.likes ?? 0 : row.views ?? 0);
   const ranked = [...rows].sort(
@@ -87,9 +47,9 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
     <section className="page">
       <div className="wrap page-head" data-reveal>
         <span className="eyebrow eyebrow--sm">leaderboard</span>
-        <h1 className="page-title">The board.</h1>
+        <h1 className="page-title">Meet the community.</h1>
         <p className="page-sub">
-          Every published page, ranked by views or by likes. Open any name to visit that profile.
+          Explore the top 100 profiles by lifetime views or likes. Find your next favorite.
         </p>
         <div className="board-sort" role="tablist" aria-label="Rank the board by">
           <button type="button" role="tab" aria-selected={sort === "views"} className={sort === "views" ? "is-active" : ""} onClick={() => setSort("views")}>Most viewed</button>
@@ -98,6 +58,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
       </div>
 
       <div className="wrap">
+        {failed ? <div className="board-status" role="alert"><h2>Rankings are temporarily unavailable</h2><p>Try again to load the latest community profiles.</p><button className="btn btn-primary" onClick={()=>setAttempt(value=>value+1)}>Retry rankings</button></div> : null}
         {loading ? (
           <div className="board">
             {[0, 1, 2, 3].map((index) => (

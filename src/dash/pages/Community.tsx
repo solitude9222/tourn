@@ -458,9 +458,10 @@ export function LeaderboardPage() {
         icon="chart"
         title="Leaderboard"
         subtitle="Live profile rankings. Open a row to visit the page."
-        actions={<Chip>{rows ? `${total || rows.length} profiles` : "Loading…"}</Chip>}
+        actions={<Button icon="refresh" disabled={rows===null} onClick={()=>setAttempt(value=>value+1)}>Refresh rankings</Button>}
       />
 
+      <div className="tw-board-summary"><div><small>Community profiles</small><b>{rows===null?"—":total.toLocaleString()}</b></div><div><small>Leading {sort}</small><b>{rows?.length?metric(rows[0]).toLocaleString():"—"}</b></div><div><small>Your loaded rank</small><b>{ownRank>=0?"#"+(ownRank+1):"Not loaded"}</b></div><span>Lifetime rankings · refresh for the latest counts</span></div>
       <div className="tw-toolbar"><TextInput aria-label="Search loaded rankings" value={query} placeholder="Search loaded rankings…" onChange={event => setQuery(event.target.value)} /><Select ariaLabel="Rank profiles by" value={sort} onChange={value => setSort(value as "views" | "likes")} options={[{ value: "views", label: "Most views" }, { value: "likes", label: "Most likes" }]} /><Button disabled={ownRank < 0} onClick={() => { setQuery(""); requestAnimationFrame(() => { const row = document.getElementById("tw-own-rank"); row?.scrollIntoView({ block: "center", behavior: "smooth" }); row?.focus({ preventScroll: true }); }); }}>Your rank{ownRank >= 0 ? ` · #${ownRank + 1}` : " not loaded"}</Button></div>
       {query && rows ? <p className="tw-foot-note">Searching {rows.length} loaded profiles. Original ranks are preserved; load more to search further.</p> : null}
       {failed ? (
@@ -495,7 +496,7 @@ export function LeaderboardPage() {
                   {row.avatarUrl ? <img src={row.avatarUrl} alt="" loading="lazy" decoding="async" /> : <Icon name="user" size={18} />}
                 </span>
                 <span className="tw-lb-podium-copy">
-                  <b>{row.displayName || row.username}</b>
+                  <b>{row.displayName || row.handle}</b><small>@{row.handle}</small>
                 </span>
                 <span className="tw-lb-podium-views">
                   {metric(row).toLocaleString()} <small>{sort}</small>

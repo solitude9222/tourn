@@ -21,15 +21,15 @@ export type DashThemeDef = {
 export const DASH_THEMES: DashThemeDef[] = [
   {
     id: "default",
-    label: "Default",
-    description: "Charcoal console with a single crimson accent.",
-    swatch: ["#09090b", "#18181c", "#d40410"],
+    label: "Tourn blue",
+    description: "Black surfaces, electric blue actions and cool neutral text.",
+    swatch: ["#09090b", "#18181c", "#3b82f6"],
   },
   {
     id: "black",
     label: "Flat black",
     description: "One flat charcoal surface, separated by hairlines only.",
-    swatch: ["#0b0b0d", "#141418", "#d40410"],
+    swatch: ["#0b0b0d", "#141418", "#3b82f6"],
   },
   {
     id: "mono",

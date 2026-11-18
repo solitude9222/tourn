@@ -16,3 +16,6 @@
 @media(prefers-reduced-motion:reduce) { .lkr-scroll-hint.is-animated>span { animation:none; }.lkr-gallery-tile>img { transition:none; } }
 
 .lkr-about-widgets { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:12px; margin:24px 0; }.lkr-about-widgets > .widget-card { flex:0 0 320px; width:320px; height:88px; max-width:100%; }
+
+.lkr-page .lkr-scroll-hint { width:max-content; max-width:calc(100% - 48px); height:auto; min-height:48px; bottom:24px; gap:4px; }
+.lkr-scroll-hint small { font-size:10px; line-height:16px; letter-spacing:.23em; text-transform:uppercase; }

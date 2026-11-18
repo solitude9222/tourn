@@ -29,6 +29,7 @@ const lazyPage = <T extends Record<string, unknown>, K extends keyof T>(
   name: K,
 ) => lazy(async () => ({ default: (await loader())[name] as unknown as React.ComponentType<any> }));
 
+const DecorationsStudioPage = lazyPage(() => import("./pages/Studio"), "DecorationsStudioPage");
 const AppearanceStudioPage = lazyPage(() => import("./pages/Studio"), "AppearanceStudioPage");
 const ProfileGeneralPage = lazyPage(() => import("./pages/Studio"), "ProfileGeneralPage");
 const PortfolioGeneralPage = lazyPage(() => import("./pages/PortfolioStudio"), "PortfolioGeneralPage");
@@ -79,7 +80,7 @@ const PAGE_PRELOADS: Partial<Record<Page, () => Promise<unknown>>> = {
   layout: () => import("./pages/Layout"),
   "profile-appearance": () => import("./pages/Layout"),
   "portfolio-sections": () => import("./pages/Layout"),
-  effects: () => import("./pages/Effects"),
+  effects: () => import("./pages/Studio"),
   links: () => import("./pages/Links"),
   widgets: () => import("./pages/Widgets"),
   assets: () => import("./pages/Community"),
@@ -103,6 +104,7 @@ const PAGE_PRELOADS: Partial<Record<Page, () => Promise<unknown>>> = {
 import "./dash.css";
 import "./pages.css";
 import "./dashboardStudio.css";
+import "./blueRefresh.css";
 import "./managePages.css";
 
 export type DashboardProps = {
@@ -132,11 +134,11 @@ export type DashboardProps = {
 };
 
 const META: Record<Page, { title: string; subtitle: string; icon: IconName; crumb: string }> = {
-  appearance: { title: "Appearance", subtitle: "Media, decorations and every effect, in one place.", icon: "palette", crumb: "Customize" },
+  appearance: { title: "Media & fonts", subtitle: "Avatar, background, cursor and typography.", icon: "palette", crumb: "Customize" },
   "portfolio-projects": {title:"Portfolio",subtitle:"Projects, artwork and links.",icon:"layers",crumb:"Customize"},
   "portfolio-interests": {title:"Portfolio",subtitle:"Games, anime and everything you enjoy.",icon:"gamepad",crumb:"Customize"},
   aliases: {title:"Inventory",subtitle:"Your usernames, badges and collectables.",icon:"layers",crumb:"Account"},
-  home: { title: "Account Overview", subtitle: "Here's how your profile and live data are doing.", icon: "home", crumb: "Home" },
+  home: { title: "Home", subtitle: "Your profile, your community, your next idea.", icon: "home", crumb: "Home" },
   "account-profile": {
     title: "Profile",
     subtitle: "Your name, picture and description.",
@@ -170,8 +172,8 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
   },
   music: { title: "Music", subtitle: "Your track, playback and player appearance.", icon: "music", crumb: "Customize" },
   effects: {
-    title: "Appearance",
-    subtitle: "Background, overlay, text and cursor motion.",
+    title: "Decorations",
+    subtitle: "All name, avatar, background, overlay, card and pointer effects.",
     icon: "sparkles",
     crumb: "Customize",
   },
@@ -307,7 +309,8 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
 function readDashboardLocation(isAdmin: boolean): { page: Page; tab: ProfileTab } {
   const parts = window.location.hash.replace(/^#\/?/, "").split("?")[0].split("/");
   // Older bookmarks still point at the retired Projects and Games tabs.
-  const requested = parts[1] === "portfolio-games" ? "portfolio-interests" : parts[1];
+  const aliases: Record<string,string> = { "portfolio-games":"portfolio-interests", "account-profile":"profile-main", "customize-profile":"profile-main", "profile-integrations":"widgets", "portfolio-design":"profile-appearance", "music":"portfolio-audio" };
+  const requested = aliases[parts[1]] || parts[1];
   const candidate = parts[0] === "admin" ? "admin" : requested || "home";
   const page =
     Object.hasOwn(META, candidate) &&
@@ -705,7 +708,7 @@ export function Dashboard(props: DashboardProps) {
       content = <LayoutPage />;
       break;
     case "effects":
-      content = <AppearanceStudioPage />;
+      content = <DecorationsStudioPage />;
       break;
     case "premium":
       content = <PremiumPage />;

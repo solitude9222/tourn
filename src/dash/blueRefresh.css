@@ -1,0 +1,65 @@
+/* Tourn's black and blue console. Custom themes and accents remain selectable. */
+.tw-dash,html[data-dash-theme="default"] .tw-dash {
+ --page:#080a0e; --rail:#080a0e; --card:#101318; --bar:#0b0e13; --tile:#151a22;
+ --border:#252c37; --divider:#202733; --input-border:#354153;
+ --accent:#3b82f6; --accent-bright:#60a5fa; --accent-text:#60a5fa; --accent-on:#fff;
+ --accent-soft:#122440; --accent-border:#274d7e;
+ --title:#f4f7fc; --sub:#a5afbe; --desc:#7d889a; --nav:#8f9bad; --icon:#92a2ba; --subnav:#b6c0cf;
+}
+.tw-dash .tw-brand img { filter:hue-rotate(210deg); }
+.tw-dash .tw-btn--primary { background:var(--accent); border-color:var(--accent); box-shadow:none; }
+.tw-dash .tw-btn--primary:hover { background:color-mix(in srgb,var(--accent) 85%,white); }
+.tw-dash .tw-nav-item { min-height:38px; height:38px; font-size:13px; }
+.tw-dash .tw-nav-group { padding-top:18px; font-size:10px; letter-spacing:.14em; }
+.tw-dash .tw-main { padding-top:30px; }
+.tw-dash .tw-card-head { border-bottom:0; padding-bottom:0; }
+.tw-home-v2 { display:flex; flex-direction:column; gap:22px; }
+.tw-welcome { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:40px; align-items:center; min-height:236px; padding:32px; border:1px solid var(--accent-border); border-radius:18px; background:linear-gradient(115deg,#122440 0%,var(--card) 68%); }
+.tw-kicker { color:var(--accent-bright); font-size:10px; letter-spacing:.18em; font-weight:600; }
+.tw-welcome h2 { font-size:30px; line-height:1.25; letter-spacing:-.035em; margin:14px 0 10px; overflow-wrap:anywhere; }
+.tw-welcome p { color:var(--sub); font-size:13px; line-height:22px; margin:0 0 24px; }
+.tw-home-address { display:grid; grid-template-columns:56px minmax(0,1fr); align-items:center; gap:3px 14px; padding:20px; border:1px solid var(--border); border-radius:14px; background:var(--page); }
+.tw-home-avatar { grid-row:span 2; display:grid; place-items:center; width:56px; height:56px; border-radius:50%; background:var(--accent-soft); color:var(--accent-bright); overflow:hidden; }
+.tw-home-avatar img { width:100%; height:100%; object-fit:cover; }
+.tw-home-address small { font-size:11px; color:var(--sub); }
+.tw-home-address b { font-size:13px; overflow-wrap:anywhere; }
+.tw-home-address .tw-btn { grid-column:1/-1; margin-top:12px; }
+.tw-home-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.tw-home-metric { position:relative; display:flex; flex-direction:column; min-width:0; padding:22px; border:1px solid var(--border); border-radius:16px; background:var(--card); color:var(--title); text-align:left; cursor:pointer; transition:border-color .15s; }
+.tw-home-metric:hover { border-color:var(--accent-border); }
+.tw-home-metric > small { color:var(--sub); font-size:12px; padding-right:30px; }
+.tw-home-metric > b { font-size:30px; line-height:40px; margin:12px 0; letter-spacing:-.025em; }
+.tw-home-metric > span:last-child { display:flex; justify-content:space-between; gap:8px; color:var(--nav); font-size:11px; }
+.tw-metric-icon { position:absolute; top:18px; right:18px; color:var(--accent-bright); }
+.tw-home-columns { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:20px; align-items:stretch; }
+.tw-dash .tw-home-columns > .tw-card { min-width:0; }
+.tw-completion-label { font-size:11px; color:var(--accent-bright); white-space:nowrap; }
+.tw-home-v2 .tw-home-progress { height:5px; margin:20px 0; background:var(--tile); }
+.tw-home-v2 .tw-home-progress > span { background:var(--accent); }
+.tw-home-steps { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.tw-home-steps > button,.tw-home-shortcuts > button { display:flex; align-items:center; gap:12px; min-width:0; min-height:76px; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--bar); color:var(--sub); text-align:left; cursor:pointer; }
+.tw-home-steps button:hover,.tw-home-shortcuts button:hover { border-color:var(--accent-border); background:var(--tile); }
+.tw-home-steps button > span:nth-child(2),.tw-home-shortcuts button > span { display:flex; flex-direction:column; flex:1; min-width:0; gap:4px; }
+.tw-home-steps b,.tw-home-shortcuts b { color:var(--title); font-size:12px; line-height:18px; }
+.tw-home-steps small,.tw-home-shortcuts small { font-size:11px; line-height:16px; color:var(--nav); }
+.tw-step-icon { display:grid; place-items:center; width:32px; height:32px; border-radius:9px; background:var(--tile); color:var(--accent-bright); flex:none; }
+.tw-home-steps .is-complete .tw-step-icon { background:var(--accent-soft); }
+.tw-home-shortcuts { display:grid; gap:8px; }
+.tw-home-shortcuts > button { min-height:60px; border:0; background:transparent; padding:10px; }
+.tw-home-shortcuts > button > svg:first-child { color:var(--accent-bright); }
+.tw-home-leaders { display:flex; flex-direction:column; }
+.tw-home-leaders > a { display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); text-decoration:none; color:var(--title); }
+.tw-home-leaders > a:last-child { border-bottom:0; }
+.tw-home-leader-rank { color:var(--nav); font-size:11px; font-variant-numeric:tabular-nums; }
+.tw-home-leader-avatar { display:grid; place-items:center; flex:none; width:38px; height:38px; border-radius:50%; background:var(--tile); color:var(--sub); overflow:hidden; }
+.tw-home-leader-avatar img { width:100%; height:100%; object-fit:cover; }
+.tw-home-leaders a > span:nth-child(3) { flex:1; min-width:0; display:grid; gap:4px; }
+.tw-home-leaders b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+.tw-home-leaders small { display:block; font-size:10px; color:var(--nav); font-weight:400; }
+.tw-home-leaders strong { font-size:12px; text-align:right; font-variant-numeric:tabular-nums; }
+.tw-home-leaders a:hover b { color:var(--accent-bright); }
+.tw-board-empty { min-height:180px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:10px; color:var(--sub); padding:24px; }
+.tw-board-empty p { margin:0; font-size:13px; }
+.tw-board-empty small { font-size:11px; }
+@media(max-width:1200px) { .tw-home-columns { grid-template-columns:minmax(0,1fr); }.tw-welcome { grid-template-columns:minmax(0,1fr) 260px; padding:26px; gap:24px; } }
+@media(max-width:700px) { .tw-welcome { grid-template-columns:minmax(0,1fr); padding:22px; gap:22px; }.tw-welcome h2 { font-size:26px; }.tw-home-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }.tw-home-metric { padding:16px; }.tw-home-metric > b { font-size:27px; }.tw-metric-icon { top:14px; right:12px; }.tw-home-steps { grid-template-columns:minmax(0,1fr); }.tw-home-metric > span:last-child { font-size:10px; }.tw-home-v2 { gap:18px; } }

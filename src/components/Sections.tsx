@@ -60,7 +60,9 @@ const HOME_WIDGETS: WidgetInstance[] = [
 
 const HOME_WIDGET_DESIGN = {
   ...DEFAULT_WIDGET_DESIGN,
-  backgroundStyle: "art" as const,
+  backgroundStyle: "gradient" as const,
+  gradientFrom: "#142c50",
+  gradientTo: "#080c13",
   backgroundColor: "#161616",
   backgroundOpacity: 0.92,
   borderColor: "#2e2e2e",
@@ -138,13 +140,12 @@ export function Hero({
     <section className="hm-hero" id="top">
       <div className="hm-hero-glow" aria-hidden="true" />
       <div className="hm-wrap hm-hero-grid">
-        <div className="hm-hero-copy">
+        <div className="hm-hero-copy"><span className="hm-hero-kicker">MAKE YOURSELF AT HOME</span>
           <h1 className="hm-hero-title">
-            tourn<span>.</span>lol
+            Your world,<br/><span>one link.</span>
           </h1>
           <p className="hm-hero-sub">
-            The all-in-one biolink platform for creators, influencers &amp; professionals.
-            Customize everything, track analytics, and grow your audience.
+            Your music, your communities, your work. Bring it all together on a profile that feels like you.
           </p>
           <div className="hm-hero-actions">
             <button type="button" className="hm-btn hm-btn--blue" onClick={onPrimary}>

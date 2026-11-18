@@ -145,3 +145,13 @@
 .fx-cursor-particle--hearts { color:var(--fx-p-color); font-size:var(--fx-p-size); text-shadow:0 0 8px var(--fx-p-color); }
 .fx-cursor-particle--comet { width:calc(var(--fx-p-size) * 2); height:3px; border-radius:99px; background:linear-gradient(90deg,var(--fx-p-color),transparent); box-shadow:0 0 6px var(--fx-p-color); }
 @media(prefers-reduced-motion:reduce) { .profile-cursor-trail, .fx-cursor-particles, .fx-cursor-ghost { display:none; } }
+
+/* Compact reference composition: identity across the top, bio across the card. */
+.lkr-page .profile-preview .pv-body { gap:16px; }
+.lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { margin-bottom:0; align-items:center; }
+.lkr-page .profile-preview[data-pfp="left"] .pv-head-text { flex:1; min-width:0; }
+.lkr-page .profile-preview .pv-body > .pv-bio { width:100%; max-width:none; margin:0; padding:0; opacity:1; max-height:none; overflow:visible; font-size:var(--pv-bio-size,18px); line-height:1.5; }
+.lkr-page .profile-preview .pv-body > .pv-bio.is-empty { display:none; }
+.lkr-page .profile-preview[data-pfp="left"] .pv-id { flex-wrap:wrap; justify-content:flex-start; row-gap:8px; }
+.lkr-page .profile-preview .pv-body > .pv-bio + .lkr-widgets-block { margin-top:0; }
+@media(max-width:600px) { .lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { gap:14px; margin-bottom:0; }.lkr-page .profile-preview .pv-body > .pv-bio { margin-bottom:0; font-size:max(14px,calc(var(--pv-bio-size,18px)*.88)); } }

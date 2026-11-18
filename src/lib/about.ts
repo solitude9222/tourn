@@ -418,7 +418,7 @@ export const DEFAULT_METADATA: AboutMetadata = {
 export const MAX_BIO_LENGTH = 800;
 
 export const DEFAULT_PROFILE_COLORS: ProfileColors = {
-  accent: "#0a0a0c",
+  accent: "#3b82f6",
   text: "#fbf4f4",
   muted: "#98a2b3",
   background: "#07070a",
@@ -502,9 +502,9 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   stackTilt: false,
   widgetTilt: false,
   tiltGlare: false,
-  pfpPosition: "above",
+  pfpPosition: "left",
   badgePosition: "default",
-  namePosition: "center",
+  namePosition: "left",
   bioPosition: "center",
   avatarShape: "circle",
   advancedLayout: false,
