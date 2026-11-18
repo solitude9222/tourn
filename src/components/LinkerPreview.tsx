@@ -454,7 +454,7 @@ export function LinkerPreview({
     <div className="lkr-widgets-block" data-detail="widgets">
       <div
         className="lkr-widgets"
-        style={{ columnGap: widgets.design.gap, rowGap: Math.max(0, widgets.design.gap - 2) }}
+        style={{ columnGap: widgets.design.gap, rowGap: widgets.design.gap }}
       >
         {orderedWidgets.map((widget) => (
           <WidgetCard

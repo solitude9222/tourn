@@ -127,6 +127,7 @@ export type WidgetBackground = "frosted" | "gradient" | "rgb" | "solid" | "art";
 export type WidgetOutlineEffect = "none" | "trace" | "march" | "pulse" | "glow";
 
 export type WidgetDesign = {
+  sizingVersion?: number;
   backgroundStyle: WidgetBackground;
   borderWidth: number;
   borderOpacity: number;
@@ -169,6 +170,7 @@ export type WidgetStore = {
 };
 
 export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
+  sizingVersion: 1,
   backgroundStyle: "solid",
   borderWidth: 1,
   borderOpacity: 0.08,
@@ -181,11 +183,11 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   scrimOpacity: 1,
   backgroundBlur: 0,
   radius: 16,
-  gap: 13,
+  gap: 12,
   showMeta: true,
   showBadges: true,
   avatarShape: "circle",
-  avatarSize: 56,
+  avatarSize: 42,
   avatarBorderWidth: 1,
   avatarBorderColor: "#ffffff",
   avatarShadow: true,
@@ -984,7 +986,8 @@ export function normalizeWidgetStore(input: unknown): WidgetStore {
         scrimOpacity: clamp(rawDesign.scrimOpacity, DEFAULT_WIDGET_DESIGN.scrimOpacity, 0, 1),
         backgroundBlur: clamp(rawDesign.backgroundBlur, DEFAULT_WIDGET_DESIGN.backgroundBlur, 0, 30),
         radius: clamp(rawDesign.radius, DEFAULT_WIDGET_DESIGN.radius, 0, 30),
-        gap: clamp(rawDesign.gap, DEFAULT_WIDGET_DESIGN.gap, 0, 28),
+        sizingVersion: 1,
+        gap: Number(rawDesign.sizingVersion) >= 1 ? clamp(rawDesign.gap, DEFAULT_WIDGET_DESIGN.gap, 0, 28) : 12,
         showMeta: rawDesign.showMeta !== false,
         showBadges: rawDesign.showBadges !== false,
         outlineEffect: (["none", "trace", "march", "pulse", "glow"] as const).includes(

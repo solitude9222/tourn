@@ -37,14 +37,14 @@
   max-width: none;
   min-width: 0;
   height: auto;
-  min-height: calc(74px * var(--pv-scale, 1));
-  padding: calc(10px * var(--pv-scale, 1)) calc(12px * var(--pv-scale, 1));
+  min-height: 70px;
+  padding: 12px;
   box-sizing: border-box;
 }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-avatar {
-  width: calc(48px * var(--pv-scale, 1));
-  height: calc(48px * var(--pv-scale, 1));
-  flex: 0 0 calc(48px * var(--pv-scale, 1));
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
 }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-name b { font-size: calc(13px * var(--pv-scale, 1)); line-height: 1.15; }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-chip { padding: 1px 5px; }
@@ -55,12 +55,12 @@
    equal cards on a 2×2 grid, so every platform is the same 288×70 box. */
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] {
   grid-column: span 1;
-  min-height: calc(74px * var(--pv-scale, 1));
-  padding: calc(10px * var(--pv-scale, 1)) calc(12px * var(--pv-scale, 1));
+  min-height: 70px;
+  padding: 12px;
 }
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-avatar {
-  width: calc(48px * var(--pv-scale, 1));
-  height: calc(48px * var(--pv-scale, 1));
+  width: 42px;
+  height: 42px;
   border-radius: var(--wg-avatar-radius, 50%);
 }
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-name b {
@@ -255,6 +255,24 @@
 .lkr-page .profile-preview[data-bio="right"] .pv-body > .pv-bio { margin-inline:auto 0; text-align:right; }
 .lkr-page .profile-preview .pv-body > .pv-bio.is-empty { display:none; }
 .lkr-page .profile-preview[data-pfp="left"] .pv-id { flex-wrap:wrap; justify-content:flex-start; row-gap:8px; }
-.lkr-page .profile-preview .lkr-widgets-block { margin-top:calc(21px * var(--pv-scale, 1)); }
-.lkr-page .profile-preview .pv-body > .pv-bio + .lkr-widgets-block { margin-top:calc(21px * var(--pv-scale, 1)); }
+.lkr-page .profile-preview .lkr-widgets-block { margin-top:16px; }
+.lkr-page .profile-preview .pv-body > .pv-bio + .lkr-widgets-block { margin-top:16px; }
 @media(max-width:600px) { .lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { gap:14px; margin-bottom:0; }.lkr-page .profile-preview .pv-body > .pv-bio { margin-bottom:0; font-size:max(12px,calc(var(--pv-bio-size,18px)*.88)); } }
+/* Version 6: every profile route uses one compact, stable social-card grid. */
+.lkr-page .lkr-flow .lkr-widgets { grid-template-columns:repeat(2,minmax(0,285px)); justify-content:center; gap:12px; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card,
+.lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] { width:285px; max-width:100%; height:70px; min-height:70px; max-height:70px; border-radius:16px; padding:12px; overflow:hidden; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-avatar { width:42px; height:42px; flex:0 0 42px; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-head { gap:10px; }
+.lkr-page .profile-preview[data-pfp="left"] .pv-topline { gap:16px; }
+.lkr-page .profile-preview .pv-body > .pv-bio { font-size:var(--pv-bio-size,14px); margin-top:12px; }
+.lkr-page .profile-preview .pv-body > .pv-badges--default { margin-top:8px; }
+.lkr-page .profile-preview .pv-body > .pv-badges--default .pv-badge-pill { min-height:0; padding:4px 8px; }
+.lkr-page .profile-preview .pv-body > .pv-badges--default .badge-chip { width:24px!important; height:24px!important; }
+.lkr-page .profile-preview .pv-links-block { margin-top:16px; }
+@media(max-width:640px) {
+ .lkr-page .lkr-flow .lkr-widgets { grid-template-columns:minmax(0,285px); }
+ .lkr-page .lkr-flow .lkr-widgets > .widget-card { justify-self:center; }
+}
+.lkr-page .profile-preview .pv-body > .pv-badges--default .pv-badge-pill { min-height:58px; box-sizing:border-box; }
+.lkr-page .profile-preview .pv-body > .pv-bio { margin-top:16px; }

@@ -83,6 +83,17 @@ export function DotMatrixText({
         }
       }
 
+      // Trim the sampled glyph bounds, not the font's generous scratch box.
+      // Empty canvas padding used to make a 38px name occupy almost 80px.
+      if (dots.length) {
+        const left = Math.floor(Math.min(...dots.map(dot => dot.x - dot.r)));
+        const top = Math.floor(Math.min(...dots.map(dot => dot.y - dot.r)));
+        const right = Math.ceil(Math.max(...dots.map(dot => dot.x + dot.r)));
+        const bottom = Math.ceil(Math.max(...dots.map(dot => dot.y + dot.r)));
+        dots = dots.map(dot => ({ ...dot, x: dot.x - left + 1, y: dot.y - top + 1 }));
+        width = right - left + 2;
+        height = bottom - top + 2;
+      }
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);

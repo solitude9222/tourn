@@ -515,27 +515,23 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   cardStyle: "default",
   font: "",
   scattered: false,
-  scatteredSize: 86,
+  scatteredSize: 38,
   scatteredCell: 3,
   scatteredGlow: 6,
   scatteredShimmer: true,
-  version: 5,
-  // The reference card is 720px wide: 30px padding, a 35px radius, a 105px
-  // avatar and a 46px name, with a dark glass surface (55% fill, 12px blur)
-  // and a 1px border at 12%. Every other metric is scaled from the card's
-  // width, so these are "px at 648 wide" — the 720px card renders them at
-  // 1.11×, which is what gives the four social cards their room.
-  cardWidth: 720,
+  version: 6,
+  // Compact reference: a 648px card with 105px avatar and 38px identity text.
+  cardWidth: 648,
   cardRadius: 35,
   borderWidth: 1,
   borderOpacity: 0.12,
   backgroundOpacity: 0.55,
   backgroundBlur: 12,
   avatarSize: 105,
-  widgetGap: 13,
+  widgetGap: 12,
   cardPadding: 30,
-  nameSize: 46,
-  bioSize: 18,
+  nameSize: 38,
+  bioSize: 14,
   tilt: 0,
   stackTilt: false,
   widgetTilt: false,
@@ -749,29 +745,20 @@ function loadEntry(input: unknown): EntrySettings {
   };
 }
 
-/* Cards whose geometry was never touched still carry the old defaults, so they
-   move onto the reference measurements (620×272, 35px radius, 112px avatar).
-   Anyone who changed a size keeps exactly what they chose. */
+/* Geometry versioning reaches existing saved profiles as well as new ones. */
 function loadDesign(input: unknown): AboutDesign {
   const design = loadDesignRaw(input);
-  // Geometry migrations run once per document: the saved version is bumped to 4
-  // below, so a width picked in the editor afterwards is never rewritten.
+  // Version 6 applies the requested compact proportions to every existing
+  // profile, including old customized geometry. Subsequent edits are retained.
   const storedVersion = Number((input as { version?: unknown } | null)?.version) || 0;
-  const migrateGeometry = storedVersion < 5;
-  if (migrateGeometry) {
-    // 620, 648 and 800 were the default widths of earlier releases. The card
-    // renders on the 720px reference now; because the card's numbers are "px
-    // at 648", the extra width scales the composition instead of stretching
-    // it. A width someone chose by hand is kept.
-    if (design.cardWidth === 620 || design.cardWidth === 648 || design.cardWidth === 800) {
-      design.cardWidth = 720;
-    }
-    // Untouched old defaults move onto the reference avatar/name pair.
-    if ((design.nameSize === 30 || design.nameSize === 36 || design.nameSize === 42) &&
-        (design.avatarSize === 105 || design.avatarSize === 112 || design.avatarSize === 118)) {
-      design.nameSize = 46;
-      design.avatarSize = 105;
-    }
+  if (storedVersion < 6) {
+    design.cardWidth = 648;
+    design.avatarSize = 105;
+    design.nameSize = 38;
+    design.scatteredSize = 38;
+    design.cardPadding = 30;
+    design.widgetGap = 12;
+    design.bioSize = 14;
   }
   return design;
 }
@@ -905,28 +892,25 @@ function loadDesignRaw(input: unknown): AboutDesign {
     cardStyle,
     font: typeof raw.font === "string" ? raw.font.slice(0, 64) : "",
     scattered: boolIn(raw.scattered, false),
-    scatteredSize: numberIn(raw.scatteredSize, 86, 64, 160),
+    scatteredSize: numberIn(raw.scatteredSize, 38, 16, 64),
     scatteredCell: numberIn(raw.scatteredCell, 3, 2, 8),
     scatteredGlow: numberIn(raw.scatteredGlow, 6, 0, 24),
     scatteredShimmer: boolIn(raw.scatteredShimmer, true),
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
-    version: 5,
+    version: 6,
     // Profiles saved against the old 620px card move to the wider one; a width
     // the owner picked after that is left alone.
-    cardWidth:
-      raw.cardWidth === 620
-        ? 720
-        : numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 1100),
+    cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 1100),
     cardRadius: numberIn(raw.cardRadius, DEFAULT_ABOUT_DESIGN.cardRadius, 0, 72),
     borderWidth: numberIn(raw.borderWidth, DEFAULT_ABOUT_DESIGN.borderWidth, 0, 12),
     borderOpacity: numberIn(raw.borderOpacity, DEFAULT_ABOUT_DESIGN.borderOpacity, 0, 1),
     backgroundOpacity: numberIn(raw.backgroundOpacity, DEFAULT_ABOUT_DESIGN.backgroundOpacity, 0, 1),
     backgroundBlur: numberIn(raw.backgroundBlur, DEFAULT_ABOUT_DESIGN.backgroundBlur, 0, 40),
-    avatarSize: raw.avatarSize === 112 ? 118 : numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 40, 240),
+    avatarSize: numberIn(raw.avatarSize, DEFAULT_ABOUT_DESIGN.avatarSize, 40, 240),
     widgetGap: numberIn(raw.widgetGap, DEFAULT_ABOUT_DESIGN.widgetGap, 0, 48),
-    cardPadding: raw.cardPadding === 22 ? 30 : numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 0, 64),
-    nameSize: raw.nameSize === 30 ? 36 : numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 64),
-    bioSize: raw.bioSize === 16 ? 18 : numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 32),
+    cardPadding: numberIn(raw.cardPadding, DEFAULT_ABOUT_DESIGN.cardPadding, 0, 64),
+    nameSize: numberIn(raw.nameSize, DEFAULT_ABOUT_DESIGN.nameSize, 12, 64),
+    bioSize: numberIn(raw.bioSize, DEFAULT_ABOUT_DESIGN.bioSize, 8, 32),
     stackTilt: boolIn(raw.stackTilt, false),
     widgetTilt: boolIn(raw.widgetTilt, false),
     tilt: numberIn(raw.tilt, DEFAULT_ABOUT_DESIGN.tilt, 0, 24),

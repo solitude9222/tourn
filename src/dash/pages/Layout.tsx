@@ -74,6 +74,8 @@ export function LayoutPage({
      reference measurements without touching its colours or content. */
   const resetSizing = () => {
     updateDesign({
+      version: DEFAULT_ABOUT_DESIGN.version,
+      scatteredSize: DEFAULT_ABOUT_DESIGN.scatteredSize,
       cardWidth: DEFAULT_ABOUT_DESIGN.cardWidth,
       cardPadding: DEFAULT_ABOUT_DESIGN.cardPadding,
       cardRadius: DEFAULT_ABOUT_DESIGN.cardRadius,
@@ -198,7 +200,7 @@ export function LayoutPage({
                   layout: preset.id,
                   badgePosition: "default",
                   cardPadding: 32,
-                  cardWidth: 720,
+                  cardWidth: DEFAULT_ABOUT_DESIGN.cardWidth,
                   widgetsPosition: preset.id === "stacked" ? "below" : "inside",
                   audioSlot: "below-card",
                   pfpPosition: preset.id === "left" ? "left" : "above",

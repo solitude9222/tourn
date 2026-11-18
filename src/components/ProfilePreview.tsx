@@ -244,7 +244,7 @@ export function ProfilePreview({
   useLayoutEffect(() => {
     const element = tilt.ref.current;
     if (!element) return;
-    const measure = () => setMeasuredWidth(element.getBoundingClientRect().width);
+    const measure = () => setMeasuredWidth(element.offsetWidth);
     measure(); const observer = new ResizeObserver(measure); observer.observe(element);
     return () => observer.disconnect();
   }, [tilt.ref]);
@@ -372,7 +372,7 @@ export function ProfilePreview({
                   {design.scattered ? (
                     <DotMatrixText
                       text={displayName}
-                      fontSize={design.scatteredSize ?? 86}
+                      fontSize={(design.scatteredSize ?? design.nameSize) * scale}
                       cell={design.scatteredCell ?? 3}
                       glow={design.scatteredGlow ?? 6}
                       shimmer={design.scatteredShimmer !== false}

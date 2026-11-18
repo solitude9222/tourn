@@ -198,7 +198,7 @@ export function ProfileCard() {
               className="lkr-widgets"
               style={{
                 columnGap: heroWidgets.design.gap,
-                rowGap: Math.max(0, heroWidgets.design.gap - 2),
+                rowGap: heroWidgets.design.gap,
               }}
             >
               {heroCards}
