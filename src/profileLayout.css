@@ -155,6 +155,81 @@
 .lkr-page .lkr-flow .lkr-sections > .lkr-showcase { border-radius: 20px; border: 0; overflow: hidden; }
 .lkr-page .lkr-flow .lkr-interest-set { border: 0; }
 
+/* ── portfolio pages: the same compact column as the card ────────────────
+   About, projects, interests and the gallery used to stretch to 1120–1280px
+   with 30–34px headings, so they dwarfed the 648px card. They now share the
+   card's column and its type scale. */
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections,
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-about-slide,
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-slide-panel,
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-gallery,
+.lkr-page .lkr-sections,
+.lkr-page .lkr-gallery {
+  width: min(100%, 648px);
+  max-width: 648px;
+  margin-inline: auto;
+}
+
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-sections,
+.lkr-page .lkr-sections {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Below-the-fold cards reserve their real height, not the old 300px guess. */
+.lkr-page .lkr-sections > * { contain-intrinsic-size: auto 200px; }
+
+.lkr-page .lkr-sections h2,
+.lkr-page .lkr-interest-set > h2,
+.lkr-page .lkr-gallery h2 { font-size: 20px; }
+
+/* Projects: one short card per row instead of a 300px hero. */
+.lkr-page .lkr-sections .lkr-showcase--project,
+.lkr-page .lkr-showcase--project .lkr-showcase-body { min-height: 190px; }
+.lkr-page .lkr-showcase--project .lkr-showcase-body { padding: 14px 16px; gap: 5px; }
+.lkr-page .lkr-showcase--project .lkr-showcase-body h2 { font-size: 19px; }
+.lkr-page .lkr-showcase--project .lkr-showcase-sub { font-size: 11.5px; }
+.lkr-page .lkr-showcase--project .lkr-showcase-text { font-size: 12px; line-height: 1.55; }
+.lkr-page .lkr-showcase--project .lkr-tech { padding: 3px 7px; font-size: 10px; }
+.lkr-page .lkr-showcase--project .lkr-showcase-link { padding: 6px 10px; font-size: 11px; }
+.lkr-page .lkr-showcase--project .lkr-showcase-meta-row span { font-size: 9.5px; }
+
+/* About: the card's own padding and heading scale. */
+.lkr-page .lkr-flow--slideshow .lkr-about-slide { padding: 20px; }
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-title { font-size: 24px; }
+.lkr-page .lkr-flow--slideshow .lkr-about-slide .lkr-about-text { font-size: 14px; line-height: 1.7; }
+.lkr-page .lkr-about-slide .lkr-tech { font-size: 10.5px; }
+
+/* Interests: three posters per row inside the card column. */
+.lkr-page .lkr-interest-set > h2 { margin-bottom: 14px; }
+/* The carousel track flows by column, so only the implicit column size counts;
+   the catalog variant is a normal row grid and needs the explicit columns. */
+.lkr-page .lkr-interest-track {
+  grid-auto-columns: calc((100% - 24px) / 3);
+  grid-template-columns: none;
+  gap: 12px;
+}
+.lkr-page .lkr-interest-rail--catalog .lkr-interest-track {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.lkr-page .lkr-interest-copy { left: 12px; right: 12px; bottom: 12px; }
+.lkr-page .lkr-interest-copy b { font-size: 14px; }
+.lkr-page .lkr-interest-copy small { font-size: 10.5px; }
+
+/* Gallery: a card-width grid with a card-sized heading. */
+.lkr-page .lkr-gallery header { margin-bottom: 14px; }
+.lkr-page .lkr-gallery header p { font-size: 13px; }
+
+@media (max-width: 700px) {
+  .lkr-page .lkr-interest-track {
+    grid-auto-columns: calc((100% - 12px) / 2);
+  }
+  .lkr-page .lkr-interest-rail--catalog .lkr-interest-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Data readiness controls visibility; don't add a half-second reveal delay. */
 .profile-page .lkr-slide,
 .profile-page .lkr-sections > *,

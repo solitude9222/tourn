@@ -108,7 +108,7 @@ await page.setViewportSize({width:1920,height:1080});
 await page.locator('#stable-preview .lkr-about-slide').waitFor();
 const about=await page.locator('#stable-preview .lkr-about-slide').evaluate(el=>{const r=el.getBoundingClientRect();return {left:r.left,width:r.width,align:getComputedStyle(el).textAlign,textAlign:getComputedStyle(el.querySelector('.lkr-about-text')).textAlign};});
 assert.equal(about.align,'left');assert.equal(about.textAlign,'left');assert(Math.abs(about.left+about.width/2-960)<5,JSON.stringify(about));
-const posters=await page.locator('#stable-preview .lkr-interest-tile').evaluateAll(items=>items.map(el=>({width:el.offsetWidth,height:el.offsetHeight})));assert.equal(posters.length,4,JSON.stringify(posters));assert(posters.every(poster=>poster.width>=250&&poster.height>=330),JSON.stringify(posters));
+const posters=await page.locator('#stable-preview .lkr-interest-tile').evaluateAll(items=>items.map(el=>({width:el.offsetWidth,height:el.offsetHeight})));assert.equal(posters.length,4,JSON.stringify(posters));assert(posters.every(poster=>poster.width>=190&&poster.height>=250),JSON.stringify(posters));
 await page.locator('#stable-preview .lkr-about-slide').evaluate(el=>el.scrollIntoView());
 await page.screenshot({path:'.tmp/about-left-centered.png'});
 await page.locator('#stable-preview .lkr-interest-set').evaluate(el=>el.scrollIntoView());

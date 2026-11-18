@@ -519,7 +519,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   scatteredCell: 3,
   scatteredGlow: 6,
   scatteredShimmer: true,
-  version: 3,
+  version: 4,
   // The reference card is 648px wide: 30px padding, a 35px radius, a 105px
   // avatar and a 46px name, with a dark glass surface (55% fill, 12px blur)
   // and a 1px border at 12%. Every other metric is scaled from the card's
@@ -753,19 +753,32 @@ function loadEntry(input: unknown): EntrySettings {
    Anyone who changed a size keeps exactly what they chose. */
 function loadDesign(input: unknown): AboutDesign {
   const design = loadDesignRaw(input);
+  // Geometry migrations run once per document: the saved version is bumped to 4
+  // below, so a width picked in the editor afterwards is never rewritten.
+  const storedVersion = Number((input as { version?: unknown } | null)?.version) || 0;
+  const migrateGeometry = storedVersion < 4;
   // Migrate the previous default geometry; retain explicitly customized sizes.
-  if ((design.cardWidth === 720 || design.cardWidth === 620) &&
+  if (migrateGeometry &&
+      (design.cardWidth === 720 || design.cardWidth === 620) &&
       (design.nameSize === 36 || design.nameSize === 30) &&
       (design.cardPadding === 32 || design.cardPadding === 22)) {
     design.cardWidth = 800;
     design.nameSize = 42;
   }
-  // The 800px card was the next default; untouched cards move onto the compact
-  // 648px composition. A card with any custom measurement keeps its own.
-  if (design.cardWidth === 800 && design.nameSize === 42 && design.avatarSize === 118) {
+  // Every stored card lands on the compact 648px composition. An untouched
+  // default takes the reference numbers; a card sized by hand keeps its
+  // proportions, so nobody's card comes back looking like someone else's.
+  if (migrateGeometry && design.cardWidth === 800) {
+    if (design.nameSize === 42 && design.avatarSize === 118) {
+      design.nameSize = 46;
+      design.avatarSize = 105;
+    } else {
+      const ratio = 648 / 800;
+      design.nameSize = Math.min(64, Math.max(12, Math.round(design.nameSize * ratio)));
+      design.avatarSize = Math.min(240, Math.max(40, Math.round(design.avatarSize * ratio)));
+      design.cardPadding = Math.min(64, Math.max(0, Math.round(design.cardPadding * ratio)));
+    }
     design.cardWidth = 648;
-    design.nameSize = 46;
-    design.avatarSize = 105;
   }
   return design;
 }
@@ -904,7 +917,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     scatteredGlow: numberIn(raw.scatteredGlow, 6, 0, 24),
     scatteredShimmer: boolIn(raw.scatteredShimmer, true),
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
-    version: 3,
+    version: 4,
     // Profiles saved against the old 620px card move to the wider one; a width
     // the owner picked after that is left alone.
     cardWidth:
