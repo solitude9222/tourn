@@ -7726,3 +7726,177 @@
 .tw-alias-gate-note { font-size: 11px; }
 .tw-alias-gate-error { color: #b5bdcf; font-size: 11.5px; }
 @media (max-width: 520px) { .tw-alias-gate-card { padding: 22px; } .tw-alias-gate-card h2 { font-size: 22px; } }
+
+/* ── motion pass ─────────────────────────────────────────────────────────
+   Small, consistent movement so the console feels alive without becoming a
+   slideshow: pages settle in, cards lift under the pointer, icon buttons
+   react, dialogs pop and navigation marks nudge in the direction of travel. */
+@keyframes twShellIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.997); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes twHeadIn {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes twBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes twModalPop {
+  from { opacity: 0; transform: translateY(14px) scale(0.975); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes twToastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.tw-dash .tw-page-swap {
+  animation: twShellIn 300ms cubic-bezier(0.22, 0.75, 0.2, 1) both;
+}
+
+.tw-dash .tw-page-head {
+  animation: twHeadIn 360ms 40ms cubic-bezier(0.22, 0.75, 0.2, 1) both;
+}
+
+.tw-dash .tw-card,
+.tw-dash .tw-media-card,
+.tw-dash .tw-profile-media-tile,
+.tw-dash .tw-section-editor {
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+
+@media (hover: hover) {
+  .tw-dash .tw-card:hover,
+  .tw-dash .tw-media-card:hover,
+  .tw-dash .tw-profile-media-tile:hover,
+  .tw-dash .tw-section-editor:hover {
+    transform: translateY(-2px);
+    border-color: #ffffff26;
+    box-shadow: 0 16px 34px -30px rgba(0, 0, 0, 0.9);
+  }
+}
+
+.tw-dash .tw-btn {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.tw-dash .tw-btn:hover {
+  transform: translateY(-1px);
+}
+
+.tw-dash .tw-btn:active {
+  transform: translateY(0) scale(0.975);
+}
+
+.tw-dash .tw-btn > svg,
+.tw-dash .tw-icon-btn > svg,
+.tw-dash .tw-nav-item > svg,
+.tw-dash .tw-tab > svg {
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+
+.tw-dash .tw-btn:hover > svg {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+.tw-dash .tw-icon-btn {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.tw-dash .tw-icon-btn:hover > svg {
+  transform: scale(1.12) rotate(5deg);
+}
+
+.tw-dash .tw-icon-btn:active {
+  transform: scale(0.92);
+}
+
+.tw-dash .tw-nav-item:hover > svg {
+  transform: translateX(2px) scale(1.06);
+}
+
+.tw-dash .tw-tab:hover > svg {
+  transform: translateY(-1px) scale(1.08);
+}
+
+.tw-dash .tw-nav-symbol {
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+
+.tw-dash .tw-nav-item:hover .tw-nav-symbol {
+  transform: scale(1.07) rotate(-3deg);
+}
+
+.tw-dash .tw-nav-item:active .tw-nav-symbol {
+  transform: scale(0.92);
+}
+
+.tw-dash .tw-modal-layer {
+  animation: twBackdropIn 200ms ease both;
+}
+
+.tw-dash .tw-modal {
+  animation: twModalPop 280ms cubic-bezier(0.22, 0.8, 0.2, 1.05) both;
+}
+
+.tw-dash .tw-toast {
+  animation: twToastIn 300ms cubic-bezier(0.22, 0.8, 0.2, 1.05) both;
+}
+
+.tw-dash :is(.tw-control, .tw-textarea, .ui-select, .tw-search, .tw-platform-option) {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+@media (hover: hover) {
+  .tw-dash .tw-platform-option:hover {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-dash .tw-page-swap,
+  .tw-dash .tw-page-head,
+  .tw-dash .tw-modal-layer,
+  .tw-dash .tw-modal,
+  .tw-dash .tw-toast {
+    animation: none;
+  }
+
+  .tw-dash .tw-card,
+  .tw-dash .tw-media-card,
+  .tw-dash .tw-profile-media-tile,
+  .tw-dash .tw-section-editor,
+  .tw-dash .tw-btn,
+  .tw-dash .tw-btn > svg,
+  .tw-dash .tw-icon-btn,
+  .tw-dash .tw-icon-btn > svg,
+  .tw-dash .tw-nav-item > svg,
+  .tw-dash .tw-tab > svg,
+  .tw-dash .tw-nav-symbol,
+  .tw-dash .tw-platform-option {
+    transition: none;
+  }
+}

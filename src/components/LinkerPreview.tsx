@@ -112,7 +112,11 @@ export function EntryOverlay({
           style={{
             width: `${entry.dividerWidth ?? 42}%`,
             height: `${entry.dividerSize ?? 1}px`,
-            background: `linear-gradient(90deg,transparent,${entry.dividerColor || "#ffffff"},transparent)`,
+            minHeight: "1px",
+            // A solid centre with soft ends reads as one clean hairline; the
+            // old transparent-to-colour fade vanished on darker backgrounds.
+            background: `linear-gradient(90deg, transparent, ${entry.dividerColor || "#ffffff"} 12%, ${entry.dividerColor || "#ffffff"} 88%, transparent)`,
+            boxShadow: `0 0 ${Math.max(8, (entry.dividerSize ?? 1) * 6)}px ${entry.dividerColor || "#ffffff"}55`,
             opacity: entry.dividerOpacity ?? 0.4,
           }}
         />
@@ -421,6 +425,10 @@ export function LinkerPreview({
     "--pv-project-pill-bw": `${design.surfaces.project.pill.borderWidth}px`,
     "--pv-project-pill-blur": `${design.surfaces.project.pill.blur}px`,
     "--pv-project-pill-radius": `${design.surfaces.project.pill.radius}px`,
+    "--pv-project-cols": `${design.projectLayout.columns}`,
+    "--pv-project-gap": `${design.projectLayout.gap}px`,
+    "--pv-project-media": `${design.projectLayout.mediaSize}%`,
+    "--pv-project-lines": `${design.projectLayout.textLines}`,
     "--lkr-gap": `${design.widgetGap}px`,
     "--lkr-bg-color": assets.background.color,
     "--lkr-bg-from": assets.background.from,
@@ -483,7 +491,19 @@ export function LinkerPreview({
       className="profile-preview--with-widgets"
       views={views}
       joined={joined}
-      reactions={interactive ? <ReactionBar handle={user.username} variant="card" /> : <ReactionGhost />}
+      reactions={
+        interactive ? (
+          <ReactionBar
+            handle={user.username}
+            variant="card"
+            tooltipStyle={about.design.tooltips.style}
+            tooltipAnimation={about.design.tooltips.animation}
+            tooltipEnabled={about.design.tooltips.enabled}
+          />
+        ) : (
+          <ReactionGhost />
+        )
+      }
       entryActive={entryOpen}
       disableTilt={sharedTilt}
       hideAudio={hideAudio || audioSlot !== "card-bottom"}
@@ -556,7 +576,7 @@ export function LinkerPreview({
       {sectionsVisible
         ? groupedSections.map((group) => (
             <div key={group[0].id} className={slideshowActive ? "lkr-slide" : ""}>
-              <ProfileSections sections={group} interestMode={design.interestMode} />
+              <ProfileSections sections={group} interestMode={design.interestMode} projectLayout={design.projectLayout} />
             </div>
           ))
         : null}
@@ -596,7 +616,7 @@ export function LinkerPreview({
             {aboutSlide.widgetIds?.length ? <div className="lkr-about-widgets">{aboutSlide.widgetIds.flatMap(id=>{const widget=visibleWidgets.find(item=>item.id===id);return widget?[<WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker"/>]:[];})}</div> : null}
             {aboutSlide.showProjects && aboutProjects.length ? (
               <div className="lkr-about-projects lkr-about-projects--full">
-                <ProfileSections sections={aboutProjects} interestMode={design.interestMode} />
+                <ProfileSections sections={aboutProjects} interestMode={design.interestMode} projectLayout={design.projectLayout} />
               </div>
             ) : null}
             {aboutSlide.tags.length ? (
@@ -707,6 +727,7 @@ export function LinkerPreview({
       className={`lkr-page lkr-card-${design.cardStyle}${className ? ` ${className}` : ""}`}
       style={style}
       data-interactive={interactive ? "true" : undefined}
+      data-project-lines={design.projectLayout.textLines === 0 ? "all" : undefined}
       data-scattered={design.scattered ? "true" : undefined}
       data-fx-filter={assets.effects.overlay.id}
     >

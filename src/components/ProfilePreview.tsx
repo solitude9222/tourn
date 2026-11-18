@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { donationTotalFor } from "../lib/donation";
 import type { Account } from "../lib/auth";
 import { accountUid } from "../lib/auth";
 import { DEFAULT_ABOUT_DESIGN, hexToRgba, type About, type DetailSlot } from "../lib/about";
@@ -60,7 +61,7 @@ export function ProfilePreview({
   pageLayerTarget,
   children,
 }: {
-  user: Pick<Account, "id" | "uid" | "username" | "alias" | "avatarUrl">;
+  user: Pick<Account, "id" | "uid" | "username" | "alias" | "avatarUrl"> & { isOwner?: boolean };
   about: About;
   badges?: BadgeInstance[];
   badgeStyle?: BadgeStyle;
@@ -110,6 +111,7 @@ export function ProfilePreview({
   // look broken.
   const tooltips = design.tooltips ?? DEFAULT_ABOUT_DESIGN.tooltips;
   const uid = accountUid(user);
+  const donationTotal = donationTotalFor(user);
   const tiltEnabled = !disableTilt && (design.tilt ?? 0) > 0;
   const tilt = useTilt<HTMLElement>(disableTilt ? 0 : design.tilt ?? 0, Boolean(design.tiltInvert));
   // Composition is optional; the details are not. Location and the account
@@ -147,6 +149,7 @@ export function ProfilePreview({
             tooltipStyle={tooltips.style}
             tooltipEnabled={tooltips.enabled}
             tooltipAnimation={tooltips.animation}
+            donationTotal={donationTotal}
           />
         </span>
       </div>
@@ -164,10 +167,16 @@ export function ProfilePreview({
   ) : null;
 
   const joinedNode = (
-    <span className="pv-foot-item" title={joined}>
-      <CalendarIcon size={10} />
-      Joined {joined ?? "—"}
-    </span>
+    <Tooltip
+      text={joined ? `Account created: ${joined}` : "Account created"}
+      style={tooltips.style}
+      animation={tooltips.animation}
+    >
+      <span className="pv-foot-item" tabIndex={0}>
+        <CalendarIcon size={10} />
+        Joined {joined ?? "—"}
+      </span>
+    </Tooltip>
   );
 
   const viewsNode = (

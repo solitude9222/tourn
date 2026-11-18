@@ -63,6 +63,7 @@ export function SectionEditor({
         ...picks,
         {
           ...pick,
+          catalogImage: pick.catalogImage ?? pick.image,
           id: globalThis.crypto?.randomUUID?.() ?? `pick-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         },
       ],
@@ -259,14 +260,61 @@ export function SectionEditor({
                       }
                     />
                   </span>
-                  <button
-                    type="button"
-                    className="tw-section-pick-remove"
-                    aria-label={`Remove ${pick.title || "pick"}`}
-                    onClick={() => onChange({ items: picks.filter((item) => item.id !== pick.id) })}
-                  >
-                    ×
-                  </button>
+                  <span className="tw-section-pick-actions">
+                    <label className="tw-section-pick-poster">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        aria-label={`Upload poster for ${pick.title || "pick"}`}
+                        onChange={async (event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = "";
+                          if (!file) return;
+                          if (!file.type.startsWith("image/")) {
+                            notify("Poster", "Choose a PNG, JPG, WebP or GIF image.");
+                            return;
+                          }
+                          try {
+                            const image = await imageToDataUrl(file, 900, 1200, 0.86);
+                            onChange({
+                              items: picks.map((item) =>
+                                item.id === pick.id
+                                  ? { ...item, image, catalogImage: item.catalogImage ?? pick.image }
+                                  : item,
+                              ),
+                            });
+                            notify("Poster updated", "The custom poster is used on your profile.");
+                          } catch {
+                            notify("Poster", "That image could not be read. Try a different file.");
+                          }
+                        }}
+                      />
+                      {pick.image && pick.image !== pick.catalogImage ? "Change poster" : "Upload poster"}
+                    </label>
+                    {pick.catalogImage && pick.image !== pick.catalogImage ? (
+                      <button
+                        type="button"
+                        className="tw-section-pick-reset"
+                        onClick={() =>
+                          onChange({
+                            items: picks.map((item) =>
+                              item.id === pick.id ? { ...item, image: item.catalogImage ?? "" } : item,
+                            ),
+                          })
+                        }
+                      >
+                        Reset art
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="tw-section-pick-remove"
+                      aria-label={`Remove ${pick.title || "pick"}`}
+                      onClick={() => onChange({ items: picks.filter((item) => item.id !== pick.id) })}
+                    >
+                      ×
+                    </button>
+                  </span>
                 </div>
               ))}
             </div>

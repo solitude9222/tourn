@@ -50,9 +50,19 @@ export function normalizeCursorArt(
         let minY = height;
         let maxX = -1;
         let maxY = -1;
+        // The click point is the first visible pixel (the arrow's tip), not the
+        // top-left corner of its bounding box. Those differ whenever the
+        // graphic is wider at the bottom, which made the painted cursor sit
+        // down and to the right of the actual pointer.
+        let tipX = -1;
+        let tipY = -1;
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
             if (pixels[(y * width + x) * 4 + 3] <= threshold) continue;
+            if (tipX < 0) {
+              tipX = x;
+              tipY = y;
+            }
             minX = Math.min(minX, x);
             minY = Math.min(minY, y);
             maxX = Math.max(maxX, x);
@@ -66,9 +76,16 @@ export function normalizeCursorArt(
         const cropWidth = maxX - minX + 1;
         const cropHeight = maxY - minY + 1;
         const scale = Math.min(1, size / cropWidth, size / cropHeight);
+        const drawWidth = Math.max(1, Math.round(cropWidth * scale));
+        const drawHeight = Math.max(1, Math.round(cropHeight * scale));
+        // Always output a 32x32 canvas. The hotspot sliders and the CSS cursor
+        // then share one coordinate space, even when the artwork is wide or
+        // tall, instead of sometimes falling outside an unusually shaped image.
         const output = document.createElement("canvas");
-        output.width = Math.max(1, Math.round(cropWidth * scale));
-        output.height = Math.max(1, Math.round(cropHeight * scale));
+        output.width = size;
+        output.height = size;
+        const padX = (size - drawWidth) / 2;
+        const padY = (size - drawHeight) / 2;
         const outputContext = output.getContext("2d");
         if (!outputContext) {
           resolve({ url, hotspot: { x: 0, y: 0 } });
@@ -80,12 +97,20 @@ export function normalizeCursorArt(
           minY,
           cropWidth,
           cropHeight,
-          0,
-          0,
-          output.width,
-          output.height,
+          padX,
+          padY,
+          drawWidth,
+          drawHeight,
         );
-        resolve({ url: output.toDataURL("image/png"), hotspot: { x: 0, y: 0 } });
+        resolve({
+          url: output.toDataURL("image/png"),
+          // Hotspots are in the pixels of the resized image, so the detected
+          // inset has to follow the same crop, scale and centering.
+          hotspot: {
+            x: Math.round(padX + Math.max(0, tipX - minX) * scale),
+            y: Math.round(padY + Math.max(0, tipY - minY) * scale),
+          },
+        });
       } catch {
         resolve({ url, hotspot: { x: 0, y: 0 } });
       }

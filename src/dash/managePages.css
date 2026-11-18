@@ -603,3 +603,99 @@ body.tw-sorting * {
     height: 14px;
   }
 }
+
+/* ── link manager motion ─────────────────────────────────────────────────
+   The icon tiles are the loudest thing on this page, so they get the motion:
+   rows arrive in sequence, the platform mark lifts and turns under the
+   pointer, and a soft sheen crosses the white plate. */
+@keyframes twLinkRowIn {
+  from { opacity: 0; translate: 0 9px; scale: 0.995; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+.tw-manage-list .tw-manage-row {
+  animation: twLinkRowIn 340ms cubic-bezier(0.22, 0.75, 0.2, 1) backwards;
+}
+
+.tw-manage-list .tw-manage-row:nth-child(2) { animation-delay: 35ms; }
+.tw-manage-list .tw-manage-row:nth-child(3) { animation-delay: 70ms; }
+.tw-manage-list .tw-manage-row:nth-child(4) { animation-delay: 105ms; }
+.tw-manage-list .tw-manage-row:nth-child(5) { animation-delay: 140ms; }
+.tw-manage-list .tw-manage-row:nth-child(6) { animation-delay: 175ms; }
+.tw-manage-list .tw-manage-row:nth-child(7) { animation-delay: 210ms; }
+.tw-manage-list .tw-manage-row:nth-child(8) { animation-delay: 245ms; }
+.tw-manage-list .tw-manage-row:nth-child(n + 9) { animation-delay: 280ms; }
+
+.tw-manage-icon {
+  position: relative;
+  isolation: isolate;
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1.25),
+    box-shadow 240ms ease;
+}
+
+.tw-manage-icon > svg,
+.tw-manage-icon > img {
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1.3);
+}
+
+/* Uploaded marks can also be white; a hairline edge keeps those visible on
+   the white plate without tinting the artwork. */
+.tw-manage-icon > img {
+  filter: drop-shadow(0 0 0.7px rgba(0, 0, 0, 0.65));
+}
+
+.tw-manage-icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(0, 0, 0, 0.07) 48%, transparent 64%);
+  transform: translateX(-140%);
+}
+
+@media (hover: hover) {
+  .tw-manage-row:hover .tw-manage-icon {
+    transform: translateY(-2px) rotate(-3deg) scale(1.045);
+    box-shadow: 0 12px 22px -14px rgba(0, 0, 0, 0.85);
+  }
+
+  .tw-manage-row:hover .tw-manage-icon > svg,
+  .tw-manage-row:hover .tw-manage-icon > img {
+    transform: scale(1.08) rotate(3deg);
+  }
+
+  .tw-manage-row:hover .tw-manage-icon::after {
+    transform: translateX(140%);
+    transition: transform 520ms ease;
+  }
+}
+
+.tw-manage-row:active .tw-manage-icon {
+  transform: scale(0.95);
+}
+
+.tw-manage-row .tw-icon-btn svg {
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+
+.tw-manage-row .tw-icon-btn:hover svg {
+  transform: scale(1.14) rotate(-5deg);
+}
+
+.tw-manage-row .tw-icon-btn:active svg {
+  transform: scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-manage-list .tw-manage-row,
+  .tw-manage-icon,
+  .tw-manage-icon > svg,
+  .tw-manage-icon > img,
+  .tw-manage-icon::after,
+  .tw-manage-row .tw-icon-btn svg {
+    animation: none;
+    transition: none;
+  }
+}

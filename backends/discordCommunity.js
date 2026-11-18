@@ -8,7 +8,8 @@
 
 export const SITE_URL = "https://tourn.lol";
 export const SUPPORT_URL = "https://discord.gg/a9uwptuepD";
-export const BRAND_RED = 0xb8080c;
+/* One blue for every bot embed, matching the site's primary blue. */
+export const BRAND_BLUE = 0x3b82f6;
 export const LEADERBOARD_CHANNEL_ID =
   process.env.DISCORD_LEADERBOARD_CHANNEL_ID || "1570797329202811051";
 export const WELCOME_CHANNEL_ID =
@@ -64,7 +65,7 @@ export function buildLeaderboardMessage(rows = [], identities = {}, page = 0) {
   return {
     embeds: [
       {
-        color: BRAND_RED,
+        color: BRAND_BLUE,
         title: "🏆 tourn.lol leaderboard",
         description,
         footer: {
@@ -107,7 +108,7 @@ export function buildWelcomeMessage(member = {}) {
     allowed_mentions: { parse: [], users: id ? [id] : [] },
     embeds: [
       {
-        color: BRAND_RED,
+        color: BRAND_BLUE,
         description: [
           "Grab your alias, build the card and drop your links — it takes a minute.",
           "",
@@ -129,7 +130,7 @@ export function buildDmPanel() {
       "Thanks for messaging **tourn.lol** — everything you need is below. This is the only time I will reply.",
     embeds: [
       {
-        color: BRAND_RED,
+        color: BRAND_BLUE,
         title: "tourn.lol",
         description:
           `Build a profile card, link everything you own and get on the [leaderboard](${SITE_URL}/#/leaderboard).`,

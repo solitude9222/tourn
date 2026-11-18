@@ -5,10 +5,12 @@
    --------------------------------------------------------------------------- */
 
 import { useDash } from "../context";
-import { Button, Card, CardHead, ColorField, Icon, IconButton, SectionLabel, Slider } from "../ui";
+import { Button, Card, CardHead, ColorField, Icon, IconButton, SectionLabel, Segmented, Slider, Toggle } from "../ui";
 import {
+  DEFAULT_PROJECT_LAYOUT,
   DEFAULT_SURFACES,
   type ContainerStyle,
+  type ProjectLayout,
   type SurfacePill,
   type SurfaceStyles,
 } from "../../lib/about";
@@ -173,6 +175,93 @@ function PillControls({
   );
 }
 
+function ProjectLayoutControls({
+  value,
+  onChange,
+}: {
+  value: ProjectLayout;
+  onChange: (patch: Partial<ProjectLayout>) => void;
+}) {
+  const detailToggles: { key: keyof Pick<ProjectLayout, "showStatus" | "showMeta" | "showStack" | "showLinks" | "showText">; label: string; hint: string }[] = [
+    { key: "showStatus", label: "Status badge", hint: "The label on the artwork" },
+    { key: "showMeta", label: "Meta details", hint: "Year, score or status pills" },
+    { key: "showStack", label: "Stack pills", hint: "Tools and technologies" },
+    { key: "showLinks", label: "Links", hint: "Project and extra links" },
+    { key: "showText", label: "Description", hint: "The longer project note" },
+  ];
+
+  return (
+    <>
+      <div className="tw-form-grid">
+        <div className="tw-field">
+          <span className="tw-label">Cards per row</span>
+          <Segmented
+            wide
+            value={String(value.columns)}
+            onChange={(next) => onChange({ columns: Number(next) })}
+            options={[
+              { value: "1", label: "1" },
+              { value: "2", label: "2" },
+              { value: "3", label: "3" },
+            ]}
+          />
+        </div>
+        <div className="tw-field">
+          <span className="tw-label">Artwork position</span>
+          <Segmented
+            wide
+            value={value.media}
+            onChange={(next) => onChange({ media: next as ProjectLayout["media"] })}
+            options={[
+              { value: "left", label: "Left" },
+              { value: "top", label: "Top" },
+              { value: "right", label: "Right" },
+            ]}
+          />
+        </div>
+        <Slider
+          label="Card gap"
+          value={value.gap}
+          min={0}
+          max={64}
+          suffix="px"
+          onChange={(gap) => onChange({ gap })}
+        />
+        <Slider
+          label="Artwork width"
+          value={value.mediaSize}
+          min={22}
+          max={62}
+          suffix="%"
+          onChange={(mediaSize) => onChange({ mediaSize })}
+        />
+        <Slider
+          label="Description lines (0 = all)"
+          value={value.textLines}
+          min={0}
+          max={10}
+          onChange={(textLines) => onChange({ textLines })}
+        />
+      </div>
+      <div className="tw-toggle-grid">
+        {detailToggles.map((item) => (
+          <div className="tw-inline-toggle" key={item.key}>
+            <span>
+              <b>{item.label}</b>
+              <small>{item.hint}</small>
+            </span>
+            <Toggle
+              label={item.label}
+              checked={value[item.key]}
+              onChange={(checked) => onChange({ [item.key]: checked })}
+            />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 const SURFACES: { key: SurfaceKey; title: string; subtitle: string; icon: "layers" | "grid" }[] = [
   {
     key: "about",
@@ -255,6 +344,15 @@ export function DesignPage() {
     } as const;
   };
 
+  const patchProjectLayout = (next: Partial<ProjectLayout>) =>
+    setAbout((current) => ({
+      ...current,
+      design: {
+        ...current.design,
+        projectLayout: { ...current.design.projectLayout, ...next },
+      },
+    }));
+
   const patch = (key: SurfaceKey, part: "container" | "pill", next: Record<string, number | string>) =>
     setAbout((current) => ({
       ...current,
@@ -288,6 +386,7 @@ export function DesignPage() {
                     design: {
                       ...current.design,
                       surfaces: { ...current.design.surfaces, [surface.key]: DEFAULT_SURFACES[surface.key] },
+                      ...(surface.key === "project" ? { projectLayout: DEFAULT_PROJECT_LAYOUT } : {}),
                     },
                   }));
                   notify(`${surface.title} reset`, "Container and pill styles are back to the defaults.");
@@ -303,6 +402,16 @@ export function DesignPage() {
             value={surfaces[surface.key].container}
             onChange={(next) => patch(surface.key, "container", next)}
           />
+
+          {surface.key === "project" ? (
+            <>
+              <div className="tw-design-divider" role="presentation" />
+              <SectionLabel hint="How the project cards arrange themselves inside About, and which details they show.">
+                Project layout
+              </SectionLabel>
+              <ProjectLayoutControls value={about.design.projectLayout} onChange={patchProjectLayout} />
+            </>
+          ) : null}
 
           <div className="tw-design-divider" role="presentation" />
 

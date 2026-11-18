@@ -49,6 +49,7 @@ type LiveCard = {
   alias: string | null;
   id: string;
   uid?: number | null;
+  isOwner?: boolean;
   avatar: string;
   joined: string;
 };
@@ -70,6 +71,7 @@ function toLiveCard(data: ProfilePayload): LiveCard | null {
     alias: data.account.alias ?? null,
     id: data.account.id,
     uid: data.account.uid,
+    isOwner: data.account.isOwner,
     avatar: data.account.avatarUrl || "/brand/tourn-mark.svg",
     joined: formatJoined(new Date(data.account.joinedAt)),
   };
@@ -172,7 +174,8 @@ export function ProfileCard() {
       <ProfilePreview
         user={{
           id: live?.id || "demo",
-          uid: live?.uid || 1,
+          uid: live?.uid ?? null,
+          isOwner: live?.isOwner,
           username: live?.username ?? "tourn",
           alias: live?.alias ?? "tourn",
           avatarUrl: live?.avatar ?? "/brand/tourn-mark.svg",

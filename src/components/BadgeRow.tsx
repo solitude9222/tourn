@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import { hexToRgba } from "../lib/about";
 import { badgeDef, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import type { TooltipAnimation, TooltipStyle } from "../lib/links";
@@ -101,6 +101,7 @@ export function BadgeRow({
   tooltipStyle = "dark",
   tooltipEnabled = true,
   tooltipAnimation = "slide",
+  donationTotal = null,
 }: {
   badges: BadgeInstance[];
   style: BadgeStyle;
@@ -110,6 +111,8 @@ export function BadgeRow({
   tooltipStyle?: TooltipStyle;
   tooltipEnabled?: boolean;
   tooltipAnimation?: TooltipAnimation;
+  /** Running total shown beside the Donor badge for the first account. */
+  donationTotal?: number | null;
 }) {
   const visible = badges.filter((b) => b.visible && badgeDef(b.id));
   if (!visible.length) return null;
@@ -132,16 +135,31 @@ export function BadgeRow({
 
   return (
     <span className={`badge-row${bareShelf ? " is-bare" : ""}${className ? ` ${className}` : ""}`} style={rowStyle}>
-      {visible.map((badge) => (
-        <Tooltip
-          key={badge.id}
-          text={tooltipEnabled ? badgeDef(badge.id)?.name ?? badge.id : ""}
-          style={tooltipStyle}
-          animation={tooltipAnimation}
-        >
-          <BadgeChip badge={badge} style={style} size={size} />
-        </Tooltip>
-      ))}
+      {visible.map((badge) => {
+        const def = badgeDef(badge.id);
+        const total = badge.id === "donator" ? donationTotal : null;
+        const tip = def?.name ?? badge.id;
+        return (
+          <Fragment key={badge.id}>
+            <Tooltip
+              text={tooltipEnabled ? (total === null ? tip : `${tip} · $${total.toLocaleString("en-US")} donated`) : ""}
+              style={tooltipStyle}
+              animation={tooltipAnimation}
+            >
+              <BadgeChip badge={badge} style={style} size={size} />
+            </Tooltip>
+            {total === null ? null : (
+              <span
+                className="badge-donation-total"
+                title={`$${total.toLocaleString("en-US")} donated`}
+                aria-label={`$${total.toLocaleString("en-US")} donated`}
+              >
+                ${total.toLocaleString("en-US")}
+              </span>
+            )}
+          </Fragment>
+        );
+      })}
     </span>
   );
 }

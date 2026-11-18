@@ -7,9 +7,19 @@
   grid-column: 1 / -1;
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  /* Projects sit side by side; interests deliberately span the full row. */
+  grid-template-columns: repeat(var(--pv-project-cols, 2), minmax(0, 1fr));
+  gap: var(--pv-project-gap, 16px);
   margin-top: 32px;
+}
+
+.lkr-sections > .lkr-showcase--interest,
+.lkr-sections > .lkr-interest-set {
+  grid-column: 1 / -1;
+}
+
+.lkr-sections:has(> .lkr-showcase--project:only-child) {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* ── projects: full width, artwork beside the writing ─────────────────────── */
@@ -40,13 +50,34 @@
 .lkr-showcase-art {
   position: relative;
   display: grid;
-  flex: 0 0 38%;
-  width: 38%;
-  max-width: 340px;
-  min-height: 232px;
+  flex: 0 0 var(--pv-project-media, 38%);
+  width: var(--pv-project-media, 38%);
+  max-width: none;
+  min-height: 210px;
   place-items: center;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.04);
+}
+
+/* Artwork placement, chosen in Portfolio > Design. */
+.lkr-showcase--project[data-project-media="right"] {
+  flex-direction: row-reverse;
+}
+
+.lkr-showcase--project[data-project-media="top"] {
+  flex-direction: column;
+}
+
+.lkr-showcase--project[data-project-media="top"] .lkr-showcase-art {
+  width: 100%;
+  min-height: 0;
+  max-height: none;
+  flex: none;
+  aspect-ratio: 16 / 9;
+}
+
+.lkr-showcase--project[data-project-media="top"] .lkr-showcase-body {
+  padding: 20px 22px 22px;
 }
 
 .lkr-showcase-art img {
@@ -106,9 +137,9 @@
 
 .lkr-showcase-meta-row span {
   padding: 3px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--pv-project-pill-border, rgba(255, 255, 255, 0.09));
+  border-radius: var(--pv-project-pill-radius, 999px);
+  background: var(--pv-project-pill-bg, rgba(255, 255, 255, 0.03));
   color: var(--pv-muted, #b39899);
   font-size: 10.5px;
 }
@@ -129,11 +160,24 @@
 }
 
 .lkr-showcase-text {
+  display: -webkit-box;
   margin: 0;
+  overflow: hidden;
   color: var(--pv-muted, #b39899);
   font-size: 13px;
   line-height: 1.65;
   white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--pv-project-lines, 4);
+  line-clamp: var(--pv-project-lines, 4);
+}
+
+/* 0 means "show all": the clamp is removed rather than set to zero. */
+.lkr-page[data-project-lines="all"] .lkr-showcase-text {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
 }
 
 .lkr-tech-row {

@@ -123,5 +123,8 @@ html[data-editor-gesture="true"] .tw-dash :is(.tw-card,.tw-modal,.fx-tile-previe
 .tw-dash .tw-user-foot { width:100%; box-sizing:border-box; }
 .tw-dash .tw-media-reset-row { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:5px; }
 .tw-dash .tw-media-reset-row .tw-btn { min-width:0; white-space:normal; }
+/* A wider rail with shorter rows: more of the left side, less of its height. */
+@media (min-width: 901px) { .tw-dash { --rail-w: 300px; } }
+.tw-dash .tw-nav-item { min-height: 36px; height: 36px; }
 /* Body-level portals keep nested libraries above their originating sections. */
 .tw-dialog-portal .tw-modal-layer { position:fixed; inset:0; z-index:2400; }

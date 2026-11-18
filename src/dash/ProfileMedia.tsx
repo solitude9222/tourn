@@ -145,8 +145,8 @@ export function ProfileMedia() {
       {assets.cursor.imageUrl || assets.cursor.customCursorUrls.length ? (
         <div className="tw-media-zoom">
           <div className="tw-media-setting-head"><b>Cursor hotspot</b><small>Transparent padding is compensated automatically. Use these sliders to fine-tune the click point.</small></div>
-          <Slider label="Hotspot X" value={assets.cursor.hotspotX} min={0} max={64} suffix="px" onChange={(hotspotX) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotX } } }))} />
-          <Slider label="Hotspot Y" value={assets.cursor.hotspotY} min={0} max={64} suffix="px" onChange={(hotspotY) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotY } } }))} />
+          <Slider label="Hotspot X" value={assets.cursor.hotspotX} min={0} max={31} suffix="px" onChange={(hotspotX) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotX } } }))} />
+          <Slider label="Hotspot Y" value={assets.cursor.hotspotY} min={0} max={31} suffix="px" onChange={(hotspotY) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotY } } }))} />
         </div>
       ) : null}
 

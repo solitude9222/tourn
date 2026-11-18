@@ -72,10 +72,26 @@ export const PLATFORMS: Platform[] = [
   { id: "website", name: "Website", Icon: FaGlobe, color: "#93c5fd" },
   { id: "email", name: "Email", Icon: FaEnvelope, color: "#ea580c" },
   { id: "product", name: "Product", Icon: FaBox, color: "#34d399" },
-  { id: "custom", name: "Custom link", Icon: FaLink, color: "#8b939b" },
+  { id: "custom", name: "Custom link", Icon: FaLink, color: "#f2f5f7" },
 ];
 
 export const PLATFORM_MAP: Map<string, Platform> = new Map(PLATFORMS.map((p) => [p.id, p]));
+
+/**
+ * The link manager paints every platform mark on a white tile. White brands
+ * (GitHub, X, Apple, Steam, Medium…) disappeared there, so keep the brand hue
+ * when it has enough contrast and fall back to a near-black ink when it does
+ * not.
+ */
+export function readableOnLight(color?: string): string {
+  if (!color || !/^#[0-9a-f]{6}$/i.test(color)) return "#161619";
+  const channel = (offset: number) => {
+    const value = parseInt(color.slice(offset, offset + 2), 16) / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
+  return luminance > 0.5 ? "#161619" : color;
+}
 
 export function getPlatform(id: string): Platform | undefined {
   const aliases:Record<string,string>={btc:"bitcoin",eth:"ethereum",sol:"solana",ltc:"litecoin",usdt:"tether",xmr:"monero",twitter:"x"};

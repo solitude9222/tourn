@@ -18,3 +18,92 @@
 .lkr-popup-audio--right .ap-popup,.lkr-popup-audio--bottom-right .ap-popup { flex-direction:row-reverse; }
 .lkr-popup-audio--bottom-right .ap-popup-volume { margin-left:0; margin-right:10px; }
 .ap-popup-volume input { direction:ltr; }
+
+/* ── mute slider: smooth drag, spring back on release ───────────────────── */
+.ap-popup.ap-popup--mute .ap-popup-volume input {
+  transition: background 70ms linear, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.ap-popup.ap-popup--mute .ap-popup-volume input:active {
+  cursor: grabbing;
+}
+
+.ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb {
+  transform-origin: center;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1.25), box-shadow 160ms ease;
+}
+
+.ap-popup.ap-popup--mute .ap-popup-volume input::-moz-range-thumb {
+  transform-origin: center;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1.25), box-shadow 160ms ease;
+}
+
+.ap-popup.ap-popup--mute .ap-popup-volume input:active::-webkit-slider-thumb {
+  transform: scale(1.22);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--popup-color, #fff) 16%, transparent);
+}
+
+.ap-popup.ap-popup--mute .ap-popup-volume input:active::-moz-range-thumb {
+  transform: scale(1.22);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--popup-color, #fff) 16%, transparent);
+}
+
+@keyframes muteThumbSettle {
+  0% { transform: scale(0.82); }
+  48% { transform: scale(1.34); }
+  100% { transform: scale(1); }
+}
+
+@keyframes muteRailSettle {
+  0% { filter: brightness(1); }
+  36% { filter: brightness(1.2); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes muteVolumeSettle {
+  0% { transform: scale(1); }
+  38% { transform: scale(1.045); }
+  100% { transform: scale(1); }
+}
+
+@keyframes muteIconSettle {
+  0% { transform: rotate(0deg) scale(1); }
+  42% { transform: rotate(-4deg) scale(1.07); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.ap-popup.ap-popup--mute.is-settling .ap-popup-volume input {
+  animation: muteRailSettle 440ms ease both;
+}
+
+.ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-webkit-slider-thumb {
+  animation: muteThumbSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
+}
+
+.ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-moz-range-thumb {
+  animation: muteThumbSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
+}
+
+/* The range thumb is hard to animate reliably across native controls, so the
+   whole pill and the mute glyph also get a small physical settle. */
+.ap-popup.ap-popup--mute.is-settling .ap-popup-volume {
+  animation: muteVolumeSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
+}
+
+.ap-popup.ap-popup--mute.is-settling .ap-popup-icon {
+  animation: muteIconSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-popup.ap-popup--mute .ap-popup-volume input,
+  .ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb,
+  .ap-popup.ap-popup--mute .ap-popup-volume input::-moz-range-thumb,
+  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume input,
+  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-webkit-slider-thumb,
+  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-moz-range-thumb,
+  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume,
+  .ap-popup.ap-popup--mute.is-settling .ap-popup-icon {
+    animation: none;
+    transition: none;
+  }
+}

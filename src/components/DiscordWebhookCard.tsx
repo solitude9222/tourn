@@ -39,7 +39,7 @@ const DEFAULT_CONFIG: WebhookEmbedConfig = {
   embed: true,
   title: "",
   description: "",
-  color: "#5865f2",
+  color: "#3b82f6",
   image: "background",
   thumbnail: "avatar",
   footer: "",

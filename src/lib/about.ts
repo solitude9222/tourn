@@ -260,9 +260,44 @@ export type SectionPick = {
   id: string;
   title: string;
   subtitle: string;
+  /** Poster shown on the profile — a catalogue image or a custom upload. */
   image: string;
+  /** The catalogue poster, kept so a custom upload can be undone. */
+  catalogImage?: string;
   meta: string;
   url: string;
+};
+
+/** Layout and detail controls for project cards, set in Portfolio > Design. */
+export type ProjectLayout = {
+  /** Cards per row on a wide profile. */
+  columns: number;
+  /** Space between cards, in px. */
+  gap: number;
+  /** Where the artwork sits inside each card. */
+  media: "left" | "right" | "top";
+  /** Artwork share of the card width for left/right, in percent. */
+  mediaSize: number;
+  /** Description line cap; 0 shows the whole description. */
+  textLines: number;
+  showStatus: boolean;
+  showMeta: boolean;
+  showStack: boolean;
+  showLinks: boolean;
+  showText: boolean;
+};
+
+export const DEFAULT_PROJECT_LAYOUT: ProjectLayout = {
+  columns: 2,
+  gap: 16,
+  media: "left",
+  mediaSize: 38,
+  textLines: 4,
+  showStatus: true,
+  showMeta: true,
+  showStack: true,
+  showLinks: true,
+  showText: true,
 };
 
 export type ProfileSection = {
@@ -390,6 +425,8 @@ export type AboutDesign = {
   pills: PillStyle;
   /** About block and project card surfaces, each with its own pill style. */
   surfaces: SurfaceStyles;
+  /** Project card grid and details. */
+  projectLayout: ProjectLayout;
 };
 
 export type About = {
@@ -522,6 +559,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   colors: DEFAULT_PROFILE_COLORS,
   pills: DEFAULT_PILL_STYLE,
   surfaces: DEFAULT_SURFACES,
+  projectLayout: DEFAULT_PROJECT_LAYOUT,
   tooltips: { enabled: true, style: "default", animation: "slide" },
 };
 
@@ -843,6 +881,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
                 title: typeof pick.title === "string" ? pick.title.slice(0, 100) : "",
                 subtitle: typeof pick.subtitle === "string" ? pick.subtitle.slice(0, 180) : "",
                 image: typeof pick.image === "string" ? pick.image.slice(0, 1_000_000) : "",
+                catalogImage: typeof pick.catalogImage === "string" ? pick.catalogImage.slice(0, 1_000_000) : undefined,
                 meta: typeof pick.meta === "string" ? pick.meta.slice(0, 80) : "",
                 url: typeof pick.url === "string" && /^https?:\/\//i.test(pick.url) ? pick.url.slice(0, 1000) : "",
               }))
@@ -945,6 +984,18 @@ function loadDesignRaw(input: unknown): AboutDesign {
         container: loadContainer(rawSurfaces.project?.container, DEFAULT_SURFACES.project.container),
         pill: loadSurfacePill(rawSurfaces.project?.pill, DEFAULT_SURFACES.project.pill),
       },
+    },
+    projectLayout: {
+      columns: numberIn(raw.projectLayout?.columns, DEFAULT_PROJECT_LAYOUT.columns, 1, 3),
+      gap: numberIn(raw.projectLayout?.gap, DEFAULT_PROJECT_LAYOUT.gap, 0, 64),
+      media: oneOf(raw.projectLayout?.media, ["left", "right", "top"] as const, DEFAULT_PROJECT_LAYOUT.media),
+      mediaSize: numberIn(raw.projectLayout?.mediaSize, DEFAULT_PROJECT_LAYOUT.mediaSize, 22, 62),
+      textLines: numberIn(raw.projectLayout?.textLines, DEFAULT_PROJECT_LAYOUT.textLines, 0, 10),
+      showStatus: boolIn(raw.projectLayout?.showStatus, DEFAULT_PROJECT_LAYOUT.showStatus),
+      showMeta: boolIn(raw.projectLayout?.showMeta, DEFAULT_PROJECT_LAYOUT.showMeta),
+      showStack: boolIn(raw.projectLayout?.showStack, DEFAULT_PROJECT_LAYOUT.showStack),
+      showLinks: boolIn(raw.projectLayout?.showLinks, DEFAULT_PROJECT_LAYOUT.showLinks),
+      showText: boolIn(raw.projectLayout?.showText, DEFAULT_PROJECT_LAYOUT.showText),
     },
   };
 }

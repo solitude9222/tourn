@@ -8,14 +8,28 @@
    --------------------------------------------------------------------------- */
 
 import "../muteButton.css";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { AudioSettings } from "../lib/profileAssets";
 import { audioBusState, setAudioBus, subscribeAudioBus } from "../lib/audioBus";
 
 export function MuteButton({ settings }: { settings: AudioSettings }) {
   const [state, setState] = useState(audioBusState);
+  const [settling, setSettling] = useState(false);
+  const settleTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => subscribeAudioBus(setState), []);
+  useEffect(() => () => window.clearTimeout(settleTimer.current), []);
+
+  // A native range gives no release feedback. Restart a short settle animation
+  // when the thumb is let go, so the volume does not just stop dead.
+  const settle = () => {
+    window.clearTimeout(settleTimer.current);
+    setSettling(false);
+    requestAnimationFrame(() => {
+      setSettling(true);
+      settleTimer.current = window.setTimeout(() => setSettling(false), 440);
+    });
+  };
 
   const silent = state.muted || state.volume === 0;
 
@@ -31,7 +45,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
 
   return (
     <div
-      className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}`}
+      className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}`}
       style={
         {
           "--ap-edge-color": settings.edgeColor,
@@ -80,6 +94,10 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
               const volume = Number(event.target.value);
               setAudioBus({ volume, muted: volume === 0 });
             }}
+            onPointerUp={settle}
+            onPointerCancel={settle}
+            onKeyUp={settle}
+            onBlur={settle}
           />
         </div>
       </div>

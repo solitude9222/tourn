@@ -445,7 +445,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   },
   cursor: {
     style: "system",
-    color: "#93c5fd",
+    color: "#ffffff",
     size: 10,
     trail: false,
     trailType: "trailingCursor",
@@ -463,7 +463,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     style: "solid",
     color: "#0b0d10",
     from: "#0b0d10",
-    to: "#3a1617",
+    to: "#16181d",
     imageUrl: "",
     videoUrl: "",
     videoAudio: false,
@@ -495,7 +495,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     autoLyrics: true,
     edgeEffect:"none",edgeColor:"#ffffff",edgeSpeed:5,
     cardOpacity: 0.92,
-    accentColor: "#93c5fd",
+    accentColor: "#ffffff",
     accentOpacity: 1,
     playerColor: "#0a0b0d",
     borderColor: "#ffffff",
@@ -515,7 +515,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
       id: "none",
       intensity: 50,
       speed: 9,
-      color: "#93c5fd",
+      color: "#ffffff",
       params: defaultParamsFor(null),
     },
     overlay: {
@@ -641,6 +641,15 @@ function normalizeHexColor(value: unknown): string | null {
 
 function colorIn(value: unknown, fallback: string): string {
   return normalizeHexColor(value) ?? fallback;
+}
+
+/* Pale blues were the old stock tint for cursors and particle effects. New
+   defaults are neutral; saved copies of those old defaults are lifted to white
+   once so the profile stops reading blue without touching real accent picks. */
+const LEGACY_PALE_BLUES = new Set(["#93c5fd", "#a8e0ff", "#bfdbfe", "#dbeafe"]);
+function colorWithoutBlueTint(value: unknown, fallback: string): string {
+  const color = colorIn(value, fallback);
+  return LEGACY_PALE_BLUES.has(color.toLowerCase()) ? "#ffffff" : color;
 }
 
 
@@ -796,7 +805,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
       ) as Record<ClickEffectId, CursorMotionSettings>;
       return {
         style,
-        color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
+        color: colorWithoutBlueTint(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
         size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
         trail: boolIn(cursor.trail, DEFAULT_PROFILE_ASSETS.cursor.trail),
         trailType,
@@ -867,7 +876,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
             2,
             24,
           ),
-          color: colorIn(backgroundEffect.color, DEFAULT_PROFILE_ASSETS.effects.background.color),
+          color: colorWithoutBlueTint(backgroundEffect.color, DEFAULT_PROFILE_ASSETS.effects.background.color),
           params: clampParamsFor(BACKGROUND_EFFECT_PARAM[id], backgroundEffect.params),
         };
       })(),

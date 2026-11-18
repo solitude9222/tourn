@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { InterestMode, ProfileSection } from "../lib/about";
+import { DEFAULT_PROJECT_LAYOUT, type InterestMode, type ProfileSection, type ProjectLayout } from "../lib/about";
 import { TECH_BY_ID, techIconUrl } from "../lib/techStack";
 import "../aboutSections.css";
 
@@ -138,7 +138,15 @@ function InterestSet({ section, mode }: { section: ProfileSection; mode?: Intere
   );
 }
 
-export function ProfileSections({ sections, interestMode }: { sections: ProfileSection[]; interestMode?: InterestMode }) {
+export function ProfileSections({
+  sections,
+  interestMode,
+  projectLayout = DEFAULT_PROJECT_LAYOUT,
+}: {
+  sections: ProfileSection[];
+  interestMode?: InterestMode;
+  projectLayout?: ProjectLayout;
+}) {
   if (!sections.length) return null;
 
   const single = sections.length === 1 && sections[0].kind === "project";
@@ -153,21 +161,27 @@ export function ProfileSections({ sections, interestMode }: { sections: ProfileS
           return <InterestSet section={section} mode={interestMode} key={section.id} />;
         }
 
-        const kinds = [section.status, section.meta].filter(Boolean);
+        const kinds = [projectLayout.showStatus ? section.status : "", section.meta].filter(Boolean);
         return (
-          <article className={`lkr-showcase lkr-showcase--${section.kind}`} key={section.id}>
+          <article
+            className={`lkr-showcase lkr-showcase--${section.kind}`}
+            data-project-media={section.kind === "project" ? projectLayout.media : undefined}
+            key={section.id}
+          >
             <div className={`lkr-showcase-art${section.image ? "" : " is-empty"}`}>
               {section.image ? (
                 <img src={section.image} alt="" loading="lazy" />
               ) : (
                 <span aria-hidden="true">{(section.title || KIND_LABEL[section.kind]).slice(0, 1).toUpperCase()}</span>
               )}
-              <span className={`lkr-showcase-kind lkr-showcase-kind--${section.kind}`}>
-                {section.status || KIND_LABEL[section.kind]}
-              </span>
+              {projectLayout.showStatus ? (
+                <span className={`lkr-showcase-kind lkr-showcase-kind--${section.kind}`}>
+                  {section.status || KIND_LABEL[section.kind]}
+                </span>
+              ) : null}
             </div>
             <div className="lkr-showcase-body">
-              {kinds.length ? (
+              {projectLayout.showMeta && kinds.length ? (
                 <div className="lkr-showcase-meta-row">
                   {kinds.map((value) => (
                     <span key={value}>{value}</span>
@@ -176,9 +190,11 @@ export function ProfileSections({ sections, interestMode }: { sections: ProfileS
               ) : null}
               <h2>{section.title || `Untitled ${KIND_LABEL[section.kind].toLowerCase()}`}</h2>
               {section.subtitle ? <p className="lkr-showcase-sub">{section.subtitle}</p> : null}
-              {section.text ? <p className="lkr-showcase-text">{section.text}</p> : null}
+              {projectLayout.showText && section.text ? (
+                <p className="lkr-showcase-text">{section.text}</p>
+              ) : null}
 
-              {section.stack.length ? (
+              {projectLayout.showStack && section.stack.length ? (
                 <div className="lkr-tech-row">
                   {section.stack.map((id) => (
                     <TechBadge id={id} key={id} />
@@ -186,7 +202,7 @@ export function ProfileSections({ sections, interestMode }: { sections: ProfileS
                 </div>
               ) : null}
 
-              {mainUrl || section.links.length ? (
+              {projectLayout.showLinks && (mainUrl || section.links.length) ? (
                 <div className="lkr-showcase-links">
                   {mainUrl ? (
                     <a className="lkr-showcase-cta" href={mainUrl} target="_blank" rel="noreferrer">

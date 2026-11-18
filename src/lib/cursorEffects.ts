@@ -407,7 +407,9 @@ export function mountCursorEffects(
         const alpha = (1 - i / n) * 0.75;
         const art = cursorArt.length ? cursorArt[(n - i) % cursorArt.length] : null;
         if (art?.image.complete && art.image.naturalWidth) {
-          const size = 22 * S;
+          // Keep the lead duplicate close to the real 32px cursor; the older
+          // 22px art read as a second, offset pointer rather than a trail.
+          const size = 30 * S;
           const ratio = art.image.naturalHeight / art.image.naturalWidth || 1;
           // The real cursor places its hotspot under the pointer. Draw the
           // duplicate with that same inset instead of its top-left corner.
@@ -416,13 +418,18 @@ export function mountCursorEffects(
           // starts on the pointer. Manual mode: the real cursor is moved by
           // exactly that many CSS pixels, so move the duplicate by the same
           // amount instead of scaling the offset with the trail size.
-          const offsetX = manual ? settings.hotspotX : 0;
-          const offsetY = manual ? settings.hotspotY : 0;
+          // Manual hotspots are expressed in the normalised 32px cursor's
+          // pixels, while the duplicate is drawn at 30 * size. Scale the
+          // correction into the duplicate so both click points agree.
+          const offsetX = manual ? settings.hotspotX * (size / 32) : 0;
+          const offsetY = manual ? settings.hotspotY * (size / 32) : 0;
           const scale = size / art.image.naturalWidth;
           const insetX = art.ready ? art.hotspot.x * scale : 0;
           const insetY = art.ready ? art.hotspot.y * scale : 0;
           ctx.save();
           ctx.globalAlpha = alpha;
+          ctx.shadowColor = `rgba(${trailColor},${alpha * 0.35})`;
+          ctx.shadowBlur = 5 * S;
           ctx.drawImage(
             art.image,
             points[i].x - offsetX - insetX,
@@ -472,8 +479,8 @@ export function mountCursorEffects(
     } else if (mode === "ghost") {
       // Float the ghost a little farther to the lower-right of the pointer so
       // it reads as a separate companion rather than part of the cursor.
-      const ghostOffsetX = 30;
-      const ghostOffsetY = 22;
+      const ghostOffsetX = 22;
+      const ghostOffsetY = 14;
       ghostX += (mx + ghostOffsetX - ghostX) * 0.1;
       ghostY += (my + ghostOffsetY - ghostY) * 0.1;
       ghostHistory.push({ x: ghostX, y: ghostY });
@@ -674,15 +681,25 @@ export function mountCursorEffects(
     if (!raf) raf = requestAnimationFrame(paint);
   };
 
+  /*
+   * The canvas can start inside the host's border and can be CSS-scaled in a
+   * dashboard preview. Measuring from the canvas itself keeps the drawn tip on
+   * the real pointer; measuring from the host drifted by its border/padding.
+   */
+  const pointInCanvas = (event: PointerEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const ratioX = rect.width ? width / rect.width : 1;
+    const ratioY = rect.height ? height / rect.height : 1;
+    return { x: (event.clientX - rect.left) * ratioX, y: (event.clientY - rect.top) * ratioY };
+  };
+
   const onMove = (event: PointerEvent) => {
     if (event.pointerType === "touch" || document.hidden || document.documentElement.hasAttribute("data-editor-gesture")) return;
-    const rect = host.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const { x, y } = pointInCanvas(event);
     mx = x;
     my = y;
     if (points[0].x < 0) points.forEach((point) => { point.x = x; point.y = y; });
-    if (ghostX < 0) { ghostX = x + 30; ghostY = y + 22; }
+    if (ghostX < 0) { ghostX = x + 22; ghostY = y + 14; }
     if (orbitX < 0) { orbitX = x; orbitY = y; }
     if (skinX < 0) { skinX = x; skinY = y; }
     start();
@@ -705,8 +722,8 @@ export function mountCursorEffects(
 
   const onDown = (event: PointerEvent) => {
     if (event.button !== 0 || document.hidden) return;
-    const rect = host.getBoundingClientRect();
-    clickFx(event.clientX - rect.left, event.clientY - rect.top);
+    const { x, y } = pointInCanvas(event);
+    clickFx(x, y);
     start();
   };
 

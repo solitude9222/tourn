@@ -141,7 +141,11 @@ function bool(v: unknown, fb: boolean): boolean {
 /** Colour field that may legitimately be "" (meaning "inherit"). */
 function colorOrInherit(v: unknown): string {
   if (typeof v !== "string" || !v) return "";
-  return /^#[0-9a-f]{6}$/i.test(v) ? v : "";
+  if (!/^#[0-9a-f]{6}$/i.test(v)) return "";
+  // The old editor seeded a neutral grey, which made every platform mark look
+  // disabled. Treat those seeded greys as "use the brand colour".
+  const seededGreys = new Set(["#8b939b", "#9ca3af", "#a1a1aa", "#71717a", "#6b7280", "#888888"]);
+  return seededGreys.has(v.toLowerCase()) ? "" : v;
 }
 
 /** Coerce anything (a saved document, a server payload) into a safe LinkStore. */

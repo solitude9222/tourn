@@ -7,6 +7,8 @@
 
 import { useEffect, useState } from "react";
 import { readReactions, sendReaction, type ReactionKind, type ReactionState } from "../lib/reactions";
+import type { TooltipAnimation, TooltipStyle } from "../lib/links";
+import { Tooltip } from "./Tooltip";
 
 /** Solid thumb; the dislike is the same shape mirrored vertically. */
 export function ThumbIcon({ down = false, size = 15 }: { down?: boolean; size?: number }) {
@@ -46,9 +48,15 @@ export function ReactionGhost() {
 export function ReactionBar({
   handle,
   variant = "dock",
+  tooltipStyle = "default",
+  tooltipAnimation = "slide",
+  tooltipEnabled = true,
 }: {
   handle: string;
   variant?: "dock" | "inline" | "card";
+  tooltipStyle?: TooltipStyle;
+  tooltipAnimation?: TooltipAnimation;
+  tooltipEnabled?: boolean;
 }) {
   const [state, setState] = useState<ReactionState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -79,28 +87,40 @@ export function ReactionBar({
       role="group"
       aria-label="Rate this profile"
     >
-      <button
-        type="button"
-        className={`pv-react-btn${state.mine === "like" ? " is-on" : ""}`}
-        aria-pressed={state.mine === "like"}
-        aria-label={`Like this profile, ${state.likes} likes`}
-        disabled={busy}
-        onClick={() => void vote("like")}
+      <Tooltip
+        text={tooltipEnabled ? `${state.likes.toLocaleString("en-US")} likes` : ""}
+        style={tooltipStyle}
+        animation={tooltipAnimation}
       >
-        <ThumbIcon />
-        <b>{state.likes.toLocaleString("en-US")}</b>
-      </button>
-      <button
-        type="button"
-        className={`pv-react-btn${state.mine === "dislike" ? " is-on" : ""}`}
-        aria-pressed={state.mine === "dislike"}
-        aria-label={`Dislike this profile, ${state.dislikes} dislikes`}
-        disabled={busy}
-        onClick={() => void vote("dislike")}
+        <button
+          type="button"
+          className={`pv-react-btn${state.mine === "like" ? " is-on" : ""}`}
+          aria-pressed={state.mine === "like"}
+          aria-label={`Like this profile, ${state.likes} likes`}
+          disabled={busy}
+          onClick={() => void vote("like")}
+        >
+          <ThumbIcon />
+          <b>{state.likes.toLocaleString("en-US")}</b>
+        </button>
+      </Tooltip>
+      <Tooltip
+        text={tooltipEnabled ? `${state.dislikes.toLocaleString("en-US")} dislikes` : ""}
+        style={tooltipStyle}
+        animation={tooltipAnimation}
       >
-        <ThumbIcon down />
-        <b>{state.dislikes.toLocaleString("en-US")}</b>
-      </button>
+        <button
+          type="button"
+          className={`pv-react-btn${state.mine === "dislike" ? " is-on" : ""}`}
+          aria-pressed={state.mine === "dislike"}
+          aria-label={`Dislike this profile, ${state.dislikes} dislikes`}
+          disabled={busy}
+          onClick={() => void vote("dislike")}
+        >
+          <ThumbIcon down />
+          <b>{state.dislikes.toLocaleString("en-US")}</b>
+        </button>
+      </Tooltip>
     </div>
   );
 }

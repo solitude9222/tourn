@@ -2778,7 +2778,7 @@
 .tw-design-divider {
   height: 1px;
   margin: 18px 0;
-  background: #23232a;
+  background: linear-gradient(90deg, transparent, #2c3950 12%, #2c3950 88%, transparent);
 }
 
 .tw-design-preview {

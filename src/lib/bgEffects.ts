@@ -161,13 +161,20 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
     for (let i = 0; i < n; i++) P.push({ x: R(W), y: R(H), ph: R(TAU), z: 0.0008 + R(0.002) });
   };
   const twinkles = (t: number, n: number) => {
-    ctx.fillStyle = "#fff";
     for (let i = 0; i < n && i < P.length; i++) {
       const star = P[i];
-      ctx.globalAlpha = 0.3 + 0.7 * Math.abs(Math.sin(t * (star.z ?? 0.001) + star.ph));
+      const alpha = 0.3 + 0.7 * Math.abs(Math.sin(t * (star.z ?? 0.001) + star.ph));
+      const size = 0.4 + ((star.ph * 7) % 1.1);
+      ctx.fillStyle = tint(alpha);
       ctx.beginPath();
-      ctx.arc(star.x, star.y, 0.4 + ((star.ph * 7) % 1.1), 0, TAU);
+      ctx.arc(star.x, star.y, size, 0, TAU);
       ctx.fill();
+      // A faint halo separates nearby stars by depth instead of leaving a flat
+      // field of identical dots.
+      if (SW) {
+        ctx.globalAlpha = alpha * 0.22;
+        ctx.drawImage(SW, star.x - size * 4, star.y - size * 4, size * 8, size * 8);
+      }
     }
     ctx.globalAlpha = 1;
   };
@@ -203,7 +210,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
   function init() {
     W = container.clientWidth;
     H = container.clientHeight;
-    dpr = Math.min(window.devicePixelRatio || 1, 1, Math.sqrt(900_000 / Math.max(1, W * H)));
+    // Retina-ish sprites read far smoother than a 1x canvas; the area cap keeps
+    // the extra pixels bounded on large hero backgrounds.
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(1_600_000 / Math.max(1, W * H)));
     cv.width = Math.max(1, Math.round(W * dpr));
     cv.height = Math.max(1, Math.round(H * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -323,6 +332,12 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         const size = q.s;
         if (SW && cr === 255 && cg === 255 && cb === 255) {
           ctx.drawImage(SW, p.x - size / 2, p.y - size / 2, size, size);
+          // Depth: the larger flakes get a soft atmosphere around the core.
+          if (size > 4) {
+            ctx.globalAlpha = q.a * 0.18;
+            ctx.drawImage(SW, p.x - size * 1.8, p.y - size * 1.8, size * 3.6, size * 3.6);
+            ctx.globalAlpha = q.a;
+          }
         } else {
           ctx.fillStyle = tint(q.a);
           ctx.beginPath();
@@ -392,7 +407,9 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         const g = ctx.createLinearGradient(star.x, star.y, tx, ty);
         g.addColorStop(0, tint(q));
         g.addColorStop(0.3, tint(q * 0.5));
-        g.addColorStop(1, "rgba(96, 165, 250,0)");
+        // End the tail on the effect's own tint. The old hard-coded blue made
+        // every meteor leave a blue streak even on a neutral palette.
+        g.addColorStop(1, tint(0));
         ctx.strokeStyle = g;
         ctx.lineWidth = 2;
         ctx.lineCap = "round";
@@ -402,6 +419,8 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
         ctx.stroke();
         ctx.globalAlpha = q;
         ctx.drawImage(SW!, star.x - 3, star.y - 3, 6, 6);
+        ctx.globalAlpha = q * 0.2;
+        ctx.drawImage(SW!, star.x - 14, star.y - 14, 28, 28);
         ctx.globalAlpha = 1;
         star.x += (star.vx) * motionStep;
         star.y += (star.vy) * motionStep;

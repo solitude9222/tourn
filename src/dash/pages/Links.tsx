@@ -9,7 +9,7 @@ import {SkillPicker} from "../SkillPicker";
 
 import { useState } from "react";
 import { ICON_GAPS, ICON_SIZES, createLink, linkIconUrl, type LinkInstance } from "../../lib/links";
-import { PLATFORMS, getPlatform, placeholderFor } from "../../lib/linkPlatforms";
+import { PLATFORMS, getPlatform, placeholderFor, readableOnLight } from "../../lib/linkPlatforms";
 import { PlatformIcon } from "../../components/PlatformIcons";
 import { LinkGlyph } from "../../components/LinkGlyph";
 import { ProfileLinks } from "../../components/ProfileLinks";
@@ -139,7 +139,7 @@ export function LinksPage() {
 
                   <div className="tw-manage-content">
                     <div className="tw-manage-head">
-                      <span className="tw-manage-icon" style={{ ["--link-color" as string]: definition?.color }}>
+                      <span className="tw-manage-icon" style={{ ["--link-color" as string]: readableOnLight(definition?.color) }}>
                         <LinkGlyph
                           platformId={link.platform}
                           iconUrl={linkIconUrl(link)}

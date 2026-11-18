@@ -33,7 +33,8 @@ create index if not exists support_messages_thread
 `;
 
 const fail = (status, message) => Object.assign(new Error(message), { status });
-const ACCENT = 0xd40410;
+/* Support tickets use the same blue as every other Discord embed. */
+const ACCENT = 0x3b82f6;
 
 /** Discord-compatible embed. Never throws: a dead webhook must not fail a ticket. */
 async function postEmbed(env, embed) {
