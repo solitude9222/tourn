@@ -107,3 +107,12 @@
     transition: none;
   }
 }
+/* Reveal the volume pill with a slide and soft expansion in either corner. */
+.ap-popup.ap-popup--mute .ap-popup-reveal { transform:none; transition:width var(--popup-duration,250ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,250ms) ease; }
+.ap-popup.ap-popup--mute .ap-popup-volume { opacity:0; transform:translateX(-12px) scale(.9); transform-origin:left center; transition:transform var(--popup-duration,250ms) cubic-bezier(.2,.8,.2,1.15),opacity var(--popup-duration,250ms) ease; }
+.ap-popup.ap-popup--mute:is(:hover,:focus-within) .ap-popup-volume { opacity:1; transform:translateX(0) scale(1); }
+.lkr-popup-audio--right .ap-popup.ap-popup--mute .ap-popup-volume,
+.lkr-popup-audio--bottom-right .ap-popup.ap-popup--mute .ap-popup-volume { transform:translateX(12px) scale(.9); transform-origin:right center; }
+.lkr-popup-audio--right .ap-popup.ap-popup--mute:is(:hover,:focus-within) .ap-popup-volume,
+.lkr-popup-audio--bottom-right .ap-popup.ap-popup--mute:is(:hover,:focus-within) .ap-popup-volume { transform:translateX(0) scale(1); }
+@media(prefers-reduced-motion:reduce) { .ap-popup.ap-popup--mute .ap-popup-reveal,.ap-popup.ap-popup--mute .ap-popup-volume { transition:none; } }

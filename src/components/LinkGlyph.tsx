@@ -45,18 +45,14 @@ export function LinkGlyph({
 
   const fallback = iconUrl ? toSiteIcon(iconUrl) : "";
 
-  if (src) {
-    return (
+  const glyph = src ? (
       <img
         src={src}
         alt=""
         className="pv-link-img"
-        style={{ width: size, height: size }}
+        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", position:"static" }}
         onError={() => setSrc(fallback && src !== fallback ? fallback : "")}
       />
-    );
-  }
-
-  if (BrandIcon) return <BrandIcon size={size} />;
-  return <PlatformIcon id={platformId} size={size} />;
+  ) : BrandIcon ? <BrandIcon size={size} /> : <PlatformIcon id={platformId} size={size} />;
+  return <span className="pv-link-glyph" style={{width:size,height:size,display:"inline-grid",placeItems:"center",flexShrink:0,lineHeight:0,verticalAlign:"middle"}}>{glyph}</span>;
 }

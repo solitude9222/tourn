@@ -276,3 +276,17 @@
 }
 .lkr-page .profile-preview .pv-body > .pv-badges--default .pv-badge-pill { min-height:58px; box-sizing:border-box; }
 .lkr-page .profile-preview .pv-body > .pv-bio { margin-top:16px; }
+/* Identity: username and badges together, optional display name underneath. */
+.lkr-page .profile-preview .pv-head-text .pv-id { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; padding-top:0; }
+.lkr-page .profile-preview .pv-head-text .pv-id h3 { flex:0 1 auto; min-width:0; }
+.lkr-page .profile-preview .pv-head-text .pv-id .pv-badges,
+.lkr-page .profile-preview .pv-head-text .pv-id .pv-badge-pill,
+.lkr-page .profile-preview .pv-head-text .pv-id .badge-row { min-height:0; height:auto; }
+.lkr-page .profile-preview .pv-head-text .pv-id .pv-badges { max-width:100%; margin:0; }
+.lkr-page .profile-preview .pv-head-text .pv-id .pv-badges .badge-chip { width:24px!important; height:24px!important; }
+.profile-preview .pv-display-name { margin:6px 0 0; padding:0; font-size:14px; font-weight:400; line-height:1.4; color:var(--pv-muted,#aaa); overflow-wrap:anywhere; }
+.profile-preview[data-name="center"] .pv-display-name { text-align:center; }
+/* Uploaded images share the same bounded glyph slot as brand SVGs. */
+.profile-preview .pv-links-block .pv-link-icons > .tt-wrap { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; }
+.profile-preview .pv-links-block .pv-link-icon .pv-link-glyph { width:70%!important; height:70%!important; overflow:hidden; position:relative; isolation:isolate; }
+.profile-preview .pv-links-block .pv-link-icon .pv-link-glyph > :is(img,svg) { display:block; width:100%!important; height:100%!important; max-width:100%; max-height:100%; object-fit:contain; object-position:center; position:static; margin:0; padding:0; vertical-align:middle; }

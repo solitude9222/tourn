@@ -91,12 +91,9 @@ export function ProfilePreview({
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const alias = user.alias?.trim() || "";
-  // Public names come from the owner: the alias they claimed, or the display
-  // name they typed. The auto-generated account username is only a fallback for
-  // accounts that have not chosen either yet.
-  // A chosen display name takes precedence; the claimed alias remains the
-  // fallback and continues to identify the profile URL.
-  const displayName = about.displayName.trim() || alias || user.username;
+  // The claimed username leads; the optional display name is a separate line.
+  const displayName = alias || user.username;
+  const secondaryName = about.displayName.trim();
   const bio = about.bio.trim();
   const location = about.location.trim();
   const avatar = assets.avatarUrl.trim() || user.avatarUrl;
@@ -384,15 +381,13 @@ export function ProfilePreview({
                   )}
                 </Tooltip>
               </h3>
-              {design.badgePosition === "above-name" ? badgeRow : null}
+              {inlineBadges || design.badgePosition === "above-name" ? badgeRow : null}
             </div>
+            {secondaryName ? <p className="pv-display-name">{secondaryName}</p> : null}
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
         </div>
 
-        {/* The badge rail is its own centred row under the head, exactly as
-            wide as the reference card's pill. */}
-        {design.badgePosition === "default" ? badgeRow : null}
 
         <div
           className={`pv-bio${bio ? "" : " is-empty"}${
