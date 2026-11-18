@@ -383,9 +383,6 @@ export function PagesSection() {
               <span className="lkr-bg-dim" />
             </div>
             <div className="hm-live-profile" inert>
-              // The home page shows this card as a design preview, not as the profile:
-              // location and view counts belong on the public page, so they are
-              // hidden here even when the owner has them switched on.
               <ProfilePreview user={account} about={profile.about} badges={profile.badges.equipped.filter(b => !earned || earned.includes(b.id))} badgeStyle={profile.badges.style} links={profile.links.links} linkDesign={profile.links.design} hideAudio hideDetails disableTilt>
                 {profile.widgets.widgets.filter(w => w.visible !== false).map(widget => <WidgetCard key={widget.id} widget={widget} design={profile.widgets.design} />)}
               </ProfilePreview>

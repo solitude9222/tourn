@@ -3474,6 +3474,24 @@ button {
   }
 }
 
+@media (max-width: 1120px) {
+  .head-inner {
+    gap: 12px;
+  }
+
+  .head-link {
+    padding-inline: 9px;
+  }
+
+  .head-actions {
+    gap: 7px;
+  }
+
+  .profile-trigger-name {
+    max-width: 92px;
+  }
+}
+
 @media (max-width: 980px) {
   .head-links {
     display: none;
@@ -4682,7 +4700,9 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
    sticky sidebar. */
 .legal-wrap {
   display: block;
-  padding-block: 24px 64px;
+  max-width: 760px;
+  margin-inline: auto;
+  padding-block: 20px 64px;
 }
 
 .legal-toc {
@@ -5091,9 +5111,9 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   border: 1px solid var(--line, #23262d);
   color: var(--text, #e8eaf0);
   background: transparent;
@@ -5120,10 +5140,12 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   text-align: center;
 }
 
-/* Compact account pill: avatar, name and chevron in one control. */
+/* Compact account pill: avatar, name and chevron in one control. It is the
+   same height as the cart so the right edge reads as one row of controls. */
 .head-actions .profile-menu {
   gap: 0;
-  padding: 2px 4px 2px 2px;
+  height: 36px;
+  padding: 2px 5px 2px 2px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.025);
 }
@@ -5134,21 +5156,24 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 .profile-trigger {
   height: 30px;
+  min-width: 0;
   padding: 0;
   gap: 7px;
 }
 .profile-trigger .avatar--xs {
   width: 26px;
   height: 26px;
+  border-radius: 50%;
 }
 .profile-trigger-copy {
   flex-direction: row;
   align-items: center;
+  min-width: 0;
 }
 .profile-trigger-name {
   font-size: 13px;
   letter-spacing: -0.01em;
-  max-width: 128px;
+  max-width: 112px;
 }
 .profile-trigger-sub {
   display: none;
@@ -5156,6 +5181,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 .profile-more {
   width: 20px;
   height: 26px;
+  flex: none;
 }
 
 /* ── auth dialog: fits short viewports, plus the Discord reset panel ────── */
