@@ -106,7 +106,7 @@ export function EntryOverlay({
         </h2>
       ) : null}
 
-      <span className="lkr-entry-action">Enter profile <ChevronIcon size={14}/></span>
+      <button type="button" className="lkr-entry-action" disabled={preview} onClick={event=>{event.stopPropagation();beginLeave();}}>Enter profile <ChevronIcon size={14}/></button>
       {entry.divider ? (
         <span
           className="lkr-entry-divider"
@@ -132,10 +132,10 @@ export function EntryOverlay({
         entry.imageMode === "background" && entry.imageUrl ? " lkr-entry--image-bg" : ""
       }${leaving ? " is-leaving" : ""}${preview ? " lkr-entry--preview" : ""}${entry.dim === 0 ? " lkr-entry--clear" : ""}`}
       data-layers={(entry.layers ?? ["text", "image", "background"]).join(" ")}
-      role={preview ? undefined : "button"}
+      role={preview ? undefined : "dialog"}
+      aria-modal={preview ? undefined : true}
       tabIndex={preview ? -1 : 0}
-      aria-label={preview ? undefined : "Enter profile"}
-      onPointerDown={preview ? undefined : beginLeave}
+      aria-label={preview ? undefined : "Profile entry"}
       onClick={preview ? undefined : beginLeave}
       onKeyDown={
         preview

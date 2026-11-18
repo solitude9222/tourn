@@ -23,7 +23,7 @@ export function BadgeChip({
 
   const px = size ?? 24;
   const glowAlpha = Math.round((style.glowIntensity / 100) * 255).toString(16).padStart(2, "0");
-  const glowRadius = 2 + (style.glowIntensity / 100) * 6;
+  const glowRadius = style.glowRadius ?? 12;
   const art = reduced || style.animated === false ? def.artStatic || def.art : artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
   const maskArt = def.artStatic || def.art;
   const tint = style.monochrome ? style.monoColor : def.color;
@@ -111,7 +111,7 @@ export function BadgeRow({
   tooltipStyle?: TooltipStyle;
   tooltipEnabled?: boolean;
   tooltipAnimation?: TooltipAnimation;
-  /** Running total shown beside the Donor badge for the first account. */
+  /** Running total included only in the Donor tooltip. */
   donationTotal?: number | null;
 }) {
   const visible = badges.filter((b) => b.visible && badgeDef(b.id));
@@ -148,15 +148,6 @@ export function BadgeRow({
             >
               <BadgeChip badge={badge} style={style} size={size} />
             </Tooltip>
-            {total === null ? null : (
-              <span
-                className="badge-donation-total"
-                title={`$${total.toLocaleString("en-US")} donated`}
-                aria-label={`$${total.toLocaleString("en-US")} donated`}
-              >
-                ${total.toLocaleString("en-US")}
-              </span>
-            )}
           </Fragment>
         );
       })}

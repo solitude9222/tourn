@@ -339,6 +339,10 @@ export type AboutDesign = {
   slideshowBadges?: boolean;
   slideshowAbout?: boolean;
   /** Glow around the location, view and join details. */
+  profileGlow?: boolean;
+  profileGlowColor?: string;
+  profileGlowStrength?: number;
+  profileGlowRadius?: number;
   metaGlowColor?: string;
   metaGlowStrength?: number;
   /** The "About me" slideshow page: its own copy and speciality tags. */
@@ -823,6 +827,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     slideshowLinks: raw.slideshowLinks === true,
     slideshowBadges: raw.slideshowBadges === true,
     slideshowAbout: raw.slideshowAbout === true,
+    profileGlow:boolIn(raw.profileGlow,false),profileGlowColor:validColor(raw.profileGlowColor,"#80aaff"),profileGlowStrength:numberIn(raw.profileGlowStrength,.4,0,1),profileGlowRadius:numberIn(raw.profileGlowRadius,18,0,60),
     metaGlowColor: validColor(raw.metaGlowColor === "#ff8f92" ? "#60a5fa" : raw.metaGlowColor, "#60a5fa"),
     metaGlowStrength: numberIn(raw.metaGlowStrength, 0, 0, 1),
     aboutSlide: {

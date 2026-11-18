@@ -19,7 +19,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
   const reveal = () => {
     const pill=revealRef.current;if(!pill || matchMedia("(prefers-reduced-motion: reduce)").matches)return;
     const direction=settings.popupSide.includes("right")?1:-1;
-    pill.animate([{opacity:0,transform:`translateX(${direction*18}px) scale(.82)`},{opacity:1,transform:"translateX(0) scale(1)"}],{duration:Math.max(300,settings.popupDuration),easing:"cubic-bezier(.16,1,.3,1)"});
+    pill.animate([{opacity:0,transform:`translateX(${direction*18}px) scale(.82)`},{opacity:1,transform:"translateX(0) scale(1)"}],{duration:Math.max(450,settings.popupDuration),easing:"cubic-bezier(.16,1,.3,1)"});
   };
   const settleTimer = useRef<number | undefined>(undefined);
 
@@ -53,7 +53,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
     <div
       className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}`}
       onPointerEnter={reveal}
-      onFocus={event=>{if(!event.currentTarget.contains(event.relatedTarget))reveal();}}
+      onFocus={event=>{if(!event.currentTarget.contains(event.relatedTarget) && event.target.matches(":focus-visible"))reveal();}}
       style={
         {
           "--ap-edge-color": settings.edgeColor,
@@ -61,9 +61,12 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
           "--popup-size": `${settings.popupSize}px`,
           "--popup-color": settings.popupColor,
           "--popup-background": settings.popupBackground,
-          "--popup-opacity": settings.cardOpacity,
+          "--popup-opacity": settings.popupOpacity ?? .92,
+          "--popup-rail-opacity":settings.popupRailOpacity ?? .92,
+          "--popup-icon-opacity":settings.popupIconOpacity ?? 1,
+          "--popup-glow":settings.popupGlow ? `drop-shadow(0 0 ${settings.popupGlowBlur}px color-mix(in srgb,${settings.popupGlowColor} ${settings.popupGlowStrength}%,transparent))` : "none",
           "--popup-bar-width": `${settings.popupBarWidth}px`,
-          "--popup-duration": `${Math.max(300,settings.popupDuration)}ms`,
+          "--popup-duration": `${Math.max(450,settings.popupDuration)}ms`,
           "--popup-volume": `${(silent ? 0 : state.volume) * 100}%`,
         } as CSSProperties
       }

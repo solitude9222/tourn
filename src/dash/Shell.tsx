@@ -109,7 +109,11 @@ export function Shell({
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuVisible] = useState(false);
+  const [menuClosing,setMenuClosing]=useState(false);
+  const closeMenuTimer=useRef<number|undefined>(undefined);
+  const setMenuOpen=(next:boolean|((value:boolean)=>boolean))=>{const open=typeof next==="function"?next(menuOpen):next;clearTimeout(closeMenuTimer.current);if(open){setMenuClosing(false);setMenuVisible(true);}else{setMenuVisible(false);setMenuClosing(true);closeMenuTimer.current=window.setTimeout(()=>setMenuClosing(false),180);}};
+  useEffect(()=>()=>clearTimeout(closeMenuTimer.current),[]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notes, setNotes] = useState(false);
   const [trades, setTrades] = useState<ShellTrade[]>([]);
@@ -342,14 +346,10 @@ export function Shell({
           </button>
 
           <div className="tw-user" ref={menuRef}>
-            {menuOpen ? (
-              <div className="tw-user-pop" role="menu" aria-label="Account menu">
-                <div className="tw-user-pop-head">
-                  <small>Signed in as</small>
-                  <b>{user.email ?? `@${user.alias || user.username}`}</b>
-                </div>
-
-                <div className="tw-user-pop-list">
+            {menuOpen || menuClosing ? (
+              <div className={`tw-user-pop${menuClosing?" is-closing":""}`} role="menu" aria-label="Account menu" aria-hidden={!menuOpen}>
+                <div className="tw-user-pop-head"><div><b>Your accounts</b><small>Signed in on this browser</small></div><span className="tw-account-count">{new Set([user.id,...saved.map(account=>account.id)]).size}</span></div>
+                <div className="tw-user-pop-list"><div className="tw-current-account"><span className="tw-account-avatar">{avatarUrl?<img src={avatarUrl} alt=""/>:displayName.slice(0,1).toUpperCase()}</span><span className="tw-account-copy"><b>{displayName}</b><small>Current</small></span><IconButton label="Sign out of current account" icon="logout" onClick={()=>{setMenuOpen(false);onSignOut?.();}}/></div>
                   {saved
                     .filter((entry) => entry.id !== user.id)
                     .map((entry) => (
@@ -397,7 +397,7 @@ export function Shell({
                   </button>
                 </div>
 
-                <div className="tw-user-pop-actions">
+                <div className="tw-user-pop-actions"><button type="button" role="menuitem" className="tw-user-pop-item" onClick={()=>{const url=window.location.origin+"/"+encodeURIComponent(user.username);void navigator.clipboard.writeText(url).then(()=>notify("Profile link","Copied to clipboard.")).catch(()=>notify("Profile link",url));}}><Icon name="share" size={14}/>Share profile</button><a role="menuitem" className="tw-user-pop-item" href="https://discord.gg/a9uwptuepD" target="_blank" rel="noreferrer"><Icon name="link" size={14}/>Discord server</a>
                   <a
                     role="menuitem"
                     href={`/${encodeURIComponent(user.username)}`}

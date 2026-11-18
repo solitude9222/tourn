@@ -34,6 +34,7 @@ export type BadgeStyle = {
   animated: boolean;
   glow: boolean;
   glowColor: string;
+  glowRadius: number;
   glowIntensity: number; // 0–100
   glowPulse: boolean;
   monochrome: boolean;
@@ -80,6 +81,7 @@ export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   animated: true,
   glow: false,
   glowColor: "#8aa6ff",
+  glowRadius: 12,
   glowIntensity: 60,
   glowPulse: false,
   monochrome: false,
@@ -337,6 +339,7 @@ export function normalizeBadgeStore(input: unknown): BadgeStore {
         animated: bool(style.animated, true),
         glow: bool(style.glow, DEFAULT_BADGE_STYLE.glow),
         glowColor: hex(style.glowColor, DEFAULT_BADGE_STYLE.glowColor),
+        glowRadius: clamp(style.glowRadius, 12, 0, 48),
         glowIntensity: clamp(style.glowIntensity, DEFAULT_BADGE_STYLE.glowIntensity, 0, 100),
         glowPulse: bool(style.glowPulse, DEFAULT_BADGE_STYLE.glowPulse),
         monochrome: bool(style.monochrome, DEFAULT_BADGE_STYLE.monochrome),

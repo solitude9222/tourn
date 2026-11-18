@@ -341,6 +341,13 @@ export function AudioSettingsCard() {
                   onChange={(popupSide) => updateAudio({ popupSide: popupSide as typeof audio.popupSide })}
                 />
               </Field>
+              <Slider label="Button opacity" min={0} max={100} suffix="%" value={Math.round(audio.popupOpacity*100)} onChange={value=>updateAudio({popupOpacity:value/100})}/>
+              <Slider label="Volume rail opacity" min={0} max={100} suffix="%" value={Math.round(audio.popupRailOpacity*100)} onChange={value=>updateAudio({popupRailOpacity:value/100})}/>
+              <Slider label="Speaker opacity" min={0} max={100} suffix="%" value={Math.round(audio.popupIconOpacity*100)} onChange={value=>updateAudio({popupIconOpacity:value/100})}/>
+              <div className="tw-inline-toggle"><b>Mute button glow</b><Toggle label="Mute button glow" checked={audio.popupGlow} onChange={popupGlow=>updateAudio({popupGlow})}/></div>
+              <ColorField label="Mute glow color" value={audio.popupGlowColor} onChange={popupGlowColor=>updateAudio({popupGlowColor})}/>
+              <Slider label="Mute glow strength" min={0} max={100} suffix="%" value={audio.popupGlowStrength} onChange={popupGlowStrength=>updateAudio({popupGlowStrength})}/>
+              <Slider label="Mute glow radius" min={0} max={60} suffix="px" value={audio.popupGlowBlur} onChange={popupGlowBlur=>updateAudio({popupGlowBlur})}/>
               <ColorField label="Button background" value={audio.popupBackground} onChange={(popupBackground) => updateAudio({ popupBackground })} />
               <ColorField label="Icon colour" value={audio.popupColor} onChange={(popupColor) => updateAudio({ popupColor })} />
             </div>
@@ -916,6 +923,7 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 
   return (
     <>
+      <Card><CardHead icon="sparkles" title="Glow settings" subtitle="Control the profile halo and metadata glow independently."/><div className="tw-form-grid"><div className="tw-inline-toggle"><b>Profile glow</b><Toggle label="Profile glow" checked={Boolean(design.profileGlow)} onChange={profileGlow=>updateDesign({profileGlow})}/></div><ColorField label="Profile glow color" value={design.profileGlowColor||"#80aaff"} onChange={profileGlowColor=>updateDesign({profileGlowColor})}/><Slider label="Profile glow strength" min={0} max={100} suffix="%" value={Math.round((design.profileGlowStrength??.4)*100)} onChange={value=>updateDesign({profileGlowStrength:value/100})}/><Slider label="Profile glow radius" min={0} max={60} suffix="px" value={design.profileGlowRadius??18} onChange={profileGlowRadius=>updateDesign({profileGlowRadius})}/><ColorField label="Details glow color" value={design.metaGlowColor||"#80aaff"} onChange={metaGlowColor=>updateDesign({metaGlowColor})}/><Slider label="Details glow strength" min={0} max={100} suffix="%" value={Math.round((design.metaGlowStrength??0)*100)} onChange={value=>updateDesign({metaGlowStrength:value/100})}/></div></Card>
       <Card>
         <CardHead icon="sparkles" title="Extras" subtitle="Small extras on your public page" />
 

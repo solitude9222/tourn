@@ -327,3 +327,33 @@
 .lkr-page .lkr-entry--split.is-leaving .lkr-split-half--top,.lkr-page .lkr-entry--split.is-leaving .lkr-image-half--top {transform:translateY(-24px);transition:transform var(--lkr-entry-duration,500ms) ease;}
 .lkr-page .lkr-entry--split.is-leaving .lkr-split-half--bottom,.lkr-page .lkr-entry--split.is-leaving .lkr-image-half--bottom {transform:translateY(24px);transition:transform var(--lkr-entry-duration,500ms) ease;}
 @media(prefers-reduced-motion:reduce){.lkr-page .lkr-entry * {transition:none!important;}}
+/* Identity stays compact; portfolio pages use a separate wide canvas. */
+.lkr-page .lkr-flow.lkr-flow--slideshow {width:100%;max-width:none;}
+.lkr-page .lkr-flow--slideshow > .lkr-slide {width:100%;max-width:none;min-height:100%;height:auto;box-sizing:border-box;padding:32px clamp(16px,4vw,64px);}
+.lkr-page .lkr-flow--slideshow > .lkr-slide > :is(.lkr-sections,.lkr-gallery,.lkr-slide-panel) {width:min(100%,1240px);max-width:1240px;margin-inline:auto;}
+.lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-about-slide {width:min(100%,1120px);max-width:1120px;}
+.lkr-page .lkr-flow--slideshow .lkr-sections {grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
+.lkr-page .lkr-flow--slideshow .lkr-interest-set {grid-column:1/-1;width:100%;min-width:0;}
+.lkr-page .lkr-flow--slideshow .lkr-about-title {font-size:30px;}
+.lkr-page .lkr-flow--slideshow .lkr-about-text {font-size:16px;max-width:70ch;}
+.lkr-page .lkr-interest-rail {width:100%;min-width:0;}
+.lkr-page .lkr-interest-track {display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:calc((100% - 48px)/4);gap:16px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:0;padding-block:8px;}
+.lkr-page .lkr-interest-rail--catalog .lkr-interest-track {grid-auto-flow:row;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-columns:auto;overflow:visible;}
+.lkr-page .lkr-interest-track .lkr-interest-tile {position:relative;display:block;width:100%;min-width:0;height:auto;min-height:0;aspect-ratio:3/4;border-radius:16px;overflow:hidden;scroll-snap-align:start;}
+.lkr-page .lkr-interest-track .lkr-interest-art {position:absolute;inset:0;width:100%;height:100%;}
+.lkr-page .lkr-interest-track .lkr-interest-art img {width:100%;height:100%;object-fit:cover;display:block;}
+.lkr-page .lkr-interest-copy {position:absolute;left:14px;right:14px;bottom:16px;z-index:2;}
+.lkr-page .lkr-interest-copy b {display:block;font-size:18px;line-height:1.25;overflow-wrap:anywhere;}
+.lkr-page .lkr-interest-copy small {font-size:11px;}
+/* The row owns its shelf; no second plate can override its controls. */
+.profile-preview .pv-badges .pv-badge-pill {padding:0!important;background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;}
+.profile-preview .pv-badges .badge-row {background:var(--badge-row-bg);border:var(--badge-row-border-width) solid var(--badge-row-border);border-radius:var(--badge-row-radius);padding:var(--badge-row-pad);gap:var(--badge-row-gap);backdrop-filter:blur(var(--badge-row-blur));box-shadow:0 0 var(--badge-row-shadow-blur) var(--badge-row-shadow);overflow:visible;}
+.profile-preview .pv-badges .badge-chip.has-glow {filter:drop-shadow(0 0 var(--badge-glow-radius) var(--badge-glow-color));}
+.profile-preview {filter:var(--profile-glow,none);}
+.profile-preview .pv-slot {text-shadow:0 0 calc(12px * var(--pv-meta-glow-strength,0)) color-mix(in srgb,var(--pv-meta-glow,#80aaff) calc(var(--pv-meta-glow-strength,0)*100%),transparent);}
+.lkr-entry-action {cursor:pointer;min-height:44px;justify-content:center;transition:background .18s,transform .18s;}
+.lkr-entry-action:hover:not(:disabled) {background:#ffffff20;transform:translateY(-2px);}
+.lkr-entry-action:focus-visible {outline:2px solid var(--lkr-entry-accent,#80aaff);outline-offset:4px;}
+@media(max-width:700px){.lkr-page .lkr-flow--slideshow .lkr-sections {grid-template-columns:minmax(0,1fr);}.lkr-page .lkr-interest-track {grid-auto-columns:calc((100% - 12px)/2);gap:12px;}.lkr-page .lkr-interest-rail--catalog .lkr-interest-track {grid-template-columns:repeat(2,minmax(0,1fr));}.lkr-page .lkr-interest-copy b {font-size:14px;}}
+.lkr-page .lkr-flow--slideshow > .lkr-about-slide {display:grid;align-content:center;justify-items:start;width:100%;max-width:1240px;margin-inline:auto;}
+.lkr-page .lkr-flow--slideshow > .lkr-skills-wrap > .lkr-skills-section {width:min(100%,1120px);max-width:1120px;}

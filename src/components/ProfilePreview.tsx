@@ -288,6 +288,7 @@ export function ProfilePreview({
     "--pv-pill-border": hexToRgba(design.colors.accent, design.pills.borderOpacity),
     "--pv-pill-radius": `${design.pills.radius}px`,
     "--pv-pill-blur": `${design.pills.blur}px`,
+    "--profile-glow":design.profileGlow ? `drop-shadow(0 0 ${design.profileGlowRadius??18}px ${hexToRgba(design.profileGlowColor??"#80aaff",design.profileGlowStrength??.4)})` : "none",
     "--pv-meta-glow": design.metaGlowColor || "#60a5fa",
     "--pv-meta-glow-strength": design.metaGlowStrength ?? 0,
     "--pv-zoom": decoration.zoom ?? 1,

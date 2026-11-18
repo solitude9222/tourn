@@ -110,9 +110,24 @@
 /* Reveal the volume pill with a slide and soft expansion in either corner. */
 .ap-popup.ap-popup--mute .ap-popup-reveal { transform:none; transition:width var(--popup-duration,250ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,250ms) ease; }
 .ap-popup.ap-popup--mute .ap-popup-volume { opacity:0; transform:translateX(-12px) scale(.9); transform-origin:left center; transition:transform var(--popup-duration,250ms) cubic-bezier(.2,.8,.2,1.15),opacity var(--popup-duration,250ms) ease; }
-.ap-popup.ap-popup--mute:is(:hover,:focus-within) .ap-popup-volume { opacity:1; transform:translateX(0) scale(1); }
+.ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-volume { opacity:1; transform:translateX(0) scale(1); }
 .lkr-popup-audio--right .ap-popup.ap-popup--mute .ap-popup-volume,
 .lkr-popup-audio--bottom-right .ap-popup.ap-popup--mute .ap-popup-volume { transform:translateX(12px) scale(.9); transform-origin:right center; }
-.lkr-popup-audio--right .ap-popup.ap-popup--mute:is(:hover,:focus-within) .ap-popup-volume,
-.lkr-popup-audio--bottom-right .ap-popup.ap-popup--mute:is(:hover,:focus-within) .ap-popup-volume { transform:translateX(0) scale(1); }
+.lkr-popup-audio--right .ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-volume,
+.lkr-popup-audio--bottom-right .ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-volume { transform:translateX(0) scale(1); }
 @media(prefers-reduced-motion:reduce) { .ap-popup.ap-popup--mute .ap-popup-reveal,.ap-popup.ap-popup--mute .ap-popup-volume { transition:none; } }
+/* A fixed anchor and an absolute rail prevent flex sizing from swallowing motion. */
+.ap-popup.ap-popup--mute {position:relative;width:var(--popup-size,60px);max-width:none;overflow:visible;}
+.ap-popup.ap-popup--mute::after {content:"";position:absolute;top:0;left:100%;width:12px;height:100%;}
+.ap-popup.ap-popup--mute .ap-popup-reveal {position:absolute;left:calc(100% + 10px);top:0;width:var(--popup-safe-width)!important;height:var(--popup-size,60px);opacity:0;visibility:hidden;pointer-events:none;clip-path:inset(0 100% 0 0 round 999px);transform:translateX(-12px) scale(.9);transform-origin:left center;transition:clip-path var(--popup-duration,450ms) cubic-bezier(.16,1,.3,1),transform var(--popup-duration,450ms) cubic-bezier(.16,1,.3,1),opacity var(--popup-duration,450ms) ease,visibility 0s var(--popup-duration,450ms);}
+.ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-reveal {opacity:1;visibility:visible;pointer-events:auto;clip-path:inset(0 round 999px);transform:none;transition-delay:0s;}
+.ap-popup.ap-popup--mute .ap-popup-volume {width:100%;height:100%;margin:0!important;box-sizing:border-box;background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-rail-opacity,.92)*100%),transparent);}
+.ap-popup.ap-popup--mute .ap-popup-icon {filter:var(--popup-glow,none);}
+.ap-popup.ap-popup--mute .ap-popup-glyph {opacity:var(--popup-icon-opacity,1);}
+.ap-popup.ap-popup--mute.ap-popup-style--glossy .ap-popup-icon {background:linear-gradient(145deg,color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent),rgb(0 0 0 / var(--popup-opacity,.92)));}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute::after {left:auto;right:100%;}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-reveal {left:auto;right:calc(100% + 10px);transform-origin:right center;clip-path:inset(0 0 0 100% round 999px);transform:translateX(12px) scale(.9);}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-reveal {clip-path:inset(0 round 999px);transform:none;}
+@media(prefers-reduced-motion:reduce){.ap-popup.ap-popup--mute .ap-popup-reveal {transition:none;}}
+.ap-popup.ap-popup--mute:not(:hover):not(:has(:focus-visible)) .ap-popup-reveal {opacity:0;visibility:hidden;pointer-events:none;}
+.ap-popup.ap-popup--mute:is(.ap-popup-style--minimal,.ap-popup-style--rounded,.ap-popup-style--glass) .ap-popup-icon {background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent);}
