@@ -321,7 +321,7 @@ export function AudioPlayer({
     <audio
       ref={audioRef}
       src={trackSrc}
-      preload={preview || !enabled ? "metadata" : "auto"}
+                    preload={preview ? "none" : enabled ? "auto" : "metadata"}
       onError={() => {
         setLoadFailed(true);
         console.warn("[tourn] audio failed to load", trackSrc);

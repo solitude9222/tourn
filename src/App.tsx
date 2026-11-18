@@ -1,5 +1,5 @@
 import "./lib/preloadLinks";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { DEFAULT_SETTINGS, EMPTY_SETTINGS, loadSettings, type Settings } from "./config";
 import { EMPTY_ABOUT, loadAbout, saveAbout, type About } from "./lib/about";
@@ -57,6 +57,12 @@ const Dashboard = lazy(() => {
 const DemoPage = lazy(() =>
   import("./components/DemoPage").then((module) => ({ default: module.DemoPage })),
 );
+// The public profile renderer is only needed on /handle. Keeping it out of the
+// entry bundle means the marketing home loads without profile layout, audio,
+// widgets or gallery code it never renders.
+const LinkerPreview = lazy(() =>
+  import("./components/LinkerPreview").then((module) => ({ default: module.LinkerPreview })),
+);
 
 const LeaderboardPage = lazy(() =>
   import("./components/Pages").then((m) => ({ default: m.LeaderboardPage })),
@@ -69,7 +75,6 @@ const PremiumPage = lazy(() =>
 const LegalPage = lazy(() => import("./components/Pages").then((m) => ({ default: m.LegalPage })));
 
 import type { Account } from "./lib/auth";
-import { LinkerPreview } from "./components/LinkerPreview";
 import {
   clearPendingDocument,
   fetchOwnProfile,
@@ -360,22 +365,32 @@ function ProfilePage({
     return (
       <section className="profile-page">
         <Oneko enabled={Boolean(about.design.oneko)} cat={about.design.onekoCat} />
-        <LinkerPreview
-          user={user}
-          about={about}
-          widgets={widgets}
-          badges={{
-            ...badges,
-            // Only strip unearned badges once the backend has actually told us
-            // which ones are earned — an empty/unknown list used to hide every
-            // badge on the card.
-            equipped: earned ? badges.equipped.filter((b) => earned.includes(b.id)) : badges.equipped,
-          }}
-          links={links}
-          interactive
-          views={views}
-          joined={formatJoinDate(user.joinedAt, about.metadata.joinFormat)}
-        />
+        <Suspense
+          fallback={
+            <section
+              className="profile-page profile-page--loading"
+              aria-busy="true"
+              aria-label="Loading your profile layout"
+            />
+          }
+        >
+          <LinkerPreview
+            user={user}
+            about={about}
+            widgets={widgets}
+            badges={{
+              ...badges,
+              // Only strip unearned badges once the backend has actually told us
+              // which ones are earned — an empty/unknown list used to hide every
+              // badge on the card.
+              equipped: earned ? badges.equipped.filter((b) => earned.includes(b.id)) : badges.equipped,
+            }}
+            links={links}
+            interactive
+            views={views}
+            joined={formatJoinDate(user.joinedAt, about.metadata.joinFormat)}
+          />
+        </Suspense>
       </section>
     );
   }
@@ -397,24 +412,34 @@ function ProfilePage({
     return (
       <section className="profile-page">
         <Oneko enabled={Boolean(document.about.design.oneko)} cat={document.about.design.onekoCat} />
-        <LinkerPreview
-          user={remote.data.account}
-          about={document.about}
-          widgets={document.widgets}
-          badges={{
-            ...document.badges,
-            equipped: remote.data.earned
-              ? document.badges.equipped.filter((b) => remote.data.earned!.includes(b.id))
-              : document.badges.equipped,
-          }}
-          links={document.links}
-          interactive
-          views={views}
-          joined={formatJoinDate(
-            remote.data.account.joinedAt,
-            document.about.metadata.joinFormat,
-          )}
-        />
+        <Suspense
+          fallback={
+            <section
+              className="profile-page profile-page--loading"
+              aria-busy="true"
+              aria-label="Loading this profile layout"
+            />
+          }
+        >
+          <LinkerPreview
+            user={remote.data.account}
+            about={document.about}
+            widgets={document.widgets}
+            badges={{
+              ...document.badges,
+              equipped: remote.data.earned
+                ? document.badges.equipped.filter((b) => remote.data.earned!.includes(b.id))
+                : document.badges.equipped,
+            }}
+            links={document.links}
+            interactive
+            views={views}
+            joined={formatJoinDate(
+              remote.data.account.joinedAt,
+              document.about.metadata.joinFormat,
+            )}
+          />
+        </Suspense>
       </section>
     );
   }
@@ -446,6 +471,54 @@ function ProfilePage({
   }
 
   return <ProfileNotice handle={handle} kind="missing" viewer={user} onSignIn={onSignIn} />;
+}
+
+/**
+ * Keep a home section out of the first React commit until it is close to the
+ * viewport. The hero paints first; the rest of the page mounts on approach.
+ */
+function DeferredHomeSection({ anchorId, minHeight, children }: { anchorId?: string; minHeight: number; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      setReady(true);
+      return;
+    }
+
+    let done = false;
+    const reveal = () => {
+      if (done) return;
+      // A section above the viewport counts too: jumping with the scrollbar or
+      // an anchor must not leave the skipped sections as empty placeholders.
+      if (element.getBoundingClientRect().top >= window.innerHeight + 300) return;
+      done = true;
+      setReady(true);
+      window.removeEventListener("scroll", reveal);
+      window.removeEventListener("resize", reveal);
+    };
+
+    reveal();
+    window.addEventListener("scroll", reveal, { passive: true });
+    window.addEventListener("resize", reveal);
+    return () => {
+      window.removeEventListener("scroll", reveal);
+      window.removeEventListener("resize", reveal);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      id={ready ? undefined : anchorId}
+      className="hm-deferred"
+      style={ready ? undefined : { minHeight }}
+    >
+      {ready ? children : null}
+    </div>
+  );
 }
 
 function Site() {
@@ -534,27 +607,6 @@ function Site() {
     return () => {
       active = false;
     };
-  }, [route]);
-
-  // Warm the route bundles in the background. Without this the first click on
-  // "Dashboard" had to wait for the chunk, so the click looked ignored and
-  // people pressed twice.
-  useEffect(() => {
-    if (route === "profile") return;
-    let active = true;
-    const preload = () => {
-      if (!active) return;
-      void import("./dash/DashboardApp");
-      void import("./components/Pages");
-    };
-    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number })
-      .requestIdleCallback;
-    if (idle) {
-      const id = idle(preload);
-      return () => { active = false; window.cancelIdleCallback?.(id); };
-    }
-    const timer = window.setTimeout(preload, 900);
-    return () => { active = false; window.clearTimeout(timer); };
   }, [route]);
 
   // Landing pages should always open at the top, not at a restored scroll offset.
@@ -1005,13 +1057,27 @@ function Site() {
                     window.location.hash = "#/premium";
                   }}
                 />
-                <BentoSection signedIn={Boolean(user)} onOpenWidgets={() => { window.location.hash = "#/dashboard/widgets"; }} />
-                <AudioSection />
-                <BadgesSection />
-                <PagesSection />
-                <StatsBand stats={siteStats} onClaim={openPrimary} />
-                <FaqSection />
-                <CtaBanner onClaim={openPrimary} />
+                <DeferredHomeSection anchorId="widgets" minHeight={560}>
+                  <BentoSection signedIn={Boolean(user)} onOpenWidgets={() => { window.location.hash = "#/dashboard/widgets"; }} />
+                </DeferredHomeSection>
+                <DeferredHomeSection anchorId="audio" minHeight={520}>
+                  <AudioSection />
+                </DeferredHomeSection>
+                <DeferredHomeSection anchorId="badges" minHeight={520}>
+                  <BadgesSection />
+                </DeferredHomeSection>
+                <DeferredHomeSection anchorId="pages" minHeight={860}>
+                  <PagesSection />
+                </DeferredHomeSection>
+                <DeferredHomeSection anchorId="community" minHeight={860}>
+                  <StatsBand stats={siteStats} onClaim={openPrimary} />
+                </DeferredHomeSection>
+                <DeferredHomeSection anchorId="faq" minHeight={640}>
+                  <FaqSection />
+                </DeferredHomeSection>
+                <DeferredHomeSection minHeight={400}>
+                  <CtaBanner onClaim={openPrimary} />
+                </DeferredHomeSection>
               </>
             )}
           </main>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { hrefFor, type Route } from "../lib/router";
+import { preloadRoute } from "../lib/routePreload";
 import { useAuth, type Account } from "../lib/auth";
 import {
   BagIcon,
@@ -118,6 +119,9 @@ export function Header({
                 href={hrefFor(link.route ?? "")}
                 className={`head-link${route === link.route ? " is-active" : ""}`}
                 aria-current={route === link.route ? "page" : undefined}
+                onPointerEnter={() => preloadRoute(link.route ?? "")}
+                onPointerDown={() => preloadRoute(link.route ?? "")}
+                onFocus={() => preloadRoute(link.route ?? "")}
               >
                 {link.label}
               </a>
@@ -142,6 +146,9 @@ export function Header({
                 className="profile-trigger"
                 href={hrefFor("dashboard")}
                 aria-label="Open your dashboard"
+                onPointerEnter={() => preloadRoute("dashboard")}
+                onPointerDown={() => preloadRoute("dashboard")}
+                onFocus={() => preloadRoute("dashboard")}
               >
                 {avatarUrl ? (
                   <img className="avatar avatar--xs" src={avatarUrl} alt="" />
@@ -255,7 +262,13 @@ export function Header({
           ))}
           {user ? (
             <>
-              <a className="head-mobile-link" href={hrefFor("dashboard")}>
+              <a
+                className="head-mobile-link"
+                href={hrefFor("dashboard")}
+                onPointerEnter={() => preloadRoute("dashboard")}
+                onPointerDown={() => preloadRoute("dashboard")}
+                onFocus={() => preloadRoute("dashboard")}
+              >
                 Dashboard
               </a>
               <button
