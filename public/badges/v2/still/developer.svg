@@ -1,15 +1,1 @@
-<!-- Derived from Lucide code-xml; ISC license: ./LICENSE. Motion by Tourn. --><svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="32"
-  height="32"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="#7ecac8"
-  stroke-width="2.2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
- role="img" aria-label="Developer"><title>Developer</title>
-  <path d="m18 16 4-4-4-4" />
-  <path d="m6 8-4 4 4 4" />
-  <path d="m14.5 4-5 16" />
-</svg>
+<!-- Original filled geometry and animation by Tourn. --><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" role="img" aria-label="Developer"><title>Developer</title><path fill="#7ecac8" fill-rule="evenodd" d="m7 4-7 8 7 8 3-3-5-5 5-5z M17 4l-3 3 5 5-5 5 3 3 7-8z"/></svg>
