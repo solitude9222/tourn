@@ -1,16 +1,1 @@
-<!-- Derived from Lucide users; ISC license: ./LICENSE. Motion by Tourn. --><svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="32"
-  height="32"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="#34d399"
-  stroke-width="2.2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
- role="img" aria-label="Inviter"><title>Inviter</title>
-  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/></path>
-  <circle cx="9" cy="7" r="4" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.1s" repeatCount="indefinite"/></circle>
-  <path d="M22 21v-2a4 4 0 0 0-3-3.87" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.2s" repeatCount="indefinite"/></path>
-  <path d="M16 3.13a4 4 0 0 1 0 7.75" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.3s" repeatCount="indefinite"/></path>
-</svg>
+<!-- Original filled geometry and animation by Tourn. --><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" role="img" aria-label="Inviter"><title>Inviter</title><path fill="#ca6ce7" fill-rule="evenodd" d="M9 2a4 4 0 1 0 0 8 4 4 0 1 0 0-8 M19 4a3 3 0 1 0 0 6 3 3 0 1 0 0-6 M1 21v-5c0-6 16-6 16 0v5z M19 13c5 0 5 5 5 8h-5z" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" values="0;0;1;0;0" keyTimes="0;0.12;0.28;0.58;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;1;1" keyTimes="0;0.28;1" dur="3.8s" begin="0.0s" repeatCount="indefinite"/></path></svg>

@@ -836,7 +836,7 @@ const timezoneLive = (zone: string): WidgetLive => {
     decoration: null,
     banner: null,
     art: null,
-    accent: "#ef4444",
+    accent: "#60a5fa",
     tag: null,
     badges: [],
     status: null,

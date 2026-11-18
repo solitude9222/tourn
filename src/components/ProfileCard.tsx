@@ -137,7 +137,7 @@ export function ProfileCard() {
           ...live.about.assets,
           card: {
             id: "beam",
-            color: live.about.assets.card.color || "#ff8f92",
+            color: live.about.assets.card.color || "#60a5fa",
             intensity: Math.max(70, live.about.assets.card.intensity),
             speed: live.about.assets.card.speed || 6,
           },

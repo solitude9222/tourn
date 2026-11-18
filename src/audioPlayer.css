@@ -371,7 +371,7 @@
 
 .ap-vinyl-lyric {
   overflow: hidden;
-  color: #f4dfe0;
+  color: #e6edf9;
   font-size: 10.5px;
   font-style: italic;
   font-weight: 700;
@@ -522,7 +522,7 @@
 .ap-load-error {
   display: block;
   margin: 8px 12px 0;
-  color: #f0a2a2;
+  color: #b8c4d8;
   font-size: 11px;
   line-height: 1.4;
 }

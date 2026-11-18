@@ -5,9 +5,9 @@
    --------------------------------------------------------------------------- */
 
 .adm {
-  --adm-brand: var(--accent-text, #ff8f92);
+  --adm-brand: var(--accent-text, #60a5fa);
   --adm-brand-strong: var(--accent, #d40410);
-  --adm-brand-soft: rgba(212, 4, 16, 0.16);
+  --adm-brand-soft: rgba(59, 130, 246, 0.16);
   --adm-ink: var(--page, #0b0b0d);
   --adm-glass: rgba(255, 255, 255, 0.03);
   --adm-line: rgba(255, 255, 255, 0.1);
@@ -109,8 +109,8 @@
 }
 
 .adm-btn:hover {
-  border-color: rgba(250, 180, 182, 0.35);
-  background: rgba(250, 180, 182, 0.1);
+  border-color: rgba(147, 197, 253, 0.35);
+  background: rgba(147, 197, 253, 0.1);
   color: #fff;
 }
 
@@ -125,9 +125,9 @@
 
 .adm-btn--primary {
   border-color: transparent;
-  background: linear-gradient(135deg, #ffd9da 0%, #ffb3ae 55%, #ff8f93 100%);
+  background: linear-gradient(135deg, #ffd9da 0%, #93c5fd 55%, #3b82f6 100%);
   color: #0b0b0d;
-  box-shadow: 0 14px 30px -16px rgba(250, 180, 182, 0.9);
+  box-shadow: 0 14px 30px -16px rgba(147, 197, 253, 0.9);
 }
 
 .adm-btn--primary:hover {
@@ -171,9 +171,9 @@
 }
 
 .adm-tab.is-active {
-  background: linear-gradient(135deg, #ffd9da 0%, #ffb3ae 55%, #ff8f93 100%);
+  background: linear-gradient(135deg, #ffd9da 0%, #93c5fd 55%, #3b82f6 100%);
   color: var(--adm-ink);
-  box-shadow: 0 12px 26px -14px rgba(250, 180, 182, 0.9);
+  box-shadow: 0 12px 26px -14px rgba(147, 197, 253, 0.9);
 }
 
 .adm-tab.is-active svg {
@@ -185,10 +185,10 @@
 .adm-msg {
   margin: 0;
   padding: 10px 14px;
-  border: 1px solid rgba(248, 113, 113, 0.25);
+  border: 1px solid rgba(150, 158, 176, 0.25);
   border-radius: 12px;
-  background: rgba(248, 113, 113, 0.07);
-  color: #fca5a5;
+  background: rgba(150, 158, 176, 0.07);
+  color: #b8c4d8;
   font-size: 11.5px;
 }
 
@@ -224,7 +224,7 @@
   height: 42px;
   flex: none;
   place-items: center;
-  border: 1px solid rgba(250, 180, 182, 0.22);
+  border: 1px solid rgba(147, 197, 253, 0.22);
   border-radius: 13px;
   background: var(--adm-brand-soft);
   color: var(--adm-brand);
@@ -429,7 +429,7 @@
 }
 
 .adm-hint--error {
-  color: #fca5a5;
+  color: #b8c4d8;
 }
 
 .adm-link {
@@ -531,9 +531,9 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px solid rgba(250, 180, 182, 0.22);
+  border: 1px solid rgba(147, 197, 253, 0.22);
   border-radius: 11px;
-  background: rgba(250, 180, 182, 0.07);
+  background: rgba(147, 197, 253, 0.07);
   color: #ffcfd1;
   font: inherit;
   font-size: 10.5px;
@@ -543,8 +543,8 @@
 }
 
 .adm-action:hover {
-  border-color: rgba(250, 180, 182, 0.42);
-  background: rgba(250, 180, 182, 0.15);
+  border-color: rgba(147, 197, 253, 0.42);
+  background: rgba(147, 197, 253, 0.15);
   color: #fff;
 }
 
@@ -579,14 +579,14 @@
   position: absolute;
   inset: 0 0 auto;
   height: 86px;
-  background: linear-gradient(180deg, rgba(250, 180, 182, 0.1), transparent);
+  background: linear-gradient(180deg, rgba(147, 197, 253, 0.1), transparent);
   opacity: 0;
   transition: opacity 0.25s ease;
   pointer-events: none;
 }
 
 .adm-card:hover {
-  border-color: rgba(250, 180, 182, 0.3);
+  border-color: rgba(147, 197, 253, 0.3);
   transform: translateY(-1px);
 }
 
@@ -720,7 +720,7 @@
 }
 
 .adm-search:focus-within {
-  border-color: rgba(250, 180, 182, 0.45);
+  border-color: rgba(147, 197, 253, 0.45);
 }
 
 .adm-search input {
@@ -877,8 +877,8 @@
 }
 
 .adm-flag.is-on {
-  border-color: rgba(250, 180, 182, 0.34);
-  background: rgba(250, 180, 182, 0.14);
+  border-color: rgba(147, 197, 253, 0.34);
+  background: rgba(147, 197, 253, 0.14);
   color: #ffcfd1;
 }
 
@@ -912,7 +912,7 @@
 }
 
 .adm-mini:hover {
-  border-color: rgba(250, 180, 182, 0.35);
+  border-color: rgba(147, 197, 253, 0.35);
   color: #fff;
 }
 
@@ -922,19 +922,19 @@
 }
 
 .adm-mini--edit {
-  border-color: rgba(250, 180, 182, 0.34);
-  background: rgba(250, 180, 182, 0.12);
+  border-color: rgba(147, 197, 253, 0.34);
+  background: rgba(147, 197, 253, 0.12);
   color: #ffcfd1;
 }
 
 .adm-mini--danger {
-  border-color: rgba(248, 113, 113, 0.22);
+  border-color: rgba(150, 158, 176, 0.22);
   color: #f0a3a3;
 }
 
 .adm-mini--danger:hover {
-  border-color: rgba(248, 113, 113, 0.4);
-  color: #fca5a5;
+  border-color: rgba(150, 158, 176, 0.4);
+  color: #b8c4d8;
 }
 
 .adm-open {
@@ -972,11 +972,11 @@
   max-height: min(86vh, 780px);
   margin: auto;
   overflow: auto;
-  border: 1px solid rgba(250, 180, 182, 0.28);
+  border: 1px solid rgba(147, 197, 253, 0.28);
   border-radius: 24px;
   background-image: linear-gradient(180deg, rgba(26, 27, 35, 0.98), rgba(11, 11, 13, 0.99));
   background-color: #121219;
-  box-shadow: 0 40px 90px -40px #000, 0 0 70px -34px rgba(250, 180, 182, 0.6),
+  box-shadow: 0 40px 90px -40px #000, 0 0 70px -34px rgba(147, 197, 253, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
   animation: admRise 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.05) both;
 }
@@ -1015,7 +1015,7 @@
   height: 40px;
   flex: none;
   place-items: center;
-  border: 1px solid rgba(250, 180, 182, 0.24);
+  border: 1px solid rgba(147, 197, 253, 0.24);
   border-radius: 12px;
   background: var(--adm-brand-soft);
   overflow: hidden;
@@ -1075,9 +1075,9 @@
 }
 
 .adm-modal-close:hover {
-  border-color: rgba(248, 113, 113, 0.35);
-  background: rgba(248, 113, 113, 0.1);
-  color: #fca5a5;
+  border-color: rgba(150, 158, 176, 0.35);
+  background: rgba(150, 158, 176, 0.1);
+  color: #b8c4d8;
 }
 
 .adm-modal-body {
@@ -1099,10 +1099,10 @@
 .adm-modal-error {
   margin: 0;
   padding: 8px 11px;
-  border: 1px solid rgba(248, 113, 113, 0.28);
+  border: 1px solid rgba(150, 158, 176, 0.28);
   border-radius: 10px;
-  background: rgba(248, 113, 113, 0.08);
-  color: #fca5a5;
+  background: rgba(150, 158, 176, 0.08);
+  color: #b8c4d8;
   font-size: 11px;
 }
 
@@ -1178,8 +1178,8 @@
 
 .adm-field input:focus,
 .adm-field textarea:focus {
-  border-color: rgba(250, 180, 182, 0.5);
-  background: rgba(250, 180, 182, 0.06);
+  border-color: rgba(147, 197, 253, 0.5);
+  background: rgba(147, 197, 253, 0.06);
 }
 
 .adm-field input::placeholder,
@@ -1269,12 +1269,12 @@
 }
 
 .adm-switch.is-on {
-  border-color: rgba(250, 180, 182, 0.42);
-  background: rgba(250, 180, 182, 0.2);
+  border-color: rgba(147, 197, 253, 0.42);
+  background: rgba(147, 197, 253, 0.2);
 }
 
 .adm-switch.is-on span {
-  background: #ffeeef;
+  background: #eef2f8;
   transform: translateX(16px);
 }
 
@@ -1367,8 +1367,8 @@
 }
 
 .adm-badge--premium {
-  border-color: rgba(250, 180, 182, 0.32);
-  background: rgba(250, 180, 182, 0.14);
+  border-color: rgba(147, 197, 253, 0.32);
+  background: rgba(147, 197, 253, 0.14);
   color: #ffcfd1;
 }
 
@@ -1402,12 +1402,12 @@
 }
 
 .adm-mode:hover {
-  border-color: rgba(250, 180, 182, 0.28);
+  border-color: rgba(147, 197, 253, 0.28);
 }
 
 .adm-mode.is-active {
-  border-color: rgba(250, 180, 182, 0.45);
-  background: rgba(250, 180, 182, 0.08);
+  border-color: rgba(147, 197, 253, 0.45);
+  background: rgba(147, 197, 253, 0.08);
 }
 
 .adm-mode-head {
@@ -1521,7 +1521,7 @@
 }
 
 .adm-rule input:focus {
-  border-color: rgba(250, 180, 182, 0.42);
+  border-color: rgba(147, 197, 253, 0.42);
 }
 
 .adm-rule input::placeholder {
@@ -1542,8 +1542,8 @@
 }
 
 .adm-rule-remove:hover {
-  border-color: rgba(248, 113, 113, 0.35);
-  color: #f87171;
+  border-color: rgba(150, 158, 176, 0.35);
+  color: #8f9bb0;
 }
 
 /* ── gate + footer ──────────────────────────────────────────────────────── */
@@ -1578,7 +1578,7 @@
   width: 52px;
   height: 52px;
   place-items: center;
-  border: 1px solid rgba(250, 180, 182, 0.24);
+  border: 1px solid rgba(147, 197, 253, 0.24);
   border-radius: 15px;
   background: var(--adm-brand-soft);
   color: var(--adm-brand);
@@ -1623,7 +1623,7 @@
 }
 
 .adm-signout:hover {
-  color: #fca5a5;
+  color: #b8c4d8;
 }
 
 /* ── responsive ─────────────────────────────────────────────────────────── */
@@ -1738,13 +1738,13 @@
 }
 
 .adm-copy-link:hover {
-  border-color: rgba(250, 180, 182, 0.42);
-  background: rgba(250, 180, 182, 0.14);
+  border-color: rgba(147, 197, 253, 0.42);
+  background: rgba(147, 197, 253, 0.14);
   color: #fff;
 }
 
 .adm-copy-link.is-done {
-  border-color: rgba(250, 180, 182, 0.55);
+  border-color: rgba(147, 197, 253, 0.55);
   color: var(--adm-brand);
 }
 
@@ -1768,7 +1768,7 @@
   margin-left: auto;
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(250, 180, 182, 0.12);
+  background: rgba(147, 197, 253, 0.12);
   color: var(--adm-brand);
   font-size: 9.5px;
   letter-spacing: 0.04em;
@@ -1840,7 +1840,7 @@
 }
 
 .adm-mini:hover {
-  border-color: rgba(250, 180, 182, 0.4);
+  border-color: rgba(147, 197, 253, 0.4);
   color: #fff;
 }
 
@@ -1880,13 +1880,13 @@
 }
 
 .adm-badge-pick:hover {
-  border-color: rgba(250, 180, 182, 0.35);
+  border-color: rgba(147, 197, 253, 0.35);
   color: #fff;
 }
 
 .adm-badge-pick.is-on {
-  border-color: rgba(250, 180, 182, 0.55);
-  background: rgba(250, 180, 182, 0.14);
+  border-color: rgba(147, 197, 253, 0.55);
+  background: rgba(147, 197, 253, 0.14);
   color: #fff;
 }
 
@@ -1996,8 +1996,8 @@
 }
 
 .adm-role-btn.is-active {
-  border-color: rgba(250, 180, 182, 0.55);
-  background: rgba(250, 180, 182, 0.09);
+  border-color: rgba(147, 197, 253, 0.55);
+  background: rgba(147, 197, 253, 0.09);
   color: #ffdfe0;
 }
 
@@ -2030,8 +2030,8 @@
 }
 
 .adm-badge-pick.is-on {
-  border-color: rgba(250, 180, 182, 0.5);
-  background: rgba(250, 180, 182, 0.1);
+  border-color: rgba(147, 197, 253, 0.5);
+  background: rgba(147, 197, 253, 0.1);
 }
 
 .adm-badge-initial {
@@ -2039,7 +2039,7 @@
   width: 18px;
   height: 18px;
   place-items: center;
-  border: 1px solid rgba(250, 180, 182, 0.35);
+  border: 1px solid rgba(147, 197, 253, 0.35);
   border-radius: 5px;
   color: var(--adm-brand);
   font-size: 9px;
@@ -2071,9 +2071,9 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 .adm.adm--embedded {
-  --adm-brand: var(--accent-text, #ff8f92);
+  --adm-brand: var(--accent-text, #60a5fa);
   --adm-brand-strong: var(--accent, #d40410);
-  --adm-brand-soft: rgba(212, 4, 16, 0.14);
+  --adm-brand-soft: rgba(59, 130, 246, 0.14);
   --adm-line: var(--border, #1f1f1f);
   --adm-line-soft: #1b1b1f;
   --adm-muted: #9d8a8b;
@@ -2117,7 +2117,7 @@
 }
 
 .adm.adm--embedded .adm-tab.is-active {
-  background: rgba(212, 4, 16, 0.16);
+  background: rgba(59, 130, 246, 0.16);
   color: #ffd6d3;
   box-shadow: none;
 }
@@ -2289,7 +2289,7 @@
   resize: vertical;
 }
 .adm-serial-box:focus-visible {
-  outline: 2px solid rgba(250, 180, 182, 0.5);
+  outline: 2px solid rgba(147, 197, 253, 0.5);
   outline-offset: 2px;
 }
 .adm-serial-box--out {
@@ -2383,8 +2383,8 @@
 }
 
 .adm-action--primary {
-  border-color: #ffeeef;
-  background: #ffeeef;
+  border-color: #eef2f8;
+  background: #eef2f8;
   color: #1c1010;
 }
 
@@ -2454,8 +2454,8 @@
 
 .adm-claim-input:focus-visible {
   outline: none;
-  border-color: rgba(250, 180, 182, 0.6);
-  box-shadow: 0 0 0 3px rgba(250, 180, 182, 0.12);
+  border-color: rgba(147, 197, 253, 0.6);
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.12);
 }
 
 .adm-note {
@@ -2470,7 +2470,7 @@
 }
 
 .adm-note.is-error {
-  color: #fca5a5;
+  color: #b8c4d8;
 }
 
 .adm-serial-row {
@@ -2671,8 +2671,8 @@
 
 .adm .adm-btn--primary,
 .adm .adm-action--primary {
-  border-color: #ffeeef;
-  background: #ffeeef;
+  border-color: #eef2f8;
+  background: #eef2f8;
   color: #1c1010;
 }
 
@@ -2757,7 +2757,7 @@
 }
 
 .adm .adm-bot-report li.is-bad b {
-  color: #f0a2a2;
+  color: #b8c4d8;
 }
 
 .adm .adm-bot-report li.is-skip b {
@@ -2844,7 +2844,7 @@
 
 .adm .adm-tab.is-active {
   border-color: #5a2b2d;
-  background: #3a0609;
+  background: #10182a;
   color: #ffd6d3;
 }
 

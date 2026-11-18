@@ -77,13 +77,13 @@ export type BadgeStore = {
 
 export const DEFAULT_BADGE_STYLE: BadgeStyle = {
   glow: false,
-  glowColor: "#ff8f92",
+  glowColor: "#8aa6ff",
   glowIntensity: 60,
   glowPulse: false,
   monochrome: false,
-  monoColor: "#ff8f92",
+  monoColor: "#8aa6ff",
   overlay: false,
-  overlayColor: "#ff8f92",
+  overlayColor: "#8aa6ff",
   overlayStrength: 50,
   // Badges carry a light sweep by default so they never look like flat stickers.
   animation: "none",
@@ -229,15 +229,15 @@ export function canonicalBadgeId(id: string): string {
 /* ── platform badges (tourn.lol's own) ─────────────────────── */
 
 const PLATFORM: BadgeDef[] = [
-  { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: `${ANIMATED}/owner.svg`, artStatic: `${ICON}/owner.svg`, color: "#ff4d4d" },
-  { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ANIMATED}/staff.svg`, artStatic: `${ICON}/staff.svg`, color: "#6b7cff" },
+  { id: "owner", name: "Owner", description: "Platform creator", requirement: "Automatic: given to the account that owns tourn.lol.", group: "platform", art: `${ANIMATED}/owner.svg`, artStatic: `${ICON}/owner.svg`, color: "#ffdf00" },
+  { id: "staff", name: "Staff", description: "Core team member", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ANIMATED}/staff.svg`, artStatic: `${ICON}/staff.svg`, color: "#8579ef" },
   { id: "helper", name: "Helper", description: "Active community helper", requirement: "Granted by staff for helping members in the tourn.lol Discord.", group: "platform", art: `${ANIMATED}/helper.svg`, artStatic: `${ICON}/helper.svg`, color: "#e8a43c" },
-  { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: `${ANIMATED}/premium.svg`, artStatic: `${ICON}/premium.svg`, color: "#b44dff" },
-  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: `${ANIMATED}/verified.svg`, artStatic: `${ICON}/verified.svg`, color: "#1f9bff" },
+  { id: "premium", name: "Premium", description: "Supporter with premium perks", requirement: "Automatic: Premium is active on your account.", group: "platform", art: `${ANIMATED}/premium.svg`, artStatic: `${ICON}/premium.svg`, color: "#ffad0d" },
+  { id: "verified", name: "Verified", description: "Officially verified user", requirement: "Granted by staff — ask in the Discord if you're a notable creator.", group: "platform", art: `${ANIMATED}/verified.svg`, artStatic: `${ICON}/verified.svg`, color: "#3275f3" },
   { id: "donator", name: "Donor", description: "Donated to keep the site running", requirement: "Granted by staff after a donation.", group: "platform", art: `${ANIMATED}/donor.svg`, artStatic: `${ICON}/donor.svg`, color: "#1fc46b" },
   { id: "gifter", name: "Gifter", description: "Gifted a product to someone", requirement: "Automatic: transfer a username or product to another member.", group: "platform", art: `${ANIMATED}/gifter.svg`, artStatic: `${ICON}/gifter.svg`, color: "#ffa51f" },
-  { id: "og", name: "OG", description: "Early supporter of tourn.lol", requirement: "Automatic: one of the first 100 accounts on tourn.lol.", group: "platform", art: `${ANIMATED}/og.svg`, artStatic: `${ICON}/og.svg`, color: "#ffc21f" },
-  { id: "booster", name: "Server Booster", description: "Boosted the tourn.lol Discord", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: `${ANIMATED}/server-booster.svg`, artStatic: `${ICON}/server-booster.svg`, color: "#ff7a1a" },
+  { id: "og", name: "OG", description: "Early supporter of tourn.lol", requirement: "Automatic: one of the first 100 accounts on tourn.lol.", group: "platform", art: `${ANIMATED}/og.svg`, artStatic: `${ICON}/og.svg`, color: "#91df2a" },
+  { id: "booster", name: "Server Booster", description: "Boosted the tourn.lol Discord", requirement: "Granted by staff to Discord server boosters.", group: "platform", art: `${ANIMATED}/server-booster.svg`, artStatic: `${ICON}/server-booster.svg`, color: "#b66bd1" },
   { id: "bughunter", name: "Bug Hunter", description: "Found and reported a real bug", requirement: "Granted by staff for a reproducible bug report.", group: "platform", art: `${ANIMATED}/bug-hunter.svg`, artStatic: `${ICON}/bug-hunter.svg`, color: "#3ecf5a" },
   { id: "user", name: "Active User", description: "Part of the tourn.lol community", requirement: "Automatic: account is 30+ days old with a bio of at least 20 characters.", group: "platform", art: `${ANIMATED}/ivera.svg`, artStatic: `${ICON}/ivera.svg`, color: "#f5c518" },
 ];
@@ -249,16 +249,16 @@ const PLATFORM: BadgeDef[] = [
 const EXTRA: BadgeDef[] = [
   { id: "partner", name: "Partner", description: "Official platform partner", requirement: "Granted by staff to official partners.", group: "platform", art: `${ICON}/parnter.png`, color: "#60a5fa" },
   { id: "coder", name: "Coder", description: "Contributed code", requirement: "Automatic: publish a profile with a GitHub link or GitHub widget.", group: "platform", art: `${ICON}/coder.gif`, color: "#22c55e" },
-  { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: `${ICON}/newbie.png`, color: "#ff8f92" },
-  { id: "developer", name: "Developer", description: "Built tourn.lol", requirement: "Granted by staff to the people who build and maintain tourn.lol.", group: "platform", art: `${ICON}/developer.svg`, color: "#ff8f92" },
-  { id: "administrator", name: "Administrator", description: "Runs the platform", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/administrator.svg`, color: "#f87171" },
+  { id: "newbie", name: "Newbie", description: "Joined recently", requirement: "Automatic for your first 7 days, then it retires.", group: "platform", art: `${ICON}/newbie.png`, color: "#8aa6ff" },
+  { id: "developer", name: "Developer", description: "Built tourn.lol", requirement: "Granted by staff to the people who build and maintain tourn.lol.", group: "platform", art: `${ICON}/developer.svg`, color: "#7ecac8" },
+  { id: "administrator", name: "Administrator", description: "Runs the platform", requirement: "Automatic: your account has the admin flag.", group: "platform", art: `${ICON}/administrator.svg`, color: "#89a9f8" },
   { id: "event-winner", name: "Winner", description: "Won a tourn.lol event", requirement: "Granted by staff for winning an event.", group: "platform", art: `${ANIMATED}/winner.svg`, artStatic: `${ICON}/winner.svg`, color: "#ffc21f" },
   { id: "event-second", name: "Second Place", description: "Placed second in an event", requirement: "Granted by staff for second place in an event.", group: "platform", art: `${ANIMATED}/second-place.svg`, artStatic: `${ICON}/second-place.svg`, color: "#c0c0c0" },
   { id: "event-third", name: "Third Place", description: "Placed third in an event", requirement: "Granted by staff for third place in an event.", group: "platform", art: `${ANIMATED}/third-place.svg`, artStatic: `${ICON}/third-place.svg`, color: "#d9822b" },
-  { id: "beta-tester", name: "Beta Tester", description: "Tested the beta", requirement: "Granted by staff to accounts that tested an early build.", group: "platform", art: `${ICON}/beta-tester.svg`, color: "#a3e635" },
-  { id: "inviter", name: "Inviter", description: "Brought 5 people in", requirement: "Granted by staff once you bring in 5 members.", group: "platform", art: `${ICON}/inviter.svg`, color: "#34d399" },
-  { id: "server-tag", name: "Server Tag", description: "Wears the server tag", requirement: "Automatic: staff attach this badge to your Discord role in the automation rules.", group: "platform", art: `${ICON}/server-tag.svg`, color: "#5865f2" },
-  { id: "innovator", name: "Innovator", description: "Shaped the product", requirement: "Granted by staff when your feature suggestion ships.", group: "platform", art: `${ICON}/innovator.svg`, color: "#22d3ee" },
+  { id: "beta-tester", name: "Beta Tester", description: "Tested the beta", requirement: "Granted by staff to accounts that tested an early build.", group: "platform", art: `${ICON}/beta-tester.svg`, color: "#46d6e4" },
+  { id: "inviter", name: "Inviter", description: "Brought 5 people in", requirement: "Granted by staff once you bring in 5 members.", group: "platform", art: `${ICON}/inviter.svg`, color: "#ca6ce7" },
+  { id: "server-tag", name: "Server Tag", description: "Wears the server tag", requirement: "Automatic: staff attach this badge to your Discord role in the automation rules.", group: "platform", art: `${ICON}/server-tag.svg`, color: "#d7e84e" },
+  { id: "innovator", name: "Innovator", description: "Shaped the product", requirement: "Granted by staff when your feature suggestion ships.", group: "platform", art: `${ICON}/innovator.svg`, color: "#5dcdb9" },
   { id: "orion", name: "Orion", description: "Four store purchases", requirement: "Automatic: redeem four store purchases on this account.", group: "platform", art: `${ICON}/orion.svg`, color: "#c084fc" },
   { id: "the-million", name: "The Million", description: "Celebrated 1M members", requirement: "Granted by staff when tourn.lol reached one million members.", group: "platform", art: `${ANIMATED}/the-million.svg`, artStatic: `${ICON}/the-million.svg`, color: "#27d3c0" },
 ];
@@ -266,7 +266,7 @@ const EXTRA: BadgeDef[] = [
 const SEASONAL: BadgeDef[] = [
   { id: "halloween_2026", name: "Halloween 2026", description: "Celebrated Halloween 2026", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "seasonal", art: `${ICON}/hallowen.gif`, color: "#f97316", buyable: true },
   { id: "christmas-2025", name: "Christmas 2025", description: "Exclusive badge from the 2025 winter sale", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "seasonal", art: `${ANIMATED}/christmas-2025.svg`, artStatic: `${ICON}/christmas-2025.svg`, color: "#6fc3ff", buyable: true },
-  { id: "christmas_2026", name: "Christmas 2026", description: "Exclusive badge from the 2026 winter sale", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "seasonal", art: `${ANIMATED}/christmas-2026.svg`, artStatic: `${ICON}/christmas-2026.svg`, color: "#ff2d2d", buyable: true },
+  { id: "christmas_2026", name: "Christmas 2026", description: "Exclusive badge from the 2026 winter sale", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "seasonal", art: `${ANIMATED}/christmas-2026.svg`, artStatic: `${ICON}/christmas-2026.svg`, color: "#79b8e9", buyable: true },
   { id: "easter-2025", name: "Easter 2025", description: "Exclusive badge from the 2025 Easter sale", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "seasonal", art: `${ANIMATED}/easter-2025.svg`, artStatic: `${ICON}/easter-2025.svg`, color: "#ff9ccf", buyable: true },
   { id: "easter", name: "Easter 2026", description: "Exclusive badge from the 2026 Easter sale", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "seasonal", art: `${ANIMATED}/easter-2026.svg`, artStatic: `${ICON}/easter-2026.svg`, color: "#8b7bff", buyable: true },
   { id: "autumn", name: "Autumn", description: "Seasonal Autumn badge", requirement: "Buy it from the store — it lands on your account as soon as the order confirms.", group: "seasonal", art: `${ICON}/autumn.svg`, color: "#fb923c", buyable: true },

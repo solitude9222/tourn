@@ -493,7 +493,8 @@ function Site() {
       legal: "legal",
       demo: "demo",
     };
-    document.title = `tourn.lol — ${names[route] ?? route}`;
+    const label = names[route] ?? route;
+    document.title = `tourn | ${label.charAt(0).toUpperCase() + label.slice(1)}`;
   }, [route]);
 
   // Coming back from Discord with ?error=… used to land on the home page with

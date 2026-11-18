@@ -40,7 +40,7 @@ export function ProfileMetadata({
   const pageUrl = `${window.location.origin}/${handle}`;
   const baseTitle =
     meta.title.trim() ||
-    `${about.displayName.trim() || user.alias?.trim() || user.username} · tourn.lol`;
+    `tourn | ${about.displayName.trim() || user.alias?.trim() || user.username}`;
   // Share text is opt-in. Blank fields intentionally leave an image-only card
   // instead of filling the embed with the profile bio or display name.
   const embedTitle = meta.shareTitle.trim();

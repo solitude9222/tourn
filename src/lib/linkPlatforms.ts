@@ -69,7 +69,7 @@ export const PLATFORMS: Platform[] = [
   { id: "crunchyroll", name: "Crunchyroll", Icon: SiCrunchyroll, color: "#F47521" },
   { id: "wise", name: "Wise", Icon: SiWise, color: "#9FE870" },
   { id: "osu", name: "osu!", Icon: SiOsu, color: "#FF66AA" },
-  { id: "website", name: "Website", Icon: FaGlobe, color: "#ffb3ae" },
+  { id: "website", name: "Website", Icon: FaGlobe, color: "#93c5fd" },
   { id: "email", name: "Email", Icon: FaEnvelope, color: "#ea580c" },
   { id: "product", name: "Product", Icon: FaBox, color: "#34d399" },
   { id: "custom", name: "Custom link", Icon: FaLink, color: "#8b939b" },

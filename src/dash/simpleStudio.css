@@ -85,3 +85,43 @@ html[data-editor-gesture="true"] .tw-dash :is(.tw-card,.tw-modal,.fx-tile-previe
 .tw-avatar-editor-preview .tw-avatar-editor-decoration { position:absolute; width:120%; height:120%; left:-10%; top:-10%; object-fit:contain; pointer-events:none; }
 
 .tw-control-portal .tw-color-pop { animation:none!important; transition:none!important; transform:none!important; }
+/* Consistent sidebar, media and scroll boundaries. */
+.tw-dash .tw-search { margin:12px 18px 18px; min-height:44px; padding:0 13px; background:#131315; border:1px solid #28282d; border-radius:12px; box-shadow:none; color:#93939e; }
+.tw-dash .tw-search input { font-size:13px; color:#ececf1; }
+.tw-dash .tw-search kbd { border:1px solid #323238; background:transparent; border-radius:5px; padding:2px 5px; color:#92929d; font-size:10px; white-space:nowrap; }
+.tw-dash .tw-rail { height:100dvh; overflow:visible; display:flex; flex-direction:column; }
+.tw-dash .tw-rail-scroll { flex:1 1 0; min-height:0; overflow-y:auto; padding-bottom:18px; }
+.tw-dash .tw-rail-foot { position:relative; flex:0 0 auto; padding:12px 14px 14px; background:var(--rail); border-top:1px solid var(--border); }
+.tw-dash .tw-premium-card { width:100%; min-height:58px; border:1px solid #333027; border-radius:12px; background:linear-gradient(110deg,#29231b,#211d18); box-shadow:none; padding:10px 14px; gap:12px; }
+.tw-dash .tw-premium-copy b { color:#f4eee2; font-size:12px; }
+.tw-dash .tw-premium-copy small { color:#b0a99b; font-size:10px; }
+.tw-dash .tw-premium-icon { background:none; border:0; box-shadow:none; }
+.tw-dash .tw-premium-chev { display:none; }
+.tw-dash .tw-user-foot { display:block; margin-top:8px; border:1px solid var(--border); border-radius:14px; background:#131315; }
+.tw-dash .tw-user-row { width:100%; padding:12px; min-height:66px; gap:12px; border:0; background:transparent; }
+.tw-dash .tw-avatar { width:38px; height:38px; border:1px solid #303036; border-radius:50%; }
+.tw-dash .tw-avatar i { display:none; }
+.tw-dash .tw-user-meta { flex:1; text-align:left; }
+.tw-dash .tw-user-meta b { color:#f0f0f4; font-size:12px; }
+.tw-dash .tw-user-meta small { color:#9696a2; font-size:10px; }
+.tw-dash .tw-account-more { color:#858590; letter-spacing:1px; font-size:12px; }
+.tw-dash .tw-user-bell { position:fixed; top:14px; right:24px; z-index:32; background:transparent; border:0; }
+.tw-dash .tw-profile-media-grid { grid-template-columns:repeat(5,minmax(0,1fr)); align-items:start; }
+.tw-dash .tw-profile-media-tile { width:100%; min-width:0; }
+.tw-dash .tw-media-background-placeholder,.tw-dash .tw-media-empty { display:flex; width:100%; height:100%; min-height:158px; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#a7a7b2; font-size:12px; }
+.tw-dash .tw-media-background { display:block; width:100%; height:100%; object-fit:cover; }
+.tw-dash .tw-main { min-height:0; padding-bottom:160px; overscroll-behavior:contain; }
+.tw-dash .tw-page-swap { min-width:0; overflow:visible; }
+.tw-dash .tw-modal-layer { padding:16px; height:100dvh; box-sizing:border-box; overflow:auto; }
+.tw-dash .tw-modal { max-height:calc(100dvh - 32px); flex-shrink:0; }
+.tw-dash .tw-modal-body { min-height:0; overflow:auto; padding-bottom:32px; }
+.tw-dash .tw-nav-item { color:#9898a3; }
+@media(max-width:1200px) { .tw-dash .tw-profile-media-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:650px) { .tw-dash .tw-profile-media-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.tw-dash .tw-user-bell { right:16px; } }
+.tw-dash .tw-premium-copy { flex:1; text-align:left; }
+.tw-dash .tw-user { width:100%; }
+.tw-dash .tw-user-foot { width:100%; box-sizing:border-box; }
+.tw-dash .tw-media-reset-row { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:5px; }
+.tw-dash .tw-media-reset-row .tw-btn { min-width:0; white-space:normal; }
+/* Body-level portals keep nested libraries above their originating sections. */
+.tw-dialog-portal .tw-modal-layer { position:fixed; inset:0; z-index:2400; }

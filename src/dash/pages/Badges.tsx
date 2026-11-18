@@ -14,7 +14,8 @@ export function BadgesPage(){
  const owned=useMemo(()=>new Set(earned),[earned]),equipped=useMemo(()=>new Set(badges.equipped.map(item=>item.id)),[badges.equipped]);
  const style=badges.style;
  const update=(patch:Partial<typeof style>)=>setBadges(current=>({...current,style:{...current.style,...patch,size:24}}));
- const items=BADGE_CATALOGUE.filter(badge=>(tab!=="yours"||owned.has(badge.id))&&(category==="all"||badge.group===category)&&[badge.name,badge.description,badge.requirement].join(" ").toLowerCase().includes(query.toLowerCase()));
+ const order=["owner","developer","administrator","staff","verified","premium","gifter","donator","booster","event-winner","event-second","event-third","beta-tester","bughunter","og","inviter","server-tag","innovator","christmas-2025","summer","autumn","easter","orion"];
+ const items=[...BADGE_CATALOGUE].sort((a,b)=>(order.indexOf(a.id)<0?999:order.indexOf(a.id))-(order.indexOf(b.id)<0?999:order.indexOf(b.id))).filter(badge=>(tab!=="yours"||owned.has(badge.id))&&(category==="all"||badge.group===category)&&[badge.name,badge.description,badge.requirement].join(" ").toLowerCase().includes(query.toLowerCase()));
  const toggle=(badge:BadgeDef)=>{if(!owned.has(badge.id)){setDetail(badge);return;}setBadges(current=>{if(current.equipped.some(item=>item.id===badge.id))return {...current,equipped:current.equipped.filter(item=>item.id!==badge.id)};if(current.equipped.length>=30){notify("Badge limit","You can equip up to 30 badges.");return current;}return {...current,equipped:[...current.equipped,{id:badge.id,visible:true}]};});};
  const move=(index:number,delta:number)=>setBadges(current=>{const next=index+delta;if(next<0||next>=current.equipped.length)return current;const order=[...current.equipped];[order[index],order[next]]=[order[next],order[index]];return {...current,equipped:order};});
  return <div className="tw-badges-v2">

@@ -68,7 +68,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.28);
-  color: #ffc8ca;
+  color: #c8d3e3;
   font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 0.9em;
 }
@@ -83,9 +83,9 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(255, 168, 171, 0.035), transparent 55%),
+    linear-gradient(180deg, rgba(96, 165, 250, 0.035), transparent 55%),
     #08090b;
-  color: #ffd8d9;
+  color: #dbe4f2;
   font-family: "Segoe UI", "Lexend", system-ui, sans-serif;
   font-size: 10px;
   line-height: 1.55;
@@ -100,7 +100,7 @@
   left: 0;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 168, 171, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.3), transparent);
 }
 
 .rt-code-block code {
@@ -118,9 +118,9 @@
 }
 
 .rt-link {
-  color: var(--ice, #ffb3ae);
+  color: var(--ice, #93c5fd);
   text-decoration: underline;
-  text-decoration-color: rgba(255, 168, 171, 0.45);
+  text-decoration-color: rgba(96, 165, 250, 0.45);
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
   transition: color 0.16s ease, text-decoration-color 0.16s ease;
@@ -128,7 +128,7 @@
 
 .rt-link:hover {
   color: #fff2f2;
-  text-decoration-color: #ffb3ae;
+  text-decoration-color: #93c5fd;
 }
 
 /* Live values read as coloured text inside the sentence. They used to be
@@ -143,7 +143,7 @@
   border: 0;
   border-radius: 0;
   background: none;
-  color: #ffb9bb;
+  color: #c3cee0;
   font-size: inherit;
   font-variant-numeric: tabular-nums;
   line-height: inherit;
@@ -171,7 +171,7 @@
 }
 
 .rt-date {
-  color: #fed6d7;
+  color: #dbe4f2;
 }
 
 .rt-relative {
@@ -220,14 +220,14 @@
 
 .rt-spoiler:hover,
 .rt-spoiler:focus-visible {
-  background: rgba(255, 168, 171, 0.1);
+  background: rgba(96, 165, 250, 0.1);
   color: inherit;
   text-shadow: none;
 }
 
 .rt-quote {
   padding: 2px 0 2px 10px;
-  border-left: 2px solid rgba(255, 168, 171, 0.34);
+  border-left: 2px solid rgba(96, 165, 250, 0.34);
   color: color-mix(in srgb, currentColor 78%, transparent);
   font-style: italic;
 }
@@ -242,7 +242,7 @@
 }
 
 .rt-list li::marker {
-  color: rgba(255, 168, 171, 0.7);
+  color: rgba(96, 165, 250, 0.7);
 }
 
 @keyframes rtPulse {

@@ -157,10 +157,10 @@ export function ProfilePreview({
   const inlineBadges = design.badgePosition === "default";
 
   const locationPill = location && showLocation ? (
-    <span className="pv-location">
+    <Tooltip text={`Location: ${location}`} style={tooltips.style} animation={tooltips.animation}><span className="pv-location" tabIndex={0}>
       <LocationGlyph size={12} />
       {location}
-    </span>
+    </span></Tooltip>
   ) : null;
 
   const joinedNode = (
@@ -171,10 +171,10 @@ export function ProfilePreview({
   );
 
   const viewsNode = (
-    <span className="pv-foot-item pv-views" title={`${viewCount} profile views`}>
+    <Tooltip text={`${viewCount.toLocaleString("en-US")} profile views`} style={tooltips.style} animation={tooltips.animation}><span className="pv-foot-item pv-views" tabIndex={0}>
       <ViewsGlyph size={12} />
       {viewCount.toLocaleString("en-US")}
-    </span>
+    </span></Tooltip>
   );
 
   // Six slots: three corners of the page (fixed, outside the card) and three
@@ -282,7 +282,7 @@ export function ProfilePreview({
     "--pv-pill-border": hexToRgba(design.colors.accent, design.pills.borderOpacity),
     "--pv-pill-radius": `${design.pills.radius}px`,
     "--pv-pill-blur": `${design.pills.blur}px`,
-    "--pv-meta-glow": design.metaGlowColor || "#ff8f92",
+    "--pv-meta-glow": design.metaGlowColor || "#60a5fa",
     "--pv-meta-glow-strength": design.metaGlowStrength ?? 0,
     "--pv-zoom": decoration.zoom ?? 1,
     "--pv-rotate": `${decoration.rotate ?? 0}deg`,

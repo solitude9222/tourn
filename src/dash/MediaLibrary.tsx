@@ -4,8 +4,36 @@ import { loadCatalog, type CatalogItem, type CatalogKind } from "../lib/mediaCat
 import { naturalCompare, sorted } from "../lib/sort";
 import { Button, Modal, SortSelect, TextInput } from "./ui";
 
-/* A searchable browser over the public anime and game catalogues. The parent
-   decides what a pick means; this only loads and presents the real artwork. */
+const LIBRARY_COPY: Record<CatalogKind, { title: string; subtitle: string; search: string }> = {
+  anime: {
+    title: "Anime library",
+    subtitle: "20,000+ real titles from AniList, 48 per page. Pick one to fill the section.",
+    search: "Search anime…",
+  },
+  game: {
+    title: "Game library",
+    subtitle: "400+ real free-to-play games from the FreeToGame catalogue. Pick one to fill the section.",
+    search: "Search games…",
+  },
+  artist: {
+    title: "Music artist library",
+    subtitle: "Real artists and artwork from Apple Music. Pick one to fill the section.",
+    search: "Search artists…",
+  },
+  song: {
+    title: "Song library",
+    subtitle: "Real tracks, artwork and release links from Apple Music. Pick one to fill the section.",
+    search: "Search songs…",
+  },
+  movie: {
+    title: "Film library",
+    subtitle: "Real films with posters and descriptions from Wikipedia. Pick one to fill the section.",
+    search: "Search films…",
+  },
+};
+
+/* A searchable browser over the public anime, game, music and film catalogues.
+   The parent decides what a pick means; this only loads real artwork. */
 export function MediaLibrary({
   open,
   kind,
@@ -81,12 +109,8 @@ export function MediaLibrary({
   return (
     <Modal
       open={open}
-      title={kind === "anime" ? "Anime library" : "Game library"}
-      subtitle={
-        kind === "anime"
-          ? "20,000+ real titles from AniList, 48 per page. Pick one to fill the section."
-          : "400+ real free-to-play games from the FreeToGame catalogue. Pick one to fill the section."
-      }
+      title={LIBRARY_COPY[kind].title}
+      subtitle={LIBRARY_COPY[kind].subtitle}
       onClose={onClose}
       footer={<Button onClick={onClose}>Close</Button>}
     >
@@ -95,7 +119,7 @@ export function MediaLibrary({
           <TextInput
             aria-label="Search library"
             value={query}
-            placeholder={kind === "anime" ? "Search anime…" : "Search games…"}
+            placeholder={LIBRARY_COPY[kind].search}
             onChange={(event) => changeQuery(event.target.value)}
           />
           <SortSelect

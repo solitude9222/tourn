@@ -190,7 +190,7 @@ export const DEFAULT_WIDGET_DESIGN: WidgetDesign = {
   avatarBorderColor: "#ffffff",
   avatarShadow: true,
   outlineEffect: "none",
-  outlineColor: "#ff8f92",
+  outlineColor: "#60a5fa",
   outlineSpeed: 4,
   hoverLift: true,
 };
@@ -356,7 +356,7 @@ const ALL_WIDGET_PLATFORMS: WidgetPlatform[] = [
     id: "timezone",
     name: "Timezone",
     description: "Show a live analog clock for your selected time zone.",
-    color: "#ef4444",
+    color: "#60a5fa",
     contentLabel: "Time zone",
     contentPlaceholder: "Europe/London",
     didYouKnow: DID_YOU_KNOW,

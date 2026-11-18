@@ -47,7 +47,7 @@ export type LinkStore = {
 export const DEFAULT_LINK_DESIGN: LinkDesign = {
   iconColor: "",
   glow: false,
-  glowColor: "#ff8f92",
+  glowColor: "#60a5fa",
   glowIntensity: 45,
   // Sized for the reference card: 40px icons on a 726px-wide card.
   iconSize: 40,

@@ -4,7 +4,7 @@
    --------------------------------------------------------------------------- */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode, type CSSProperties } from "react";
-import { useAuth } from "../lib/auth";
+import { accountUid, useAuth } from "../lib/auth";
 import { forgetAccount, loadAccounts, switchSession, type StoredAccount } from "../lib/accounts";
 import { useDash, type Page, type ProfileTab, type TabDef } from "./context";
 import { Button, Icon, IconButton, navigateTabs, type IconName } from "./ui";
@@ -100,6 +100,7 @@ export function Shell({
   onSignOut,
   children,
 }: ShellProps) {
+  useEffect(() => { document.title = `tourn | ${title}`; }, [title]);
   const { user, about, settings, dirty, save, discard, undo, redo, isPremium, isAdmin, profileViews, go, notify } =
     useDash();
   const { accounts, retryAuth } = useAuth();
@@ -287,7 +288,7 @@ export function Shell({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="search dashboard..."
+            placeholder="Search"
             aria-label="Search dashboard"
           />
           <kbd>Ctrl K</kbd>
@@ -314,7 +315,7 @@ export function Shell({
                     onFocus={() => onPrefetchPage?.(navHome(item))}
                     aria-current={active ? "page" : undefined}
                   >
-                    <Icon name={item.icon} size={18} />
+                    <Icon name={item.icon} size={18} className="tw-nav-symbol" />
                     {item.label}
                   </button> : null}
                   {searching ? tabs.map(tab => <button className="tw-nav-search-result" type="button" key={tab.page} onClick={() => { onNavigate(tab.page); setQuery(""); }}><Icon name={tab.icon} size={14} />{tab.label}</button>) : null}
@@ -332,11 +333,11 @@ export function Shell({
             onClick={() => go(isPremium ? "billing" : "premium")}
           >
             <span className="tw-premium-icon">
-              <img src="/badges/icons/norm/premium.svg" alt="" width={18} height={18} />
+              <img src="/badges/v2/still/premium.svg" alt="" width={18} height={18} />
             </span>
             <span className="tw-premium-copy">
               <b>{isPremium ? "Premium active" : "Upgrade to Premium"}</b>
-              <small>{isPremium ? "Manage your plan" : "Unlock every extra"}</small>
+              <small>{isPremium ? "Manage your plan" : "Unlock exclusive features"}</small>
             </span>
             <Icon name="chevron-right" size={14} className="tw-premium-chev" />
           </button>
@@ -461,9 +462,9 @@ export function Shell({
                 </span>
                 <span className="tw-user-meta">
                   <b>{displayName}</b>
-                  <small>{user.alias ? `@${user.alias}` : user.email ?? ""}</small>
+                  <small>ID {accountUid(user)}</small>
                 </span>
-                <Icon name="chevron-down" size={14} className="tw-chevron" />
+                <span className="tw-account-more" aria-hidden="true">•••</span>
               </button>
 
               <button
@@ -587,18 +588,6 @@ export function Shell({
 
           <div className="tw-row">
             {actions}
-            <a className="tw-view-profile" href={`/${encodeURIComponent(user.username)}`}>
-              View profile
-              <Icon name="external" size={12} />
-            </a>
-            <a
-              className="tw-eye-btn"
-              href={`/${encodeURIComponent(user.username)}`}
-              aria-label="Preview profile"
-              title="Preview profile"
-            >
-              <Icon name="eye" size={16} />
-            </a>
           </div>
         </div>
 

@@ -501,6 +501,17 @@ const ICONS: Record<IconName, ReactNode> = {
   ),
 };
 
+const SOLID_NAV: Partial<Record<IconName,string>> = {
+ home:'M3 10 12 2l9 8v11h-6v-7H9v7H3z',
+ user:'M3 3h18v18H3z M7 7v5h5V7z M6 15v3h12v-3z',
+ palette:'M12 2a10 10 0 1 0 0 20h2a3 3 0 0 0 0-6h-1a1 1 0 0 1 0-2h3a6 6 0 0 0 0-12z M6 8a1.5 1.5 0 1 1 3 0 1.5 1.5 0 1 1-3 0 M11 5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 1 1-3 0 M16 8a1.5 1.5 0 1 1 3 0 1.5 1.5 0 1 1-3 0',
+ layers:'m12 2 11 6-11 6L1 8z M1 12l11 6 11-6v4l-11 6L1 16z',
+ grid:'M2 2h20v20H2z M5 5v5h5V5z M14 5v5h5V5z M5 14v5h5v-5z M14 14v5h5v-5z',
+ image:'M3 2h18a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1 M5 18h14l-5-7-4 4-2-3z M5 7a2 2 0 1 0 4 0 2 2 0 1 0-4 0',
+ star:'m12 1 3.4 7 7.6 1.1-5.5 5.4 1.3 7.5-6.8-3.5L5.2 22l1.3-7.5L1 9.1 8.6 8z',
+ shield:'m12 1 10 4v7c0 5-5 9-10 11C7 21 2 17 2 12V5z M12 5v14c4-2 6-5 6-8V8z',
+ sparkles:'m10 1 3 7 7 3-7 3-3 8-3-8-7-3 7-3z M20 1l1 3 3 1-3 1-1 3-1-3-3-1 3-1z'
+};
 export function Icon({
   name,
   size = 18,
@@ -529,7 +540,7 @@ export function Icon({
       focusable="false"
       style={style}
     >
-      {ICONS[name]}
+      {className?.includes("tw-nav-symbol") && SOLID_NAV[name] ? <path d={SOLID_NAV[name]} fill="currentColor" fillRule="evenodd" stroke="none"/> : ICONS[name]}
     </svg>
   );
 }
@@ -1507,8 +1518,8 @@ export function Modal({
 
   if (!open) return null;
 
-  return (
-    <div className="tw-modal-layer" role="presentation" onMouseDown={(event) => {
+  return createPortal(
+    <div className="tw-dash tw-dialog-portal" style={{display:"contents"}}><div className="tw-modal-layer" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
       <div className="tw-modal" role="dialog" aria-modal="true" tabIndex={-1} aria-label={typeof title === "string" ? title : "Dialog"} ref={panel} style={{ width }}>
@@ -1522,7 +1533,7 @@ export function Modal({
         <div className="tw-modal-body">{children}</div>
         {footer ? <footer className="tw-modal-foot">{footer}</footer> : null}
       </div>
-    </div>
+    </div></div>, document.body
   );
 }
 

@@ -50,7 +50,7 @@
 }
 
 .tw-manage-count.is-warning {
-  color: #f0b35a;
+  color: #a2aabc;
 }
 
 .tw-manage-notice {
@@ -269,8 +269,8 @@
 }
 
 .tw-manage-actions .tw-icon-btn--danger {
-  border-color: color-mix(in srgb, #e0575b 30%, var(--border));
-  background: color-mix(in srgb, #e0575b 10%, var(--tile));
+  border-color: color-mix(in srgb, #7e8698 30%, var(--border));
+  background: color-mix(in srgb, #7e8698 10%, var(--tile));
 }
 
 /* Widget expansion keeps the same row shell while the editor opens below. */

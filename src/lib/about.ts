@@ -419,7 +419,7 @@ export const MAX_BIO_LENGTH = 800;
 
 export const DEFAULT_PROFILE_COLORS: ProfileColors = {
   accent: "#3b82f6",
-  text: "#fbf4f4",
+  text: "#eef2f8",
   muted: "#98a2b3",
   background: "#07070a",
   card: "#14141e",
@@ -447,7 +447,7 @@ export const DEFAULT_ENTRY: EntrySettings = {
   hint: "",
   align: "center",
   oncePerSession: false,
-  titleColor: "#fbf4f4",
+  titleColor: "#eef2f8",
   subtitleColor: "#98a2b3",
   hintColor: "#8b93a1",
   letterSpacing: -0.04,
@@ -487,7 +487,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   // avatar, a 36px name and a 20px bio, with a dark glass surface (55% fill,
   // 12px blur) and a 1px border at 12%. Every other metric is scaled from the
   // card's width, so these are "px at 720 wide".
-  cardWidth: 720,
+  cardWidth: 800,
   cardRadius: 35,
   borderWidth: 1,
   borderOpacity: 0.12,
@@ -496,7 +496,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   avatarSize: 118,
   widgetGap: 10,
   cardPadding: 30,
-  nameSize: 36,
+  nameSize: 42,
   bioSize: 18,
   tilt: 0,
   stackTilt: false,
@@ -715,19 +715,12 @@ function loadEntry(input: unknown): EntrySettings {
    Anyone who changed a size keeps exactly what they chose. */
 function loadDesign(input: unknown): AboutDesign {
   const design = loadDesignRaw(input);
-  if (
-    design.cardWidth === 720 &&
-    design.cardRadius === 24 &&
-    design.avatarSize === 120 &&
-    design.cardPadding === 32 &&
-    design.nameSize === 36
-  ) {
-    design.cardWidth = 620;
-    design.cardRadius = 35;
-    design.avatarSize = 112;
-    design.cardPadding = 22;
-    design.nameSize = 30;
-    design.bioSize = 16;
+  // Migrate the previous default geometry; retain explicitly customized sizes.
+  if ((design.cardWidth === 720 || design.cardWidth === 620) &&
+      (design.nameSize === 36 || design.nameSize === 30) &&
+      (design.cardPadding === 32 || design.cardPadding === 22)) {
+    design.cardWidth = 800;
+    design.nameSize = 42;
   }
   return design;
 }
@@ -792,7 +785,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     slideshowLinks: raw.slideshowLinks === true,
     slideshowBadges: raw.slideshowBadges === true,
     slideshowAbout: raw.slideshowAbout === true,
-    metaGlowColor: validColor(raw.metaGlowColor, "#ff8f92"),
+    metaGlowColor: validColor(raw.metaGlowColor === "#ff8f92" ? "#60a5fa" : raw.metaGlowColor, "#60a5fa"),
     metaGlowStrength: numberIn(raw.metaGlowStrength, 0, 0, 1),
     aboutSlide: {
       title: typeof raw.aboutSlide?.title === "string" ? raw.aboutSlide.title.slice(0, 100) : "About me",
@@ -923,11 +916,10 @@ function loadDesignRaw(input: unknown): AboutDesign {
     interestMode: raw.interestMode === "catalog" ? "catalog" : "carousel",
     entry: loadEntry(raw.entry),
     colors: {
-      // The old default accents were a pale pink and a pale blue; the profile
-      // main colour is the deep black the console uses now.
+      // Fold the two retired pale-pink accents into the blue default.
       accent: validColor(
         rawColors.accent === "#ff8f92" || rawColors.accent === "#b4bffa"
-          ? "#0a0a0c"
+          ? DEFAULT_PROFILE_COLORS.accent
           : rawColors.accent,
         DEFAULT_PROFILE_COLORS.accent,
       ),

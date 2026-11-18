@@ -17,7 +17,7 @@ import { FileUpload, Button, Card, CardHead, ColorField, Field, Icon, Select, Sl
 
 const SECTION_KINDS: { id: ProfileSectionKind; label: string; hint: string }[] = [
   { id: "project", label: "Projects", hint: "Artwork, stack and links" },
-  { id: "interest", label: "Interests", hint: "Pick animes from the library" },
+  { id: "interest", label: "Interests", hint: "Anime, games, music and films" },
 ];
 
 /** The three page layouts and the positions each one starts with. */
@@ -335,8 +335,8 @@ export function LayoutPage({
         </div>
       </Card> : null}
 
-      {section === "sections" ? <Card><CardHead icon="layers" title={filterKind === "project" ? "Projects" : filterKind === "interest" ? "Interests" : "Sections"} subtitle="Everything below your card: projects, games and the animes you like. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
-        <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork and metadata from the anime and game libraries.</p>
+      {section === "sections" ? <Card><CardHead icon="layers" title={filterKind === "project" ? "Projects" : filterKind === "interest" ? "Interests" : "Sections"} subtitle="Everything below your card: projects, interests, music and films. Drag the handle to set the order." actions={<span className="tw-active-count">{design.sections.length} / 24</span>} />
+        <p className="tw-foot-note">Project cards show your real tech stack and links. Interest cards pull real artwork from the anime, game, music and film libraries.</p>
         {!filterKind ? <div className="tw-row"><Button onClick={()=>go("portfolio-general")}>Portfolio settings</Button></div> : null}
         {!filterKind && design.slideshowAbout === true ? (
           <details className="tw-about-editor">
@@ -462,7 +462,7 @@ export function LayoutPage({
             </div>
           ) : null)}
         </div>
-        {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a project, a game list, or an anime you like.</p> : null}
+        {!design.sections.length ? <p className="tw-empty-note">No sections yet — add a project, a game list, or something you love.</p> : null}
         <div className="tw-section-add">
           <span className="tw-section-add-label">Add a section</span>
           <div className="tw-section-add-row">

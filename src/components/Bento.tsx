@@ -121,7 +121,7 @@ function MetaItem({
   );
 }
 
-function Dot({ color = "#ff8f92" }: { color?: string }) {
+function Dot({ color = "#60a5fa" }: { color?: string }) {
   return <i className="bcard-dot" style={{ background: color }} />;
 }
 
@@ -553,7 +553,7 @@ export function SteamCard({
             icon={
               <Dot
                 color={
-                  profile.online === null ? "#ff8f92" : profile.online ? "#4ade80" : "#64748b"
+                  profile.online === null ? "#60a5fa" : profile.online ? "#4ade80" : "#64748b"
                 }
               />
             }

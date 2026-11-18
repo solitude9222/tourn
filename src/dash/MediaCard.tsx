@@ -18,6 +18,7 @@ export function MediaCard() {
   const { about, setAbout, go, notify } = useDash();
   const assets = about.assets;
   const avatarInput = useRef<HTMLInputElement>(null);
+  const bannerInput = useRef<HTMLInputElement>(null);
   const backgroundInput = useRef<HTMLInputElement>(null);
   const cursorInput = useRef<HTMLInputElement>(null);
   const pointerInput = useRef<HTMLInputElement>(null);
@@ -51,6 +52,22 @@ export function MediaCard() {
     }
   };
 
+  const uploadBanner = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      patch({
+        banner: {
+          ...assets.banner,
+          enabled: true,
+          imageUrl: await imageToDataUrl(file, 2000, 800),
+        },
+      });
+      notify("Banner", "Updated. Save to publish it.");
+    } catch {
+      notify("Banner", "That image could not be read.");
+    }
+  };
+
   const uploadCursor = async (file: File | undefined, pointer: boolean) => {
     if (!file) return;
     if (file.size > 5_000_000) {
@@ -80,6 +97,7 @@ export function MediaCard() {
   };
 
   const avatar = assets.avatarUrl.trim();
+  const bannerImage = assets.banner.imageUrl.trim();
   const backgroundImage = assets.background.imageUrl.trim();
   const cursorUrl = assets.cursor.imageUrl.trim() || assets.cursor.customCursorUrls[0]?.trim() || "";
   const pointerUrl = assets.cursor.pointerImageUrl.trim();
@@ -115,7 +133,7 @@ export function MediaCard() {
 
   return (
     <Card>
-      <CardHead icon="image" title="Media" subtitle="Avatar, background, audio and cursor" />
+      <CardHead icon="image" title="Media" subtitle="Avatar, banner, background, audio and cursor" />
 
       <div className="tw-media-row">
         <div className="tw-media-tile">
@@ -147,6 +165,27 @@ export function MediaCard() {
                 Upload a background
                 <br />
                 <small>max 100 MB</small>
+              </span>
+            )}
+          </button>
+        </div>
+
+        <div className="tw-media-tile">
+          <span className="tw-media-label">Banner</span>
+          <button
+            type="button"
+            className="tw-media-well tw-media-well--bg"
+            onClick={() => bannerInput.current?.click()}
+            style={bannerImage ? { backgroundImage: `url("${bannerImage.replace(/"/g, '\\"')}")` } : undefined}
+            aria-label="Upload banner"
+          >
+            {bannerImage ? (
+              <span className="tw-media-hint">Change</span>
+            ) : (
+              <span className="tw-media-empty">
+                Upload a banner
+                <br />
+                <small>shown above the card</small>
               </span>
             )}
           </button>
@@ -199,6 +238,16 @@ export function MediaCard() {
         hidden
         onChange={(event) => {
           void uploadAvatar(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={bannerInput}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(event) => {
+          void uploadBanner(event.target.files?.[0]);
           event.target.value = "";
         }}
       />

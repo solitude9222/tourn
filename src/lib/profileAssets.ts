@@ -290,6 +290,8 @@ export type AudioSettings = {
   loop: boolean;
   playbackRate: number;
   popupSide: "left" | "right" | "bottom-left" | "bottom-right";
+  /** One-time placement migration; older profiles shipped in the left corner. */
+  popupSideVersion: number;
   popupSize: number;
   popupStyle: "glossy" | "minimal" | "glass" | "rounded";
   popupColor: string;
@@ -483,7 +485,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   },
   audio: {
     volume: .7, startMuted: false, muteButton: false, shuffle: false, startAt: 0, queue: [], loop: true, playbackRate: 1,
-    popupSide: "left", popupSize: 60, popupStyle: "glossy", popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
+    popupSide: "right", popupSideVersion: 2, popupSize: 60, popupStyle: "glossy", popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
     style: "none",
     fileUrl: "",
     coverUrl: "",
@@ -691,7 +693,7 @@ function loadAudio(value: unknown): AudioSettings {
       DEFAULT_PROFILE_ASSETS.audio.style,
     ),
     volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), muteButton: boolIn(raw.muteButton, false), shuffle: boolIn(raw.shuffle, false), startAt: numberIn(raw.startAt, 0, 0, 600), queue: Array.isArray(raw.queue) ? raw.queue.filter((item) => item && typeof item.url === "string" && item.url).slice(0, 2).map((item, index) => ({ id: typeof item.id === "string" ? item.id : "q" + index, url: item.url.slice(0, 8_500_000), title: typeof item.title === "string" ? item.title.slice(0, 80) : "" })) : [], loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
-    popupSide: choiceIn(raw.popupSide, ["left", "right", "bottom-left", "bottom-right"], "left"), popupSize: numberIn(!raw.popupStyle && raw.popupSize === 42 ? 60 : raw.popupSize, 60, 28, 64), popupStyle: choiceIn(raw.popupStyle, ["glossy", "minimal", "glass", "rounded"] as const, "glossy"), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
+    popupSide: numberIn(raw.popupSideVersion, 1, 0, 999) < 2 ? "right" : choiceIn(raw.popupSide, ["left", "right", "bottom-left", "bottom-right"], "right"), popupSideVersion: 2, popupSize: numberIn(!raw.popupStyle && raw.popupSize === 42 ? 60 : raw.popupSize, 60, 28, 64), popupStyle: choiceIn(raw.popupStyle, ["glossy", "minimal", "glass", "rounded"] as const, "glossy"), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
     fileUrl: textIn(raw.fileUrl, DEFAULT_PROFILE_ASSETS.audio.fileUrl, 8_500_000),
     coverUrl: textIn(raw.coverUrl, "", 2_500_000),
     title: textIn(raw.title, DEFAULT_PROFILE_ASSETS.audio.title, 80),

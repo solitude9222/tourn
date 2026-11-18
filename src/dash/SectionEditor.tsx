@@ -4,6 +4,7 @@ import { type ProfileSection, type ProfileSectionKind } from "../lib/about";
 import { imageToDataUrl } from "./files";
 import { Button, Field, FileUpload, TextInput, Textarea } from "./ui";
 import { MediaLibrary } from "./MediaLibrary";
+import type { CatalogKind } from "../lib/mediaCatalog";
 import { useDash } from "./context";
 import "./sections.css";
 
@@ -34,7 +35,7 @@ export function SectionEditor({
 }) {
   const { notify } = useDash();
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [libraryKind, setLibraryKind] = useState<"anime" | "game">("anime");
+  const [libraryKind, setLibraryKind] = useState<CatalogKind>("anime");
   const project = section.kind === "project";
   const picks = Array.isArray(section.items) ? section.items : [];
 
@@ -212,14 +213,19 @@ export function SectionEditor({
               onChange={(event) => onChange({ title: event.target.value })}
             />
           </Field>
-          <Field label="Library" hint="Add animes or games to this one section.">
+          <Field label="Library" hint="Add anime, games, music or films to this one section." className="tw-span-2">
             <div className="tw-section-library">
-              <Button icon="plus" onClick={() => { setLibraryKind("anime"); setLibraryOpen(true); }}>
-                Add anime
-              </Button>
-              <Button icon="plus" onClick={() => { setLibraryKind("game"); setLibraryOpen(true); }}>
-                Add game
-              </Button>
+              {([
+                ["anime", "Add anime"],
+                ["game", "Add game"],
+                ["artist", "Add artist"],
+                ["song", "Add song"],
+                ["movie", "Add film"],
+              ] as [CatalogKind, string][]).map(([kind, label]) => (
+                <Button key={kind} icon="plus" onClick={() => { setLibraryKind(kind); setLibraryOpen(true); }}>
+                  {label}
+                </Button>
+              ))}
               <span className="tw-section-library-meta">
                 {picks.length} / {PICK_LIMIT} picked
               </span>
@@ -265,7 +271,7 @@ export function SectionEditor({
               ))}
             </div>
           ) : (
-            <p className="tw-empty-note tw-span-2">Nothing picked yet — “Add anime” or “Add game” opens the library.</p>
+            <p className="tw-empty-note tw-span-2">Nothing picked yet — “Add anime”, “Add game”, “Add artist”, “Add song” or “Add film” opens the library.</p>
           )}
 
           <Field label="Note" hint="Optional line under the picks." className="tw-span-2">
