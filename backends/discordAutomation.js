@@ -308,12 +308,17 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   const guild=await guildId();if(!token || !guild)return null;
   try{const data=await request(`/guilds/${guild}?with_counts=true`);return {id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=128`:null,description:data.description||null,memberCount:data.approximate_member_count||null,onlineCount:data.approximate_presence_count||null,createdAt:new Date(Number((BigInt(data.id)>>22n)+1420070400000n)).toISOString()};}catch{return null;}
  }
+ // Any server the bot is a member of, not just the one configured for automation.
+ async function guildInfoById(id){
+  if(!token || !snowflake(String(id||'')))return null;
+  try{const data=await request(`/guilds/${id}?with_counts=true`);return {id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=128`:null,description:data.description||null,memberCount:data.approximate_member_count||null,onlineCount:data.approximate_presence_count||null,createdAt:new Date(Number((BigInt(data.id)>>22n)+1420070400000n)).toISOString()};}catch{return null;}
+ }
  async function discordUser(id){
   if(!snowflake(String(id||'')))return null;
   const data=await rawRest('GET',`/users/${id}`);
   return data?{id:String(data.id),username:data.username,globalName:data.global_name||null}:null;
  }
- return {config,guildId,member,memberInfo,guildInfo,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser,updateBotBio};
+ return {config,guildId,member,memberInfo,guildInfo,guildInfoById,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser,updateBotBio};
 }
 export function registerDiscordAutomation(app,service,requireAdmin){
  app.get('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{res.json({...(await service.inspect(req.query.guildId)),config:await service.config()});}catch(error){res.status(503).json({error:error.message});}});

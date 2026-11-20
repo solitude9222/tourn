@@ -2268,10 +2268,37 @@ app.get("/api/discord/guild/:id", async (req, res) => {
   const id = String(req.params.id);
   if (!/^\d{16,20}$/.test(id)) return res.status(400).json({ error: "Enter a Discord server ID." });
   try {
-    const info = await discordAutomation.guildInfo();
-    if (!info || info.id !== id) return res.status(404).json({ error: "The bot is not in that server." });
-    res.set("Cache-Control", "public, max-age=60").json(info);
+    const info = await discordAutomation.guildInfoById(id);
+    // A server the bot is not in is a normal answer, not an error: the widget
+    // already has the invite payload, and a 404 here only fills the console.
+    res.set("Cache-Control", "public, max-age=60").json(
+      info ?? { id, available: false, name: null, icon: null, description: null, memberCount: null, onlineCount: null, createdAt: null },
+    );
   } catch { res.status(503).json({ error: "Discord server lookup timed out." }); }
+});
+
+/* Lanyard answers 404 for every account it does not monitor, which is most of
+   them. Proxying it here keeps that ordinary answer out of visitors' consoles. */
+app.get("/api/lanyard/:id", async (req, res) => {
+  const id = String(req.params.id);
+  if (!/^\d{16,20}$/.test(id)) return res.status(400).json({ success: false, error: { code: "invalid_user" } });
+  try {
+    const upstream = await fetch(`https://api.lanyard.rest/v1/users/${encodeURIComponent(id)}`, {
+      headers: { accept: "application/json", "user-agent": WIDGET_PROXY_UA },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (upstream.status === 404) {
+      res.set("Cache-Control", "public, max-age=30");
+      return res.json({ success: false, error: { code: "user_not_monitored" } });
+    }
+    if (!upstream.ok) return res.status(502).json({ success: false, error: { code: "unavailable" } });
+    const body = await upstream.json().catch(() => null);
+    if (!body?.data) return res.status(502).json({ success: false, error: { code: "unavailable" } });
+    res.set("Cache-Control", "public, max-age=15").json(body);
+  } catch (error) {
+    console.warn("[lanyard-proxy]", error?.message ?? error);
+    res.status(503).json({ success: false, error: { code: "unavailable" } });
+  }
 });
 
 async function canonicalViewHandle(input) {

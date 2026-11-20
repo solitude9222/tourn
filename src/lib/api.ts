@@ -86,22 +86,27 @@ async function request(url: string, signal: AbortSignal, init?: RequestInit): Pr
 }
 
 export async function fetchLanyard(userId: string, signal: AbortSignal): Promise<LanyardData> {
-  const res = await request(
-    `https://api.lanyard.rest/v1/users/${encodeURIComponent(userId)}`,
-    signal,
-    { headers: jsonHeaders },
-  );
-
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: { code?: string } } | null;
-    if (body?.error?.code === "user_not_monitored") {
-      throw new WidgetError("not_monitored", "This account isn't monitored by Lanyard yet");
-    }
-    throw new WidgetError("http", `Lanyard responded ${res.status}`);
+  // Through our own origin: Lanyard answers 404 for every account it does not
+  // monitor, and that is the normal case, not an error worth a console entry.
+  let res = await request(`/api/lanyard/${encodeURIComponent(userId)}`, signal, { headers: jsonHeaders });
+  if (res.status === 404 || res.status === 405) {
+    // Older backends do not proxy Lanyard yet; ask the source directly.
+    res = await request(
+      `https://api.lanyard.rest/v1/users/${encodeURIComponent(userId)}`,
+      signal,
+      { headers: jsonHeaders },
+    );
   }
 
-  const body = (await res.json()) as { data?: LanyardData };
-  if (!body.data) throw new WidgetError("http", "Lanyard returned an empty payload");
+  const body = (await res.json().catch(() => null)) as
+    | { success?: boolean; data?: LanyardData; error?: { code?: string } }
+    | null;
+
+  if (body?.error?.code === "user_not_monitored") {
+    throw new WidgetError("not_monitored", "This account isn't monitored by Lanyard yet");
+  }
+  if (!res.ok) throw new WidgetError("http", `Lanyard responded ${res.status}`);
+  if (!body?.data) throw new WidgetError("http", "Lanyard returned an empty payload");
   return body.data;
 }
 
