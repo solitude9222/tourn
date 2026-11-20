@@ -20,6 +20,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
      close needs a short grace period. Tracking the state here lets the CSS
      animate both directions every time. */
   const [open, setOpen] = useState(false);
+  const dragging = useRef(false);
   const closeTimer = useRef<number | undefined>(undefined);
   const openReveal = () => {
     window.clearTimeout(closeTimer.current);
@@ -27,7 +28,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
   };
   const closeReveal = () => {
     window.clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => setOpen(false), 170);
+    closeTimer.current = window.setTimeout(() => { if (!dragging.current) setOpen(false); }, 170);
   };
   const settleTimer = useRef<number | undefined>(undefined);
 
@@ -66,6 +67,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
   return (
     <div
       className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}${open ? " is-open" : ""}`}
+      onKeyDown={event => { if (event.key === "Escape") { setOpen(false); event.stopPropagation(); } }}
       onPointerEnter={openReveal}
       onPointerLeave={closeReveal}
       onFocus={event => { if (event.currentTarget.contains(event.relatedTarget as Node | null) === false) openReveal(); }}
@@ -83,7 +85,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
           "--popup-glow": settings.popupGlow ? `drop-shadow(0 0 ${settings.popupGlowBlur}px color-mix(in srgb,${settings.popupGlowColor} ${settings.popupGlowStrength}%,transparent))` : `drop-shadow(0 0 12px color-mix(in srgb,${settings.popupGlowColor} 34%,transparent))`,
           "--popup-pill-glow": settings.popupGlow ? `0 0 ${settings.popupGlowBlur}px color-mix(in srgb,${settings.popupGlowColor} ${settings.popupGlowStrength}%,transparent)` : `0 0 18px color-mix(in srgb,${settings.popupGlowColor} 30%,transparent)`,
           "--popup-bar-width": `${settings.popupBarWidth}px`,
-          "--popup-duration": `${Math.max(450,settings.popupDuration)}ms`,
+          "--popup-duration": `${Math.min(2000,Math.max(120,settings.popupDuration))}ms`,
           "--popup-volume": `${(silent ? 0 : state.volume) * 100}%`,
         } as CSSProperties
       }
@@ -122,8 +124,10 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
               const volume = Number(event.target.value);
               setAudioBus({ volume, muted: volume === 0 });
             }}
-            onPointerUp={settle}
-            onPointerCancel={settle}
+            onPointerDown={event => { dragging.current = true; openReveal(); event.currentTarget.setPointerCapture(event.pointerId); }}
+            onPointerUp={event => { dragging.current = false; settle(); if (!event.currentTarget.closest(".ap-popup")?.matches(":hover")) closeReveal(); }}
+            onPointerCancel={() => { dragging.current = false; settle(); closeReveal(); }}
+            onLostPointerCapture={() => { dragging.current = false; }}
             onKeyUp={settle}
             onBlur={settle}
           />

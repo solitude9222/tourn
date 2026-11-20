@@ -19,246 +19,29 @@
 .lkr-popup-audio--bottom-right .ap-popup-volume { margin-left:0; margin-right:10px; }
 .ap-popup-volume input { direction:ltr; }
 
-/* ── mute slider: smooth drag, spring back on release ───────────────────── */
-.ap-popup.ap-popup--mute .ap-popup-volume input {
-  transition: background 70ms linear, filter 180ms ease, box-shadow 180ms ease;
-}
 
-.ap-popup.ap-popup--mute .ap-popup-volume input:active {
-  cursor: grabbing;
-}
-
-.ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb {
-  transform-origin: center;
-  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1.25), box-shadow 160ms ease;
-}
-
-.ap-popup.ap-popup--mute .ap-popup-volume input::-moz-range-thumb {
-  transform-origin: center;
-  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1.25), box-shadow 160ms ease;
-}
-
-.ap-popup.ap-popup--mute .ap-popup-volume input:active::-webkit-slider-thumb {
-  transform: scale(1.22);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--popup-color, #fff) 16%, transparent);
-}
-
-.ap-popup.ap-popup--mute .ap-popup-volume input:active::-moz-range-thumb {
-  transform: scale(1.22);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--popup-color, #fff) 16%, transparent);
-}
-
-@keyframes muteThumbSettle {
-  0% { transform: scale(0.82); }
-  48% { transform: scale(1.34); }
-  100% { transform: scale(1); }
-}
-
-@keyframes muteRailSettle {
-  0% { filter: brightness(1); }
-  36% { filter: brightness(1.2); }
-  100% { filter: brightness(1); }
-}
-
-@keyframes muteVolumeSettle {
-  0% { transform: scale(1); }
-  38% { transform: scale(1.045); }
-  100% { transform: scale(1); }
-}
-
-@keyframes muteIconSettle {
-  0% { transform: rotate(0deg) scale(1); }
-  42% { transform: rotate(-4deg) scale(1.07); }
-  100% { transform: rotate(0deg) scale(1); }
-}
-
-.ap-popup.ap-popup--mute.is-settling .ap-popup-volume input {
-  animation: muteRailSettle 440ms ease both;
-}
-
-.ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-webkit-slider-thumb {
-  animation: muteThumbSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
-}
-
-.ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-moz-range-thumb {
-  animation: muteThumbSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
-}
-
-/* The range thumb is hard to animate reliably across native controls, so the
-   whole pill and the mute glyph also get a small physical settle. */
-.ap-popup.ap-popup--mute.is-settling .ap-popup-volume {
-  animation: muteVolumeSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
-}
-
-.ap-popup.ap-popup--mute.is-settling .ap-popup-icon {
-  animation: muteIconSettle 440ms cubic-bezier(0.22, 0.8, 0.2, 1.15) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ap-popup.ap-popup--mute .ap-popup-volume input,
-  .ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb,
-  .ap-popup.ap-popup--mute .ap-popup-volume input::-moz-range-thumb,
-  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume input,
-  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-webkit-slider-thumb,
-  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume input::-moz-range-thumb,
-  .ap-popup.ap-popup--mute.is-settling .ap-popup-volume,
-  .ap-popup.ap-popup--mute.is-settling .ap-popup-icon {
-    animation: none;
-    transition: none;
-  }
-}
-/* Reveal the volume pill with a slide and soft expansion in either corner. */
-.ap-popup.ap-popup--mute .ap-popup-reveal { transform:none; transition:width var(--popup-duration,250ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,250ms) ease; }
-.ap-popup.ap-popup--mute .ap-popup-volume { opacity:0; transform:translateX(-12px) scale(.9); transform-origin:left center; transition:transform var(--popup-duration,250ms) cubic-bezier(.2,.8,.2,1.15),opacity var(--popup-duration,250ms) ease; }
-.ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-volume { opacity:1; transform:translateX(0) scale(1); }
-.lkr-popup-audio--right .ap-popup.ap-popup--mute .ap-popup-volume,
-.lkr-popup-audio--bottom-right .ap-popup.ap-popup--mute .ap-popup-volume { transform:translateX(12px) scale(.9); transform-origin:right center; }
-.lkr-popup-audio--right .ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-volume,
-.lkr-popup-audio--bottom-right .ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-volume { transform:translateX(0) scale(1); }
-@media(prefers-reduced-motion:reduce) { .ap-popup.ap-popup--mute .ap-popup-reveal,.ap-popup.ap-popup--mute .ap-popup-volume { transition:none; } }
-/* A fixed anchor and an absolute rail prevent flex sizing from swallowing motion. */
+/* One state owns the rail, so hover, keyboard focus and dragging agree. */
 .ap-popup.ap-popup--mute {position:relative;width:var(--popup-size,60px);max-width:none;overflow:visible;}
 .ap-popup.ap-popup--mute::after {content:"";position:absolute;top:0;left:100%;width:12px;height:100%;}
-.ap-popup.ap-popup--mute .ap-popup-reveal {position:absolute;left:calc(100% + 10px);top:0;width:var(--popup-safe-width)!important;height:var(--popup-size,60px);opacity:0;visibility:hidden;pointer-events:none;clip-path:inset(0 100% 0 0 round 999px);transform:translateX(-12px) scale(.9);transform-origin:left center;transition:clip-path var(--popup-duration,450ms) cubic-bezier(.16,1,.3,1),transform var(--popup-duration,450ms) cubic-bezier(.16,1,.3,1),opacity var(--popup-duration,450ms) ease,visibility 0s var(--popup-duration,450ms);}
-.ap-popup.ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-reveal {opacity:1;visibility:visible;pointer-events:auto;clip-path:inset(0 round 999px);transform:none;transition-delay:0s;}
-.ap-popup.ap-popup--mute .ap-popup-volume {width:100%;height:100%;margin:0!important;box-sizing:border-box;background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-rail-opacity,.92)*100%),transparent);}
-.ap-popup.ap-popup--mute .ap-popup-icon {filter:var(--popup-glow,none);}
+.ap-popup.ap-popup--mute .ap-popup-icon {z-index:2;filter:var(--popup-glow,none);}
 .ap-popup.ap-popup--mute .ap-popup-glyph {opacity:var(--popup-icon-opacity,1);}
+.ap-popup.ap-popup--mute .ap-popup-reveal {position:absolute;z-index:1;left:calc(100% + 10px);top:0;width:var(--popup-safe-width,var(--popup-bar-width,180px))!important;height:var(--popup-size,60px);opacity:0;visibility:hidden;pointer-events:none;clip-path:inset(0 100% 0 0 round 999px);transform:none;transition:clip-path var(--popup-duration,450ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,450ms) ease,visibility 0s linear var(--popup-duration,450ms);}
+.ap-popup.ap-popup--mute .ap-popup-volume {width:100%;height:100%;margin:0!important;box-sizing:border-box;opacity:0;transform:translateX(-35%);background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-rail-opacity,.92)*100%),transparent);box-shadow:var(--popup-pill-glow,none);transition:transform var(--popup-duration,450ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,450ms) ease;}
+.ap-popup.ap-popup--mute.is-open .ap-popup-reveal {opacity:1;visibility:visible;pointer-events:auto;clip-path:inset(0 round 999px);transition-delay:0s;}
+.ap-popup.ap-popup--mute.is-open .ap-popup-volume {opacity:1;transform:translateX(0);}
 .ap-popup.ap-popup--mute.ap-popup-style--glossy .ap-popup-icon {background:linear-gradient(145deg,color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent),rgb(0 0 0 / var(--popup-opacity,.92)));}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute::after {left:auto;right:100%;}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-reveal {left:auto;right:calc(100% + 10px);transform-origin:right center;clip-path:inset(0 0 0 100% round 999px);transform:translateX(12px) scale(.9);}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute:is(:hover,:has(:focus-visible)) .ap-popup-reveal {clip-path:inset(0 round 999px);transform:none;}
-@media(prefers-reduced-motion:reduce){.ap-popup.ap-popup--mute .ap-popup-reveal {transition:none;}}
-.ap-popup.ap-popup--mute:not(:hover):not(:has(:focus-visible)) .ap-popup-reveal {opacity:0;visibility:hidden;pointer-events:none;}
 .ap-popup.ap-popup--mute:is(.ap-popup-style--minimal,.ap-popup-style--rounded,.ap-popup-style--glass) .ap-popup-icon {background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent);}
-
-/* ── the reveal is driven by React so it always animates ─────────────────────
-   A pure :hover reveal had to be re-entered every time the pointer crossed the
-   gap between the button and the pill, and it could not hold open while the
-   volume was dragged. The open class is set from the component instead, and
-   both directions now run through one transition. */
-.ap-popup.ap-popup--mute .ap-popup-reveal {
-  transition:
-    clip-path .42s cubic-bezier(.16, 1, .3, 1),
-    transform .42s cubic-bezier(.16, 1, .3, 1),
-    opacity .3s ease,
-    visibility 0s linear .42s;
-}
-
-.ap-popup.ap-popup--mute.is-open .ap-popup-reveal {
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  clip-path: inset(0 round 999px) !important;
-  transform: none !important;
-  transition-delay: 0s;
-}
-
-/* The pill glows with the button's own glow colour, softly by default and at
-   the saved strength once the owner turns the glow up. */
-.ap-popup.ap-popup--mute .ap-popup-volume {
-  transition:
-    opacity .26s ease,
-    transform .38s cubic-bezier(.16, 1, .3, 1),
-    box-shadow .3s ease,
-    background .3s ease;
-}
-
-.ap-popup.ap-popup--mute.is-open .ap-popup-volume {
-  opacity: 1 !important;
-  transform: none !important;
-  box-shadow: var(--popup-pill-glow, none);
-}
-
-.ap-popup.ap-popup--mute.is-open .ap-popup-icon {
-  filter: var(--popup-glow, none);
-}
-
-/* Reduced motion keeps a short crossfade instead of dropping straight to the
-   final state, so the pill still eases out rather than snapping into place. */
-@media (prefers-reduced-motion: reduce) {
-  .ap-popup.ap-popup--mute .ap-popup-reveal {
-    transition: opacity .16s ease, visibility 0s linear .16s !important;
-  }
-
-  .ap-popup.ap-popup--mute.is-open .ap-popup-reveal {
-    transition-delay: 0s;
-  }
-
-  .ap-popup.ap-popup--mute .ap-popup-volume {
-    transition: opacity .16s ease, box-shadow .2s ease !important;
-  }
-}
-
-/* ── the rail slides out of the mute icon ───────────────────────────────────
-   Closed, the pill sits fully behind the button inside a reveal clipped to the
-   button's own edge. Opening animates the clip and the pill's travel together,
-   so the bar is drawn out of the icon instead of fading in beside it. The
-   button paints above the reveal, which is what makes it read as a drawer. */
-.ap-popup.ap-popup--mute .ap-popup-icon { z-index: 2; }
-
-.ap-popup.ap-popup--mute .ap-popup-reveal {
-  z-index: 1;
-  /* No shift on the wrapper: the pill itself does the travelling. */
-  transform: none;
-  transition:
-    clip-path var(--popup-duration, 450ms) cubic-bezier(.16, 1, .3, 1),
-    opacity .24s ease,
-    visibility 0s linear var(--popup-duration, 450ms);
-}
-
-.ap-popup.ap-popup--mute .ap-popup-volume {
-  transition:
-    transform var(--popup-duration, 450ms) cubic-bezier(.16, 1, .3, 1),
-    opacity .22s ease,
-    box-shadow .3s ease,
-    background .3s ease;
-}
-
-.ap-popup.ap-popup--mute:not(.is-open):not(:hover):not(:has(:focus-visible)) .ap-popup-volume {
-  opacity: 0;
-  transform: translateX(-100%);
-  transform-origin: left center;
-}
-
-/* A right-corner button opens the other way, so the pill travels leftwards. */
-.lkr-popup-audio:is(.lkr-popup-audio--right, .lkr-popup-audio--bottom-right)
-  .ap-popup.ap-popup--mute:not(.is-open):not(:hover):not(:has(:focus-visible)) .ap-popup-volume {
-  transform: translateX(100%);
-  transform-origin: right center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ap-popup.ap-popup--mute:not(.is-open):not(:hover):not(:has(:focus-visible)) .ap-popup-volume {
-    transform: none;
-  }
-}
-
-/* Right-corner buttons: the wrapper must not add its own shift on top of the
-   pill's travel, or the bar double-moves. */
-.lkr-popup-audio:is(.lkr-popup-audio--right, .lkr-popup-audio--bottom-right)
-  .ap-popup.ap-popup--mute .ap-popup-reveal {
-  transform: none;
-}
-
-/* ── the volume line follows the button size ─────────────────────────────────
-   The rail was a fixed 5px line and an 11px thumb whatever size the button
-   was, so a 28px button got a stubby bar and a 64px one a hairline. Both now
-   scale from --popup-size, which is the size control in the mute settings;
-   at the default 60px the values are the old 5px line and 11px thumb. */
-.ap-popup.ap-popup--mute .ap-popup-volume input {
-  height: clamp(4px, calc(var(--popup-size, 60px) / 12), 7px);
-}
-
-.ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb {
-  width: clamp(9px, calc(var(--popup-size, 60px) / 5.5), 14px);
-  height: clamp(9px, calc(var(--popup-size, 60px) / 5.5), 14px);
-}
-
-.ap-popup.ap-popup--mute .ap-popup-volume input::-moz-range-thumb {
-  width: clamp(9px, calc(var(--popup-size, 60px) / 5.5), 14px);
-  height: clamp(9px, calc(var(--popup-size, 60px) / 5.5), 14px);
-  border: 0;
-  border-radius: 50%;
-  background: var(--popup-color, #fff);
-}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute::after {left:auto;right:100%;}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-reveal {left:auto;right:calc(100% + 10px);clip-path:inset(0 0 0 100% round 999px);}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-volume {transform:translateX(35%);}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute.is-open .ap-popup-reveal {clip-path:inset(0 round 999px);}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute.is-open .ap-popup-volume {transform:none;}
+.ap-popup.ap-popup--mute .ap-popup-volume input {direction:ltr;height:clamp(4px,calc(var(--popup-size,60px)/12),7px);}
+.ap-popup.ap-popup--mute .ap-popup-volume input:active {cursor:grabbing;}
+.ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb {width:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);height:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);transition:transform .16s ease,box-shadow .16s ease;}
+.ap-popup.ap-popup--mute .ap-popup-volume input::-moz-range-thumb {width:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);height:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);border:0;border-radius:50%;background:var(--popup-color,#fff);transition:transform .16s ease,box-shadow .16s ease;}
+.ap-popup.ap-popup--mute .ap-popup-volume input:active::-webkit-slider-thumb {transform:scale(1.2);box-shadow:0 0 0 4px color-mix(in srgb,var(--popup-color,#fff) 15%,transparent);}
+.ap-popup.ap-popup--mute .ap-popup-volume input:active::-moz-range-thumb {transform:scale(1.2);}
+@keyframes muteRelease {from{filter:brightness(1.25)}to{filter:brightness(1)}}
+.ap-popup.ap-popup--mute.is-settling .ap-popup-volume {animation:muteRelease .3s ease;}
+@media(prefers-reduced-motion:reduce){.ap-popup.ap-popup--mute .ap-popup-reveal,.ap-popup.ap-popup--mute .ap-popup-volume{transition:none!important;}.ap-popup.ap-popup--mute .ap-popup-volume{transform:none!important;animation:none!important;}}

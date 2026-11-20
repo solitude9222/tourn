@@ -528,9 +528,9 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   scatteredCell: 3,
   scatteredGlow: 6,
   scatteredShimmer: true,
-  version: 6,
-  // Compact reference: a 648px card with 105px avatar and 38px identity text.
-  cardWidth: 648,
+  version: 7,
+  // Comfortable default width; typography scales from the 648px reference.
+  cardWidth: 760,
   cardRadius: 35,
   borderWidth: 1,
   borderOpacity: 0.12,
@@ -770,6 +770,8 @@ function loadDesign(input: unknown): AboutDesign {
     design.widgetGap = 12;
     design.bioSize = 14;
   }
+  // Widen the previous standard size while preserving deliberate custom widths.
+  if (storedVersion < 7 && design.cardWidth === 648) design.cardWidth = 760;
   return design;
 }
 
@@ -909,7 +911,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     scatteredGlow: numberIn(raw.scatteredGlow, 6, 0, 24),
     scatteredShimmer: boolIn(raw.scatteredShimmer, true),
     customFontUrl: typeof raw.customFontUrl === "string" ? raw.customFontUrl.slice(0, 750_000) : "",
-    version: 6,
+    version: 7,
     // Profiles saved against the old 620px card move to the wider one; a width
     // the owner picked after that is left alone.
     cardWidth: numberIn(raw.cardWidth, DEFAULT_ABOUT_DESIGN.cardWidth, 320, 1100),

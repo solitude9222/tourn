@@ -1,0 +1,36 @@
+/* Shared control geometry: enough room for copy, icons, and range thumbs. */
+.tw-dash .tw-btn { gap:10px; min-width:0; flex-shrink:0; }
+.tw-dash .tw-btn > svg,.tw-dash .tw-icon-btn > svg,.tw-dash .tw-control-icon { flex-shrink:0; }
+.tw-dash .tw-btn { height:auto; min-height:40px; padding:9px 14px; line-height:20px; white-space:normal; text-align:center; }
+.tw-dash .tw-card-head { gap:14px; flex-wrap:wrap; align-items:flex-start; }
+.tw-dash .tw-card-copy { flex:1 1 180px; min-width:0; }
+.tw-dash .tw-card-copy h2,.tw-dash .tw-card-copy p { overflow-wrap:anywhere; }
+.tw-dash .tw-card-actions { gap:10px; }
+.tw-dash .tw-label { gap:8px; line-height:1.5; overflow-wrap:anywhere; }
+.tw-dash :is(.tw-field,.tw-color-field,.tw-slider) { min-width:0; max-width:100%; gap:10px; }
+.tw-dash .tw-slider-head { align-items:flex-start; gap:12px; line-height:18px; }
+.tw-dash .tw-slider-head > span:first-child { min-width:0; overflow-wrap:anywhere; }
+.tw-dash .tw-slider-value { flex:none; white-space:nowrap; line-height:18px; }
+.tw-dash .tw-slider input[type=range] { display:block; box-sizing:border-box; min-width:0; width:100%; height:24px; }
+.tw-dash .tw-color { display:flex; flex-direction:row; align-items:center; min-width:0; max-width:100%; gap:10px; }
+.tw-dash .tw-color-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tw-dash .tw-control--icon { gap:10px; }
+.tw-dash .tw-control > input { min-width:0; }
+.tw-dash .tw-toggle-tile { gap:12px; align-items:center; }
+.tw-dash .tw-toggle-tile-copy { min-width:0; overflow-wrap:anywhere; }
+.tw-dash .tw-toggle-tile > .tw-toggle { flex-shrink:0; }
+.tw-dash .tw-slider-ticks { min-height:20px; }
+@media(max-width:700px) {
+ .tw-dash .tw-audio-settings-grid > :is(.tw-slider,.tw-color-field) { grid-column:auto; }
+ .tw-dash .tw-main { padding-inline:18px; }
+ .tw-dash .tw-card { padding:18px; }
+ .tw-dash .tw-card-actions { width:100%; margin-left:0; }
+ .tw-dash .tw-card-head .tw-card-copy { flex-basis:140px; }
+ .tw-dash .tw-page-head { flex-wrap:wrap; gap:16px; }
+ .tw-dash .tw-page-actions { justify-content:flex-start; }
+ .tw-dash .tw-surface-preview-head { flex-wrap:wrap; gap:12px; }
+}
+@media(max-width:600px) {
+ .tw-dash .tw-section-label { flex-direction:column; align-items:flex-start; gap:6px; }
+ .tw-dash .tw-section-label small { line-height:1.5; }
+}

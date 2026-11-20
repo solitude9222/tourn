@@ -165,8 +165,8 @@
 .lkr-page .lkr-flow--slideshow > .lkr-slide > .lkr-gallery,
 .lkr-page .lkr-sections,
 .lkr-page .lkr-gallery {
-  width: min(100%, 648px);
-  max-width: 648px;
+  width: min(100%, var(--pv-width, 760px));
+  max-width: var(--pv-width, 760px);
   margin-inline: auto;
 }
 
@@ -301,7 +301,7 @@
 .profile-preview .pv-foot-item {color:var(--pv-text,#eef3ff);}
 .lkr-skills-wrap,.lkr-page .lkr-skills-wrap {height:auto;min-height:0;overflow:visible;flex:none;}
 .lkr-page .lkr-skills-wrap.lkr-slide {min-height:100%;height:auto;overflow:visible;padding-block:28px;}
-.lkr-page .lkr-skills-section {width:min(100%,648px);min-width:0;max-height:none;overflow:visible;box-sizing:border-box;padding:20px;}
+.lkr-page .lkr-skills-section {width:min(100%,var(--pv-width,760px));min-width:0;max-height:none;overflow:visible;box-sizing:border-box;padding:20px;}
 .lkr-page .lkr-skills-section .lkr-tech-row {display:flex;flex-wrap:wrap;gap:10px;white-space:normal;overflow:visible;max-height:none;align-items:center;}
 .lkr-page .lkr-skills-section .lkr-tech {display:inline-flex;align-items:center;gap:7px;max-width:100%;min-height:30px;padding:6px 10px;white-space:normal;overflow-wrap:anywhere;line-height:1.4;}
 .lkr-page .lkr-skills-section .lkr-tech img {width:16px;height:16px;object-fit:contain;flex:none;}
