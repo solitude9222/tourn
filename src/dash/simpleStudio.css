@@ -439,3 +439,14 @@ html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
    earlier 13px rule, so it carries the same specific selector. */
 .tw-dash .tw-nav:not(:has(.tw-nav-search-result)) .tw-nav-item { font-size: 13.5px; }
 .tw-dash .tw-nav:not(:has(.tw-nav-search-result)) .tw-nav-block { max-height: 38px; }
+
+/* The drawer keeps its last row off the home-bar area. */
+.tw-dash .tw-rail { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* One visible focus treatment everywhere in the console, including on top of
+   coloured cards where a single outline can disappear. */
+.tw-dash :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-bright, #8aa6ff);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--page, #0e0e10);
+}

@@ -1312,6 +1312,7 @@ export function Slider({
         onBlur={control.finish}
         style={{ ["--tw-fill" as string]: `${percent}%` }}
         aria-label={typeof label === "string" ? label : "Slider"}
+        aria-valuetext={format ? format(draft) : `${draft}${suffix}`}
       />
       {ticks ? (
         <div className="tw-slider-ticks">

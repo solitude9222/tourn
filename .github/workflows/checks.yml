@@ -1,0 +1,26 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typecheck-and-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx vite build
+      - run: npm run budget
+      - run: npm run test:security
+      - run: npm run test:audio
+      - run: npm run test:data-transfer
+      - run: npm run test:discord
+      - run: npm run test:profile-history
+      - run: npm run test:analytics

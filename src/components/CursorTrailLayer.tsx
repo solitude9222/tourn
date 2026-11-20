@@ -72,7 +72,7 @@ export function CursorTrailLayer({ settings, preview }: { settings: CursorSettin
 
   return (
     <span ref={layerRef} className={`profile-cursor profile-cursor--${settings.style}`} aria-hidden="true">
-      <canvas ref={canvasRef} className="profile-cursor-canvas" />
+      <canvas ref={canvasRef} className="profile-cursor-canvas" aria-hidden="true" />
     </span>
   );
 }

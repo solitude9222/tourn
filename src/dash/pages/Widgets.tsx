@@ -103,7 +103,7 @@ function DiscordBadgeChoices({ value, content, onChange }: { value: boolean | st
       const active = badges.filter((badge) => selected.includes(badge.id)).length;
       return <details className="tw-extra-badge-group" key={group.label} open>
         <summary><span><b>{group.label}</b><small>{group.hint}</small></span><span className="tw-extra-count">{active}/{badges.length}</span></summary>
-        <div className="tw-extra-badge-grid">{badges.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(encode(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" /><span>{badge.label}</span><i aria-hidden="true" /></button>)}</div>
+        <div className="tw-extra-badge-grid">{badges.map((badge) => <button key={badge.id} type="button" aria-pressed={selected.includes(badge.id)} onClick={() => onChange(encode(selected.includes(badge.id) ? selected.filter((id) => id !== badge.id) : [...selected, badge.id]))}><img src={badge.art} alt="" loading="lazy" decoding="async" /><span>{badge.label}</span><i aria-hidden="true" /></button>)}</div>
       </details>;
     })}</div>
     <div className="tw-badge-stages">{selected.map((id) => {

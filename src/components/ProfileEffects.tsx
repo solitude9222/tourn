@@ -68,7 +68,7 @@ function GrainOverlay({ opacity, compact }: { opacity: number; compact: boolean 
   }, [compact]);
   return (
     <span className="profile-fx-overlay profile-fx-overlay--grain" style={{ "--fx-opacity": opacity } as CSSProperties} aria-hidden="true">
-      <canvas ref={canvasRef} className="profile-fx-grain-canvas" />
+      <canvas ref={canvasRef} className="profile-fx-grain-canvas" aria-hidden="true" />
     </span>
   );
 }
