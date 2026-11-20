@@ -437,13 +437,6 @@ export function ProfilePreview({
               {inlineBadges || design.badgePosition === "above-name" ? badgeRow : null}
             </div>
             {secondaryName ? <p className="pv-display-name" data-effect={studio.displayEffect}>{secondaryName}</p> : null}
-            {design.layout === "panel" ? (
-              <p className="pv-panel-meta">
-                <span>@{user.alias?.trim() || user.username}</span>
-                <span aria-hidden="true">·</span>
-                <span>{uid}</span>
-              </p>
-            ) : null}
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
         </div>
@@ -491,15 +484,6 @@ export function ProfilePreview({
         )}
 
         {design.badgePosition === "bottom" && !inlineBadges ? badgeRow : null}
-
-        {design.layout === "panel" ? (
-          <div className="pv-panel-foot">
-            <span>
-              {displayName} · {uid}
-            </span>
-            <span>{(user.alias?.trim() || user.username)}.tourn.lol</span>
-          </div>
-        ) : null}
 
       </div>
       {cardSlotLayer}

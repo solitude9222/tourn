@@ -8,7 +8,7 @@ export type AboutTheme = "default" | "modern" | "portfolio";
 /** The page layout: how the card, the widgets and the links are arranged.
  *  `stacked` is one column, `left` pins the card left with widgets beside it,
  *  `centered` is a single narrow column centred on the page. */
-export type AboutLayout = "stacked" | "left" | "centered" | "panel";
+export type AboutLayout = "stacked" | "left" | "centered";
 
 /** The public "linker" page layout. Each one only changes spacing and how
  *  large the widgets sit — never the card's colour, background or blur. */
@@ -354,7 +354,6 @@ export type AboutDesign = {
   /** Move the avatar, name and bio away from the layout's default composition. */
   advancedLayout?: boolean;
   /** The Portfolio tab in the dashboard sidebar. Hidden means gone, not greyed. */
-  showPortfolio?: boolean;
   /** The location pill, above the card on the right, beside the account date. */
   showLocation: boolean;
   /** The view counter, in the card's bottom-left corner. */
@@ -552,7 +551,6 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   bioPosition: "center",
   avatarShape: "circle",
   advancedLayout: false,
-  showPortfolio: true,
   showLocation: true,
   showViews: true,
   showJoined: true,
@@ -813,8 +811,6 @@ function loadDesignRaw(input: unknown): AboutDesign {
   const layout: AboutLayout =
     savedLayout === "left"
       ? "left"
-      : savedLayout === "panel"
-        ? "panel"
         : savedLayout === "centered" || savedLayout === "modern"
           ? "centered"
           : "stacked";
@@ -833,7 +829,6 @@ function loadDesignRaw(input: unknown): AboutDesign {
 
   return {
     theme,
-    showPortfolio: raw.showPortfolio !== false,
     gallery: normalizeGallery(raw.gallery),
     portfolio: normalizePortfolio(raw.portfolio),
     sectionsEnabled: typeof raw.sectionsEnabled === "boolean" ? raw.sectionsEnabled : Boolean(raw.sections?.length),

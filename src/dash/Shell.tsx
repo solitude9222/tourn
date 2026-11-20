@@ -133,11 +133,7 @@ export function Shell({
   const [subcategoryOrder,setSubcategoryOrder]=usePreference<Record<string,string[]>>('subcategory-order',{});
   useEffect(()=>{const update=(event:Event)=>setSubcategoryOrder((event as CustomEvent<Record<string,string[]>>).detail);window.addEventListener('tourn:subcategory-order',update);return()=>window.removeEventListener('tourn:subcategory-order',update);},[]);
   const [categoryOrder,setCategoryOrder]=usePreference<string[]>('category-order',[]);
-  /* "Hide completely" in Layout really means gone: the Portfolio tab and its
-     rail entry leave the sidebar instead of turning into a locked stub. */
-  const hidePortfolio=about.design.showPortfolio===false;
-  const visibleRailSections=hidePortfolio?RAIL_SECTIONS.map(section=>({...section,items:section.items.filter(entry=>entry.navKey!=="portfolio")})).filter(section=>section.items.length>0):RAIL_SECTIONS;
-  const railSections=[...visibleRailSections].sort((a,b)=>{const index=(id:string)=>categoryOrder.includes(id)?categoryOrder.indexOf(id):categoryOrder.length+RAIL_SECTIONS.findIndex(s=>s.key===id);return index(a.key)-index(b.key);});
+  const railSections=[...RAIL_SECTIONS].sort((a,b)=>{const index=(id:string)=>categoryOrder.includes(id)?categoryOrder.indexOf(id):categoryOrder.length+RAIL_SECTIONS.findIndex(s=>s.key===id);return index(a.key)-index(b.key);});
   useEffect(()=>{const update=(event:Event)=>setCategoryOrder((event as CustomEvent<string[]>).detail);window.addEventListener('tourn:category-order',update);return()=>window.removeEventListener('tourn:category-order',update);},[]);
   const [savedAt,setSavedAt]=useState<Date|null>(null);
   const [justSaved,setJustSaved]=useState(false);
@@ -205,8 +201,8 @@ export function Shell({
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
   // The rail avatar wears the same Discord decoration as the public profile.
   const decorationUrl = (about.assets.decoration?.discordUrl || "").trim();
-  const navItems = NAV.filter((item) => (!item.adminOnly || isAdmin) && !(hidePortfolio && item.key === "portfolio"));
-  const railSource = railKey ? visibleRailSections.find(item=>item.key===railKey)??null : null;
+  const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
+  const railSource = railKey ? RAIL_SECTIONS.find(item=>item.key===railKey)??null : null;
   const railItem=railSource?{...railSource,items:[...railSource.items].sort((a,b)=>{const order=subcategoryOrder[railSource.key]||[];const index=(page:string)=>order.includes(page)?order.indexOf(page):order.length+railSource.items.findIndex(entry=>entry.page===page);return index(a.page)-index(b.page);})}:null;
 
   const loadTrades = async () => {

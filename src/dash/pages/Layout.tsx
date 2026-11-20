@@ -44,12 +44,6 @@ const PAGE_LAYOUTS: {
     name: "Centered",
     description: "Picture and name centred, with the widget and link blocks below.",
   },
-  {
-    id: "panel",
-    name: "Panel",
-    description:
-      "A banner header with the picture overlapping it, then details, a ruled bio, links and a footer line.",
-  },
 ];
 
 export function LayoutPage({
@@ -211,9 +205,9 @@ export function LayoutPage({
                   cardWidth: DEFAULT_ABOUT_DESIGN.cardWidth,
                   widgetsPosition: preset.id === "stacked" ? "below" : "inside",
                   audioSlot: "below-card",
-                  pfpPosition: preset.id === "left" || preset.id === "panel" ? "left" : "above",
-                  namePosition: preset.id === "left" || preset.id === "panel" ? "left" : "center",
-                  bioPosition: preset.id === "left" || preset.id === "panel" ? "left" : "center",
+                  pfpPosition: preset.id === "left" ? "left" : "above",
+                  namePosition: preset.id === "left" ? "left" : "center",
+                  bioPosition: preset.id === "left" ? "left" : "center",
                 })
               }
             >
@@ -239,21 +233,6 @@ export function LayoutPage({
               <small>{preset.description}</small>
             </button>
           ))}
-        </div>
-        <div className="tw-form-grid" style={{ marginTop: 18 }}>
-          <Field
-            label="Portfolio tab"
-            help="Hide removes the Portfolio tab from the dashboard sidebar completely, including its sub-tabs."
-          >
-            <Select
-              value={design.showPortfolio === false ? "hide" : "show"}
-              options={[
-                { value: "show", label: "Show in the sidebar" },
-                { value: "hide", label: "Hide completely" },
-              ]}
-              onChange={(value) => updateDesign({ showPortfolio: value !== "hide" })}
-            />
-          </Field>
         </div>
       </Card> : null}
 
