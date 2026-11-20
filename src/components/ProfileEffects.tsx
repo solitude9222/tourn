@@ -27,15 +27,21 @@ export function BackgroundEffectLayer({
   useEffect(() => {
     const host = hostRef.current;
     if (!host || settings.id === "none") return;
-    // Atmosphere is the point of this layer. Unlike the cursor trail, it keeps
-    // moving even when the OS asks for reduced motion; the scenes are slow and
-    // non-interactive, and freezing them makes the chosen effect look broken.
+    // The scene pauses offscreen and honours reduced motion internally.
     const api = mountAmbientScene(host, settings.id, { compact });
     return () => api.destroy();
   }, [settings.id, compact]);
 
   if (settings.id === "none") return null;
-  return <span ref={hostRef} className="profile-fx-bg profile-fx-canvas" aria-hidden="true" />;
+  const opacity = Math.min(1, Math.max(0, settings.opacity ?? 1));
+  return (
+    <span
+      ref={hostRef}
+      className="profile-fx-bg profile-fx-canvas"
+      style={{ opacity } as CSSProperties}
+      aria-hidden="true"
+    />
+  );
 }
 
 /* ----------------------------------------------------------- grain filter */

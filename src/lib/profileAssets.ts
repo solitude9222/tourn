@@ -100,9 +100,9 @@ const LEGACY_TRAILS: Record<string, CursorTrailType> = {
 };
 export type ProfileBackgroundStyle = "solid" | "gradient" | "image" | "video";
 /** Transparent particle layers drawn behind the profile page. */
-export type BackgroundEffectId = "none" | "rain" | "snow" | "night" | "storm" | "warp" | "shootingStars";
+export type BackgroundEffectId = "none" | "rain" | "snow" | "night" | "storm" | "warp" | "shootingStars" | "embers" | "bubbles" | "fireflies" | "petals";
 /** Full-page CSS filters, grain and the snowfall filter. */
-export type OverlayEffectId = "none" | "oldTv" | "blurred" | "snowFall" | "dotPattern" | "lines" | "gridLines" | "crt" | "grain";
+export type OverlayEffectId = "none" | "oldTv" | "blurred" | "snowFall" | "dotPattern" | "lines" | "gridLines" | "crt" | "grain" | "vignette" | "halftone" | "bokeh" | "scanSweep";
 export type AudioStyle =
   | "none"
   | "compact"
@@ -200,6 +200,10 @@ export const BACKGROUND_EFFECT_PARAM: Record<BackgroundEffectId, EffectParamSpec
   storm: null,
   warp: null,
   shootingStars: null,
+  embers: null,
+  bubbles: null,
+  fireflies: null,
+  petals: null,
 };
 
 export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | null> = {
@@ -212,6 +216,10 @@ export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | nul
   gridLines: null,
   crt: null,
   grain: null,
+  vignette: null,
+  halftone: null,
+  bokeh: null,
+  scanSweep: null,
 };
 
 export type DecorationSettings = {
@@ -368,6 +376,8 @@ export type CardEffectSettings = {
 
 export type BackgroundEffectSettings = {
   id: BackgroundEffectId;
+  /** Canvas layer opacity, 0–1. */
+  opacity: number;
   intensity: number;
   speed: number;
   color: string;
@@ -532,6 +542,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   effects: {
     background: {
       id: "none",
+      opacity: 1,
       intensity: 50,
       speed: 9,
       color: "#ffffff",
@@ -583,6 +594,10 @@ export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: s
   { id: "storm", name: "Storm", hint: "Heavy rain with distant lightning flashes" },
   { id: "warp", name: "Warp", hint: "Stars streaking outward from the centre" },
   { id: "shootingStars", name: "Shooting Stars", hint: "Occasional meteors crossing the night sky" },
+  { id: "embers", name: "Embers", hint: "Warm sparks rising and fading as they cool" },
+  { id: "bubbles", name: "Bubbles", hint: "Soft glassy bubbles drifting upward" },
+  { id: "fireflies", name: "Fireflies", hint: "Slow glowing dots that blink in and out" },
+  { id: "petals", name: "Petals", hint: "Pink petals tumbling gently downward" },
 ];
 
 export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] = [
@@ -595,6 +610,10 @@ export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string 
   { id: "gridLines", name: "Grid Lines", hint: "A faint 40px grid over the page" },
   { id: "crt", name: "CRT", hint: "Scanlines, RGB stripes, a flicker and a heavy vignette" },
   { id: "grain", name: "Film Grain", hint: "Animated monochrome noise over the page" },
+  { id: "vignette", name: "Vignette", hint: "A soft dark frame around the page edges" },
+  { id: "halftone", name: "Halftone", hint: "A coarse printed dot texture" },
+  { id: "bokeh", name: "Bokeh", hint: "Blurred light blobs drifting over the page" },
+  { id: "scanSweep", name: "Scan Sweep", hint: "A slow band of light passing down the page" },
 ];
 /** Retired from the picker because the RGB-stripe look reads as cheap sci-fi;
  *  saved profiles that use it keep rendering it. */
@@ -893,6 +912,12 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
         );
         return {
           id,
+          opacity: numberIn(
+            backgroundEffect.opacity,
+            DEFAULT_PROFILE_ASSETS.effects.background.opacity,
+            0,
+            1,
+          ),
           intensity: numberIn(
             backgroundEffect.intensity,
             DEFAULT_PROFILE_ASSETS.effects.background.intensity,

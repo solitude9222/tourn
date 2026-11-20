@@ -7,7 +7,17 @@
    public profile can each run their own layer without fighting over z-index.
    --------------------------------------------------------------------------- */
 
-export type AmbientScene = "rain" | "snow" | "night" | "storm" | "warp" | "shootingStars";
+export type AmbientScene =
+  | "rain"
+  | "snow"
+  | "night"
+  | "storm"
+  | "warp"
+  | "shootingStars"
+  | "embers"
+  | "bubbles"
+  | "fireflies"
+  | "petals";
 
 type Particle = {
   x: number;
@@ -24,6 +34,7 @@ type Particle = {
   d?: number;
   life?: number;
   s?: number;
+  vr?: number;
 };
 
 type Scene = {
@@ -142,6 +153,104 @@ const SCENES: Record<AmbientScene, Scene> = {
       ctx.stroke();
     },
   },
+  embers: {
+    area: 12000,
+    make: (w, h, first) => ({
+      x: rnd(0, w),
+      y: first ? rnd(0, h) : h + rnd(0, 40),
+      r: rnd(0.6, 2.2),
+      v: rnd(20, 70),
+      ph: rnd(0, 6.28),
+      life: rnd(0.35, 1),
+    }),
+    update(p, w, h, dt, t) {
+      p.y -= (p.v ?? 0) * dt;
+      p.x += Math.sin(t * 0.7 + (p.ph ?? 0)) * 14 * dt;
+      p.life = (p.life ?? 0) - dt * 0.32;
+      if (p.y < -20 || (p.life ?? 0) <= 0) Object.assign(p, this.make(w, h, false));
+    },
+    draw(ctx, p, t) {
+      const life = Math.max(0, Math.min(1, p.life ?? 1));
+      const flicker = 0.55 + 0.45 * Math.sin(t * 3 + (p.ph ?? 0));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r ?? 1, 0, TAU);
+      ctx.fillStyle = `rgba(255,${Math.round(150 + 60 * life)},${Math.round(70 + 50 * life)},${0.18 + 0.65 * life * flicker})`;
+      ctx.fill();
+    },
+  },
+  bubbles: {
+    area: 16000,
+    make: (w, h, first) => ({
+      x: rnd(0, w),
+      y: first ? rnd(0, h) : h + 20,
+      r: rnd(4, 16),
+      v: rnd(18, 50),
+      ph: rnd(0, 6.28),
+    }),
+    update(p, w, h, dt, t) {
+      p.y -= (p.v ?? 0) * dt;
+      p.x += Math.sin(t * 0.8 + (p.ph ?? 0)) * 18 * dt;
+      if (p.y < -30) Object.assign(p, this.make(w, h, false));
+    },
+    draw(ctx, p) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r ?? 6, 0, TAU);
+      ctx.strokeStyle = "rgba(190,225,255,.45)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = "rgba(190,225,255,.08)";
+      ctx.fill();
+    },
+  },
+  fireflies: {
+    area: 14000,
+    make: (w, h) => ({
+      x: rnd(0, w),
+      y: rnd(0, h),
+      r: rnd(0.8, 2),
+      ph: rnd(0, 6.28),
+      s: rnd(0.4, 1.1),
+    }),
+    update(p, w, h, dt, t) {
+      p.x = (((p.x ?? 0) + Math.sin(t * 0.5 + (p.ph ?? 0)) * 10 * dt) + w) % w;
+      p.y = (((p.y ?? 0) + Math.cos(t * 0.42 + (p.ph ?? 0)) * 8 * dt) + h) % h;
+    },
+    draw(ctx, p, t) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * (p.s ?? 1) * 1.6 + (p.ph ?? 0));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, (p.r ?? 1) * (0.8 + pulse * 0.6), 0, TAU);
+      ctx.fillStyle = `rgba(255,236,150,${0.12 + 0.7 * pulse})`;
+      ctx.fill();
+    },
+  },
+  petals: {
+    area: 12000,
+    make: (w, h, first) => ({
+      x: rnd(0, w),
+      y: first ? rnd(0, h) : -20,
+      r: rnd(3, 7),
+      v: rnd(28, 60),
+      ph: rnd(0, 6.28),
+      vr: rnd(-1.2, 1.2),
+      a: rnd(0, 6.28),
+    }),
+    update(p, w, h, dt, t) {
+      p.y += (p.v ?? 0) * dt;
+      p.x += (Math.sin(t * 0.9 + (p.ph ?? 0)) * 26 + 12) * dt;
+      p.a = (p.a ?? 0) + (p.vr ?? 0) * dt;
+      if (p.y > h + 20 || p.x > w + 30) Object.assign(p, this.make(w, h, false));
+    },
+    draw(ctx, p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.a ?? 0);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.r ?? 4, (p.r ?? 4) * 0.55, 0, 0, TAU);
+      ctx.fillStyle = "rgba(255,183,205,.55)";
+      ctx.fill();
+      ctx.restore();
+    },
+  },
   shootingStars: {
     count: 4,
     make: (_w, _h, first, index = 0) => ({
@@ -191,6 +300,7 @@ const SCENES: Record<AmbientScene, Scene> = {
   },
 };
 
+const sceneAllocations = new Set<() => void>();
 export type AmbientApi = { destroy: () => void };
 
 /** Mount one scene into `host`; the host must be a positioned element. */
@@ -214,6 +324,9 @@ export function mountAmbientScene(
   let raf = 0;
   let last = performance.now();
   let stopped = false;
+  let inView = true;
+  const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const lowPower = Boolean((navigator as Navigator & {connection?:{saveData?:boolean}}).connection?.saveData);
   const sceneState = { flash: 0 };
 
   const fill = () => {
@@ -221,11 +334,11 @@ export function mountAmbientScene(
     const count = scene.count !== undefined
       ? scene.count
       : Math.max(4, Math.min(520, Math.round((width * height) / ((scene.area ?? 9000) * (compact ? 0.22 : 1)))));
-    parts = Array.from({ length: count }, (_, index) => scene.make(width, height, true, index));
+    parts = Array.from({ length: Math.min(count,compact?64:lowPower?90:280,Math.max(12,Math.floor(560/Math.max(1,sceneAllocations.size)))) }, (_, index) => scene.make(width, height, true, index));
   };
 
   const resize = () => {
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const ratio = Math.min(window.devicePixelRatio || 1, compact || lowPower ? 1 : 2);
     width = Math.max(1, host.clientWidth);
     height = Math.max(1, host.clientHeight);
     canvas.width = Math.round(width * ratio);
@@ -248,22 +361,27 @@ export function mountAmbientScene(
   };
 
   const loop = (now: number) => {
-    if (stopped) return;
+    if (stopped || document.hidden || !inView || reducedMotion || motion.matches) {raf=0;return;}
     paint(now);
     raf = requestAnimationFrame(loop);
   };
 
+  sceneAllocations.add(fill);sceneAllocations.forEach(allocate=>allocate());
   resize();
   const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
   observer?.observe(host);
   window.addEventListener("resize", resize);
-  if (!reducedMotion) raf = requestAnimationFrame(loop);
+  const resume=()=>{cancelAnimationFrame(raf);raf=0;if(stopped)return;if(reducedMotion||motion.matches){paint(performance.now());return;}if(!document.hidden&&inView){last=performance.now();raf=requestAnimationFrame(loop);}};
+  const intersection=new IntersectionObserver(entries=>{inView=entries.some(entry=>entry.isIntersecting);resume();});intersection.observe(host);
+  document.addEventListener('visibilitychange',resume);motion.addEventListener('change',resume);resume();
 
   return {
     destroy() {
       stopped = true;
+      sceneAllocations.delete(fill);sceneAllocations.forEach(allocate=>allocate());
       cancelAnimationFrame(raf);
       observer?.disconnect();
+      intersection.disconnect();document.removeEventListener("visibilitychange",resume);motion.removeEventListener("change",resume);
       window.removeEventListener("resize", resize);
       canvas.remove();
     },

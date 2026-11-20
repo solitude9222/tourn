@@ -15,8 +15,8 @@ const groupFor = (kind: EffectKind, id: string) => {
   if (kind === "text") return ["rgb", "glow", "shimmer", "sparkle", "neon"].includes(id) ? "Light & colour" : "Motion";
   if (kind === "card") return "Light & borders";
   if (kind === "cursor" || kind === "trail" || kind === "click") return "Pointer";
-  if (["rain", "snow", "night", "storm", "warp", "shootingStars", "blurred", "snowFall"].includes(id)) return "Atmosphere";
-  if (["oldTv", "dotPattern", "lines", "gridLines", "crt", "grain"].includes(id)) return "Texture";
+  if (["rain", "snow", "night", "storm", "warp", "shootingStars", "embers", "bubbles", "fireflies", "petals", "blurred", "snowFall"].includes(id)) return "Atmosphere";
+  if (["oldTv", "dotPattern", "lines", "gridLines", "crt", "grain", "halftone", "vignette", "bokeh", "scanSweep"].includes(id)) return "Texture";
   return "Light & depth";
 };
 

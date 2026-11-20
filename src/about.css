@@ -2875,6 +2875,68 @@
   backdrop-filter: blur(6px);
 }
 
+/* Quiet finishes: a soft frame, a printed dot texture, drifting light blobs
+   and one slow band of light. All of them inherit --fx-opacity from the host,
+   so the alpha slider in the dashboard controls every one of them. */
+.profile-fx-overlay--vignette {
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, 0.78) 100%);
+}
+
+.profile-fx-overlay--halftone {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1.5px, transparent 1.9px);
+  background-size: 7px 7px;
+  mix-blend-mode: soft-light;
+}
+
+.profile-fx-overlay--bokeh {
+  overflow: hidden;
+  contain: paint;
+}
+
+.profile-fx-overlay--bokeh::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background-image:
+    radial-gradient(circle at 22% 28%, rgba(255, 255, 255, 0.38), transparent 42%),
+    radial-gradient(circle at 72% 58%, rgba(255, 255, 255, 0.26), transparent 40%),
+    radial-gradient(circle at 44% 82%, rgba(255, 255, 255, 0.3), transparent 38%);
+  filter: blur(7px);
+  will-change: transform;
+  animation: fxBokehDrift 26s ease-in-out infinite alternate;
+}
+
+.profile-fx-overlay--scanSweep {
+  overflow: hidden;
+  contain: paint;
+}
+
+.profile-fx-overlay--scanSweep::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 32%;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  will-change: transform;
+  animation: fxScanSweep 7.5s linear infinite;
+}
+
+@keyframes fxBokehDrift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1.04); }
+  to { transform: translate3d(2%, 2%, 0) scale(1.12); }
+}
+
+@keyframes fxScanSweep {
+  from { transform: translateY(-130%); }
+  to { transform: translateY(360%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-fx-overlay--bokeh::before,
+  .profile-fx-overlay--scanSweep::before { animation: none; }
+}
+
 .lkr-page[data-fx-filter="blurred"] .lkr-bg,
 .lkr-page[data-fx-filter="blurred"] .profile-fx-bg {
   filter: blur(6px);

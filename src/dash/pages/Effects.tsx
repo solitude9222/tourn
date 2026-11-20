@@ -76,8 +76,10 @@ export function EffectsPage({ category = "background", embedded = false }: { cat
   return <div className="fx-workspace">
     {!embedded ? <nav className="tw-workspace-tabs" aria-label="Effect categories">{(["background", "overlay", "text", "card", "cursor"] as EffectKind[]).map((kind) => <button type="button" aria-pressed={browser === kind} onClick={() => setBrowser(kind)} key={kind}>{({ background: "Background", overlay: "Overlays", text: "Text", card: "Card", cursor: "Pointer & sound", trail: "Trails", click: "Clicks" })[kind]}</button>)}</nav> : null}
     {browser === "background" ? <Card><CardHead icon="sparkles" title="Background effects" subtitle="Choose an atmosphere. Hover a tile to see its motion." />{chooser("background")}
+      {effects.background.id !== "none" ? <div className="tw-form-grid"><Slider label="Alpha" value={Math.round((effects.background.opacity ?? 1) * 100)} min={5} max={100} suffix="%" onChange={(alpha) => setBackground({ opacity: alpha / 100 })} /></div> : null}
     </Card> : null}
-    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlay effects" subtitle="Quiet full-page finishes: film grain, fine lines, a dot texture, blur or falling snow." />{chooser("overlay")}
+    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlay effects" subtitle="Quiet full-page finishes: film grain, fine lines, a dot texture, a vignette, blur or falling snow." />{chooser("overlay")}
+      {effects.overlay.id !== "none" ? <div className="tw-form-grid"><Slider label="Alpha" value={Math.round(effects.overlay.opacity * 100)} min={5} max={100} suffix="%" onChange={(alpha) => setOverlay({ opacity: alpha / 100 })} /></div> : null}
     </Card> : null}
     {browser === "text" ? <Card><CardHead icon="edit" title="Text effects" subtitle="Choose a target, then browse animated lettering. Sparkle adds twinkling stars around the letters." />
       <div className="fx-categories">{["name", "alias", "bio"].map((id) => <button key={id} type="button" aria-pressed={target === id} onClick={() => setTarget(id as TextEffectTarget)}>{({ name: "Display name", alias: "Username", bio: "Bio" })[id as TextEffectTarget]}</button>)}</div>
