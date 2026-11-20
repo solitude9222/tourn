@@ -1,84 +1,10 @@
-# Studio expansion: 80 improvements
+# Studio expansion — historical
 
-Each item below is tracked against a working UI and renderer or backend behavior. Existing features are being extended rather than replaced. Public profile styling stays compatible with saved documents; ownership and purchases remain server-controlled.
+This file used to track 80 planned studio improvements as an unchecked list.
+It is no longer the source of truth: most of those items shipped (badge order,
+badge glow and speed, earned dates, poster controls, mobile previews, device
+previews, saved versions), and the rest are tracked elsewhere.
 
-- [ ] 1. Badge glow presets
-- [ ] 2. Badge animation speed
-- [ ] 3. Drag equipped badge order
-- [ ] 4. Favourite badges
-- [ ] 5. Earned dates
-- [ ] 6. Achievement progress
-- [ ] 7. Badge background previews
-- [ ] 8. Saved badge styles
-- [ ] 9. Badge animation staggering
-- [ ] 10. Locked-badge explanations
-- [ ] 11. Separate username/display effects
-- [ ] 12. Display-name size
-- [ ] 13. Display-name opacity
-- [ ] 14. Avatar border presets
-- [ ] 15. Avatar hover motion
-- [ ] 16. Banner focal point
-- [ ] 17. Mobile banner crop
-- [ ] 18. Long-name handling
-- [ ] 19. Live contrast checks
-- [ ] 20. Nickname/pronunciation tooltip
-- [ ] 21. Mobile layout overrides
-- [ ] 22. Drag alignment guides
-- [ ] 23. Snap positioning
-- [ ] 24. Element locks
-- [ ] 25. Copy widget styling
-- [ ] 26. Widget empty states
-- [ ] 27. Slideshow labels
-- [ ] 28. Slideshow navigation placement
-- [ ] 29. Keyboard slide navigation
-- [ ] 30. Slideshow progress
-- [ ] 31. Drag interest order
-- [ ] 32. Interest category filters
-- [ ] 33. Poster crop
-- [ ] 34. Interest ratings/notes
-- [ ] 35. Interest status
-- [ ] 36. Duplicate interest checks
-- [ ] 37. Larger poster previews
-- [ ] 38. Missing poster fallback
-- [ ] 39. Poster overlay controls
-- [ ] 40. Touch-friendly carousel
-- [ ] 41. Video trim range
-- [ ] 42. Video loop range
-- [ ] 43. Video loading poster
-- [ ] 44. Image compression preview
-- [ ] 45. Upload size estimates
-- [ ] 46. Bulk media replacement
-- [ ] 47. Audio waveforms
-- [ ] 48. Audio crossfades
-- [ ] 49. Audio normalization
-- [ ] 50. Entry audio fade
-- [ ] 51. Setting keyword search
-- [ ] 52. Pinned settings
-- [ ] 53. Recently edited settings
-- [ ] 54. Before/after comparison
-- [ ] 55. Last-saved status
-- [ ] 56. Recoverable history
-- [ ] 57. Side-by-side devices
-- [ ] 58. Upload retry recovery
-- [ ] 59. Profile onboarding
-- [ ] 60. Advanced-control help
-- [ ] 61. Motion speed presets
-- [ ] 62. Effect intensity ceiling
-- [ ] 63. Pause offscreen effects
-- [ ] 64. Automatic rendering quality
-- [ ] 65. Editor FPS meter
-- [ ] 66. Touch pointer effects
-- [ ] 67. Shared glow presets
-- [ ] 68. Coordinated entry/media
-- [ ] 69. Icon crop and alpha trim
-- [ ] 70. Consistent hover states
-- [ ] 71. Leaderboard time ranges
-- [ ] 72. Ranking explanation
-- [ ] 73. Interest discovery
-- [ ] 74. Curated showcases
-- [ ] 75. Personalized template previews
-- [ ] 76. SVG QR export
-- [ ] 77. Session management
-- [ ] 78. Keyboard focus visibility
-- [ ] 79. Mobile clipping checks
-- [ ] 80. Pre-publish accessibility checks
+It is kept only so older links keep working. Do not add items here — a list
+that is never checked off reads as a roadmap when it is really a wish list
+from a past release.

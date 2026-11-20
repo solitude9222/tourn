@@ -297,6 +297,7 @@ export function Shell({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => { if (event.key === "Escape") { setQuery(""); event.currentTarget.blur(); } }}
             placeholder="Search"
             aria-label="Search dashboard"
           />
@@ -591,7 +592,7 @@ export function Shell({
           </div>
 
           <div className="tw-row">
-            {actions}<span className="studio-save-status" role="status">{publishStatus==="saving"?"Saving…":publishStatus==="retrying"?"Retrying save…":savedAt?`Saved ${savedAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"Saved"}</span><Button icon="sliders" onClick={()=>setToolsOpen(true)}>Studio tools</Button>
+            {actions}<span className="studio-save-status" role="status">{publishStatus==="saving"?"Saving…":publishStatus==="retrying"?"Retrying save…":savedAt?`Saved ${savedAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"Not saved yet"}</span><Button icon="sliders" onClick={()=>setToolsOpen(true)}>Studio tools</Button>
           </div>
         </div>
 

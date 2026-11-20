@@ -350,3 +350,11 @@ html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
 @media (max-width: 900px) {
   .tw-dash .tw-nav-search-result { min-height: 40px; height: auto; padding: 10px 14px; font-size: 13px; }
 }
+
+/* The unsaved bar clears the bottom-corner mute control on phones. */
+@media (max-width: 900px) {
+  .tw-unsaved { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* A colour popover must not exceed a 320px viewport. */
+.tw-control-portal .tw-color-pop { max-width: calc(100vw - 24px); }
