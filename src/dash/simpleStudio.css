@@ -97,15 +97,36 @@ html[data-editor-gesture="true"] .tw-dash :is(.tw-card,.tw-modal,.fx-tile-previe
 .tw-dash .tw-premium-copy small { color:#b0a99b; font-size:10px; }
 .tw-dash .tw-premium-icon { background:none; border:0; box-shadow:none; }
 .tw-dash .tw-premium-chev { display:none; }
-.tw-dash .tw-user-foot { display:block; margin-top:8px; border:1px solid var(--border); border-radius:14px; background:#131315; }
-.tw-dash .tw-user-row { width:100%; padding:12px; min-height:66px; gap:12px; border:0; background:transparent; }
+.tw-dash .tw-user-foot { display:flex; align-items:center; gap:2px; margin-top:8px; padding:0 6px 0 0; border:1px solid var(--border); border-radius:14px; background:#131315; }
+.tw-dash .tw-user-row { flex:1 1 auto; width:auto; min-width:0; padding:12px; min-height:66px; gap:12px; border:0; background:transparent; }
 .tw-dash .tw-avatar { width:38px; height:38px; border:1px solid #303036; border-radius:50%; }
 .tw-dash .tw-avatar i { display:none; }
 .tw-dash .tw-user-meta { flex:1; text-align:left; }
 .tw-dash .tw-user-meta b { color:#f0f0f4; font-size:12px; }
 .tw-dash .tw-user-meta small { color:#9696a2; font-size:10px; }
 .tw-dash .tw-account-more { color:#858590; letter-spacing:1px; font-size:12px; }
-.tw-dash .tw-user-bell { position:fixed; top:14px; right:24px; z-index:32; background:transparent; border:0; }
+/* Notifications and share sit inside the profile mini block at the bottom of
+   the rail, not pinned to the page's top-right corner. */
+.tw-dash :is(.tw-user-bell,.tw-user-share) { position:relative; z-index:auto; display:grid; place-items:center; width:34px; height:34px; flex:none; padding:0; border:1px solid transparent; border-radius:10px; background:transparent; color:#9696a2; cursor:pointer; transition:color .16s ease, background .16s ease, border-color .16s ease; }
+.tw-dash :is(.tw-user-bell,.tw-user-share):hover { border-color:#303036; background:#1b1b20; color:#f0f0f4; }
+.tw-dash :is(.tw-user-bell,.tw-user-share):focus-visible { outline:2px solid var(--accent,#7aa2ff); outline-offset:2px; }
+.tw-dash .tw-user-bell.is-on { color:var(--accent-text,#f0f0f4); }
+/* The bell rings while something is waiting; the stack slides out of the block. */
+.tw-dash .tw-user-bell svg { transform-origin:50% 12%; }
+.tw-dash .tw-user-bell.is-on svg { animation:twBellRing 3.4s ease-in-out infinite; }
+@keyframes twBellRing {0%,72%,100%{transform:rotate(0)}76%{transform:rotate(-13deg)}80%{transform:rotate(11deg)}84%{transform:rotate(-8deg)}88%{transform:rotate(5deg)}92%{transform:rotate(-2deg)}}
+.tw-dash .tw-rail-foot .tw-note-pop { left:0; right:auto; top:auto; bottom:calc(100% + 8px); width:min(330px,calc(100vw - 24px)); animation:twNoteIn .24s cubic-bezier(.22,.8,.25,1) both; transform-origin:bottom left; }
+.tw-dash .tw-note-bar { animation:twNoteBarIn .26s cubic-bezier(.22,.8,.25,1) both; }
+.tw-dash .tw-note-stack .tw-note-bar:nth-child(2){animation-delay:.03s}
+.tw-dash .tw-note-stack .tw-note-bar:nth-child(3){animation-delay:.06s}
+.tw-dash .tw-note-stack .tw-note-bar:nth-child(4){animation-delay:.09s}
+.tw-dash .tw-note-stack .tw-note-bar:nth-child(5){animation-delay:.12s}
+.tw-dash .tw-note-stack .tw-note-bar:nth-child(6){animation-delay:.15s}
+.tw-dash .tw-note-stack .tw-note-bar:nth-child(7){animation-delay:.18s}
+.tw-dash .tw-note-stack .tw-note-bar:nth-child(8){animation-delay:.21s}
+@keyframes twNoteIn {from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes twNoteBarIn {from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce) { .tw-dash .tw-user-bell.is-on svg,.tw-dash .tw-rail-foot .tw-note-pop,.tw-dash .tw-note-bar { animation:none!important; } }
 .tw-dash .tw-profile-media-grid { grid-template-columns:repeat(5,minmax(0,1fr)); align-items:start; }
 .tw-dash .tw-profile-media-tile { width:100%; min-width:0; }
 .tw-dash .tw-media-background-placeholder,.tw-dash .tw-media-empty { display:flex; width:100%; height:100%; min-height:158px; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#a7a7b2; font-size:12px; }
@@ -117,7 +138,7 @@ html[data-editor-gesture="true"] .tw-dash :is(.tw-card,.tw-modal,.fx-tile-previe
 .tw-dash .tw-modal-body { min-height:0; overflow:auto; padding-bottom:32px; }
 .tw-dash .tw-nav-item { color:#9898a3; }
 @media(max-width:1200px) { .tw-dash .tw-profile-media-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-@media(max-width:650px) { .tw-dash .tw-profile-media-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.tw-dash .tw-user-bell { right:16px; } }
+@media(max-width:650px) { .tw-dash .tw-profile-media-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .tw-dash .tw-premium-copy { flex:1; text-align:left; }
 .tw-dash .tw-user { width:100%; }
 .tw-dash .tw-user-foot { width:100%; box-sizing:border-box; }

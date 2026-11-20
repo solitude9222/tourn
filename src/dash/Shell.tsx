@@ -1,4 +1,7 @@
-import {EditorTools} from "./EditorTools";
+import {ArrangementController} from "./ArrangeTools";
+import {Connectivity} from "./Connectivity";
+import {matchesSetting} from "./search";
+import {usePreference} from "./preferences";
 /* ---------------------------------------------------------------------------
    Dashboard shell — sidebar, breadcrumb, page header, tabs, unsaved-changes
    bar and toasts. The nav structure and measurements follow the reference.
@@ -104,14 +107,31 @@ export function Shell({
   useEffect(() => { document.title = `tourn | ${title}`; }, [title]);
   const { user, about, settings, dirty, save, discard, undo, redo, isPremium, isAdmin, profileViews, go, notify } =
     useDash();
+
+  // One share action for the account menu and the mini profile block, so both
+  // always copy the same public address.
+  const shareProfile = () => {
+    const handle = user.alias?.trim() || user.username;
+    const url = `${window.location.origin}/${encodeURIComponent(handle)}`;
+    void navigator.clipboard
+      .writeText(url)
+      .then(() => notify("Profile link", "Copied to clipboard."))
+      .catch(() => notify("Profile link", url));
+  };
   const { accounts, retryAuth } = useAuth();
   useDashTheme();
   const [accent] = useDashAccent();
-  const [toolsOpen,setToolsOpen]=useState(false);
+  const [subcategoryOrder,setSubcategoryOrder]=usePreference<Record<string,string[]>>('subcategory-order',{});
+  useEffect(()=>{const update=(event:Event)=>setSubcategoryOrder((event as CustomEvent<Record<string,string[]>>).detail);window.addEventListener('tourn:subcategory-order',update);return()=>window.removeEventListener('tourn:subcategory-order',update);},[]);
+  const [categoryOrder,setCategoryOrder]=usePreference<string[]>('category-order',[]);
+  const railSections=[...RAIL_SECTIONS].sort((a,b)=>{const index=(id:string)=>categoryOrder.includes(id)?categoryOrder.indexOf(id):categoryOrder.length+RAIL_SECTIONS.findIndex(s=>s.key===id);return index(a.key)-index(b.key);});
+  useEffect(()=>{const update=(event:Event)=>setCategoryOrder((event as CustomEvent<string[]>).detail);window.addEventListener('tourn:category-order',update);return()=>window.removeEventListener('tourn:category-order',update);},[]);
   const [savedAt,setSavedAt]=useState<Date|null>(null);
   const {publishStatus}=useDash();
   useEffect(()=>{if(publishStatus==="saved")setSavedAt(new Date());},[publishStatus]);
   const [query, setQuery] = useState("");
+  const [,setRecentPages]=usePreference<string[]>("recent-"+user.id,[]);
+  useEffect(()=>{setRecentPages(old=>[page,...old.filter(id=>id!==page)].slice(0,8));},[page]);
   /* The rail shows one category at a time. Picking a category swaps the list
      to its subtabs instead of stacking them underneath it. */
   const [railKey, setRailKey] = useState<string | null>(null);
@@ -136,7 +156,8 @@ export function Shell({
   const displayName = about.displayName.trim() || user.alias?.trim() || user.username;
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
   const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
-  const railItem = railKey ? RAIL_SECTIONS.find(item=>item.key===railKey)??null : null;
+  const railSource = railKey ? RAIL_SECTIONS.find(item=>item.key===railKey)??null : null;
+  const railItem=railSource?{...railSource,items:[...railSource.items].sort((a,b)=>{const order=subcategoryOrder[railSource.key]||[];const index=(page:string)=>order.includes(page)?order.indexOf(page):order.length+railSource.items.findIndex(entry=>entry.page===page);return index(a.page)-index(b.page);})}:null;
 
   const loadTrades = async () => {
     const result = await api<{ trades: ShellTrade[] }>("/api/trades");
@@ -271,6 +292,8 @@ export function Shell({
 
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
+      const targetElement=event.target as HTMLElement;
+      if(event.altKey&&!event.ctrlKey&&!event.metaKey&&!targetElement.closest('input,textarea,[contenteditable=true]')){const section=railSections[Number(event.key)-1];if(section){event.preventDefault();if(section.key==='home'){onNavigate('home');setRailKey(null);}else setRailKey(section.key);return;}}
       if (!(event.ctrlKey || event.metaKey)) return;
       if (event.key.toLowerCase() === "k") { event.preventDefault(); setMobileOpen(true); searchRef.current?.focus(); }
       if (event.key.toLowerCase() === "s") { event.preventDefault(); if (dirty) save(); }
@@ -281,16 +304,19 @@ export function Shell({
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [save, dirty, undo, redo]);
+  }, [save, dirty, undo, redo,categoryOrder]);
 
   const searching = query.trim().length > 0;
 
-  const matches = (label: string) => label.toLowerCase().includes(query.trim().toLowerCase());
+  const matches = (label: string) => matchesSetting(label,query);
 
   const showSectionCrumb = crumb !== (breadcrumbLabel ?? title);
 
   return (
     <div className={`tw-dash${mobileOpen ? " is-menu-open" : ""}`} style={accent ? { "--accent": accent, "--accent-on": accentForeground(accent), "--accent-bright": accent, "--accent-text": accent, "--accent-soft": `color-mix(in srgb, ${accent} 16%, var(--page))`, "--accent-border": `color-mix(in srgb, ${accent} 45%, var(--border))` } as CSSProperties : undefined}>
+      <a className="tw-skip-link" href="#dash-main" onClick={event=>{event.preventDefault();document.getElementById("dash-main")?.focus();}}>Skip to editor</a>
+      <Connectivity/>
+      <ArrangementController/>
       <aside className="tw-rail" aria-label="Dashboard navigation">
         <a className="tw-brand" href="#/" aria-label="tourn.lol home">
           <img src="/brand/tourn-mark.svg" alt="" width={37} height={37} />
@@ -315,7 +341,7 @@ export function Shell({
 
         <div className="tw-rail-scroll">
           <nav className="tw-nav" aria-label="Dashboard">
-            {searching?<div className="tw-rail-screen" key="search-results">{navItems.flatMap(item=>item.tabs.filter(tab=>matches(item.label)||matches(tab.label)).map(tab=><button className="tw-nav-item" type="button" key={tab.page} onClick={()=>{setRailKey(tab.page==="home"?null:railSectionForPage(tab.page)?.key??null);onNavigate(tab.page);setQuery("");}}><Icon name={tab.icon} size={18} className="tw-nav-symbol"/>{item.label===tab.label?tab.label:item.label+" · "+tab.label}</button>))}{!navItems.some(item=>matches(item.label)||item.tabs.some(tab=>matches(tab.label)))?<p className="tw-foot-note" role="status">No matching settings. Try Audio, Card, or Links.</p>:null}</div>:railItem?<div className="tw-rail-screen" key={railItem.key}><button type="button" className="tw-category-back" aria-label="Back to main menu" onClick={()=>setRailKey(null)}><Icon name="chevron-right" size={18} className="tw-nav-back-chev"/><b>{railItem.label}</b></button>{railItem.items.filter(entry=>!entry.adminOnly||isAdmin).map(entry=><button type="button" key={entry.label} className={`tw-nav-item${railEntryOwns(entry,page)?" is-active":""}`} aria-current={railEntryOwns(entry,page)?"page":undefined} onClick={()=>onNavigate(entry.page)} onPointerEnter={()=>onPrefetchPage?.(entry.page)} onFocus={()=>onPrefetchPage?.(entry.page)}><Icon name={entry.icon} size={18} className="tw-nav-symbol"/>{entry.label}</button>)}</div>:<div className="tw-rail-screen" key="main-menu">{RAIL_SECTIONS.map(section=>{const active=section.items.some(entry=>railEntryOwns(entry,page));return <button type="button" key={section.key} className={`tw-nav-item${active?" is-active":""}`} aria-current={section.key==="home"&&page==="home"?"page":undefined} aria-haspopup={section.key==="home"?undefined:"menu"} onClick={()=>{if(section.key==="home"){onNavigate("home");setRailKey(null);}else setRailKey(section.key);}}><Icon name={section.icon} size={18} className="tw-nav-symbol"/>{section.label}{section.key!=="home"?<Icon name="chevron-right" size={14} className="tw-nav-chev"/>:null}</button>;})}</div>}
+            {searching?<div className="tw-rail-screen" key="search-results">{navItems.flatMap(item=>item.tabs.filter(tab=>matches(item.label)||matches(tab.label)).map(tab=><button className="tw-nav-item" type="button" key={tab.page} onClick={()=>{setRailKey(tab.page==="home"?null:railSectionForPage(tab.page)?.key??null);onNavigate(tab.page);setQuery("");}}><Icon name={tab.icon} size={18} className="tw-nav-symbol"/>{item.label===tab.label?tab.label:item.label+" · "+tab.label}</button>))}{!navItems.some(item=>matches(item.label)||item.tabs.some(tab=>matches(tab.label)))?<p className="tw-foot-note" role="status">No matching settings. Try Audio, Card, or Links.</p>:null}</div>:railItem?<div className="tw-rail-screen" key={railItem.key}><button type="button" className="tw-category-back" aria-label="Back to main menu" onClick={()=>setRailKey(null)}><Icon name="chevron-right" size={18} className="tw-nav-back-chev"/><b>{railItem.label}</b></button>{railItem.items.filter(entry=>!entry.adminOnly||isAdmin).map(entry=><button type="button" key={entry.label} className={`tw-nav-item${railEntryOwns(entry,page)?" is-active":""}`} aria-current={railEntryOwns(entry,page)?"page":undefined} onClick={()=>onNavigate(entry.page)} onPointerEnter={()=>onPrefetchPage?.(entry.page)} onFocus={()=>onPrefetchPage?.(entry.page)}><Icon name={entry.icon} size={18} className="tw-nav-symbol"/>{entry.label}</button>)}</div>:<div className="tw-rail-screen" key="main-menu">{railSections.map(section=>{const active=section.items.some(entry=>railEntryOwns(entry,page));return <button type="button" key={section.key} className={`tw-nav-item${active?" is-active":""}`} aria-current={section.key==="home"&&page==="home"?"page":undefined} aria-haspopup={section.key==="home"?undefined:"menu"} onClick={()=>{if(section.key==="home"){onNavigate("home");setRailKey(null);}else setRailKey(section.key);}}><Icon name={section.icon} size={18} className="tw-nav-symbol"/>{section.label}{section.key!=="home"?<Icon name="chevron-right" size={14} className="tw-nav-chev"/>:null}</button>;})}</div>}
 
           </nav>
         </div>
@@ -388,7 +414,7 @@ export function Shell({
                   </button>
                 </div>
 
-                <div className="tw-user-pop-actions"><button type="button" role="menuitem" className="tw-user-pop-item" onClick={()=>{const url=window.location.origin+"/"+encodeURIComponent(user.username);void navigator.clipboard.writeText(url).then(()=>notify("Profile link","Copied to clipboard.")).catch(()=>notify("Profile link",url));}}><Icon name="share" size={14}/>Share profile</button><a role="menuitem" className="tw-user-pop-item" href="https://discord.gg/a9uwptuepD" target="_blank" rel="noreferrer"><Icon name="link" size={14}/>Discord server</a>
+                <div className="tw-user-pop-actions"><button type="button" role="menuitem" className="tw-user-pop-item" onClick={shareProfile}><Icon name="share" size={14}/>Share profile</button><a role="menuitem" className="tw-user-pop-item" href="https://discord.gg/a9uwptuepD" target="_blank" rel="noreferrer"><Icon name="link" size={14}/>Discord server</a>
                   <a
                     role="menuitem"
                     href={`/${encodeURIComponent(user.username)}`}
@@ -466,6 +492,16 @@ export function Shell({
               >
                 <Icon name="bell" size={15} />
                 {unread.length ? <i className="tw-bell-dot" /> : null}
+              </button>
+
+              <button
+                type="button"
+                className="tw-user-share"
+                aria-label="Share profile"
+                title="Share profile"
+                onClick={shareProfile}
+              >
+                <Icon name="share" size={15} />
               </button>
             </div>
 
@@ -577,7 +613,7 @@ export function Shell({
           </div>
 
           <div className="tw-row">
-            {actions}<span className="studio-save-status" role="status">{publishStatus==="saving"?"Saving…":publishStatus==="retrying"?"Retrying save…":savedAt?`Saved ${savedAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"Not saved yet"}</span><Button icon="sliders" onClick={()=>setToolsOpen(true)}>Studio tools</Button>
+            {actions}<span className="studio-save-status" role="status">{publishStatus==="saving"?"Saving…":publishStatus==="retrying"?"Retrying save…":savedAt?`Saved ${savedAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"Not saved yet"}</span>
           </div>
         </div>
 
@@ -628,7 +664,6 @@ export function Shell({
         </div>
       ) : null}
 
-      <EditorTools open={toolsOpen} onClose={()=>setToolsOpen(false)}/>
       <Toasts />
       <AliasRequiredGate />
     </div>
