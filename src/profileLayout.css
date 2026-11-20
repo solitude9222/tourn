@@ -296,9 +296,17 @@
 /* Metadata has one baseline, consistent glyph bounds and legible colors. */
 .profile-preview :is(.pv-location,.pv-foot-item) {display:inline-flex;align-items:center;gap:6px;line-height:1.4;}
 .profile-preview :is(.pv-location,.pv-foot-item) svg {display:block;width:14px;height:14px;flex:0 0 14px;vertical-align:middle;opacity:1;color:var(--pv-text,#eef3ff);filter:none;}
-.profile-preview .pv-views svg {color:#81aaff;}
-.profile-preview .pv-location svg {color:#77c9e2;}
-.profile-preview .pv-foot-item {color:var(--pv-text,#eef3ff);}
+/* Detail metadata — views, location and the join date — rides the owner's accent
+   instead of a fixed blue/grey. The accent is lifted toward the text colour, so
+   a very dark pick still reads on a dark card and a pale one stays visible on a
+   light card. */
+.profile-preview,.lkr-page {--pv-detail-accent:color-mix(in srgb,var(--pv-accent,#3b82f6) 74%,var(--pv-text,#eef3ff));--pv-detail-ink:color-mix(in srgb,var(--pv-accent,#3b82f6) 55%,var(--pv-text,#eef3ff));}
+.profile-preview :is(.pv-views,.pv-location,.pv-foot-item),
+.profile-preview .pv-slot :is(.pv-views,.pv-location,.pv-foot-item),
+.lkr-page .pv-page-slots :is(.pv-views,.pv-location,.pv-foot-item) {color:var(--pv-detail-ink);}
+.profile-preview :is(.pv-views,.pv-location,.pv-foot-item) svg,
+.profile-preview .pv-slot :is(.pv-views,.pv-location,.pv-foot-item) svg,
+.lkr-page .pv-page-slots :is(.pv-views,.pv-location,.pv-foot-item) svg {color:var(--pv-detail-accent);}
 .lkr-skills-wrap,.lkr-page .lkr-skills-wrap {height:auto;min-height:0;overflow:visible;flex:none;}
 .lkr-page .lkr-skills-wrap.lkr-slide {min-height:100%;height:auto;overflow:visible;padding-block:28px;}
 .lkr-page .lkr-skills-section {width:min(100%,var(--pv-width,760px));min-width:0;max-height:none;overflow:visible;box-sizing:border-box;padding:20px;}
@@ -428,3 +436,8 @@
   opacity: 0.4;
   cursor: default;
 }
+.profile-preview[data-pfp="left"] .pv-head,.profile-preview[data-pfp="right"] .pv-head {gap:calc(var(--identity-gap,16px)*var(--pv-scale,1));}
+.lkr-page .profile-preview .pv-body > .pv-bio {max-width:min(100%,var(--bio-width,520px));line-height:var(--bio-line-height,1.5);}
+
+.lkr-entry .lkr-entry-action {min-height:44px;}
+@media(prefers-reduced-motion:reduce){.lkr-entry,.lkr-entry * {animation:none!important;transition:none!important;}}
