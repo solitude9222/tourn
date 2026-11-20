@@ -20,6 +20,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
      close needs a short grace period. Tracking the state here lets the CSS
      animate both directions every time. */
   const [open, setOpen] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const closeTimer = useRef<number | undefined>(undefined);
   const openReveal = () => {
@@ -28,7 +29,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
   };
   const closeReveal = () => {
     window.clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => { if (!dragging.current) setOpen(false); }, 170);
+    closeTimer.current = window.setTimeout(() => { if (!dragging.current && !popupRef.current?.matches(":hover")) setOpen(false); }, 170);
   };
   const settleTimer = useRef<number | undefined>(undefined);
 
@@ -66,6 +67,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
 
   return (
     <div
+      ref={popupRef}
       className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}${open ? " is-open" : ""}`}
       onKeyDown={event => { if (event.key === "Escape") { setOpen(false); event.stopPropagation(); } }}
       onPointerEnter={openReveal}
@@ -111,10 +113,13 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
           </svg>
         </span>
       </button>
+      <button type="button" className="ap-volume-disclosure" aria-label={open?"Hide volume":"Show volume"} aria-expanded={open} onClick={()=>{clearTimeout(closeTimer.current);setOpen(current=>!current);}}>⌄</button>
       <div className="ap-popup-reveal">
         <div className="ap-popup-volume">
           <input
             aria-label="Music volume"
+            title={`Volume ${Math.round((silent?0:state.volume)*100)}%`}
+            aria-valuetext={`${Math.round((silent?0:state.volume)*100)} percent`}
             type="range"
             min="0"
             max="1"
@@ -125,9 +130,9 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
               setAudioBus({ volume, muted: volume === 0 });
             }}
             onPointerDown={event => { dragging.current = true; openReveal(); event.currentTarget.setPointerCapture(event.pointerId); }}
-            onPointerUp={event => { dragging.current = false; settle(); if (!event.currentTarget.closest(".ap-popup")?.matches(":hover")) closeReveal(); }}
+            onPointerUp={() => { dragging.current = false; settle(); closeReveal(); }}
             onPointerCancel={() => { dragging.current = false; settle(); closeReveal(); }}
-            onLostPointerCapture={() => { dragging.current = false; }}
+            onLostPointerCapture={() => { dragging.current = false; closeReveal(); }}
             onKeyUp={settle}
             onBlur={settle}
           />
