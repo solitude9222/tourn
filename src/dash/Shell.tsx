@@ -747,12 +747,12 @@ export function Shell({
             <Icon name="save" size={22} />
           </span>
           <span className="tw-unsaved-copy">
-            <b>Unsaved Changes</b>
-            <small>Save or discard your changes</small>
+            <b>Unsaved changes</b>
+            <small>Nothing is published until you press Save now</small>
           </span>
           <Button onClick={discard}>Discard</Button>
-          <Button variant="primary" onClick={save}>
-            Save
+          <Button variant="primary" className="tw-save-now" onClick={save}>
+            Save now
           </Button>
         </div>
       ) : null}

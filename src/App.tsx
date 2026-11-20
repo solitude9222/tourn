@@ -931,13 +931,12 @@ function Site() {
     [user],
   );
 
-  const handleDraftChange=useCallback((next:ProfileDocument)=>{
-    if(!user || hydratedFor.current!==user.id)return;
-    userEdited.current=true;
-    savePendingDocument(user.id,next,revision.current,lastSaved.current ? JSON.parse(lastSaved.current) : null);
-    setAbout(next.about);setWidgets(next.widgets);setBadges(next.badges);setProfileLinks(next.links);
-    saveAbout(user.id,next.about);saveWidgetStore(user.id,next.widgets);saveBadgeStore(user.id,next.badges);saveLinkStore(user.id,next.links);
-  },[user?.id]);
+  // Edits stay in the dashboard draft until Save now is pressed: nothing is
+  // written to the account stores, kept across reloads or published while the
+  // user is still editing.
+  const handleDraftChange=useCallback(()=>{
+    /* Draft only. The Save now button publishes it. */
+  },[]);
 
   // Top-bar "Save changes" — re-persists every dashboard store at once and
   // republishes the public page immediately.
