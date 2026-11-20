@@ -34,3 +34,35 @@
  .tw-dash .tw-section-label { flex-direction:column; align-items:flex-start; gap:6px; }
  .tw-dash .tw-section-label small { line-height:1.5; }
 }
+/* More precise controls and recoverable edits. */
+.tw-dash .tw-slider-value {display:flex;align-items:center;gap:4px;max-width:50%;}
+.tw-dash .tw-slider-number {width:64px;max-width:100%;height:26px;border:1px solid transparent;border-radius:5px;background:transparent;color:inherit;text-align:right;font:inherit;padding:2px;appearance:textfield;}
+.tw-dash .tw-slider-number::-webkit-inner-spin-button {appearance:none;}
+.tw-dash .tw-slider-number:focus {border-color:var(--accent);outline:1px solid var(--accent);background:var(--page);}
+.tw-dash .tw-slider-revert {display:grid;place-items:center;width:24px;height:26px;border:0;border-radius:4px;background:transparent;color:var(--sub);font-size:16px;cursor:pointer;}
+.tw-dash .tw-slider-revert:disabled {opacity:.25;cursor:default;}
+.tw-dash .tw-color-pop {width:min(300px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto;overscroll-behavior:contain;}
+.tw-colour-tools {margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
+.tw-colour-tools summary {cursor:pointer;min-height:30px;}
+.tw-colour-tools-body {display:flex;flex-direction:column;gap:12px;padding-top:12px;}
+.tw-colour-tools-body button {min-height:30px;border:1px solid var(--border);border-radius:6px;color:var(--title);background:var(--tile);padding:5px 8px;cursor:pointer;}
+.tw-colour-tools-body label {display:flex;flex-direction:column;gap:6px;}
+.tw-colour-tools-body input {min-width:0;width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--page);color:var(--title);}
+.tw-colour-compare,.tw-colour-actions {display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.tw-colour-compare>span {padding:12px;border:1px solid #ffffff50;border-radius:6px;color:white;text-shadow:0 1px 4px #000;flex:1;}
+.tw-palette-swatches {display:flex;flex-wrap:wrap;gap:8px;}
+.tw-palette-swatches .tw-palette-swatch {width:28px;height:28px;padding:0;border:1px solid #ffffff50;}
+.tw-recovery {display:grid;gap:18px;}
+.tw-recovery-actions {display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0;}
+.tw-recovery-actions>.tw-control {flex:1 1 200px;min-width:0;}
+.tw-recovery-row {display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 0;border-top:1px solid var(--border);}
+.tw-recovery-row>span {flex:1 1 200px;}.tw-recovery-row small {display:block;margin-top:5px;}
+.tw-restore-preview {border:1px solid var(--accent);border-radius:10px;padding:18px;}.tw-restore-preview>label {display:flex;align-items:center;gap:12px;margin:12px 0;text-transform:capitalize;}
+.tw-skip-link {position:fixed;top:8px;left:16px;z-index:99999;transform:translateY(-200%);padding:12px;background:var(--accent);color:#fff;border-radius:8px;}.tw-skip-link:focus {transform:none;}
+.tw-connectivity {position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:2000;max-width:calc(100vw - 32px);border:1px solid #809fff;border-radius:10px;padding:10px 16px;background:#131b30;color:#eef3ff;display:flex;gap:12px;align-items:center;}
+.tw-dash :is(button,input,summary):focus-visible {outline:2px solid #8daaff;outline-offset:3px;}
+.tw-arrange-list {display:grid;gap:8px;margin:18px 0;}.tw-arrange-list>div {display:flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:10px;}.tw-arrange-list b {flex:1;min-width:0;overflow-wrap:anywhere;}.tw-arrange-list .is-dragging {border-color:var(--accent);background:var(--accent-soft);}
+.tw-media-grid.is-list {grid-template-columns:minmax(0,1fr);}.tw-media-grid.is-list .tw-media-card {display:flex;align-items:center;min-height:80px;gap:14px;}.tw-media-grid.is-list .tw-media-art {width:60px;height:80px;flex:0 0 60px;}.tw-media-grid.is-list .tw-media-copy {text-align:left;}
+.tw-queue-row>span {min-width:0;}.tw-queue-row>span>input {box-sizing:border-box;width:100%;min-width:0;border:1px solid var(--border);border-radius:6px;padding:6px;background:var(--page);color:var(--title);}
+.lkr-entry :is(button,.lkr-entry-btn) {min-height:44px;}
+@media(prefers-reduced-motion:reduce){.lkr-entry,.lkr-entry * {animation:none!important;transition:none!important;}}
