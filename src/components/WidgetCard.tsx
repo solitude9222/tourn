@@ -18,7 +18,6 @@ import {
   type WidgetLive,
 } from "../lib/widgetLive";
 import { STATUS_COLORS } from "../lib/hooks";
-import { ClockWidget } from "./ClockWidget";
 import { discordProfileBadges, discordBadges, isDiscordUserId, type DiscordBadge } from "../lib/discord";
 import type { WidgetError } from "../lib/api";
 import { WidgetPlatformIcon } from "./WidgetPlatformIcon";
@@ -249,22 +248,6 @@ function WidgetCardSurface({
     "--wg-avatar-border-color": design.avatarBorderColor,
     "--wg-avatar-shadow": design.avatarShadow ? "0 6px 18px rgba(0, 0, 0, 0.32)" : "none",
   } as CSSProperties;
-
-  if (platform.id === "timezone") {
-    return (
-      <article
-        className={`widget-card widget-card--clock${preview ? " widget-card--preview" : ""}${design.hoverLift === false ? " no-lift" : ""}${className ? ` ${className}` : ""}`}
-        style={style}
-        data-platform={platform.id}
-      >
-        <ClockWidget
-          timeZone={content}
-          face={typeof widget.options.clockStyle === "string" ? widget.options.clockStyle : "classic"}
-          analog={widget.options.analog !== false}
-        />
-      </article>
-    );
-  }
 
   return (
     <>
@@ -515,7 +498,6 @@ const SAMPLE_LIVE: Record<
   lastfm: { title: "tourn", subtitle: "Last.fm profile", meta: ["42,318 scrobbles", "Top artist · Burial"] },
   statsfm: { title: "tourn", subtitle: "Stats.fm profile", meta: ["128,904 minutes", "Top artist · Aphex Twin"] },
   valorant: { title: "tourn", subtitle: "Immortal 2 · 74 RR", meta: ["1.24 K/D", "18 wins"], status: "online" },
-  timezone: { title: "20:41", subtitle: "Europe/London", meta: ["BST · UTC+1"] },
   steam: { title: "tourn", subtitle: "Steam profile", meta: ["312 games", "1,204 hours"], status: "online" },
   twitch: { title: "tourn", subtitle: "Twitch channel", meta: ["24.6K followers", "Live now"], status: "online" },
   spotify: { title: "tourn", subtitle: "Spotify profile", meta: ["Now playing · Bloom"] },
@@ -523,7 +505,6 @@ const SAMPLE_LIVE: Record<
   clashofclans: { title: "tourn", subtitle: "Town Hall 15", meta: ["5,842 trophies", "Clan · TOURN"] },
   clashroyale: { title: "tourn", subtitle: "Arena 23", meta: ["7,102 trophies"] },
   brawlstars: { title: "tourn", subtitle: "Brawl Stars profile", meta: ["32,880 trophies", "68 brawlers"] },
-  weather: { title: "18°C", subtitle: "London", meta: ["Partly cloudy", "Feels like 17°C"] },
 };
 
 export function WidgetCardPreview({

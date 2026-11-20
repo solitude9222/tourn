@@ -26,7 +26,6 @@ export type WidgetLive = {
   tagBadge?: string | null;
   badges: DiscordBadge[];
   status: LiveStatus;
-  timezone?: string;
   presenceNotice?: string;
   details?: { label: string; value: string }[];
 };
@@ -97,20 +96,6 @@ type GithubRepo = {
   description: string | null;
   stargazers_count: number;
   forks_count: number;
-};
-
-type WeatherGeo = {
-  results?: {
-    name: string;
-    country_code?: string;
-    admin1?: string;
-    latitude: number;
-    longitude: number;
-  }[];
-};
-
-type WeatherForecast = {
-  current?: { temperature_2m?: number; weather_code?: number };
 };
 
 const discordUserId = (input: string): string | null => {
@@ -693,66 +678,6 @@ async function spotifyLive(input: string, signal: AbortSignal): Promise<WidgetLi
   };
 }
 
-const WEATHER_LABELS: Record<number, string> = {
-  0: "Clear",
-  1: "Mostly clear",
-  2: "Partly cloudy",
-  3: "Overcast",
-  45: "Fog",
-  48: "Freezing fog",
-  51: "Light drizzle",
-  53: "Drizzle",
-  55: "Heavy drizzle",
-  61: "Light rain",
-  63: "Rain",
-  65: "Heavy rain",
-  71: "Light snow",
-  73: "Snow",
-  75: "Heavy snow",
-  80: "Rain showers",
-  81: "Rain showers",
-  82: "Heavy showers",
-  95: "Thunderstorm",
-};
-
-async function weatherLive(input: string, signal: AbortSignal): Promise<WidgetLive> {
-  const place = input.trim();
-  if (!place) throw new WidgetError("invalid", "Add a city for the weather widget");
-
-  const geoRes = await fetch(
-    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=en&format=json`,
-    { signal },
-  );
-  if (!geoRes.ok) throw new WidgetError("network", "Weather lookup is unavailable");
-  const geo = (await geoRes.json()) as WeatherGeo;
-  const location = geo.results?.[0];
-  if (!location) throw new WidgetError("not_found", "Couldn't find that city");
-
-  const forecastRes = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code`,
-    { signal },
-  );
-  if (!forecastRes.ok) throw new WidgetError("network", "Weather data is unavailable");
-  const forecast = (await forecastRes.json()) as WeatherForecast;
-  const temperature = forecast.current?.temperature_2m;
-  const code = forecast.current?.weather_code;
-  if (typeof temperature !== "number") throw new WidgetError("network", "Weather data is empty");
-
-  return {
-    title: `${Math.round(temperature)}°C`,
-    subtitle: [location.name, location.country_code].filter(Boolean).join(", "),
-    meta: [code != null ? WEATHER_LABELS[code] ?? "Current weather" : "Current weather"],
-    avatar: null,
-    decoration: null,
-    banner: null,
-    art: null,
-    accent: "#f2605a",
-    tag: null,
-    badges: [],
-    status: null,
-  };
-}
-
 async function minecraftLive(input: string, signal: AbortSignal): Promise<WidgetLive> {
   const host = input
     .trim()
@@ -810,40 +735,6 @@ async function youtubeLive(input: string, signal: AbortSignal): Promise<WidgetLi
   };
 }
 
-const timezoneLive = (zone: string): WidgetLive => {
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: zone }).format(new Date());
-  } catch {
-    throw new WidgetError("invalid", "That isn't a valid time zone");
-  }
-  return {
-    title: new Intl.DateTimeFormat("en-US", {
-      timeZone: zone,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }).format(new Date()),
-    subtitle: zone.replace(/_/g, " "),
-    meta: [
-      new Intl.DateTimeFormat("en-US", {
-        timeZone: zone,
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      }).format(new Date()),
-    ],
-    avatar: null,
-    decoration: null,
-    banner: null,
-    art: null,
-    accent: "#60a5fa",
-    tag: null,
-    badges: [],
-    status: null,
-    timezone: zone,
-  };
-};
-
 async function liveForWidget(widget: WidgetInstance, signal: AbortSignal): Promise<WidgetLive> {
   const content = widget.content.trim();
   switch (widget.platform) {
@@ -861,14 +752,10 @@ async function liveForWidget(widget: WidgetInstance, signal: AbortSignal): Promi
       return spotifyLive(content, signal);
     case "statsfm":
       return statsfmLive(content, signal);
-    case "weather":
-      return weatherLive(content, signal);
     case "minecraft":
       return minecraftLive(content, signal);
     case "youtube":
       return youtubeLive(content, signal);
-    case "timezone":
-      return timezoneLive(content);
     default:
       throw new WidgetError("invalid", "Live data isn't available for this platform yet");
   }
@@ -882,10 +769,8 @@ const LIVE_PLATFORMS = new Set([
   "steam",
   "spotify",
   "statsfm",
-  "weather",
   "minecraft",
   "youtube",
-  "timezone",
 ]);
 
 export function widgetSupportsLive(platformId: string): boolean {
@@ -904,7 +789,7 @@ export function useWidgetLive(widget: WidgetInstance) {
     widget.options.status === false ? "nostatus" : "status",
   ].join("|");
 
-  const interval = widget.platform === "discord" ? 15_000 : widget.platform === "timezone" ? 60_000 : 180_000;
+  const interval = widget.platform === "discord" ? 15_000 : 180_000;
 
   return usePolled(enabled, key, (signal) => liveForWidget(widget, signal), interval, 120_000);
 }

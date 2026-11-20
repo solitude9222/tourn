@@ -77,7 +77,7 @@ export function ProfileInfoDialog({ data, onClose }: { data: ProfileInfoData; on
     { key: "badges", label: "Badges", value: data.counts.badges, color: "#f4c66a" },
     { key: "projects", label: "Projects", value: data.counts.projects, color: "#a78bfa" },
     { key: "skills", label: "Skills", value: data.counts.skills, color: "#5eead4" },
-    { key: "gallery", label: "Gallery", value: data.counts.gallery, color: "#f59ec0" },
+    { key: "gallery", label: "Gallery", value: data.counts.gallery, color: "#38bdf8" },
   ].filter((entry) => entry.value > 0);
   const compositionTotal = composition.reduce((sum, entry) => sum + entry.value, 0);
   const tiles = [

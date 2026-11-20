@@ -4115,9 +4115,9 @@ body:has(.dash) {
 }
 
 .settings-tag--premium {
-  border-color: rgba(244, 194, 236, 0.35);
-  background: rgba(244, 114, 182, 0.12);
-  color: #f9c6e5;
+  border-color: rgba(147, 197, 253, 0.35);
+  background: rgba(59, 130, 246, 0.12);
+  color: #cfe3ff;
 }
 
 .settings-tag--admin {

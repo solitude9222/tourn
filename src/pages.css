@@ -71,7 +71,11 @@
 }
 
 .page .page-title .accent {
-  color: #f87478;
+  background: linear-gradient(180deg, #dbeafe 0%, #60a5fa 46%, #2563eb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .page .page-sub {

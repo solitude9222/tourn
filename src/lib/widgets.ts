@@ -112,8 +112,6 @@ export function widgetProfileUrl(platformId: string, content: string): string | 
       const tag = handle.replace(/^#/, "");
       return /^[0-9A-Z]{5,12}$/i.test(tag) ? `https://link.brawlstars.com/en?action=openPlayerProfile&tag=${enc(tag)}` : null;
     }
-    case "timezone":
-    case "weather":
     case "minecraft":
       return null;
     default:
@@ -355,38 +353,6 @@ const ALL_WIDGET_PLATFORMS: WidgetPlatform[] = [
     ],
   },
   {
-    id: "timezone",
-    name: "Timezone",
-    description: "Show a live analog clock for your selected time zone.",
-    color: "#60a5fa",
-    contentLabel: "Time zone",
-    contentPlaceholder: "Europe/London",
-    didYouKnow: DID_YOU_KNOW,
-    options: [
-      ...baseOptions(),
-      {
-        key: "analog",
-        label: "Analog Clock",
-        hint: "Use an analog face instead of digital time.",
-        type: "toggle",
-        default: true,
-      },
-      {
-        key: "clockStyle",
-        label: "Clock face",
-        hint: "The ring, the tick marks and the hand weight.",
-        type: "select",
-        default: "classic",
-        choices: [
-          { value: "classic", label: "Classic · full ticks" },
-          { value: "minimal", label: "Minimal · four ticks" },
-          { value: "neon", label: "Neon · glow ring" },
-          { value: "ring", label: "Thin ring · two hands" },
-        ],
-      },
-    ],
-  },
-  {
     id: "steam",
     name: "Steam",
     description: "Display your Steam profile with game library, playtime, friends count, and recent games.",
@@ -516,25 +482,6 @@ const ALL_WIDGET_PLATFORMS: WidgetPlatform[] = [
         hint: "Display total trophies and highest brawler.",
         type: "toggle",
         default: true,
-      },
-    ],
-  },
-  {
-    id: "weather",
-    name: "Weather",
-    description: "Display current weather conditions and temperature for your location.",
-    color: "#3b9ad9",
-    contentLabel: "Location",
-    contentPlaceholder: "City or postcode",
-    didYouKnow: DID_YOU_KNOW,
-    options: [
-      ...baseOptions(),
-      {
-        key: "forecast",
-        label: "Show 3-Day Forecast",
-        hint: "Add a compact forecast under the current conditions.",
-        type: "toggle",
-        default: false,
       },
     ],
   },
@@ -833,7 +780,6 @@ const SUPPORTED_IDS = [
   "lastfm",
   "statsfm",
   "valorant",
-  "timezone",
   "steam",
   "twitch",
   "spotify",
@@ -841,7 +787,6 @@ const SUPPORTED_IDS = [
   "clashofclans",
   "clashroyale",
   "brawlstars",
-  "weather",
   "youtube",
 ] as const;
 
@@ -883,7 +828,6 @@ export const WIDGET_SAMPLE_CONTENT: Record<string, string> = {
   lastfm: "tourn",
   statsfm: "tourn",
   valorant: "tourn#lol",
-  timezone: "Europe/London",
   steam: "76561198000000000",
   twitch: "tourn",
   spotify: "tourn",
@@ -891,7 +835,6 @@ export const WIDGET_SAMPLE_CONTENT: Record<string, string> = {
   clashofclans: "#2PP",
   clashroyale: "#2PP",
   brawlstars: "#2PP",
-  weather: "London",
   youtube: "@tourn",
 };
 
