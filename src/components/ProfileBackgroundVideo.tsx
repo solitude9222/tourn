@@ -1,8 +1,10 @@
+import {normalizeStudio,type StudioOptions} from "../lib/studioOptions";
 import {useEffect,useRef,useState} from "react";
 import type {BackgroundSettings} from "../lib/profileAssets";
 
 /** Start the fade only when real playback is ready; keep entry gating separate. */
-export function ProfileBackgroundVideo({settings,entryActive,interactive}:{settings:BackgroundSettings;entryActive:boolean;interactive:boolean}) {
+export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:input}:{settings:BackgroundSettings;entryActive:boolean;interactive:boolean;studio?:StudioOptions}) {
+ const studio=normalizeStudio(input);
  const ref=useRef<HTMLVideoElement>(null);
  const activated=useRef(false);
  const allowSound=useRef(false);
@@ -45,5 +47,5 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive}:{setti
   };
  },[settings.videoUrl,settings.videoDelay,settings.videoStartAt,waitingForEntry]);
 
- return <video ref={ref} className={`lkr-bg-video${visible?" is-playing":""}`} src={settings.videoUrl} muted loop playsInline preload="auto" style={{objectFit:settings.fit||"cover",objectPosition:`${settings.positionX??50}% ${settings.positionY??50}%`,opacity:visible?1:0,transition:`opacity ${settings.videoFade??700}ms ease`}}/>;
+ return <video ref={ref} className={`lkr-bg-video${visible?" is-playing":""}`} src={settings.videoUrl} poster={studio.videoPoster||undefined} onTimeUpdate={event=>{const video=event.currentTarget;const end=studio.videoLoopEnd||studio.videoEnd;if(end>0&&video.currentTime>=end)video.currentTime=Math.min(studio.videoLoopStart||settings.videoStartAt||0,Math.max(0,end-.1));}} muted loop playsInline preload="auto" style={{objectFit:settings.fit||"cover",objectPosition:`${settings.positionX??50}% ${settings.positionY??50}%`,opacity:visible?1:0,transition:`opacity ${settings.videoFade??700}ms ease`}}/>;
 }

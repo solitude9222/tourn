@@ -1,3 +1,4 @@
+import {SESSION_SCHEMA,touchSession,registerSessionRoutes} from "./sessions.js";
 import { COMMERCE_SCHEMA, registerSellAuthDelivery, registerSellAuthRoutes } from "./commerce.js";
 import { requestOriginAllowed, canEditMember, verifiedDiscordEmail, privilegedEmail } from "./security.js";
 import { MARKET_SCHEMA, registerUsernameMarket, fulfillUsername, freeHandleValid, handleOwned, startUsernameReconciliation } from "./usernames.js";
@@ -243,6 +244,7 @@ create table if not exists invite_codes (
 
 async function initDb() {
   await pool.query(SCHEMA);
+  await pool.query(SESSION_SCHEMA);
   // Claim cooldowns for databases created before the columns existed.
   await pool.query("alter table users add column if not exists alias_updated_at timestamptz");
   await pool.query("alter table users add column if not exists alias2_updated_at timestamptz");
@@ -307,7 +309,7 @@ const COOKIE = "tourn_session";
 const secureCookie = BACKEND_URL.startsWith("https://");
 
 function signSession(user) {
-  return jwt.sign({ sub: user.id, v: user.token_version }, JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign({ sub: user.id, v: user.token_version, sid:crypto.randomUUID() }, JWT_SECRET, { expiresIn: "30d" });
 }
 
 /* The static site is on tourn.lol / swats.bio while this API is on
@@ -415,6 +417,9 @@ async function requireAuth(req, res, next) {
       clearSession(res);
       return res.status(401).json({ error: "Your session expired — sign in again." });
     }
+    const activeSession=await touchSession(pool,token,payload,req.get("user-agent")||"");
+    if(!activeSession){clearSession(res);return res.status(401).json({error:"This device was signed out. Sign in again."});}
+    req.sessionId=activeSession;
     req.auth = payload;
     req.user = user;
     next();
@@ -2061,6 +2066,7 @@ app.get("/api/profile", requireAuth, async (req, res) => {
 });
 
 /* The public page behind tourn.lol/<handle>. */
+registerSessionRoutes(app,pool,requireAuth);
 app.get('/api/profile/history',requireAuth,async(req,res)=>{
  try{const {rows}=await pool.query(`select revision,saved_at,jsonb_array_length(coalesce(data->'widgets'->'widgets','[]'::jsonb)) as widgets,jsonb_array_length(coalesce(data->'links'->'links','[]'::jsonb)) as links from profile_history where user_id=$1 order by revision desc limit ${PROFILE_HISTORY_LIMIT}`,[req.auth.sub]);res.set('Cache-Control','no-store').json({history:rows});}catch{res.status(500).json({error:'Could not load profile history.'});}
 });

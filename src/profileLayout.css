@@ -357,3 +357,74 @@
 @media(max-width:700px){.lkr-page .lkr-flow--slideshow .lkr-sections {grid-template-columns:minmax(0,1fr);}.lkr-page .lkr-interest-track {grid-auto-columns:calc((100% - 12px)/2);gap:12px;}.lkr-page .lkr-interest-rail--catalog .lkr-interest-track {grid-template-columns:repeat(2,minmax(0,1fr));}.lkr-page .lkr-interest-copy b {font-size:14px;}}
 .lkr-page .lkr-flow--slideshow > .lkr-about-slide {display:grid;align-content:center;justify-items:start;width:100%;max-width:1240px;margin-inline:auto;}
 .lkr-page .lkr-flow--slideshow > .lkr-skills-wrap > .lkr-skills-section {width:min(100%,1120px);max-width:1120px;}
+
+/* ── interests at poster size ─────────────────────────────────────────────
+   Four up inside the 648 column squeezed every poster to ~140px, smaller than
+   the artwork on it deserves. Three up gives each one a real poster size and
+   still shows a sliver of the next at the edge of the rail. */
+.lkr-page .lkr-interest-track,
+.lkr-page .lkr-flow--slideshow .lkr-interest-track {
+  grid-auto-columns: calc((100% - 32px) / 3);
+  gap: 16px;
+}
+
+.lkr-page .lkr-interest-rail--catalog .lkr-interest-track,
+.lkr-page .lkr-flow--slideshow .lkr-interest-rail--catalog .lkr-interest-track {
+  grid-auto-columns: auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.lkr-page .lkr-interest-track .lkr-interest-tile { border-radius: 16px; }
+.lkr-page .lkr-interest-track .lkr-interest-copy b { font-size: 16px; }
+.lkr-page .lkr-interest-track .lkr-interest-copy small { font-size: 11.5px; }
+
+@media (max-width: 700px) {
+  .lkr-page .lkr-interest-track,
+  .lkr-page .lkr-flow--slideshow .lkr-interest-track {
+    grid-auto-columns: calc((100% - 12px) / 2);
+    gap: 12px;
+  }
+
+  .lkr-page .lkr-interest-rail--catalog .lkr-interest-track,
+  .lkr-page .lkr-flow--slideshow .lkr-interest-rail--catalog .lkr-interest-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lkr-page .lkr-interest-track .lkr-interest-copy b { font-size: 14px; }
+}
+
+/* ── the entry action is bare text ────────────────────────────────────────
+   No pill, no border, no chevron: the words are the control. It still keeps a
+   button's hit area and focus ring so it stays usable from the keyboard. */
+.lkr-entry-action,
+.lkr-page .lkr-entry-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 0;
+  margin-top: 16px;
+  padding: 3px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--lkr-entry-title-color, #fff);
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.66;
+  cursor: pointer;
+  transition: opacity 0.2s ease, text-shadow 0.25s ease;
+}
+
+.lkr-entry-action:hover:not(:disabled),
+.lkr-page .lkr-entry-action:hover:not(:disabled) {
+  background: none;
+  transform: none;
+  opacity: 1;
+  text-shadow: 0 0 16px color-mix(in srgb, var(--lkr-entry-accent, #80aaff) 70%, transparent);
+}
+
+.lkr-entry-action:disabled,
+.lkr-page .lkr-entry-action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

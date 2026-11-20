@@ -1,8 +1,10 @@
+import {usePointerSort} from "./Sortable";
+import {StudioSettings} from "./StudioSettings";
 import { SkillPicker } from "./SkillPicker";
 import { useState, type ReactNode } from "react";
 import { type ProfileSection, type ProfileSectionKind } from "../lib/about";
 import { imageToDataUrl } from "./files";
-import { Button, Field, FileUpload, TextInput, Textarea } from "./ui";
+import { Button, Field, FileUpload, TextInput, Textarea,Select,Slider } from "./ui";
 import { MediaLibrary } from "./MediaLibrary";
 import type { CatalogKind } from "../lib/mediaCatalog";
 import { useDash } from "./context";
@@ -33,11 +35,13 @@ export function SectionEditor({
   onMoveUp: () => void;
   onMoveDown?: () => void;
 }) {
-  const { notify } = useDash();
+  const { notify,about } = useDash();
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [libraryKind, setLibraryKind] = useState<CatalogKind>("anime");
   const project = section.kind === "project";
   const picks = Array.isArray(section.items) ? section.items : [];
+  const reorder=(from:number,to:number)=>{const next=[...picks];const [pick]=next.splice(from,1);next.splice(to,0,pick);onChange({items:next});};
+  const sortable=usePointerSort(picks,reorder);
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
@@ -54,6 +58,7 @@ export function SectionEditor({
   };
 
   const addPick = (pick: Omit<ProfileSection["items"][number], "id">) => {
+    if(picks.some(item=>item.title.trim().toLowerCase()===pick.title.trim().toLowerCase() || Boolean(item.url&&pick.url&&item.url===pick.url))){notify("Already added","That interest is already in this section.");return;}
     if (picks.length >= PICK_LIMIT) {
       notify("Interests", `${PICK_LIMIT} picks is the limit for one section.`);
       return;
@@ -235,8 +240,8 @@ export function SectionEditor({
 
           {picks.length ? (
             <div className="tw-section-picks tw-span-2">
-              {picks.map((pick) => (
-                <div className="tw-section-pick" key={pick.id}>
+              {picks.map((pick,pickIndex) => (
+                <div className="tw-section-pick" key={pick.id} ref={sortable.register(pick.id)}><Button aria-label={`Reorder ${pick.title}`} onPointerDown={event=>sortable.begin(event,pickIndex)} onKeyDown={event=>sortable.keyDown(event,pickIndex)}>↕</Button>
                   <span className="tw-section-pick-art">
                     {pick.image ? <img src={pick.image} alt="" loading="lazy" /> : null}
                   </span>
@@ -260,6 +265,7 @@ export function SectionEditor({
                       }
                     />
                   </span>
+                  <details className="studio-pick-settings"><summary>Poster and personal details</summary><div className="tw-form-grid"><img className="studio-poster-preview" src={pick.image||"/brand/tourn-mark.svg"} alt={pick.title} style={{objectPosition:`${pick.cropX??50}% ${pick.cropY??50}%`,transform:`scale(${pick.zoom??1})`}}/><Field label="Category"><Select ariaLabel={`Category for ${pick.title}`} value={pick.category||'anime'} options={['anime','game','music','film'].map(value=>({value,label:value}))} onChange={category=>onChange({items:picks.map(item=>item.id===pick.id?{...item,category}:item)})}/></Field><Field label="Status"><Select ariaLabel={`Status for ${pick.title}`} value={pick.status||''} options={['','Watching','Playing','Completed','Planned','Favourite'].map(value=>({value,label:value||'None'}))} onChange={status=>onChange({items:picks.map(item=>item.id===pick.id?{...item,status}:item)})}/></Field><Slider label={`Rating for ${pick.title}`} value={pick.rating||0} min={0} max={10} step={.5} onChange={rating=>onChange({items:picks.map(item=>item.id===pick.id?{...item,rating}:item)})}/><Field label="Personal note"><Textarea rows={2} value={pick.notes||''} onChange={event=>onChange({items:picks.map(item=>item.id===pick.id?{...item,notes:event.target.value}:item)})}/></Field>{(['cropX','cropY','zoom'] as const).map(key=><Slider key={key} label={`${key==='zoom'?'Poster zoom':key==='cropX'?'Horizontal crop':'Vertical crop'} for ${pick.title}`} min={key==='zoom'?1:0} max={key==='zoom'?2:100} step={key==='zoom'?.05:1} value={pick[key]??(key==='zoom'?1:50)} onChange={value=>onChange({items:picks.map(item=>item.id===pick.id?{...item,[key]:value}:item)})}/>)}</div></details>
                   <span className="tw-section-pick-actions">
                     <label className="tw-section-pick-poster">
                       <input
@@ -334,12 +340,14 @@ export function SectionEditor({
         </div>
       )}
 
+      {!project?<StudioSettings group="interests"/>:null}
       <MediaLibrary
         open={libraryOpen}
         kind={libraryKind}
         onClose={() => setLibraryOpen(false)}
         onPick={(item) =>
           addPick({
+            category:libraryKind==="game"?"game":libraryKind==="movie"?"film":["song","artist"].includes(libraryKind)?"music":"anime",
             title: item.title,
             subtitle: item.subtitle,
             image: item.image,

@@ -432,6 +432,7 @@ export function Dashboard(props: DashboardProps) {
     if(!user || authLoading)return;
     const next={...draftRef.current,[section]:updater(draftRef.current[section])};
     if (Object.is(next[section], draftRef.current[section])) return;
+    try{const id=window.location.hash.split("/")[2]||"profile-main";const key=`tourn/preferences/recent-${user.id}`;const prior=JSON.parse(localStorage.getItem(key)||"[]");localStorage.setItem(key,JSON.stringify([id,...(Array.isArray(prior)?prior:[]).filter(value=>value!==id)].slice(0,8)));}catch{/* Optional convenience. */}
     const h = history.current, now = Date.now();
     // Coalesce typing and slider gestures, retaining the state before the gesture.
     if (h.section !== section || now - h.at > 600 || !h.past.length) h.past = [...h.past.slice(-39), draftRef.current];

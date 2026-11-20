@@ -166,3 +166,67 @@ html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
 .tw-dash .tw-user-pop-head {flex-direction:row;}
 .tw-dash .tw-user-pop-actions .tw-user-pop-item svg {margin-left:0!important;flex:none;}
 .tw-dash .tw-user-pop-actions .tw-user-pop-item svg:last-child:not(:first-child) {margin-left:auto!important;}
+
+/* ── glowing switches and sliders ─────────────────────────────────────────
+   Every toggle and every range in the dashboard carries the accent as light,
+   not just as a colour: the switch halo, the slider fill and the thumb all
+   glow, and both get brighter while they are being used. */
+.tw-dash .tw-toggle {
+  transition: background .18s ease, box-shadow .22s ease;
+}
+
+.tw-dash .tw-toggle.is-on {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-bright, #60a5fa) 45%, transparent),
+    0 0 14px color-mix(in srgb, var(--accent-bright, #60a5fa) 55%, transparent);
+}
+
+.tw-dash .tw-toggle.is-on:hover {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-bright, #60a5fa) 60%, transparent),
+    0 0 20px color-mix(in srgb, var(--accent-bright, #60a5fa) 70%, transparent);
+}
+
+.tw-dash .tw-toggle.is-on span {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-bright, #60a5fa) 80%, transparent);
+}
+
+.tw-dash .tw-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-bright, #60a5fa) 45%, transparent);
+}
+
+.tw-dash .tw-slider input[type="range"]::-webkit-slider-runnable-track {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-bright, #60a5fa) 45%, transparent);
+}
+
+.tw-dash .tw-slider input[type="range"]::-moz-range-track,
+.tw-dash .tw-slider input[type="range"]::-moz-range-progress {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-bright, #60a5fa) 45%, transparent);
+}
+
+.tw-dash .tw-slider input[type="range"]::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px #101014,
+    0 0 12px color-mix(in srgb, var(--accent-bright, #60a5fa) 80%, transparent);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.tw-dash .tw-slider input[type="range"]::-moz-range-thumb {
+  box-shadow:
+    0 0 0 2px #101014,
+    0 0 12px color-mix(in srgb, var(--accent-bright, #60a5fa) 80%, transparent);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.tw-dash .tw-slider input[type="range"]:is(:active, :focus-visible)::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px #101014,
+    0 0 20px color-mix(in srgb, var(--accent-bright, #60a5fa) 100%, transparent);
+}
+
+.tw-dash .tw-slider input[type="range"]:is(:active, :focus-visible)::-moz-range-thumb {
+  box-shadow:
+    0 0 0 2px #101014,
+    0 0 20px color-mix(in srgb, var(--accent-bright, #60a5fa) 100%, transparent);
+}

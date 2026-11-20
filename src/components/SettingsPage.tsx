@@ -1,3 +1,4 @@
+import {SessionManager} from "./SessionManager";
 /* ---------------------------------------------------------------------------
    Account settings.
 
@@ -703,7 +704,7 @@ function SecurityPanel({
               Sign them out
             </Button>
           </div>
-          {sessionMsg ? <p className="tw-set-note">{sessionMsg}</p> : null}
+          {sessionMsg ? <p className="tw-set-note">{sessionMsg}</p> : null}<SessionManager/>
         </>
       ) : null}
 

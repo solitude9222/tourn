@@ -1,3 +1,5 @@
+import {normalizeStudio} from "../lib/studioOptions";
+import {FpsMeter,useEffectsVisible,automaticQuality} from "./StudioRuntime";
 import { ProfileGallery } from "./ProfileGallery";
 import { DEFAULT_GALLERY, DEFAULT_PORTFOLIO } from "../lib/gallery";
 import {TECH_BY_ID,techIconUrl} from "../lib/techStack";
@@ -20,13 +22,14 @@ import { ProfileInteractions } from "./ProfileInteractions";
 import { AudioPlayer } from "./AudioPlayer";
 import { ProfileSections } from "./ProfileSections";
 import { BadgeRow } from "./BadgeRow";
-import { CalendarIcon, ChevronIcon, EyeIcon, PinIcon } from "./Icons";
+import { CalendarIcon, EyeIcon, PinIcon } from "./Icons";
 import { ReactionBar, ReactionGhost } from "./Reactions";
 import { createPortal } from "react-dom";
 import { ProfileBackgroundVideo } from "./ProfileBackgroundVideo";
 import { MuteButton } from "./MuteButton";
 import "../about.css";
 import "../profileLayout.css";
+import "../studioExpansion.css";
 
 export function EntryOverlay({
   about,
@@ -106,7 +109,7 @@ export function EntryOverlay({
         </h2>
       ) : null}
 
-      <button type="button" className="lkr-entry-action" disabled={preview} onClick={event=>{event.stopPropagation();beginLeave();}}>Enter profile <ChevronIcon size={14}/></button>
+      <button type="button" className="lkr-entry-action" disabled={preview} onClick={event=>{event.stopPropagation();beginLeave();}}>Enter profile</button>
       {entry.divider ? (
         <span
           className="lkr-entry-divider"
@@ -280,6 +283,8 @@ export function LinkerPreview({
   preview?: boolean;
 }) {
   const viewer = useOptionalAuth()?.user ?? null;
+  const studio=normalizeStudio(about.studio);
+  const quality=studio.quality==="auto"?automaticQuality():studio.quality;
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const previewMode = preview || !interactive;
@@ -314,6 +319,7 @@ export function LinkerPreview({
   // Page pins are portals into this element, so they sit on the page instead
   // of over whatever dashboard chrome happens to be behind the preview.
   const [pageHost, setPageHost] = useState<HTMLElement | null>(null);
+  const effectsVisible=useEffectsVisible(pageHost,studio.pauseOffscreen);
   // Stable ref so React does not detach and re-attach the portal host every render.
   const attachPageHost = useCallback((node: HTMLElement | null) => setPageHost(node), []);
 
@@ -379,6 +385,7 @@ export function LinkerPreview({
     : `${preparedCursors.pointer?.hotspot.x ?? 0} ${preparedCursors.pointer?.hotspot.y ?? 0}`;
 
   const style = {
+    "--studio-poster-width":`${studio.posterSize}px`,
     "--lkr-bg-filter": bgFilter || "none",
     "--pv-accent": design.colors.accent,
     "--pv-text": design.colors.text,
@@ -573,7 +580,7 @@ export function LinkerPreview({
       {sectionsVisible
         ? groupedSections.map((group) => (
             <div key={group[0].id} className={slideshowActive ? "lkr-slide" : ""}>
-              <ProfileSections sections={group} interestMode={design.interestMode} projectLayout={design.projectLayout} />
+              <ProfileSections sections={group} interestMode={design.interestMode} projectLayout={design.projectLayout} studio={studio} />
             </div>
           ))
         : null}
@@ -709,6 +716,7 @@ export function LinkerPreview({
     const target = slides[index];
     if (target) flow.scrollTo({ top: target.offsetTop - flow.offsetTop, behavior: "smooth" });
   };
+  useEffect(()=>{if(!slideshowActive||!studio.keyboard)return;const host=pageHost;if(!host)return;host.tabIndex=0;const key=(event:KeyboardEvent)=>{if((event.target as HTMLElement).closest('input,textarea,select,button,a'))return;const direction=['ArrowDown','ArrowRight','PageDown'].includes(event.key)?1:['ArrowUp','ArrowLeft','PageUp'].includes(event.key)?-1:0;if(!direction)return;event.preventDefault();goToSlide(Math.max(0,Math.min(slideCount-1,slideIndex+direction)));};host.addEventListener('keydown',key);return()=>host.removeEventListener('keydown',key);},[slideshowActive,studio.keyboard,pageHost,slideIndex,slideCount]);
   const page = (
     <div ref={slidesRef} style={{scrollSnapType:portfolio.snap ? undefined : "none"}} className={`lkr-flow lkr-flow--${design.layout}${slideshowActive?" lkr-flow--slideshow lkr-slideshow":""}`} onPointerDown={event=>{if(!slideshowActive || event.pointerType!=="mouse" || event.button!==0 || (event.target as HTMLElement).closest("a,button,input,textarea,select,video,audio"))return;dragRef.current={y:event.clientY,scroll:event.currentTarget.scrollTop};event.currentTarget.style.scrollBehavior="auto";event.currentTarget.style.scrollSnapType="none";event.currentTarget.setPointerCapture(event.pointerId);}} onPointerMove={event=>{if(!dragRef.current)return;event.currentTarget.scrollTop=dragRef.current.scroll+dragRef.current.y-event.clientY;}} onPointerUp={event=>{if(!dragRef.current)return;dragRef.current=null;const el=event.currentTarget;el.style.scrollBehavior="";el.style.scrollSnapType=portfolio.snap?"":"none";const slides=Array.from(el.children).filter(item=>item.classList.contains("lkr-slide")) as HTMLElement[];const nearest=slides.reduce<HTMLElement|null>((best,item)=>!best||Math.abs(item.offsetTop-el.offsetTop-el.scrollTop)<Math.abs(best.offsetTop-el.offsetTop-el.scrollTop)?item:best,null);if(nearest&&portfolio.snap)el.scrollTo({top:nearest.offsetTop-el.offsetTop,behavior:"smooth"});}} onPointerCancel={event=>{dragRef.current=null;event.currentTarget.style.scrollBehavior="";event.currentTarget.style.scrollSnapType=portfolio.snap?"":"none";}}>
       <div className={`${slideshowActive?"lkr-slide":"lkr-primary"}${design.layout==="left"?" lkr-primary--left":""}`}>
@@ -726,6 +734,9 @@ export function LinkerPreview({
       data-interactive={interactive ? "true" : undefined}
       data-project-lines={design.projectLayout.textLines === 0 ? "all" : undefined}
       data-scattered={design.scattered ? "true" : undefined}
+      data-quality={quality}
+      data-nav-position={studio.navPosition}
+      data-poster-info={studio.posterInfo}
       data-fx-filter={assets.effects.overlay.id}
     >
       {interactive ? <ProfileInteractions settings={assets.interactions} /> : null}
@@ -737,11 +748,13 @@ export function LinkerPreview({
             style={{ backgroundImage: `url("${assets.background.imageUrl.replace(/"/g, '\\"')}")`, backgroundPosition: `${assets.background.positionX ?? 50}% ${assets.background.positionY ?? 50}%`, backgroundSize: assets.background.fit || "cover", backgroundRepeat: "no-repeat" }}
           />
         ) : null}
-        {assets.background.style === "video" && assets.background.videoUrl ? <ProfileBackgroundVideo settings={assets.background} entryActive={entryOpen} interactive={interactive}/> : null}
+        {assets.background.style === "video" && assets.background.videoUrl ? <ProfileBackgroundVideo settings={assets.background} entryActive={studio.coordinateEntry&&entryOpen} interactive={interactive} studio={studio}/> : null}
         <span className="lkr-bg-dim" />
       </div>
-      <BackgroundEffectLayer settings={assets.effects.background} />
+      {effectsVisible?<BackgroundEffectLayer settings={{...assets.effects.background,intensity:Math.min(assets.effects.background.intensity,studio.effectLimit,quality==="low"?30:100),speed:assets.effects.background.speed/studio.motionSpeed}} />:null}
       {page}
+      {previewMode&&studio.fps?<FpsMeter/>:null}
+      {studio.progress&&slideshowActive?<progress className="studio-slide-progress" max={Math.max(1,slideCount-1)} value={slideIndex} aria-label="Slideshow progress"/>:null}
       {slideshowActive && portfolio.hint && slideIndex === 0 ? (
         <button
           type="button"
@@ -759,7 +772,8 @@ export function LinkerPreview({
               key={index}
               type="button"
               className={`lkr-slide-dot${index === slideIndex ? " is-active" : ""}`}
-              aria-label={`Go to slide ${index + 1} of ${slideCount}`}
+              aria-label={studio.navLabels[index]||`Go to slide ${index + 1} of ${slideCount}`}
+              title={studio.navLabels[index]||`Page ${index+1}`}
               aria-current={index === slideIndex ? "true" : undefined}
               onClick={() => goToSlide(index)}
             />
@@ -772,8 +786,8 @@ export function LinkerPreview({
         </div>
       ) : null}
       {hasTrack && assets.audio.muteButton && !previewMode ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
-      <OverlayEffectLayer settings={assets.effects.overlay} />
-      <CursorTrailLayer settings={assets.cursor} />
+      {effectsVisible?<OverlayEffectLayer settings={assets.effects.overlay} />:null}
+      {effectsVisible&&(studio.touchCursor||matchMedia("(pointer:fine)").matches)?<CursorTrailLayer settings={assets.cursor} />:null}
       {user.aliasRequired && interactive ? <AliasRequiredOverlay account={user} owner={viewer?.id === user.id} /> : null}
       {entryOpen ? (
         <EntryOverlay

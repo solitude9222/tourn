@@ -1,3 +1,4 @@
+import {DEFAULT_STUDIO,normalizeStudio,type StudioOptions} from "./studioOptions";
 import { normalizeGallery, normalizePortfolio, type GallerySettings, type PortfolioSettings } from "./gallery";
 import { DEFAULT_PROFILE_ASSETS, loadProfileAssets, type ProfileAssets } from "./profileAssets";
 import { isOnekoCat, type OnekoCat } from "./oneko";
@@ -257,6 +258,7 @@ export type ProfileSectionLink = { label: string; url: string };
 
 /** One pick inside an Interests section: several animes can share a section. */
 export type SectionPick = {
+  category?:string;status?:string;rating?:number;notes?:string;cropX?:number;cropY?:number;zoom?:number;
   id: string;
   title: string;
   subtitle: string;
@@ -434,6 +436,7 @@ export type AboutDesign = {
 };
 
 export type About = {
+  studio: StudioOptions;
   displayName: string;
   bio: string;
   location: string;
@@ -565,6 +568,7 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
 };
 
 export const EMPTY_ABOUT: About = {
+  studio:{...DEFAULT_STUDIO},
   displayName: "",
   bio: "",
   location: "",
@@ -883,6 +887,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
               .slice(0, 12)
               .map((pick, pickIndex) => ({
                 id: typeof pick.id === "string" ? pick.id.slice(0, 80) : `pick-${index}-${pickIndex}`,
+                category:typeof pick.category==="string"?pick.category.slice(0,20):"anime",status:typeof pick.status==="string"?pick.status.slice(0,30):"",rating:numberIn(pick.rating,0,0,10),notes:typeof pick.notes==="string"?pick.notes.slice(0,500):"",cropX:numberIn(pick.cropX,50,0,100),cropY:numberIn(pick.cropY,50,0,100),zoom:numberIn(pick.zoom,1,1,2),
                 title: typeof pick.title === "string" ? pick.title.slice(0, 100) : "",
                 subtitle: typeof pick.subtitle === "string" ? pick.subtitle.slice(0, 180) : "",
                 image: typeof pick.image === "string" ? pick.image.slice(0, 1_000_000) : "",
@@ -1014,6 +1019,7 @@ export function normalizeAbout(input: unknown): About {
     return { ...EMPTY_ABOUT, design: loadDesign(null) };
   }
   return {
+    studio:normalizeStudio(parsed.studio),
     displayName: String(parsed.displayName ?? "").trim().slice(0, 32),
     bio: String(parsed.bio ?? "").slice(0, MAX_BIO_LENGTH),
     location: String(parsed.location ?? "").trim().slice(0, 64),

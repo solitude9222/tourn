@@ -1,3 +1,4 @@
+import {normalizeStudio} from "../lib/studioOptions";
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { LinkerPreview } from "../components/LinkerPreview";
 import { LocationGlyph, ViewsGlyph } from "../components/ProfilePreview";
@@ -26,6 +27,7 @@ const AUDIO_ZONES: { id: string; label: string }[] = [
 
 export function LayoutPreview() {
   const { user, about, widgets, badges, links, setAbout, notify } = useDash();
+  const studio=normalizeStudio(about.studio);
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragKind | null>(null);
   const hoverRef = useRef<string | null>(null);
@@ -77,6 +79,7 @@ export function LayoutPreview() {
             : "audioSlot";
 
   const place = (kind: DragKind, slot: string) => {
+    if(studio.lockedDetails.includes(kind)){notify("Locked element","Unlock this element in Responsive layout before moving it.");stop();return;}
     setAbout((current) => ({ ...current, design: { ...current.design, [fieldFor(kind)]: slot } }));
     const label =
       kind === "audio"
@@ -131,7 +134,7 @@ export function LayoutPreview() {
           // like moving the real thing instead of its label chip.
           const target = (event.target as HTMLElement).closest("[data-detail]") as HTMLElement | null;
           const kind = target?.dataset.detail as DragKind | undefined;
-          if (!kind || !["views", "likes", "location", "joined", "audio"].includes(kind) || event.button !== 0) return;
+          if (!kind || studio.lockedDetails.includes(kind) || !["views", "likes", "location", "joined", "audio"].includes(kind) || event.button !== 0) return;
           event.preventDefault();
           measure();
           dragRef.current = kind; setDragging(kind);
@@ -152,6 +155,7 @@ export function LayoutPreview() {
         }}
       >
         <div className="tw-layout-stage-scaler" style={{ width: 1120, height: 900, left: "50%", marginLeft: -560 * scale, transform: `scale(${scale})`, transformOrigin: "top left", right: "auto", bottom: "auto" }}>
+          {studio.guides&&dragging?<div className="studio-alignment-guides" aria-hidden="true"/>:null}
           <StablePreview
             user={user}
             about={previewAbout}

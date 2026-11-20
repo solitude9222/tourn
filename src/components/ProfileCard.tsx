@@ -1,3 +1,4 @@
+import {DEFAULT_STUDIO} from "../lib/studioOptions";
 import { useEffect, useState } from "react";
 import { chooseHomePreview, initialHomePreviews, refreshHomePreviews } from "../lib/homePreview";
 import { DEFAULT_ABOUT_DESIGN, DEFAULT_METADATA, type About } from "../lib/about";
@@ -20,6 +21,7 @@ import { WidgetCard } from "./WidgetCard";
  * first-paint fallback when no preview is configured.
  */
 const FALLBACK_ABOUT: About = {
+  studio:{...DEFAULT_STUDIO},
   displayName: "tourn",
   bio: "One link for everything you play.\nDiscord, music and games — always current.",
   location: "tourn.lol",

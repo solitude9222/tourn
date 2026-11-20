@@ -1,3 +1,4 @@
+import {normalizeStudio} from "../lib/studioOptions";
 import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { donationTotalFor } from "../lib/donation";
@@ -88,7 +89,9 @@ export function ProfilePreview({
   pageLayerTarget?: HTMLElement | null;
   children?: ReactNode;
 }) {
-  const design = about.design;
+  const studio=normalizeStudio(about.studio);
+  const mobile=useNarrowCard();
+  const design=studio.mobileLayout&&mobile?{...about.design,cardWidth:studio.mobileWidth}:about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const alias = user.alias?.trim() || "";
   // The claimed username leads; the optional display name is a separate line.
@@ -236,7 +239,7 @@ export function ProfilePreview({
   // Every size in the card is expressed against a 648px reference card, so a
   // narrower card shrinks its type, avatar and spacing with it instead of
   // keeping full-size text in a small box.
-  const narrow = useNarrowCard();
+  const narrow = mobile;
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
   useLayoutEffect(() => {
     const element = tilt.ref.current;
@@ -260,6 +263,8 @@ export function ProfilePreview({
 
   const style = {
     "--pv-scale": scale,
+    "--studio-display-size":`${studio.displaySize}px`,"--studio-display-opacity":studio.displayOpacity,
+    "--studio-banner-position":`${studio.bannerX}% ${mobile?studio.mobileBannerY:studio.bannerY}%`,
     // Lexend is the site font, so an untouched card matches the rest of tourn.lol
     // instead of falling back to Segoe UI.
     "--pv-font": design.customFontUrl
@@ -276,10 +281,10 @@ export function ProfilePreview({
     "--pv-border-width": `${design.borderWidth}px`,
     "--pv-radius": `${design.cardRadius}px`,
     "--pv-width": `${design.cardWidth}px`,
-    "--pv-avatar": `calc(${design.avatarSize}px * var(--pv-scale))`,
+    "--pv-avatar": studio.mobileLayout&&mobile?`${studio.mobileAvatar}px`:`calc(${design.avatarSize}px * var(--pv-scale))`,
     "--pv-blur": `${design.backgroundBlur}px`,
     "--pv-pad": `calc(${design.cardPadding}px * var(--pv-scale))`,
-    "--pv-name": `calc(${design.nameSize}px * var(--pv-scale))`,
+    "--pv-name": studio.mobileLayout&&mobile?`${studio.mobileName}px`:`calc(${design.nameSize}px * var(--pv-scale))`,
     "--pv-bio-size": `${design.bioSize}px`,
     "--pv-card-fx-color": cardFx.color,
     "--pv-card-fx-strength": cardFx.intensity / 100,
@@ -314,6 +319,8 @@ export function ProfilePreview({
       data-name={namePosition}
       data-bio={bioPosition}
       data-shape={design.avatarShape}
+      data-avatar-border={studio.avatarBorder}
+      data-avatar-hover={studio.avatarHover}
       data-scattered={design.scattered ? "true" : undefined}
       data-card-slots={hasCardSlot ? "yes" : undefined}
     >
@@ -363,7 +370,7 @@ export function ProfilePreview({
                 {/* The account number belongs to the name, not the picture:
                     hover the name to read it. */}
                 <Tooltip
-                  text={tooltips.enabled ? `#${uid}` : ""}
+                  text={tooltips.enabled ? `#${uid}${studio.pronunciation?" · "+studio.pronunciation:""}` : ""}
                   style={tooltips.style}
                   animation={tooltips.animation}
                 >
@@ -384,7 +391,7 @@ export function ProfilePreview({
               </h3>
               {inlineBadges || design.badgePosition === "above-name" ? badgeRow : null}
             </div>
-            {secondaryName ? <p className="pv-display-name">{secondaryName}</p> : null}
+            {secondaryName ? <p className="pv-display-name" data-effect={studio.displayEffect}>{secondaryName}</p> : null}
           </div>
           {design.badgePosition === "beside-avatar" && !inlineBadges ? badgeRow : null}
         </div>

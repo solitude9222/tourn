@@ -15,16 +15,30 @@ import { audioBusState, setAudioBus, subscribeAudioBus } from "../lib/audioBus";
 export function MuteButton({ settings }: { settings: AudioSettings }) {
   const [state, setState] = useState(audioBusState);
   const [settling, setSettling] = useState(false);
-  const revealRef = useRef<HTMLDivElement>(null);
-  const reveal = () => {
-    const pill=revealRef.current;if(!pill || matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-    const direction=settings.popupSide.includes("right")?1:-1;
-    pill.animate([{opacity:0,transform:`translateX(${direction*18}px) scale(.82)`},{opacity:1,transform:"translateX(0) scale(1)"}],{duration:Math.max(450,settings.popupDuration),easing:"cubic-bezier(.16,1,.3,1)"});
+  /* The volume pill is opened from React instead of a bare :hover rule: the
+     pointer has to cross a 10px gap between the button and the pill, and the
+     close needs a short grace period. Tracking the state here lets the CSS
+     animate both directions every time. */
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<number | undefined>(undefined);
+  const openReveal = () => {
+    window.clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
+  const closeReveal = () => {
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setOpen(false), 170);
   };
   const settleTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => subscribeAudioBus(setState), []);
-  useEffect(() => () => window.clearTimeout(settleTimer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(settleTimer.current);
+      window.clearTimeout(closeTimer.current);
+    },
+    [],
+  );
 
   // A native range gives no release feedback. Restart a short settle animation
   // when the thumb is let go, so the volume does not just stop dead.
@@ -51,9 +65,11 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
 
   return (
     <div
-      className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}`}
-      onPointerEnter={reveal}
-      onFocus={event=>{if(!event.currentTarget.contains(event.relatedTarget) && event.target.matches(":focus-visible"))reveal();}}
+      className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}${open ? " is-open" : ""}`}
+      onPointerEnter={openReveal}
+      onPointerLeave={closeReveal}
+      onFocus={event => { if (event.currentTarget.contains(event.relatedTarget as Node | null) === false) openReveal(); }}
+      onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) closeReveal(); }}
       style={
         {
           "--ap-edge-color": settings.edgeColor,
@@ -64,7 +80,8 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
           "--popup-opacity": settings.popupOpacity ?? .92,
           "--popup-rail-opacity":settings.popupRailOpacity ?? .92,
           "--popup-icon-opacity":settings.popupIconOpacity ?? 1,
-          "--popup-glow":settings.popupGlow ? `drop-shadow(0 0 ${settings.popupGlowBlur}px color-mix(in srgb,${settings.popupGlowColor} ${settings.popupGlowStrength}%,transparent))` : "none",
+          "--popup-glow": settings.popupGlow ? `drop-shadow(0 0 ${settings.popupGlowBlur}px color-mix(in srgb,${settings.popupGlowColor} ${settings.popupGlowStrength}%,transparent))` : `drop-shadow(0 0 12px color-mix(in srgb,${settings.popupGlowColor} 34%,transparent))`,
+          "--popup-pill-glow": settings.popupGlow ? `0 0 ${settings.popupGlowBlur}px color-mix(in srgb,${settings.popupGlowColor} ${settings.popupGlowStrength}%,transparent)` : `0 0 18px color-mix(in srgb,${settings.popupGlowColor} 30%,transparent)`,
           "--popup-bar-width": `${settings.popupBarWidth}px`,
           "--popup-duration": `${Math.max(450,settings.popupDuration)}ms`,
           "--popup-volume": `${(silent ? 0 : state.volume) * 100}%`,
@@ -93,7 +110,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
         </span>
       </button>
       <div className="ap-popup-reveal">
-        <div className="ap-popup-volume" ref={revealRef}>
+        <div className="ap-popup-volume">
           <input
             aria-label="Music volume"
             type="range"

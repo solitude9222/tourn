@@ -1,3 +1,4 @@
+import {StudioSettings} from "../StudioSettings";
 import { LayoutPreview } from "../LayoutPreview";
 import { contrastRatio } from "../appearance";
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";

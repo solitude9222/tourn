@@ -1,3 +1,4 @@
+import {EditorTools} from "./EditorTools";
 /* ---------------------------------------------------------------------------
    Dashboard shell — sidebar, breadcrumb, page header, tabs, unsaved-changes
    bar and toasts. The nav structure and measurements follow the reference.
@@ -106,6 +107,10 @@ export function Shell({
   const { accounts, retryAuth } = useAuth();
   useDashTheme();
   const [accent] = useDashAccent();
+  const [toolsOpen,setToolsOpen]=useState(false);
+  const [savedAt,setSavedAt]=useState<Date|null>(null);
+  const {publishStatus}=useDash();
+  useEffect(()=>{if(publishStatus==="saved")setSavedAt(new Date());},[publishStatus]);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -586,7 +591,7 @@ export function Shell({
           </div>
 
           <div className="tw-row">
-            {actions}
+            {actions}<span className="studio-save-status" role="status">{publishStatus==="saving"?"Saving…":publishStatus==="retrying"?"Retrying save…":savedAt?`Saved ${savedAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"Saved"}</span><Button icon="sliders" onClick={()=>setToolsOpen(true)}>Studio tools</Button>
           </div>
         </div>
 
@@ -637,6 +642,7 @@ export function Shell({
         </div>
       ) : null}
 
+      <EditorTools open={toolsOpen} onClose={()=>setToolsOpen(false)}/>
       <Toasts />
       <AliasRequiredGate />
     </div>

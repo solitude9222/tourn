@@ -1,3 +1,4 @@
+import {normalizeStudio,type StudioOptions} from "../lib/studioOptions";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { DEFAULT_PROJECT_LAYOUT, type InterestMode, type ProfileSection, type ProjectLayout } from "../lib/about";
 import { TECH_BY_ID, techIconUrl } from "../lib/techStack";
@@ -37,8 +38,10 @@ function TechBadge({ id }: { id: string }) {
 /* Interests sit in a fixed four-up rail. The rail fades at whichever edge has
    more posters beyond it and the two arrow buttons move one page at a time;
    catalogue mode drops the rail and shows every poster in the same grid. */
-function InterestSet({ section, mode }: { section: ProfileSection; mode?: InterestMode }) {
-  const picks = section.items ?? [];
+function InterestSet({ section, mode,studio:input }: { section: ProfileSection; mode?: InterestMode;studio?:StudioOptions }) {
+  const studio=normalizeStudio(input);
+  const [filter,setFilter]=useState("all");
+  const picks = (section.items ?? []).filter(pick=>filter==="all"||(pick.category||"anime")===filter);
   const layout: InterestMode = mode === "catalog" ? "catalog" : "carousel";
   const trackRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false });
@@ -102,6 +105,7 @@ function InterestSet({ section, mode }: { section: ProfileSection; mode?: Intere
           </div>
         ) : null}
       </div>
+      {(new Set(section.items.map(p=>p.category||"anime"))).size>1?<div className="studio-interest-filters" aria-label="Interest categories">{['all',...new Set(section.items.map(p=>p.category||'anime'))].map(value=><button key={value} type="button" aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value}</button>)}</div>:null}
       <div className={`lkr-interest-rail lkr-interest-rail--${layout}`}>
         <div
           ref={trackRef}
@@ -112,21 +116,21 @@ function InterestSet({ section, mode }: { section: ProfileSection; mode?: Intere
             const href = safeUrl(pick.url);
             const body = (
               <>
-                <span className="lkr-interest-art">
-                  {pick.image ? <img src={pick.image} alt="" loading="lazy" /> : null}
+                <span className="lkr-interest-art" data-fallback={pick.title||"No poster"}>
+                  {pick.image ? <img src={pick.image} alt="" loading="lazy" style={{objectPosition:`${pick.cropX??50}% ${pick.cropY??50}%`,transform:`scale(${pick.zoom??1})`}} onError={event=>{event.currentTarget.style.visibility="hidden";}}/> : null}
                 </span>
                 <span className="lkr-interest-copy">
                   <b>{pick.title || "Untitled"}</b>
-                  <small>{[pick.subtitle, pick.meta].filter(Boolean).join(" · ")}</small>
+                  <small>{[pick.subtitle, pick.meta,studio.posterRating&&pick.rating?`★ ${pick.rating}/10`:null,studio.posterStatus?pick.status:null].filter(Boolean).join(" · ")}</small>
                 </span>
               </>
             );
             return href ? (
-              <a className="lkr-interest-tile" href={href} target="_blank" rel="noreferrer" key={pick.id}>
+              <a className="lkr-interest-tile" title={pick.notes||pick.title} href={href} target="_blank" rel="noreferrer" key={pick.id}>
                 {body}
               </a>
             ) : (
-              <span className="lkr-interest-tile" key={pick.id}>
+              <span className="lkr-interest-tile" title={pick.notes||pick.title} key={pick.id}>
                 {body}
               </span>
             );
@@ -142,10 +146,12 @@ export function ProfileSections({
   sections,
   interestMode,
   projectLayout = DEFAULT_PROJECT_LAYOUT,
+  studio,
 }: {
   sections: ProfileSection[];
   interestMode?: InterestMode;
   projectLayout?: ProjectLayout;
+  studio?:StudioOptions;
 }) {
   if (!sections.length) return null;
 
@@ -158,7 +164,7 @@ export function ProfileSections({
 
         // Several animes in one section: one rail or one catalogue grid.
         if (section.kind === "interest" && (section.items ?? []).length) {
-          return <InterestSet section={section} mode={interestMode} key={section.id} />;
+          return <InterestSet section={section} mode={interestMode} studio={studio} key={section.id} />;
         }
 
         const kinds = [projectLayout.showStatus ? section.status : "", section.meta].filter(Boolean);
