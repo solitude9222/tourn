@@ -252,7 +252,7 @@
   appearance: none;
   border-radius: 999px;
   outline: none;
-  background: linear-gradient(90deg, #c43f43, #93c5fd) no-repeat, rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, #3f70c4, #93c5fd) no-repeat, rgba(255, 255, 255, 0.08);
   background-size: var(--slider-fill, 45%) 100%, 100% 100%;
   cursor: pointer;
 }
@@ -404,7 +404,7 @@
 
 .widgets-scroll::-webkit-scrollbar-thumb {
   border: 0;
-  background: #382b2b;
+  background: #2b3038;
 }
 
 .widgets-preview-box {
@@ -565,11 +565,11 @@
 }
 
 .wg-background-swatch.is-gradient {
-  background: linear-gradient(135deg, #d40410, #3b82f6);
+  background: linear-gradient(135deg, #0450d4, #3b82f6);
 }
 
 .wg-background-swatch.is-rgb {
-  background: conic-gradient(from 20deg, #d40410, #fbbf24, #34d399, #fa6065, #fa8b8f, #d40410);
+  background: conic-gradient(from 20deg, #0450d4, #fbbf24, #34d399, #6098fa, #8bb4fa, #0450d4);
 }
 
 .wg-background-swatch.is-solid {
@@ -579,7 +579,7 @@
 .wg-background-swatch.is-art {
   background:
     radial-gradient(12px 8px at 72% 28%, rgba(255, 255, 255, 0.75), transparent 70%),
-    linear-gradient(155deg, #8f2f32 0 46%, #33211f 46% 100%);
+    linear-gradient(155deg, #2f528f 0 46%, #1f2633 46% 100%);
 }
 
 /* -------------------------------------------------------------- widget card */
@@ -1235,7 +1235,7 @@
   padding: 17px 20px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #382b2b transparent;
+  scrollbar-color: #2b3038 transparent;
 }
 
 .widgets-modal-body::-webkit-scrollbar {
@@ -1244,7 +1244,7 @@
 
 .widgets-modal-body::-webkit-scrollbar-thumb {
   border: 2px solid #0a0a0c;
-  background: #382b2b;
+  background: #2b3038;
 }
 
 .widgets-modal-foot {

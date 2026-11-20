@@ -3847,7 +3847,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
   font-size: 11.5px;
   line-height: 1.55;
   scrollbar-width: thin;
-  scrollbar-color: #3b3030 transparent;
+  scrollbar-color: #30343b transparent;
 }
 
 .app--site .pc-custom .rt-heading {
@@ -5121,7 +5121,7 @@ html:has(.app--site) ::-webkit-scrollbar-thumb:hover {
 }
 .head-cart:hover,
 .head-cart.is-active {
-  border-color: var(--line-strong, #4a3a3b);
+  border-color: var(--line-strong, #3a404a);
   background: rgba(255, 255, 255, 0.04);
 }
 .head-cart-count {
