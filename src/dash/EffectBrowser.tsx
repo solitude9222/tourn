@@ -5,7 +5,18 @@ import { BackgroundEffectLayer, OverlayEffectLayer, EffectText } from "../compon
 import { CursorTrailLayer } from "../components/CursorTrailLayer";
 import { DEFAULT_PROFILE_ASSETS, DEFAULT_TEXT_EFFECT, BACKGROUND_EFFECT_PARAM, OVERLAY_EFFECT_PARAM, TEXT_EFFECT_PARAM, defaultParamsFor, type ClickEffectId, type CursorStyle, type CursorTrailType, type OverlayEffectId } from "../lib/profileAssets";
 import { naturalCompare, sorted, chain } from "../lib/sort";
-import { SortSelect, TextInput } from "./ui";
+import { Button, SortSelect, TextInput } from "./ui";
+import { useDash } from "./context";
+
+/* What Premium owns. Saved effects keep rendering for everyone — only picking
+   a locked one asks for the upgrade. */
+const PREMIUM_TEXT_EFFECTS = new Set(["fire", "ice", "hologram", "prism"]);
+const isPremiumEffect = (kind: EffectKind, id: string) =>
+  kind === "background" || kind === "overlay"
+    ? !["none", "custom", "default", "system"].includes(id)
+    : kind === "text"
+      ? PREMIUM_TEXT_EFFECTS.has(id)
+      : false;
 
 export type EffectOption = { id: string; name: string; hint: string; effect?: string; colorA?: string; colorB?: string };
 type Option = EffectOption;
@@ -56,6 +67,16 @@ export function EffectBrowser({ kind, options, value, onApply, previewText = "Yo
   const [favorites, setFavorites] = usePreference<string[]>(`effect-favorites/${kind}`, []);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [page, setPage] = useState(1);
+  const [locked, setLocked] = useState<Option | null>(null);
+  const { isPremium, go } = useDash();
+  const pick = (option: Option) => {
+    if (!isPremium && isPremiumEffect(kind, option.id)) {
+      setLocked(option);
+      return;
+    }
+    setLocked(null);
+    onApply(option.id);
+  };
   const groups = ["All", ...new Set(options.map(option => groupFor(kind, option.effect || option.id)))];
   const filtered = sorted(options.filter(option => (!onlyFavorites || favorites.includes(option.id)) && (group === "All" || groupFor(kind, option.effect || option.id) === group) && `${option.name} ${option.hint}`.toLowerCase().includes(query.trim().toLowerCase())), order === "az" ? (a,b) => naturalCompare(a.name,b.name) : order === "za" ? (a,b) => naturalCompare(b.name,a.name) : chain((a:Option,b:Option) => Number(b.id === "none") - Number(a.id === "none"), (a:Option,b:Option) => options.indexOf(a) - options.indexOf(b)));
   const pages = Math.max(1, Math.ceil(filtered.length / 8)), currentPage = Math.min(page, pages);
@@ -65,10 +86,11 @@ export function EffectBrowser({ kind, options, value, onApply, previewText = "Yo
     <div className="fx-categories"><button type="button" aria-pressed={onlyFavorites} onClick={() => { setOnlyFavorites(v=>!v);setPage(1); }}>Favorites ({favorites.length})</button>{groups.map(item => <button key={item} type="button" aria-pressed={item===group} onClick={()=>{setGroup(item);setPage(1);}}>{item}</button>)}</div>
     <div className="fx-toolbar"><TextInput icon="search" aria-label="Search effects" value={query} placeholder="Search effects…" onChange={event=>{setQuery(event.target.value);setPage(1);}} /><SortSelect value={order} onChange={value=>{setOrder(value);setPage(1);}} options={[{value:"featured",label:"Featured"},{value:"az",label:"Name A–Z"},{value:"za",label:"Name Z–A"}]} /><div className="fx-pagination"><button type="button" aria-label="Previous effects page" disabled={currentPage===1} onClick={()=>setPage(currentPage-1)}>‹</button><span>{currentPage} / {pages}</span><button type="button" aria-label="Next effects page" disabled={currentPage===pages} onClick={()=>setPage(currentPage+1)}>›</button></div></div>
     <div className="fx-browser-grid">{filtered.slice((currentPage-1)*8,currentPage*8).map(option=><div className="fx-choice-wrap" key={option.id}>
-      <button className={`fx-choice${value===option.id?" is-selected":""}`} type="button" aria-pressed={value===option.id} aria-label={option.name} title={option.hint} onPointerEnter={()=>setPreviewId(option.id)} onPointerLeave={()=>setPreviewId(null)} onFocus={()=>setPreviewId(option.id)} onBlur={()=>setPreviewId(null)} onClick={()=>onApply(option.id)} style={{"--pv-card-fx-color":"#ffffff","--pv-card-fx-strength":.7,"--pv-card-fx-speed":"4s"} as CSSProperties}>
-        {value===option.id?<span className="fx-selected-dot" aria-hidden="true"/>:null}<TilePreview kind={kind} option={option} active={previewId===option.id} previewText={previewText}/><b>{option.name}</b><small>{option.hint}</small>
+      <button className={`fx-choice${value===option.id?" is-selected":""}${!isPremium&&isPremiumEffect(kind,option.id)?" is-locked":""}`} type="button" aria-pressed={value===option.id} aria-label={option.name} title={option.hint} onPointerEnter={()=>setPreviewId(option.id)} onPointerLeave={()=>setPreviewId(null)} onFocus={()=>setPreviewId(option.id)} onBlur={()=>setPreviewId(null)} onClick={()=>pick(option)} style={{"--pv-card-fx-color":"#ffffff","--pv-card-fx-strength":.7,"--pv-card-fx-speed":"4s"} as CSSProperties}>
+        {value===option.id?<span className="fx-selected-dot" aria-hidden="true"/>:null}{isPremiumEffect(kind,option.id)?<span className="fx-premium-tag">{isPremium?"Premium":"🔒 Premium"}</span>:null}<TilePreview kind={kind} option={option} active={previewId===option.id} previewText={previewText}/><b>{option.name}</b><small>{option.hint}</small>
       </button><button type="button" className="tw-favorite fx-favorite" aria-label={`Favorite ${option.name}`} aria-pressed={favorites.includes(option.id)} onClick={()=>setFavorites(current=>current.includes(option.id)?current.filter(id=>id!==option.id):[...current,option.id])}>☆</button>
     </div>)}</div>
+    {locked?<div className="fx-premium-note" role="status"><span><b>{locked.name} is a Premium effect</b><small>Unlock every background, overlay and special text effect with one payment.</small></span><Button onClick={()=>{setLocked(null);go("premium");}}>See Premium</Button><Button variant="ghost" aria-label="Dismiss" onClick={()=>setLocked(null)}>×</Button></div>:null}
     {!filtered.length?<p className="tw-foot-note" role="status">No matching effects. Try another category or add a favorite using the star.</p>:null}
   </div>;
 }
