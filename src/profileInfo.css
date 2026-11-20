@@ -1,0 +1,238 @@
+/* Linker statistics popup. The shell (backdrop, head, body, foot) is the shared
+   widget-details dialog; these rules only fill it with stats and graphs. */
+
+.pi-dialog {
+  width: min(460px, 100%);
+}
+
+/* Taller than a widget panel: the stats and the three graphs share one scroll. */
+.pi-dialog .wg-info-body {
+  max-height: min(66vh, 560px);
+}
+
+/* The picture becomes the button that opens this dialog. */
+.pv-avatar.pv-avatar--info {
+  padding: 0;
+  appearance: none;
+  cursor: pointer;
+  transition: filter 0.18s ease, transform 0.18s ease;
+}
+
+.pv-avatar.pv-avatar--info:hover {
+  filter: brightness(1.08);
+}
+
+.pv-avatar.pv-avatar--info:focus-visible {
+  outline: 2px solid var(--pv-accent, #80aaff);
+  outline-offset: 3px;
+}
+
+.pi-avatar {
+  overflow: hidden;
+  border-radius: 12px;
+  background: #1b1b20;
+}
+
+.pi-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pi-avatar span {
+  color: #f4f4f6;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.pi-bio {
+  margin: 0;
+  color: #b9b9c2;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.pi-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pi-stat {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid #2b2b32;
+  border-radius: 11px;
+  background: #1b1b20;
+}
+
+.pi-stat b {
+  color: #f4f4f6;
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pi-stat small {
+  color: #8d8d96;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pi-panel {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #26262d;
+  border-radius: 12px;
+  background: #16161a;
+}
+
+.pi-panel h4 {
+  margin: 0;
+  color: #9b9ba4;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pi-bars {
+  display: grid;
+  gap: 7px;
+}
+
+.pi-bar-row {
+  display: grid;
+  grid-template-columns: 84px 1fr 48px;
+  align-items: center;
+  gap: 9px;
+}
+
+.pi-bar-row > span {
+  color: #a9a9b3;
+  font-size: 11.5px;
+}
+
+.pi-bar-row > b {
+  color: #ececf1;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.pi-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #26262d;
+}
+
+.pi-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.pi-bar--views i { background: #7aa2ff; }
+.pi-bar--likes i { background: #6ee7a8; }
+.pi-bar--dislikes i { background: #f08f9f; }
+
+.pi-split {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+}
+
+.pi-donut {
+  position: relative;
+  display: grid;
+  width: 72px;
+  height: 72px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(#6ee7a8 0 var(--pi-like, 0deg), #f08f9f var(--pi-like, 0deg) 360deg);
+}
+
+.pi-donut::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: #16161a;
+}
+
+.pi-donut span {
+  position: relative;
+  z-index: 1;
+  color: #f4f4f6;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pi-donut--empty {
+  background: #26262d;
+}
+
+.pi-legend {
+  display: grid;
+  gap: 5px;
+}
+
+.pi-legend div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #a9a9b3;
+  font-size: 11px;
+}
+
+.pi-legend i {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 2px;
+}
+
+.pi-legend b {
+  margin-left: auto;
+  color: #ececf1;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pi-composition {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #26262d;
+}
+
+.pi-composition i {
+  height: 100%;
+}
+
+.pi-note {
+  margin: 0;
+  color: #7f7f89;
+  font-size: 10.5px;
+}
+
+.pi-foot {
+  align-items: center;
+}
+
+.pi-foot small {
+  color: #8d8d96;
+  font-size: 11px;
+}
+
+@media (max-width: 420px) {
+  .pi-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

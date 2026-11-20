@@ -18,6 +18,7 @@ import { AudioPlayer } from "./AudioPlayer";
 import { Tooltip } from "./Tooltip";
 import { RichText } from "./RichText";
 import { CalendarIcon } from "./Icons";
+import { ProfileInfoDialog } from "./ProfileInfo";
 import "../about.css";
 
 /** The card is full-bleed on phones, so its type has to follow the screen. */
@@ -56,6 +57,8 @@ export function ProfilePreview({
   entryActive = false,
   /** Marketing previews (the home hero) show the card, not the player. */
   hideAudio = false,
+  /** The picture opens the Linker statistics popup on a real profile page. */
+  infoEnabled = false,
   /** Keep a dashboard/demo player visible but silent. */
   preview = false,
   disableTilt = false,
@@ -82,6 +85,8 @@ export function ProfilePreview({
   entryActive?: boolean;
   /** Hide the audio player entirely — used by the home page preview. */
   hideAudio?: boolean;
+  /** Make the profile picture open the Linker statistics popup. */
+  infoEnabled?: boolean;
   /** Render the player without ever starting playback (dashboard previews). */
   preview?: boolean;
   disableTilt?: boolean;
@@ -90,6 +95,7 @@ export function ProfilePreview({
   children?: ReactNode;
 }) {
   const studio=normalizeStudio(about.studio);
+  const [infoOpen, setInfoOpen] = useState(false);
   const mobile=useNarrowCard();
   const design=studio.mobileLayout&&mobile?{...about.design,cardWidth:studio.mobileWidth}:about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
@@ -133,6 +139,28 @@ export function ProfilePreview({
   // labelled blocks (Connections, Links, Music) instead of one long stack.
   const visibleLinks = links.filter((link) => link.visible && link.url.trim());
   const hasLinks = visibleLinks.length > 0;
+  // What the picture's popup reports: only what this card already knows, plus
+  // the reactions the server returns when it opens.
+  const infoData = {
+    handle: user.username,
+    displayName,
+    secondaryName: secondaryName || undefined,
+    avatarUrl: avatar || undefined,
+    uid,
+    joined,
+    views,
+    location: location || undefined,
+    bio,
+    counts: {
+      badges: badges.length,
+      links: visibleLinks.length,
+      projects: (design.sections ?? []).filter(
+        (section) => section.kind === "project" && (Boolean(section.title.trim()) || Boolean(section.image)),
+      ).length,
+      skills: (design.skills ?? []).length,
+      gallery: design.gallery?.enabled ? design.gallery.items.length : 0,
+    },
+  };
   // Playback follows the upload, not the chosen player skin. "None" hides the
   // player chrome but the track keeps playing and the mute control stays.
   const hasAudio = Boolean(assets.audio.fileUrl);
@@ -263,6 +291,7 @@ export function ProfilePreview({
 
   const style = {
     "--pv-scale": scale,
+    "--identity-gap":`${studio.identityGap}px`,"--bio-width":`${studio.bioWidth}px`,"--bio-line-height":studio.bioLineHeight,
     "--studio-display-size":`${studio.displaySize}px`,"--studio-display-opacity":studio.displayOpacity,
     "--studio-banner-position":`${studio.bannerX}% ${mobile?studio.mobileBannerY:studio.bannerY}%`,
     // Lexend is the site font, so an untouched card matches the rest of tourn.lol
@@ -341,13 +370,29 @@ export function ProfilePreview({
       <div className="pv-body">
         <div className="pv-topline">
           <span className="pv-avatar-wrap">
-            <span className="pv-avatar" aria-hidden="true">
-              {avatar ? (
-                <img src={avatar} alt="" decoding="async" />
-              ) : (
-                <span>{displayName.slice(0, 1).toUpperCase()}</span>
-              )}
-            </span>
+            {infoEnabled ? (
+              <button
+                type="button"
+                className="pv-avatar pv-avatar--info"
+                aria-label={`${displayName} profile statistics`}
+                aria-haspopup="dialog"
+                onClick={() => setInfoOpen(true)}
+              >
+                {avatar ? (
+                  <img src={avatar} alt="" decoding="async" />
+                ) : (
+                  <span aria-hidden="true">{displayName.slice(0, 1).toUpperCase()}</span>
+                )}
+              </button>
+            ) : (
+              <span className="pv-avatar" aria-hidden="true">
+                {avatar ? (
+                  <img src={avatar} alt="" decoding="async" />
+                ) : (
+                  <span>{displayName.slice(0, 1).toUpperCase()}</span>
+                )}
+              </span>
+            )}
             {decoration.discordUrl ? (
               <img
                 className="pv-avatar-decoration"
@@ -443,6 +488,7 @@ export function ProfilePreview({
       </div>
       {cardSlotLayer}
     </article>
+    {infoOpen && infoEnabled ? <ProfileInfoDialog data={infoData} onClose={() => setInfoOpen(false)} /> : null}
     {pageSlotLayer
       ? pageLayerTarget
         ? createPortal(pageSlotLayer, pageLayerTarget)

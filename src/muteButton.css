@@ -25,17 +25,27 @@
 .ap-popup.ap-popup--mute::after {content:"";position:absolute;top:0;left:100%;width:12px;height:100%;}
 .ap-popup.ap-popup--mute .ap-popup-icon {z-index:2;filter:var(--popup-glow,none);}
 .ap-popup.ap-popup--mute .ap-popup-glyph {opacity:var(--popup-icon-opacity,1);}
-.ap-popup.ap-popup--mute .ap-popup-reveal {position:absolute;z-index:1;left:calc(100% + 10px);top:0;width:var(--popup-safe-width,var(--popup-bar-width,180px))!important;height:var(--popup-size,60px);opacity:0;visibility:hidden;pointer-events:none;clip-path:inset(0 100% 0 0 round 999px);transform:none;transition:clip-path var(--popup-duration,450ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,450ms) ease,visibility 0s linear var(--popup-duration,450ms);}
-.ap-popup.ap-popup--mute .ap-popup-volume {width:100%;height:100%;margin:0!important;box-sizing:border-box;opacity:0;transform:translateX(-35%);background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-rail-opacity,.92)*100%),transparent);box-shadow:var(--popup-pill-glow,none);transition:transform var(--popup-duration,450ms) cubic-bezier(.22,.8,.25,1),opacity var(--popup-duration,450ms) ease;}
-.ap-popup.ap-popup--mute.is-open .ap-popup-reveal {opacity:1;visibility:visible;pointer-events:auto;clip-path:inset(0 round 999px);transition-delay:0s;}
-.ap-popup.ap-popup--mute.is-open .ap-popup-volume {opacity:1;transform:translateX(0);}
+/* The rail leaves the button as one solid piece: surface, border, track and
+   thumb fade and slide together, so the track can never float out ahead of the
+   pill it sits in. It starts tucked behind the button and slides out of it. */
+.ap-popup.ap-popup--mute .ap-popup-reveal {position:absolute;z-index:1;left:calc(100% + 10px);top:0;width:var(--popup-safe-width,var(--popup-bar-width,180px))!important;height:var(--popup-size,60px);overflow:visible;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-26px) scale(.92);transform-origin:left center;transition:transform var(--popup-duration,450ms) cubic-bezier(.32,0,.18,1),opacity var(--popup-duration,450ms) cubic-bezier(.32,0,.18,1),visibility 0s linear var(--popup-duration,450ms);}
+.ap-popup.ap-popup--mute.is-open .ap-popup-reveal {opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s;}
+/* The pill wears the button's own surface: same opacity and same glow. */
+.ap-popup.ap-popup--mute .ap-popup-volume {position:relative;width:100%;height:100%;margin:0!important;box-sizing:border-box;opacity:1;transform:none;background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent);box-shadow:var(--popup-pill-glow,none);transition:none;}
+.ap-popup.ap-popup--mute .ap-popup-volume input {opacity:var(--popup-rail-opacity,1);}
 .ap-popup.ap-popup--mute.ap-popup-style--glossy .ap-popup-icon {background:linear-gradient(145deg,color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent),rgb(0 0 0 / var(--popup-opacity,.92)));}
 .ap-popup.ap-popup--mute:is(.ap-popup-style--minimal,.ap-popup-style--rounded,.ap-popup-style--glass) .ap-popup-icon {background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent);}
+/* Same four skins on the rail, so the pill matches the button it came from. */
+.ap-popup.ap-popup--mute.ap-popup-style--glossy .ap-popup-volume {border-color:#ffffff22;background:linear-gradient(145deg,color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent),rgb(0 0 0 / var(--popup-opacity,.92)));}
+.ap-popup.ap-popup--mute.ap-popup-style--minimal .ap-popup-volume {border-color:#ffffff30;background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent);}
+.ap-popup.ap-popup--mute.ap-popup-style--glass .ap-popup-volume {border-color:#ffffff50;background:color-mix(in srgb,var(--popup-background,#151515) 45%,transparent);backdrop-filter:blur(18px);}
+.ap-popup.ap-popup--mute.ap-popup-style--rounded .ap-popup-volume {border-color:#ffffff35;border-radius:14px;background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent);}
+/* The button's edge effect traces the rail too. */
+.ap-popup.ap-popup--mute.ap-edge-trace .ap-popup-volume::after,.ap-popup.ap-popup--mute.ap-edge-pulse .ap-popup-volume::after {content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;padding:1px;z-index:2;background:conic-gradient(from var(--ap-edge-angle),transparent 65%,var(--ap-edge-color,#fff) 85%,transparent 100%);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;animation:apEdgeTrace var(--ap-edge-speed,5s) linear infinite;}
+.ap-popup.ap-popup--mute.ap-edge-pulse .ap-popup-volume::after {background:var(--ap-edge-color);animation:apEdgePulse var(--ap-edge-speed,5s) ease-in-out infinite;}
 .lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute::after {left:auto;right:100%;}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-reveal {left:auto;right:calc(100% + 10px);clip-path:inset(0 0 0 100% round 999px);}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-volume {transform:translateX(35%);}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute.is-open .ap-popup-reveal {clip-path:inset(0 round 999px);}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute.is-open .ap-popup-volume {transform:none;}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-reveal {left:auto;right:calc(100% + 10px);transform:translateX(26px) scale(.92);transform-origin:right center;}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute.is-open .ap-popup-reveal {transform:none;}
 .ap-popup.ap-popup--mute .ap-popup-volume input {direction:ltr;height:clamp(4px,calc(var(--popup-size,60px)/12),7px);}
 .ap-popup.ap-popup--mute .ap-popup-volume input:active {cursor:grabbing;}
 .ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb {width:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);height:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);transition:transform .16s ease,box-shadow .16s ease;}
@@ -45,3 +55,5 @@
 @keyframes muteRelease {from{filter:brightness(1.25)}to{filter:brightness(1)}}
 .ap-popup.ap-popup--mute.is-settling .ap-popup-volume {animation:muteRelease .3s ease;}
 @media(prefers-reduced-motion:reduce){.ap-popup.ap-popup--mute .ap-popup-reveal,.ap-popup.ap-popup--mute .ap-popup-volume{transition:none!important;}.ap-popup.ap-popup--mute .ap-popup-volume{transform:none!important;animation:none!important;}}
+.ap-volume-disclosure {display:none;}
+@media(hover:none),(pointer:coarse){.ap-popup--mute .ap-volume-disclosure {display:grid;place-items:center;position:absolute;z-index:3;right:-8px;bottom:-6px;width:28px;height:28px;border:1px solid #ffffff40;border-radius:50%;background:var(--popup-background,#151515);color:var(--popup-color,#fff);}}

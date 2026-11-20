@@ -1,3 +1,4 @@
+import {WidgetBoundary} from "./WidgetBoundary";
 import {normalizeStudio} from "../lib/studioOptions";
 import {useEffectsVisible} from "./StudioRuntime";
 import { ProfileGallery } from "./ProfileGallery";
@@ -460,15 +461,15 @@ export function LinkerPreview({
         style={{ columnGap: widgets.design.gap, rowGap: widgets.design.gap }}
       >
         {orderedWidgets.map((widget) => (
+          <WidgetBoundary key={widget.id} resetKey={JSON.stringify(widget)}>
           <WidgetCard
-            key={widget.id}
             widget={widget}
             design={widgets.design}
             tilt={design.widgetTilt ? design.tilt ?? 0 : 0}
             className={`widget-card--linker${
               widget.platform === "discord" ? " widget-card--wide" : ""
             }`}
-          />
+          /></WidgetBoundary>
         ))}
       </div>
     </div>
@@ -513,6 +514,7 @@ export function LinkerPreview({
       entryActive={entryOpen}
       disableTilt={sharedTilt}
       hideAudio={hideAudio || audioSlot !== "card-bottom"}
+      infoEnabled={interactive}
       preview={previewMode}
       pageLayerTarget={pageHost}
     >
@@ -619,7 +621,7 @@ export function LinkerPreview({
               <h2 className="lkr-about-title">{aboutSlide.title || "About me"}</h2>
             {aboutSlide.subtitle ? <p className="lkr-about-sub">{aboutSlide.subtitle}</p> : null}
             {aboutSlide.text.trim() ? <p className="lkr-about-text">{aboutSlide.text}</p> : null}
-            {aboutSlide.widgetIds?.length ? <div className="lkr-about-widgets">{aboutSlide.widgetIds.flatMap(id=>{const widget=visibleWidgets.find(item=>item.id===id);return widget?[<WidgetCard key={widget.id} widget={widget} design={widgets.design} className="widget-card--linker"/>]:[];})}</div> : null}
+            {aboutSlide.widgetIds?.length ? <div className="lkr-about-widgets">{aboutSlide.widgetIds.flatMap(id=>{const widget=visibleWidgets.find(item=>item.id===id);return widget?[<WidgetBoundary key={widget.id} resetKey={JSON.stringify(widget)}><WidgetCard widget={widget} design={widgets.design} className="widget-card--linker"/></WidgetBoundary>]:[];})}</div> : null}
             {aboutSlide.showProjects && aboutProjects.length ? (
               <div className="lkr-about-projects lkr-about-projects--full">
                 <ProfileSections sections={aboutProjects} interestMode={design.interestMode} projectLayout={design.projectLayout} />
