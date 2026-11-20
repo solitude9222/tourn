@@ -2267,13 +2267,9 @@
   animation-delay: 0.2s;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .profile-preview,
-  .lkr-widgets > *,
-  .lkr-links > * {
-    animation: none;
-  }
-}
+/* The public profile's motion is the owner's own content — the player, the
+   effects and the card all keep moving even when the visitor's OS asks for
+   reduced motion, exactly like the audio player already does. */
 
 .pv-decoration {
   position: absolute;
@@ -2932,10 +2928,6 @@
   to { transform: translateY(360%); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .profile-fx-overlay--bokeh::before,
-  .profile-fx-overlay--scanSweep::before { animation: none; }
-}
 
 .lkr-page[data-fx-filter="blurred"] .lkr-bg,
 .lkr-page[data-fx-filter="blurred"] .profile-fx-bg {
@@ -7454,21 +7446,7 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   transform: translateY(-1px);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .profile-preview,
-  .pv-link-icons .pv-link-icon,
-  .pv-badge-pill {
-    animation: none;
-  }
-
-  .pv-link-icon > svg,
-  .pv-link-icon > img,
-.pv-link-icon > .pv-link-glyph,
-  .pv-avatar img,
-  .pv-foot-item {
-    transition: none;
-  }
-}
+/* Profile motion stays on (see the note above the widget animations). */
 
 /* The first account's Donor badge carries its running total as a small pill
    beside the heart, so it is legible without opening the tooltip. */

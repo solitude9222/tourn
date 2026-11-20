@@ -36,7 +36,6 @@ export function DotMatrixText({
     const size = Math.max(12, fontSize);
     const step = Math.max(2, Math.round(cell));
     const font = `800 ${size}px "Trebuchet MS", "Segoe UI", system-ui, sans-serif`;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let dots: Dot[] = [];
     let width = 0;
     let height = 0;
@@ -109,7 +108,7 @@ export function DotMatrixText({
       context.clearRect(0, 0, width, height);
       context.fillStyle = color;
       for (const dot of dots) {
-        context.globalAlpha = shimmer && !reducedMotion
+        context.globalAlpha = shimmer
           ? 0.82 + 0.18 * Math.sin(dot.x * 0.03 + dot.y * 0.02 - seconds * 1.6)
           : 1;
         context.beginPath();
@@ -125,13 +124,13 @@ export function DotMatrixText({
     };
 
     build();
-    if (shimmer && !reducedMotion) frame = window.requestAnimationFrame(loop);
+    if (shimmer) frame = window.requestAnimationFrame(loop);
     else draw(performance.now());
 
     void document.fonts.ready.then(() => {
       if (disposed) return;
       build();
-      if (!shimmer || reducedMotion) draw(performance.now());
+      if (!shimmer) draw(performance.now());
     });
 
     return () => {

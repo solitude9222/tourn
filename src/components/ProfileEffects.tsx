@@ -68,7 +68,6 @@ function GrainOverlay({ opacity, compact }: { opacity: number; compact: boolean 
       ctx.putImageData(image, 0, 0);
     };
     draw();
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const timer = window.setInterval(draw, compact ? 120 : 60);
     return () => window.clearInterval(timer);
   }, [compact]);
@@ -90,15 +89,13 @@ export function OverlayEffectLayer({
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const opacity = Math.min(1, Math.max(0, settings.opacity));
-  const reduced = typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host || settings.id !== "snowFall") return;
-    const api = mountAmbientScene(host, "snow", { compact, reducedMotion: reduced });
+    const api = mountAmbientScene(host, "snow", { compact });
     return () => api.destroy();
-  }, [settings.id, compact, reduced]);
+  }, [settings.id, compact]);
 
   if (settings.id === "none") return null;
   if (settings.id === "blurred") {

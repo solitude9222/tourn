@@ -307,7 +307,7 @@ export type AmbientApi = { destroy: () => void };
 export function mountAmbientScene(
   host: HTMLElement,
   name: AmbientScene,
-  { compact = false, reducedMotion = false }: { compact?: boolean; reducedMotion?: boolean } = {},
+  { compact = false }: { compact?: boolean } = {},
 ): AmbientApi {
   const scene = SCENES[name];
   const canvas = document.createElement("canvas");
@@ -325,7 +325,6 @@ export function mountAmbientScene(
   let last = performance.now();
   let stopped = false;
   let inView = true;
-  const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const lowPower = Boolean((navigator as Navigator & {connection?:{saveData?:boolean}}).connection?.saveData);
   const sceneState = { flash: 0 };
 
@@ -345,7 +344,6 @@ export function mountAmbientScene(
     canvas.height = Math.round(height * ratio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     fill();
-    if (reducedMotion) paint(performance.now());
   };
 
   const paint = (now: number) => {
@@ -361,7 +359,9 @@ export function mountAmbientScene(
   };
 
   const loop = (now: number) => {
-    if (stopped || document.hidden || !inView || reducedMotion || motion.matches) {raf=0;return;}
+    // The owner chose this effect, so a visitor's OS "reduce motion" setting
+    // does not freeze it — same rule as the player and the mute rail.
+    if (stopped || document.hidden || !inView) {raf=0;return;}
     paint(now);
     raf = requestAnimationFrame(loop);
   };
@@ -371,9 +371,9 @@ export function mountAmbientScene(
   const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
   observer?.observe(host);
   window.addEventListener("resize", resize);
-  const resume=()=>{cancelAnimationFrame(raf);raf=0;if(stopped)return;if(reducedMotion||motion.matches){paint(performance.now());return;}if(!document.hidden&&inView){last=performance.now();raf=requestAnimationFrame(loop);}};
+  const resume=()=>{cancelAnimationFrame(raf);raf=0;if(stopped)return;if(!document.hidden&&inView){last=performance.now();raf=requestAnimationFrame(loop);}};
   const intersection=new IntersectionObserver(entries=>{inView=entries.some(entry=>entry.isIntersecting);resume();});intersection.observe(host);
-  document.addEventListener('visibilitychange',resume);motion.addEventListener('change',resume);resume();
+  document.addEventListener('visibilitychange',resume);resume();
 
   return {
     destroy() {
@@ -381,7 +381,7 @@ export function mountAmbientScene(
       sceneAllocations.delete(fill);sceneAllocations.forEach(allocate=>allocate());
       cancelAnimationFrame(raf);
       observer?.disconnect();
-      intersection.disconnect();document.removeEventListener("visibilitychange",resume);motion.removeEventListener("change",resume);
+      intersection.disconnect();document.removeEventListener("visibilitychange",resume);
       window.removeEventListener("resize", resize);
       canvas.remove();
     },

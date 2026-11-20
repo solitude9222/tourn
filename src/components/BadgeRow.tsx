@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, type CSSProperties } from "react";
+import { Fragment, useState, type CSSProperties } from "react";
 import { hexToRgba } from "../lib/about";
 import { badgeDef, type BadgeInstance, type BadgeStyle } from "../lib/badges";
 import type { TooltipAnimation, TooltipStyle } from "../lib/links";
@@ -14,8 +14,6 @@ export function BadgeChip({
   size?: number;
 }) {
   const def = badgeDef(badge.id);
-  const [reduced,setReduced]=useState(()=>typeof matchMedia!=="undefined"&&matchMedia("(prefers-reduced-motion: reduce)").matches);
-  useEffect(()=>{const query=matchMedia("(prefers-reduced-motion: reduce)");const update=()=>setReduced(query.matches);query.addEventListener("change",update);return()=>query.removeEventListener("change",update);},[]);
   // Animated art is the default. If it cannot load, try the still version, then
   // fall back to a monogram rather than a broken-image icon.
   const [artStage, setArtStage] = useState(0);
@@ -24,7 +22,7 @@ export function BadgeChip({
   const px = size ?? 24;
   const glowAlpha = Math.round((style.glowIntensity / 100) * 255).toString(16).padStart(2, "0");
   const glowRadius = style.glowRadius ?? 12;
-  const art = reduced || style.animated === false ? def.artStatic || def.art : artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
+  const art = style.animated === false ? def.artStatic || def.art : artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
   const maskArt = def.artStatic || def.art;
   const tint = style.monochrome ? style.monoColor : def.color;
 

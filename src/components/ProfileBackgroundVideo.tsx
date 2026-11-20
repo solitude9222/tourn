@@ -13,8 +13,6 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:
  /* A visitor who asked their browser to save data should not download a
     background video just to watch a card load. */
  const [saveData]=useState(()=>Boolean((navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData));
- const [reduced,setReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
- useEffect(()=>{const motion=window.matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(motion.matches);motion.addEventListener('change',update);return()=>motion.removeEventListener('change',update);},[]);
  const waitingForEntry=settings.videoWaitForEntry && entryActive;
  allowSound.current=interactive && settings.videoAudio;
 
@@ -39,7 +37,8 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:
   const video=ref.current;if(!video)return;
   let cancelled=false,delayElapsed=false;
   setVisible(false);video.pause();
-  if(waitingForEntry||saveData||reduced)return;
+  // The owner's own background: a visitor's OS motion preference does not stop it.
+  if(waitingForEntry||saveData)return;
   const seek=()=>{
    try{video.currentTime=Math.min(settings.videoStartAt||0,Number.isFinite(video.duration)?Math.max(0,video.duration-.1):settings.videoStartAt||0);}
    catch{/* Wait for loadedmetadata before seeking. */}
@@ -58,7 +57,7 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:
    video.removeEventListener("loadedmetadata",seek);
    document.removeEventListener("pointerdown",play);document.removeEventListener("keydown",play);
   };
- },[settings.videoUrl,settings.videoDelay,settings.videoStartAt,waitingForEntry,saveData,reduced]);
+ },[settings.videoUrl,settings.videoDelay,settings.videoStartAt,waitingForEntry,saveData]);
 
  return <>{studio.videoPoster?<img className="lkr-bg-video" src={studio.videoPoster} alt="" aria-hidden="true" style={{objectFit:settings.fit||'cover',objectPosition:(settings.positionX??50)+'% '+(settings.positionY??50)+'%',opacity:1}}/>:null}<video ref={ref} className={`lkr-bg-video${visible?" is-playing":""}`} src={settings.videoUrl} poster={studio.videoPoster||undefined} onTimeUpdate={event=>{const video=event.currentTarget;const end=studio.videoLoopEnd||studio.videoEnd;if(end<=0||video.currentTime<end)return;const start=Math.max(0,studio.videoLoopStart||settings.videoStartAt||0);/* A loop that starts at or after its end would seek forever, so hold the last frame instead. */if(start>=end-.05){video.pause();return;}video.currentTime=start;}} onError={()=>setVisible(false)} muted loop playsInline preload={saveData?"none":"auto"} style={{objectFit:settings.fit||"cover",objectPosition:`${settings.positionX??50}% ${settings.positionY??50}%`,opacity:visible?1:0,transition:`opacity ${settings.videoFade??700}ms ease`}}/></>;
 }
