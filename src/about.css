@@ -7629,3 +7629,15 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
 .profile-preview[data-pfp="left"] .pv-audio-block {
   margin-top: calc(18px * var(--pv-scale, 1));
 }
+
+/* The icon-size control drives the profile preview too. A fixed 42px here used
+   to win over --lnk-size, so the slider appeared to do nothing on the card. */
+.profile-preview .pv-links-block .pv-link-icon {
+  width: calc(var(--lnk-size, 42px) * var(--pv-scale, 1));
+  height: calc(var(--lnk-size, 42px) * var(--pv-scale, 1));
+}
+
+.profile-preview .pv-links-block .pv-link-icon svg {
+  width: calc(var(--lnk-size, 42px) * 0.62 * var(--pv-scale, 1));
+  height: calc(var(--lnk-size, 42px) * 0.62 * var(--pv-scale, 1));
+}

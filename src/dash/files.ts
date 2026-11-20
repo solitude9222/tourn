@@ -197,9 +197,10 @@ export async function imageToDataUrl(
   });
 }
 
-/** Favicons are always a square, transparent PNG: 64px renders crisply at the
- *  16px a tab uses, and PNG keeps any transparent background the icon has.
- *  SVG and ICO files are drawn through the same canvas. */
+/** Favicons are always a circle on a transparent square PNG: 64px renders
+ *  crisply at the 16px a tab uses, and the circle is part of the image so every
+ *  browser and embed shows the same shape. SVG and ICO files go through the
+ *  same canvas. */
 export async function faviconToDataUrl(file: File, size = 64): Promise<string> {
   const raw = await fileToDataUrl(file);
   return new Promise((resolve) => {
@@ -212,11 +213,16 @@ export async function faviconToDataUrl(file: File, size = 64): Promise<string> {
         resolve(raw);
         return;
       }
-      // Contain, not cover: a wide mark keeps its whole shape inside the square.
-      const scale = Math.min(size / image.width, size / image.height);
+      // Cover, then clip: the mark fills the circle edge to edge and the
+      // corners stay transparent, so a square upload reads as a round badge.
+      const scale = Math.max(size / image.width, size / image.height);
       const width = Math.max(1, Math.round(image.width * scale));
       const height = Math.max(1, Math.round(image.height * scale));
       context.imageSmoothingQuality = "high";
+      context.save();
+      context.beginPath();
+      context.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+      context.clip();
       context.drawImage(
         image,
         Math.round((size - width) / 2),
@@ -224,6 +230,7 @@ export async function faviconToDataUrl(file: File, size = 64): Promise<string> {
         width,
         height,
       );
+      context.restore();
       resolve(canvas.toDataURL("image/png"));
     };
     image.onerror = () => resolve(raw);

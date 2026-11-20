@@ -358,3 +358,21 @@ html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
 
 /* A colour popover must not exceed a 320px viewport. */
 .tw-control-portal .tw-color-pop { max-width: calc(100vw - 24px); }
+
+/* The favicon is generated as a circle, so its previews are circles too. */
+.tw-favicon-edit-preview img { border-radius: 50%; }
+.tw-favicon-edit-preview img.is-small { border-radius: 50%; }
+
+/* The rail fills its column instead of leaving dead space under the last row.
+   Rows share the height, so they are taller on tall screens. */
+.tw-dash .tw-rail-scroll { display: flex; flex-direction: column; }
+.tw-dash .tw-nav { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.tw-dash .tw-nav:not(:has(.tw-nav-search-result)) .tw-nav-block { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.tw-dash .tw-nav:not(:has(.tw-nav-search-result)) .tw-nav-item { flex: 1 1 auto; height: auto; min-height: 0; padding: 0 12px; font-size: 13px; }
+.tw-dash .tw-nav:not(:has(.tw-nav-search-result)) .tw-nav-item svg { width: 17px; height: 17px; }
+.tw-dash .tw-nav-search-result { flex: 0 0 auto; min-height: 22px; }
+
+/* Even on very tall windows the rows stop growing; leftover height becomes
+   breathing room between them instead of 50px-tall buttons. */
+.tw-dash .tw-nav:not(:has(.tw-nav-search-result)) { justify-content: space-between; }
+.tw-dash .tw-nav:not(:has(.tw-nav-search-result)) .tw-nav-block { max-height: 46px; }
