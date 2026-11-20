@@ -109,7 +109,9 @@ export function EntryOverlay({
         </h2>
       ) : null}
 
-      <button type="button" className="lkr-entry-action" disabled={preview} onClick={event=>{event.stopPropagation();beginLeave();}}>Enter profile</button>
+      {entry.showAction !== false ? (
+        <button type="button" className="lkr-entry-action" disabled={preview} onClick={event=>{event.stopPropagation();beginLeave();}}>Enter profile</button>
+      ) : null}
       {entry.divider ? (
         <span
           className="lkr-entry-divider"

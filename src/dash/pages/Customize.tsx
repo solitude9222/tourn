@@ -717,6 +717,18 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
           />
         </div>
 
+        <div className="tw-inline-toggle">
+          <span>
+            <b>Show enter button</b>
+            <small>Off removes the “Enter profile” button; visitors click anywhere on the screen.</small>
+          </span>
+          <Toggle
+            checked={entry.showAction !== false}
+            onChange={(checked) => updateEntry({ showAction: checked })}
+            label="Show enter button"
+          />
+        </div>
+
         <section className="tw-entry-media"><h3>Entry image and transition</h3><div className="tw-form-grid">
           <Field label="Entry image upload"><FileUpload aria-label="Entry image upload" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/") || file.size > 500_000) { notify("Entry image", "Choose an image or GIF under 500 KB."); return; } updateEntry({ imageUrl: await fileToDataUrl(file) }); }} /></Field>
           <Field label="Entry image style" hint="Background makes the image fill the whole entry screen instead of sitting in a small frame."><Select value={entry.imageMode ?? "inline"} options={[{ value: "inline", label: "Inline image" }, { value: "background", label: "Full-screen background" }]} onChange={(value) => updateEntry({ imageMode: value as "inline" | "background" })} /></Field>

@@ -271,7 +271,6 @@ export function LayoutPage({
           title="Card style"
           subtitle="Colours, surface and size of the card itself."
         />
-        <div className="tw-card-presets" aria-label="Card colour presets">{[{name:"Graphite",card:"#141416",border:"#ffffff",text:"#f2f2f4",muted:"#a2a2ab"},{name:"Ink",card:"#0b0b0d",border:"#ffffff",text:"#f4f4f7",muted:"#9c9ca6"},{name:"Sand",card:"#241d16",border:"#e6d3b8",text:"#f6ede1",muted:"#c3b09a"},{name:"Clay",card:"#241714",border:"#e0b8a6",text:"#f7ece7",muted:"#c9ada0"},{name:"Paper",card:"#f3f0e9",border:"#3a3630",text:"#17161a",muted:"#5d5950"}].map(preset=><button type="button" key={preset.name} className={design.colors.card===preset.card?"is-active":""} onClick={()=>updateColors({card:preset.card,border:preset.border,text:preset.text,muted:preset.muted})}><i style={{background:preset.card}} />{preset.name}</button>)}</div>
         <p className="tw-foot-note">Text/card contrast: {contrastRatio(design.colors.text, design.colors.card).toFixed(1)}:1. {contrastRatio(design.colors.text, design.colors.card) < 4.5 ? "Increase contrast for small text." : "Good contrast on an opaque card."} Transparent cards also depend on the background image; increase opacity or dim the background for readability.</p>
 
         <div className="tw-split" style={{ marginTop: 20 }}>

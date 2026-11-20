@@ -112,6 +112,9 @@ export function Shell({
   const {publishStatus}=useDash();
   useEffect(()=>{if(publishStatus==="saved")setSavedAt(new Date());},[publishStatus]);
   const [query, setQuery] = useState("");
+  /* The rail shows one category at a time. Picking a category swaps the list
+     to its subtabs instead of stacking them underneath it. */
+  const [railKey, setRailKey] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [menuOpen, setMenuVisible] = useState(false);
@@ -133,6 +136,7 @@ export function Shell({
   const displayName = about.displayName.trim() || user.alias?.trim() || user.username;
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
   const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
+  const railItem = railKey ? navItems.find((item) => item.key === railKey) ?? null : null;
 
   const loadTrades = async () => {
     const result = await api<{ trades: ShellTrade[] }>("/api/trades");
@@ -221,6 +225,12 @@ export function Shell({
     setMobileOpen(false);
   }, [page]);
 
+  // Opening a page keeps the rail on the category that owns it.
+  useEffect(() => {
+    const owner = NAV.find((item) => item.tabs.some((tab) => tab.page === page));
+    setRailKey(owner && owner.tabs.length > 1 ? owner.key : null);
+  }, [page]);
+
   useEffect(() => {
     setSaved(loadAccounts());
   }, [accounts, user.id, menuOpen]);
@@ -306,7 +316,40 @@ export function Shell({
 
         <div className="tw-rail-scroll">
           <nav className="tw-nav" aria-label="Dashboard">
-            {navItems.map((item, index) => {
+            {railItem && !searching ? (
+              <>
+                <div className="tw-nav-block">
+                  <button
+                    type="button"
+                    className="tw-nav-item tw-nav-back"
+                    onClick={() => setRailKey(null)}
+                    onPointerEnter={() => onPrefetchPage?.(page)}
+                  >
+                    <Icon name="chevron-right" size={18} className="tw-nav-symbol tw-nav-back-chev" />
+                    All sections
+                  </button>
+                </div>
+                <div className="tw-nav-group">{railItem.label}</div>
+                {railItem.tabs.map((tab) => {
+                  const on = tab.page === page;
+                  return (
+                    <div className="tw-nav-block" key={tab.page}>
+                      <button
+                        type="button"
+                        className={`tw-nav-item${on ? " is-active" : ""}`}
+                        onClick={() => onNavigate(tab.page)}
+                        onPointerEnter={() => onPrefetchPage?.(tab.page)}
+                        onFocus={() => onPrefetchPage?.(tab.page)}
+                        aria-current={on ? "page" : undefined}
+                      >
+                        <Icon name={tab.icon} size={18} className="tw-nav-symbol" />
+                        {tab.label}
+                      </button>
+                    </div>
+                  );
+                })}
+              </>
+            ) : navItems.map((item, index) => {
               const active = item.tabs.some((tab) => tab.page === page);
               const heading = item.group && item.group !== navItems[index - 1]?.group ? item.group : null;
               const tabs = item.tabs.filter(
@@ -319,13 +362,22 @@ export function Shell({
                   <button
                     type="button"
                     className={`tw-nav-item${active ? " is-active" : ""}`}
-                    onClick={() => onNavigate(searching ? tabs[0].page : navHome(item))}
+                    onClick={() => {
+                      if (item.tabs.length > 1 && !searching) {
+                        setRailKey(item.key);
+                        onNavigate(navHome(item));
+                        return;
+                      }
+                      onNavigate(searching ? tabs[0].page : navHome(item));
+                    }}
                     onPointerEnter={() => onPrefetchPage?.(navHome(item))}
                     onFocus={() => onPrefetchPage?.(navHome(item))}
-                    aria-current={active ? "page" : undefined}
+                    aria-current={active && !railItem ? "page" : undefined}
+                    aria-expanded={item.tabs.length > 1 ? railKey === item.key : undefined}
                   >
                     <Icon name={item.icon} size={18} className="tw-nav-symbol" />
                     {item.label}
+                    {item.tabs.length > 1 ? <Icon name="chevron-right" size={13} className="tw-nav-chev" /> : null}
                   </button>
                   {searching ? tabs.map(tab => <button className="tw-nav-search-result" type="button" key={tab.page} onClick={() => { onNavigate(tab.page); setQuery(""); }}><Icon name={tab.icon} size={14} />{tab.label}</button>) : null}
                 </div>
@@ -604,7 +656,7 @@ export function Shell({
           <div id="tw-page-actions" className="tw-page-actions" />
         </header>
 
-        {tabs && tabs.length > 1 && activeTab && onTab ? (
+        {tabs && tabs.length > 1 && activeTab && onTab && !(railItem && !searching) ? (
           <div className="tw-tabs" role="tablist" onKeyDown={navigateTabs} aria-label={`${title} sections`}>
             {tabs.map((tab) => (
               <button

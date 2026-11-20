@@ -549,3 +549,12 @@ html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
 
 /* Account for the shorter 54px console header so the panel still ends 8px up. */
 .tw-dash .tw-main { height: calc(100dvh - 62px); }
+
+/* ── category drill-down ────────────────────────────────────────────────────
+   A category swaps the rail list to its own subtabs, so the page header tab
+   row is redundant while one is open. */
+.tw-dash .tw-nav-back { color: var(--sub); font-weight: 500; }
+.tw-dash .tw-nav-back .tw-nav-symbol { opacity: .85; }
+.tw-dash .tw-nav-chev { margin-left: auto; opacity: .5; }
+.tw-dash .tw-nav > .tw-nav-group { flex: 0 0 auto; }
+.tw-dash .tw-nav-back-chev { transform: rotate(180deg); }

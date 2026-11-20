@@ -102,6 +102,8 @@ export type EntryLayer = "text" | "image" | "background";
 
 export type EntrySettings = {
   enabled: boolean;
+  /** The "Enter profile" button; off means the whole screen is the target. */
+  showAction: boolean;
   title: string;
   subtitle: string;
   imageUrl: string;
@@ -471,6 +473,7 @@ export const DEFAULT_PROFILE_COLORS: ProfileColors = {
 
 export const DEFAULT_ENTRY: EntrySettings = {
   enabled: false,
+  showAction: true,
   title: "",
   subtitle: "",
   imageUrl: "",
@@ -710,6 +713,7 @@ function loadEntry(input: unknown): EntrySettings {
     : DEFAULT_ENTRY.layers;
   return {
     enabled: boolIn(raw.enabled, DEFAULT_ENTRY.enabled),
+    showAction: boolIn(raw.showAction, DEFAULT_ENTRY.showAction),
     title: textIn(raw.title, DEFAULT_ENTRY.title, 48),
     subtitle: textIn(raw.subtitle, DEFAULT_ENTRY.subtitle, 96),
     imageUrl: textIn(raw.imageUrl, DEFAULT_ENTRY.imageUrl, 2_500_000),
