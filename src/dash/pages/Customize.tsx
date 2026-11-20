@@ -1,3 +1,4 @@
+import {usePointerSort} from "../Sortable";
 /* ---------------------------------------------------------------------------
    Customize > Profile — Profile, Appearance, Experience, Integrations and
    Extra. Every control writes a field the public page already reads; the
@@ -103,6 +104,7 @@ export function AudioSettingsCard() {
       },
     }));
 
+  const queueSort=usePointerSort(audio.queue,(from,to)=>{const next=[...audio.queue];const [song]=next.splice(from,1);next.splice(to,0,song);updateAudio({queue:next});});
   const uploadTrack = async (file: File | undefined) => {
     if (!file) return;
     setUploading(true);
@@ -233,9 +235,10 @@ export function AudioSettingsCard() {
             </div>
           ) : null}
           {audio.queue.map((song, index) => (
-            <div className="tw-queue-row" key={song.id}>
+            <div className="tw-queue-row" key={song.id} ref={queueSort.register(song.id)}>
+              <button type="button" className="tw-row-grip" aria-label={"Reorder "+(song.title||"song")} onPointerDown={event=>queueSort.begin(event,index)} onKeyDown={event=>queueSort.keyDown(event,index)}>⠿</button>
               <span>
-                <b>{song.title || "Song " + (index + 2)}</b>
+                <input aria-label={`Extra song ${index+1} title`} value={song.title} maxLength={80} onChange={event=>updateAudio({queue:audio.queue.map(item=>item.id===song.id?{...item,title:event.target.value}:item)})}/>
                 <small>{"Extra song " + (index + 2)}</small>
               </span>
               <Button
@@ -615,11 +618,12 @@ export function CustomizeProfilePage({ tab }: { tab: ProfileTab }) {
 
             <Field
               label="Description"
-              help
+              help="Your bio. Supports **bold**, *italic*, ~~strike~~, [links](https://…) and :emoji: from the Discord server."
               className="tw-span-2"
               hint={`${about.bio.length}/500`}
             >
               <Textarea
+                emoji
                 rows={4}
                 placeholder="Tell everyone about yourself..."
                 value={about.bio}

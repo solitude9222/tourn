@@ -162,7 +162,7 @@ export function SettingsPage({
         <CardHead
           icon="link"
           title="Claims"
-          subtitle="Your handle on tourn.lol, plus the Premium second claim on swats.bio."
+          subtitle="Your handle on tourn.lol, plus a swats.bio address of your own."
         />
 
         <div className="tw-set-grid">
@@ -201,70 +201,51 @@ export function SettingsPage({
             {aliasMsg ? <p className="tw-set-note">{aliasMsg}</p> : null}
           </div>
 
-          <div className={`tw-set-block${isPremiumUser ? "" : " is-locked"}`}>
+          <div className="tw-set-block">
             <div className="tw-set-block-head">
-              <b>Second claim</b>
-              <Chip tone={isPremiumUser ? "accent" : "muted"}>Premium</Chip>
+              <b>swats.bio address</b>
+              <Chip tone="success">Free</Chip>
             </div>
             <Field
               label="swats.bio alias"
-              hint={
-                isPremiumUser
-                  ? "Premium only. Claiming is checked against every taken handle first, with one change every 2 days."
-                  : "A second claim on swats.bio is one of Premium's perks."
-              }
+              hint="Free for everyone. Checked against every taken handle first, with one change every 2 days."
             >
               <span className="tw-prefix">
                 <i>swats.bio/</i>
                 <input
                   value={alias2Draft}
                   onChange={(event) => setAlias2Draft(event.target.value)}
-                  placeholder={isPremiumUser ? "yoursecondname" : "Premium"}
+                  placeholder="yoursecondname"
                   maxLength={24}
                   spellCheck={false}
-                  disabled={!isPremiumUser}
                 />
               </span>
             </Field>
             <div className="tw-row">
-              {isPremiumUser ? (
-                <>
-                  <Button
-                    variant="primary"
-                    disabled={aliasBusy || Boolean(alias2Cooldown && alias2Changed)}
-                    onClick={() => void saveAlias2()}
-                  >
-                    Save second claim
-                  </Button>
-                  {user?.alias2 ? (
-                    <Button
-                      icon="trash"
-                      disabled={aliasBusy || Boolean(alias2Cooldown)}
-                      onClick={() => {
-                        setAlias2Draft("");
-                        void setAlias2(null).then((result) => {
-                          setAlias2Msg(result.error ?? "Second claim cleared.");
-                        });
-                      }}
-                    >
-                      Release
-                    </Button>
-                  ) : null}
-                </>
-              ) : (
+              <Button
+                variant="primary"
+                disabled={aliasBusy || Boolean(alias2Cooldown && alias2Changed)}
+                onClick={() => void saveAlias2()}
+              >
+                Save swats.bio alias
+              </Button>
+              {user?.alias2 ? (
                 <Button
-                  variant="primary"
-                  icon="crown"
+                  icon="trash"
+                  disabled={aliasBusy || Boolean(alias2Cooldown)}
                   onClick={() => {
-                    window.location.hash = "#/premium";
+                    setAlias2Draft("");
+                    void setAlias2(null).then((result) => {
+                      setAlias2Msg(result.error ?? "swats.bio alias cleared.");
+                    });
                   }}
                 >
-                  Unlock with Premium
+                  Release
                 </Button>
-              )}
+              ) : null}
             </div>
             {alias2Cooldown ? (
-              <p className="tw-set-note">Your second claim can change again in {alias2Cooldown}.</p>
+              <p className="tw-set-note">Your swats.bio alias can change again in {alias2Cooldown}.</p>
             ) : null}
             {alias2Msg ? <p className="tw-set-note">{alias2Msg}</p> : null}
           </div>
@@ -278,7 +259,7 @@ export function SettingsPage({
             </span>
             <span>
               <code>swats.bio/{user.alias2 || user.username}</code>
-              <small>{isPremiumUser ? "premium" : "premium — locked"}</small>
+              <small>always live</small>
             </span>
           </div>
         ) : null}

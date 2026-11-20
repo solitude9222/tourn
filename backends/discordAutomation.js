@@ -313,12 +313,26 @@ export function createDiscordAutomation({pool,readSetting,writeSetting,token,def
   if(!token || !snowflake(String(id||'')))return null;
   try{const data=await request(`/guilds/${id}?with_counts=true`);return {id:String(data.id),name:data.name,icon:data.icon?`https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png?size=128`:null,description:data.description||null,memberCount:data.approximate_member_count||null,onlineCount:data.approximate_presence_count||null,createdAt:new Date(Number((BigInt(data.id)>>22n)+1420070400000n)).toISOString()};}catch{return null;}
  }
+ /* The server's own emoji set (static and animated), so profiles can use them
+    with :name: the way Discord does. Cached briefly: emoji sets rarely change. */
+ let emojiCache={at:0,list:[]};
+ async function emojis(){
+  if(Date.now()-emojiCache.at<300_000)return emojiCache.list;
+  const guild=await guildId();
+  if(!token||!guild)return [];
+  try{
+   const data=await request(`/guilds/${guild}/emojis`);
+   const list=(Array.isArray(data)?data:[]).filter(item=>item&&item.id&&item.name).map(item=>({id:String(item.id),name:String(item.name),animated:Boolean(item.animated),url:`https://cdn.discordapp.com/emojis/${item.id}.${item.animated?'gif':'png'}?size=48`}));
+   emojiCache={at:Date.now(),list};
+   return list;
+  }catch{return emojiCache.list;}
+ }
  async function discordUser(id){
   if(!snowflake(String(id||'')))return null;
   const data=await rawRest('GET',`/users/${id}`);
   return data?{id:String(data.id),username:data.username,globalName:data.global_name||null}:null;
  }
- return {config,guildId,member,memberInfo,guildInfo,guildInfoById,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser,updateBotBio};
+ return {config,guildId,member,memberInfo,guildInfo,guildInfoById,emojis,syncUser,inspect,save,syncAll,start,stop,connection,postLeaderboard,diagnose,discordUser,updateBotBio};
 }
 export function registerDiscordAutomation(app,service,requireAdmin){
  app.get('/api/admin/bot/automation',requireAdmin,async(req,res)=>{try{res.json({...(await service.inspect(req.query.guildId)),config:await service.config()});}catch(error){res.status(503).json({error:error.message});}});

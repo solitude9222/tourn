@@ -87,7 +87,7 @@ export function PremiumPage() {
           {[
             ["Custom badges", "Create your own badge with a custom icon and name."],
             ["Premium links", "Glass and glow styles for your social links."],
-            ["Alias", "A second address under swats.bio."],
+            ["Custom themes", "Save and switch between your own profile themes."],
             ["Priority support", "Direct help in the Discord."],
             ["Early features", "New customisation tools first."],
           ].map(([title, copy]) => (

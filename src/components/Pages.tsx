@@ -523,7 +523,7 @@ function PlanCards({onSignUp,onPremium,buying}:{onSignUp:()=>void;onPremium:()=>
   const {user,isPremiumUser}=useAuth();
   return <div className="plan-choice-grid">
     <article className="plan-choice"><span className="eyebrow eyebrow--sm">NORMAL</span><h2>Your space on the internet.</h2><div className="plan-choice-price">$0 <small>forever</small></div><p>A complete profile with your links, widgets, badges and your own design.</p><ul><li>Profile editor and asset uploads</li><li>Links and live platform widgets</li><li>Profile views and analytics</li></ul><a className="btn btn-ghost" href={user?'#/dashboard':'#/premium'} onClick={e=>{if(!user){e.preventDefault();onSignUp();}}}>{user?'Open your dashboard':'Create your profile'} <ArrowRight size={14}/></a></article>
-    <article className="plan-choice plan-choice--premium"><span className="eyebrow eyebrow--sm">PREMIUM</span><h2>Every detail. Your way.</h2><div className="plan-choice-price">$9.99 <small>once</small></div><p>One payment, permanent access to animated effects, expressive audio and a second profile address.</p><ul><li>Background, overlay and text effects</li><li>Vinyl, marquee and lyrics players</li><li>Glass links and a swats.bio claim</li></ul>{isPremiumUser ? <a className="btn btn-primary" href="#/dashboard/billing">Manage Premium <ArrowRight size={14}/></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={onPremium}>{buying ? "Opening checkout…" : "Get Premium"} <ArrowRight size={14}/></button>}</article>
+    <article className="plan-choice plan-choice--premium"><span className="eyebrow eyebrow--sm">PREMIUM</span><h2>Every detail. Your way.</h2><div className="plan-choice-price">$9.99 <small>once</small></div><p>One payment, permanent access to animated effects, expressive audio and a second profile address.</p><ul><li>Background, overlay and text effects</li><li>Vinyl, marquee and lyrics players</li><li>Glass links and premium badges</li></ul>{isPremiumUser ? <a className="btn btn-primary" href="#/dashboard/billing">Manage Premium <ArrowRight size={14}/></a> : <button type="button" className="btn btn-primary" disabled={buying} onClick={onPremium}>{buying ? "Opening checkout…" : "Get Premium"} <ArrowRight size={14}/></button>}</article>
   </div>;
 }
 function PlanComparison() {
@@ -545,7 +545,7 @@ const PREMIUM_COMPARE: { label: string; free: boolean }[] = [
   { label: "File-upload audio with full transport", free: false },
   { label: "Glass & Glow link card styles", free: false },
   { label: "Primary claim — tourn.lol/you", free: true },
-  { label: "Second claim — swats.bio/you", free: false },
+  { label: "swats.bio address — swats.bio/you", free: true },
 ];
 
 const PREMIUM_FAQ = [
@@ -562,8 +562,8 @@ const PREMIUM_FAQ = [
     a: "As soon as the payment is confirmed: SellAuth reports the completed order to tourn.lol and Premium is applied to the account you were signed in with. Nothing to paste.",
   },
   {
-    q: "What happens to my second claim?",
-    a: "Your swats.bio claim stays live while Premium is active. Since Premium does not expire, it stays live until you release the name or delete the account.",
+    q: "What happens to my swats.bio address?",
+    a: "Nothing — swats.bio is free for every account and is not affected by Premium. Change it in Settings, or release the name whenever you like.",
   },
 ];
 
@@ -600,8 +600,8 @@ export function PremiumPage({ onSignUp }: { onSignUp: () => void }) {
         </h1>
         <p className="page-sub">
           The core bio link stays free forever. Premium is one payment of {PREMIUM_PRICE} that
-          turns on every effect, every audio style and a second claim on swats.bio — yours
-          permanently, with nothing to renew.
+          turns on every effect, every audio style and every decoration — yours permanently,
+          with nothing to renew. Your swats.bio address is free either way.
         </p>
       </div>
 

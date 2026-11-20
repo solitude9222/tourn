@@ -7681,3 +7681,75 @@ html body .pv-page-meta.pv-page-meta .pv-pin + .pv-pin::before {
   width: calc(var(--lnk-size, 42px) * 0.62 * var(--pv-scale, 1));
   height: calc(var(--lnk-size, 42px) * 0.62 * var(--pv-scale, 1));
 }
+
+/* ── special text effects ──────────────────────────────────────
+   Fire, ice, hologram and prism are gradient fills, so each one
+   keeps the readability guard from above and animates the fill
+   itself instead of moving the letters. */
+.fx-text--fire,
+.fx-text-wrap--fire {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(0deg, var(--fx-color-a) 0%, var(--fx-color-b) 42%, #ffd27a 68%, var(--fx-color-a) 100%);
+  background-size: 100% 260%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: fxFireRise calc(var(--fx-speed, 3s) * 0.8) ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--fx-color-a) 60%, transparent));
+}
+
+@keyframes fxFireRise {
+  from { background-position: 50% 100%; }
+  to { background-position: 50% 0%; }
+}
+
+.fx-text--ice,
+.fx-text-wrap--ice {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(115deg, var(--fx-color-a) 0%, #eaf7ff 44%, var(--fx-color-b) 62%, var(--fx-color-a) 100%);
+  background-size: 260% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: fxAurora var(--fx-speed, 3s) linear infinite;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--fx-color-b) 55%, transparent));
+}
+
+.fx-text--hologram,
+.fx-text-wrap--hologram {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(100deg, var(--fx-color-a) 0%, #7af7ff 26%, #b18cff 48%, #ff9ae0 68%, var(--fx-color-b) 100%);
+  background-size: 320% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: fxAurora calc(var(--fx-speed, 3s) * 0.7) linear infinite;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--fx-color-a) 45%, transparent)) saturate(1.25);
+}
+
+.fx-text--prism,
+.fx-text-wrap--prism {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--fx-color-a) 0 8%,
+    var(--fx-color-b) 8% 16%,
+    #7af7ff 16% 24%,
+    #ff9ae0 24% 32%,
+    var(--fx-color-a) 32% 40%
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: fxAurora calc(var(--fx-speed, 3s) * 0.6) linear infinite;
+}
+
+.fx-text--fire,
+.fx-text--ice,
+.fx-text--hologram,
+.fx-text--prism {
+  text-shadow:
+    0 0 1px var(--pv-text, #fff),
+    0 1px 2px rgba(0, 0, 0, 0.55);
+}

@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useNow } from "../lib/hooks";
+import { emojiIndex, useGuildEmojis, type GuildEmoji } from "../lib/emojis";
 import { ClockIcon } from "./Icons";
 import "../richText.css";
 
 const INLINE_TOKEN =
-  /(```[\s\S]*?```|`[^`\n]+`|\[[^\]\n]+\]\((?:https?:\/\/|mailto:|\/|#)[^)\s]+\)|\{\{(?:clock|date|stamp:\d+|ago:\d+|countdown:\d+)\}\}|\*\*[^*\n]+\*\*|\*[^*\n]+\*|__[^_\n]+__|~~[^~\n]+~~|==[^=\n]+==|\|\|[^|\n]+\|\|)/g;
+  /(```[\s\S]*?```|`[^`\n]+`|\[[^\]\n]+\]\((?:https?:\/\/|mailto:|\/|#)[^)\s]+\)|\{\{(?:clock|date|stamp:\d+|ago:\d+|countdown:\d+)\}\}|\*\*[^*\n]+\*\*|\*[^*\n]+\*|__[^_\n]+__|~~[^~\n]+~~|==[^=\n]+==|\|\|[^|\n]+\|\||:[a-zA-Z0-9_]{2,32}:)/g;
 
 const TIME_FORMAT = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
@@ -128,8 +129,25 @@ function safeHref(href: string): string | null {
   return null;
 }
 
-function renderInline(token: string, key: string, now: number): ReactNode {
+function renderInline(token: string, key: string, now: number, emojis: Map<string, GuildEmoji>): ReactNode {
   if (token === "{{clock}}") return renderClock(now, key);
+
+  /* :name: resolves against the bot server's custom emojis, animated included. */
+  if (token.startsWith(":")) {
+    const found = emojis.get(token.slice(1, -1).toLowerCase());
+    if (!found) return token;
+    return (
+      <img
+        className="rt-emoji"
+        key={key}
+        src={found.url}
+        alt={token}
+        title={token}
+        loading="lazy"
+        draggable={false}
+      />
+    );
+  }
   if (token.startsWith("{{stamp:")) return renderStamp(token, key);
 
   const nowToken = renderNowToken(token, key, now);
@@ -223,10 +241,16 @@ function renderInline(token: string, key: string, now: number): ReactNode {
   return token;
 }
 
-function renderInlineText(text: string, now: number, keyPrefix: string): ReactNode[] {
+function renderInlineText(
+  text: string,
+  now: number,
+  keyPrefix: string,
+  emojis: Map<string, GuildEmoji>,
+): ReactNode[] {
   const parts = text.split(INLINE_TOKEN).filter((part) => part !== undefined && part !== "");
   return parts.map((part, index) => {
     const isToken =
+      part.startsWith(":") ||
       part.startsWith("```") ||
       part.startsWith("`") ||
       part.startsWith("[") ||
@@ -238,7 +262,7 @@ function renderInlineText(text: string, now: number, keyPrefix: string): ReactNo
       part.startsWith("||") ||
       part.startsWith("*");
     return isToken ? (
-      renderInline(part, `${keyPrefix}-${index}`, now)
+      renderInline(part, `${keyPrefix}-${index}`, now, emojis)
     ) : (
       <span key={`${keyPrefix}-${index}`}>{part}</span>
     );
@@ -247,6 +271,8 @@ function renderInlineText(text: string, now: number, keyPrefix: string): ReactNo
 
 export function RichText({ text, className = "" }: { text: string; className?: string }) {
   const now = useNow(1000);
+  const guildEmojis = useGuildEmojis();
+  const emojis = useMemo(() => emojiIndex(guildEmojis), [guildEmojis]);
   if (!text) return null;
 
   const lines = text.replace(/\r\n/g, "\n").split("\n");
@@ -285,7 +311,7 @@ export function RichText({ text, className = "" }: { text: string; className?: s
       const Tag = `h${level + 2}` as "h3" | "h4" | "h5";
       blocks.push(
         <Tag className={`rt-heading rt-heading--${level}`} key={`block-${index}`}>
-          {renderInlineText(heading[2], now, `h-${index}`)}
+          {renderInlineText(heading[2], now, `h-${index}`, emojis)}
         </Tag>,
       );
       index += 1;
@@ -300,7 +326,7 @@ export function RichText({ text, className = "" }: { text: string; className?: s
       }
       blocks.push(
         <blockquote className="rt-quote" key={`block-${index}`}>
-          {renderInlineText(quote.join(" "), now, `q-${index}`)}
+          {renderInlineText(quote.join(" "), now, `q-${index}`, emojis)}
         </blockquote>,
       );
       continue;
@@ -316,7 +342,7 @@ export function RichText({ text, className = "" }: { text: string; className?: s
         <ul className="rt-list" key={`block-${index}`}>
           {items.map((item, itemIndex) => (
             <li key={`li-${index}-${itemIndex}`}>
-              {renderInlineText(item, now, `li-${index}-${itemIndex}`)}
+              {renderInlineText(item, now, `li-${index}-${itemIndex}`, emojis)}
             </li>
           ))}
         </ul>,
@@ -341,7 +367,7 @@ export function RichText({ text, className = "" }: { text: string; className?: s
       <p className="rt-paragraph" key={`block-${index}`}>
         {paragraph.map((row, rowIndex) => (
           <span key={`row-${index}-${rowIndex}`}>
-            {renderInlineText(row, now, `p-${index}-${rowIndex}`)}
+            {renderInlineText(row, now, `p-${index}-${rowIndex}`, emojis)}
             {rowIndex < paragraph.length - 1 ? <br /> : null}
           </span>
         ))}

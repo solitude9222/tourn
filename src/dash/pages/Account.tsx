@@ -87,9 +87,10 @@ export function AccountProfilePage({ section = "details" }: { section?: "details
         />
 
         <div className="tw-form-grid" style={{ marginTop: 22 }}>
-          <Field label="Display name" help>
+          <Field label="Display name" help="Shown underneath your username. Emojis from our Discord server work here too.">
             <TextInput
               icon="user"
+              emoji
               value={about.displayName}
               maxLength={32}
               placeholder={user.username}
@@ -113,11 +114,12 @@ export function AccountProfilePage({ section = "details" }: { section?: "details
 
           <Field
             label="Description"
-            help
+            help="Your bio. Supports **bold**, *italic*, ~~strike~~, [links](https://…) and :emoji: from the Discord server."
             className="tw-span-2"
             hint={`${about.bio.length} / ${BIO_LIMIT}`}
           >
             <Textarea
+              emoji
               value={about.bio}
               maxLength={BIO_LIMIT}
               rows={5}
@@ -159,8 +161,8 @@ export function AccountProfilePage({ section = "details" }: { section?: "details
             <b>{user.alias?.trim() ? `@${user.alias}` : `@${user.username}`}</b>
           </div>
           <div>
-            <small>Second claim</small>
-            <b>{isPremium && user.alias2 ? `swats.bio/${user.alias2}` : "Premium only"}</b>
+            <small>swats.bio</small>
+            <b>{user.alias2 ? `swats.bio/${user.alias2}` : "Not claimed yet"}</b>
           </div>
         </div>
 
@@ -451,9 +453,9 @@ export function AffiliatesPage() {
     {
       id: "alias",
       label: "swats.bio",
-      value: isPremium ? (user.alias2 ? `swats.bio/${user.alias2}` : "No second claim") : "Premium alias",
-      href: isPremium && user.alias2 ? `https://swats.bio/${user.alias2}` : "#/dashboard/settings",
-      locked: !isPremium,
+      value: user.alias2 ? `swats.bio/${user.alias2}` : "No swats.bio alias",
+      href: user.alias2 ? `https://swats.bio/${user.alias2}` : "#/dashboard/settings",
+      locked: false,
     },
   ];
 

@@ -130,7 +130,11 @@ export type TextEffectId =
   | "aurora"
   | "outline"
   | "metallic"
-  | "liner";
+  | "liner"
+  | "fire"
+  | "ice"
+  | "hologram"
+  | "prism";
 export type TextEffectTarget = "alias" | "name" | "bio";
 
 /* ── per-effect custom settings ───────────────────────────────────────────
@@ -176,6 +180,7 @@ function loadCursorMotion(value: unknown): CursorMotionSettings {
 
 export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
   aurora: null, outline: null, metallic: null,
+  fire: null, ice: null, hologram: null, prism: null,
   none: null,
   liner: { kind: "slider", key: "lineGap", label: "Line spacing", min: 3, max: 18, step: 1, unit: "px", default: 7 },
   rgb: { kind: "slider", key: "bandSharpness", label: "Band sharpness", min: 10, max: 90, step: 5, unit: "%", default: 45 },
@@ -637,6 +642,10 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
   {id:"outline",name:"Outline",hint:"Crisp illuminated letter edges"},
   {id:"metallic",name:"Metallic",hint:"A narrow silver light sweep"},
   {id:"liner",name:"Liner",hint:"Fine animated lines cut through the letters"},
+  {id:"fire",name:"Fire",hint:"Rising heat that flickers upward"},
+  {id:"ice",name:"Ice",hint:"Frosted glass with a cold shimmer"},
+  {id:"hologram",name:"Hologram",hint:"A drifting iridescent projection"},
+  {id:"prism",name:"Prism",hint:"Hard rainbow bands sliding sideways"},
 ];
 
 export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [

@@ -260,3 +260,13 @@
     animation: none;
   }
 }
+
+/* Custom emojis from the Discord server, inline with the text. */
+.rich-text .rt-emoji {
+  display: inline-block;
+  width: auto;
+  height: 1.2em;
+  margin: 0 1px;
+  vertical-align: -0.22em;
+  object-fit: contain;
+}

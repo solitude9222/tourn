@@ -101,7 +101,7 @@ export function InventoryPage() {
               <Icon name="copy" size={14} />
             </button>
             <span className={`invt-chip${isPremiumUser ? " is-prem" : ""}`}>{isPremiumUser ? "✦ Premium" : "Free"}</span>
-            {isPremiumUser && (names?.alias2 || shown) ? <span className="invt-chip">swats.bio works too</span> : null}
+            {names?.alias2 ? <span className="invt-chip">swats.bio works too</span> : null}
           </div>
         </div>
         <div className="invt-cta">

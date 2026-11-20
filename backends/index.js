@@ -2277,6 +2277,15 @@ app.get("/api/discord/guild/:id", async (req, res) => {
   } catch { res.status(503).json({ error: "Discord server lookup timed out." }); }
 });
 
+/* The bot server's emoji set, for the emoji picker in the editor and for
+   :name: rendering on profiles. An empty list is a valid answer. */
+app.get("/api/discord/emojis", async (_req, res) => {
+  try {
+    const list = await discordAutomation.emojis();
+    res.set("Cache-Control", "public, max-age=300").json({ emojis: Array.isArray(list) ? list : [] });
+  } catch { res.json({ emojis: [] }); }
+});
+
 /* Lanyard answers 404 for every account it does not monitor, which is most of
    them. Proxying it here keeps that ordinary answer out of visitors' consoles. */
 app.get("/api/lanyard/:id", async (req, res) => {

@@ -136,8 +136,17 @@ export function Shell({
   const railSections=[...RAIL_SECTIONS].sort((a,b)=>{const index=(id:string)=>categoryOrder.includes(id)?categoryOrder.indexOf(id):categoryOrder.length+RAIL_SECTIONS.findIndex(s=>s.key===id);return index(a.key)-index(b.key);});
   useEffect(()=>{const update=(event:Event)=>setCategoryOrder((event as CustomEvent<string[]>).detail);window.addEventListener('tourn:category-order',update);return()=>window.removeEventListener('tourn:category-order',update);},[]);
   const [savedAt,setSavedAt]=useState<Date|null>(null);
+  const [justSaved,setJustSaved]=useState(false);
   const {publishStatus}=useDash();
   useEffect(()=>{if(publishStatus==="saved")setSavedAt(new Date());},[publishStatus]);
+  /* A short confirmation once a save lands, so the bottom of the page answers
+     "did that stick?" without leaving the editor. */
+  useEffect(()=>{
+    if(publishStatus!=="saved"){setJustSaved(false);return;}
+    setJustSaved(true);
+    const timer=window.setTimeout(()=>setJustSaved(false),3200);
+    return ()=>window.clearTimeout(timer);
+  },[publishStatus]);
   const [query, setQuery] = useState("");
   const [,setRecentPages]=usePreference<string[]>("recent-"+user.id,[]);
   useEffect(()=>{setRecentPages(old=>[page,...old.filter(id=>id!==page)].slice(0,8));},[page]);
@@ -724,6 +733,13 @@ export function Shell({
 
         <div className="tw-page-swap" key={`${page}-${activeTab ?? ""}`}>{children}</div>
       </main>
+
+      {!dirty && justSaved ? (
+        <div className="tw-saved-pill" role="status" aria-live="polite">
+          <span className="tw-saved-pill-icon"><Icon name="check" size={14} /></span>
+          <span className="tw-saved-pill-copy"><b>Saved</b><small>Your page is up to date</small></span>
+        </div>
+      ) : null}
 
       {dirty ? (
         <div className="tw-unsaved" role="status" aria-live="polite">

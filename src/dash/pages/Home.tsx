@@ -14,6 +14,8 @@ export function HomePage(){
  const [leaders,setLeaders]=useState<LeaderboardEntry[]|null>(null),[boardFailed,setBoardFailed]=useState(false),[attempt,setAttempt]=useState(0);
  useEffect(()=>{let active=true;setBoardFailed(false);void fetchLeaderboard('views',5).then(result=>{if(active)setLeaders(result.entries.slice(0,5));}).catch(()=>{if(active){setBoardFailed(true);setLeaders([]);}});return()=>{active=false;};},[attempt]);
  const handle=user.alias?.trim()||user.username,publicPath='/'+encodeURIComponent(handle);
+ /* Every address that reaches this profile, in the order they were promised. */
+ const domains=[{label:`${handle}.swats.bio`,note:'swats.bio subdomain'},{label:`${handle}.tourn.lol`,note:'tourn.lol subdomain'},{label:`tourn.lol/${handle}`,note:'tourn.lol path'},{label:'tourn.lol/swats',note:'swats.bio path'}];
  const connected=Boolean(user.discordLinked||user.discordId);
  const hasBackground=Boolean(about.assets.background.imageUrl||about.assets.background.videoUrl||about.assets.background.style==='gradient'||about.assets.background.color!=='#0b0d10');
  const steps:{label:string;done:boolean;page:Page;icon:IconName}[]=[
@@ -33,6 +35,7 @@ export function HomePage(){
   {label:'Profile Views',value:profileViews??'—',detail:'Lifetime visits to your profile',icon:'chart',page:'analytics'},
  ];
  const copy=async()=>{const ok=await copyText(window.location.origin+publicPath);notify(ok?'Profile link copied':'Profile link',ok?'Ready to share.':window.location.origin+publicPath);};
+ const copyDomain=async(label:string)=>{const ok=await copyText(`https://${label}`);notify(ok?'Address copied':'Address',ok?label:`https://${label}`);};
  /* The guide walks the dashboard in the order a profile gets built. Each step
     names the real controls on that page, and the sidebar of the dialog keeps
     the current step lit so it reads as a path, not a wall of text. */
@@ -70,6 +73,7 @@ export function HomePage(){
     <div className="tw-overview-action-pair tw-overview-action-bottom"><Button variant="primary" icon="crown" onClick={()=>go(isPremium?'billing':'premium')}>{isPremium?'Manage Premium':'Get Premium'}</Button><Button icon="user" onClick={()=>window.open(publicPath,'_blank','noopener,noreferrer')}>View your profile</Button></div>
    </Card></div>
   </section>
+  <Card className="tw-domains"><CardHead icon="globe" title="Your domains" subtitle="Every address that opens your profile."/><div className="tw-domain-list">{domains.map(item=><div className="tw-domain-row" key={item.label}><span><b>{item.label}</b><small>{item.note}</small></span><Button icon="copy" onClick={()=>void copyDomain(item.label)}>Copy</Button></div>)}</div></Card>
   <div className="tw-overview-below"><AnalyticsPanel compact/><Card><CardHead icon="crown" title="Community Spotlight" subtitle="The most visited profiles on Tourn." actions={<Button variant="ghost" onClick={()=>go('leaderboard')}>Leaderboard</Button>}/>{boardFailed?<div className="tw-board-empty"><p>Rankings are unavailable right now.</p><Button onClick={()=>setAttempt(value=>value+1)}>Retry rankings</Button></div>:leaders===null?<p className="tw-foot-note" role="status">Loading community profiles…</p>:leaders.length?<div className="tw-home-leaders">{leaders.map((row,index)=><a key={row.username} href={'/'+encodeURIComponent(row.handle)}><span className="tw-home-leader-rank">{String(index+1).padStart(2,'0')}</span><span className="tw-home-leader-avatar">{row.avatarUrl?<img src={row.avatarUrl} alt="" loading="lazy"/>:<Icon name="user" size={18}/>}</span><span><b>{row.displayName||row.handle}</b><small>@{row.handle}</small></span><strong>{row.views.toLocaleString()}<small>views</small></strong></a>)}</div>:<p className="tw-foot-note">Profiles appear here as they receive visits.</p>}<Button icon="copy" onClick={()=>void copy()}>Copy your profile link</Button></Card></div>
   <Modal open={guideOpen} title="Tourn Setup Guide" subtitle="Six steps, from an empty page to a profile you can share." onClose={()=>setGuideOpen(false)} width={820}
    footer={<><span className="tw-guide-count">Step {step+1} of {guideSteps.length}</span><Button onClick={()=>setGuideStep(Math.max(0,step-1))} disabled={step===0}>Back</Button><Button onClick={()=>setGuideStep(Math.min(guideSteps.length-1,step+1))} disabled={step===guideSteps.length-1}>Next</Button><Button variant="primary" onClick={()=>{setGuideOpen(false);go(activeStep.page);}}>Open {activeStep.short}</Button></>}>

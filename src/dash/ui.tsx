@@ -1,3 +1,5 @@
+import {ColorTools} from "./ColorTools";
+import {EmojiPicker} from "./EmojiPicker";
 /* ---------------------------------------------------------------------------
    tourn.lol dashboard — primitives.
 
@@ -79,6 +81,7 @@ function useCommittedValue<T>(value: T, onChange: (value: T) => void) {
 export type IconName =
   | "hash" | "info"
   | "home"
+  | "smile"
   | "user"
   | "users"
   | "palette"
@@ -146,6 +149,7 @@ export type IconName =
 
 const ICONS: Record<IconName, ReactNode> = {
  hash:<><path d="M5 9h14M4 15h14M11 3 7 21M17 3l-4 18"/></>,
+ smile:<><circle cx="12" cy="12" r="8.6"/><path d="M8.6 14.2a4.2 4.2 0 0 0 6.8 0"/><path d="M9.2 9.6h.01M14.8 9.6h.01"/></>,
  info:<><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></>,
   home: (
     <>
@@ -617,18 +621,25 @@ export function Field({
   hint,
 }: {
   label?: ReactNode;
-  help?: boolean;
+  /** true for a bare question mark, or the sentence it should explain. */
+  help?: boolean | string;
   children: ReactNode;
   className?: string;
   hint?: ReactNode;
 }) {
+  const helpText = typeof help === "string" ? help : undefined;
   return (
     <label className={`tw-field ${className}`.trim()}>
       {label ? (
         <span className="tw-label">
           {label}
           {help ? (
-            <span className="tw-help" aria-hidden="true">
+            <span
+              className="tw-help"
+              role="img"
+              aria-label={helpText ?? "More information"}
+              title={helpText}
+            >
               <Icon name="help" size={11} />
             </span>
           ) : null}
@@ -640,24 +651,53 @@ export function Field({
   );
 }
 
+/** Inserts :name: at the caret through the native setter, so React's onChange
+ *  still sees the change. */
+function insertEmojiToken(el: HTMLInputElement | HTMLTextAreaElement | null, name: string) {
+  if (!el) return;
+  const token = `:${name}:`;
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? start;
+  const next = `${el.value.slice(0, start)}${token}${el.value.slice(end)}`;
+  const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+  Object.getOwnPropertyDescriptor(proto, "value")?.set?.call(el, next);
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+  el.focus();
+  el.setSelectionRange(start + token.length, start + token.length);
+}
+
 export function TextInput({
   icon,
+  emoji = false,
   className = "",
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & { icon?: IconName }) {
+}: InputHTMLAttributes<HTMLInputElement> & { icon?: IconName; emoji?: boolean }) {
+  const ref = useRef<HTMLInputElement>(null);
   return (
-    <span className={`tw-control${icon ? " tw-control--icon" : ""} ${className}`.trim()}>
+    <span
+      className={`tw-control${icon ? " tw-control--icon" : ""}${emoji ? " tw-control--emoji" : ""} ${className}`.trim()}
+    >
       {icon ? <Icon name={icon} size={15} className="tw-control-icon" /> : null}
-      <input {...props} />
+      <input ref={ref} {...props} />
+      {emoji ? <EmojiPicker onPick={(name) => insertEmojiToken(ref.current, name)} /> : null}
     </span>
   );
 }
 
 export function Textarea({
+  emoji = false,
   className = "",
+  rows,
   ...props
-}: InputHTMLAttributes<HTMLTextAreaElement> & { rows?: number }) {
-  return <textarea className={`tw-textarea ${className}`.trim()} {...props} />;
+}: InputHTMLAttributes<HTMLTextAreaElement> & { rows?: number; emoji?: boolean }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  if (!emoji) return <textarea className={`tw-textarea ${className}`.trim()} rows={rows} {...props} />;
+  return (
+    <span className={`tw-textarea-wrap ${className}`.trim()}>
+      <textarea ref={ref} className="tw-textarea" rows={rows} {...props} />
+      <EmojiPicker onPick={(name) => insertEmojiToken(ref.current, name)} />
+    </span>
+  );
 }
 
 export type Option = { value: string; label: string };
@@ -1032,6 +1072,7 @@ export function ColorField({
   label?: ReactNode;
   disabled?: boolean;
 }) {
+  const initialColor = useRef(value);
   const control = useCommittedValue(value,onChange);
   const [open, setOpen] = useState(false);
   const [hsv, setHsv] = useState<Hsv>(() =>
@@ -1063,11 +1104,13 @@ export function ColorField({
       setPlacement({ top: Math.max(8,Math.min(up ? rect.top-height-8 : rect.bottom+8,innerHeight-height-8)), left, up, ready: true });
     };
     place();
+    const observer = new ResizeObserver(place); if(popRef.current)observer.observe(popRef.current);
     frame = window.requestAnimationFrame(()=>{place();popRef.current?.querySelector<HTMLInputElement>("input")?.focus({preventScroll:true});});
     window.addEventListener("scroll", place, true);
     window.addEventListener("resize", place);
     return () => {
       window.cancelAnimationFrame(frame);
+      observer.disconnect();
       window.removeEventListener("scroll", place, true);
       window.removeEventListener("resize", place);
     };
@@ -1087,7 +1130,7 @@ export function ColorField({
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") { control.finish(); setOpen(false); rootRef.current?.querySelector("button")?.focus({preventScroll:true}); }
-      if(event.key==="Tab"&&popRef.current){const items=Array.from(popRef.current.querySelectorAll<HTMLElement>('input,button,[tabindex="0"]'));const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
+      if(event.key==="Tab"&&popRef.current){const items=Array.from(popRef.current.querySelectorAll<HTMLElement>('input,button,summary,[tabindex="0"]')).filter(item=>item.getClientRects().length&&!item.hasAttribute('disabled'));const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKey);
@@ -1255,6 +1298,7 @@ export function ColorField({
               style={{ left: `${(hsv.h / 360) * 100}%`, background: hueColor }}
             />
           </div>
+          <ColorTools value={readout} initial={initialColor.current} onChoose={next=>{control.change(next);control.finish();setHsv(rgbToHsv(hexToRgb(next)!));}}/>
         </div></div>, document.body
       ) : null}
     </div>
@@ -1285,15 +1329,18 @@ export function Slider({
   disabled?: boolean;
   format?: (value: number) => string;
 }) {
+  const original=useRef(value);
   const control=useCommittedValue(value,onChange);
   const draft=control.draft;
+  const numeric=useRef<HTMLInputElement>(null);
+  const setNumber=(raw:string)=>{if(!raw.trim())return;const next=Number(raw);if(Number.isFinite(next)){control.change(Number(Math.max(min,Math.min(max,Math.round((next-min)/step)*step+min)).toFixed(6)));control.finish();}};
   const percent = ((draft - min) / (max - min || 1)) * 100;
   return (
     <div className={`tw-slider${disabled ? " is-disabled" : ""}`}>
       {label ? (
         <div className="tw-slider-head">
           <span>{label}</span>
-          <span className="tw-slider-value">{format ? format(draft) : `${draft}${suffix}`}</span>
+          <span className="tw-slider-value"><input ref={numeric} className="tw-slider-number" type="number" aria-label={typeof label==='string'?label+' value':'Slider value'} min={min} max={max} step={step} disabled={disabled} key={draft} defaultValue={draft} onBlur={e=>setNumber(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){setNumber(e.currentTarget.value);e.currentTarget.blur();}if(e.key==='Escape'){e.currentTarget.value=String(draft);e.currentTarget.blur();}}}/><span aria-hidden="true">{suffix}</span><button type="button" className="tw-slider-revert" disabled={disabled||draft===original.current} title="Revert to the value when this editor opened" aria-label={typeof label==='string'?'Revert '+label:'Revert slider'} onClick={()=>{control.change(original.current);control.finish();}}>↶</button></span>
         </div>
       ) : null}
       <input
@@ -1315,6 +1362,8 @@ export function Slider({
         onBlur={control.finish}
         style={{ ["--tw-fill" as string]: `${percent}%` }}
         aria-label={typeof label === "string" ? label : "Slider"}
+        onDoubleClick={()=>{control.change(original.current);control.finish();}}
+        onKeyDown={event=>{if(event.shiftKey&&(event.key==="ArrowLeft"||event.key==="ArrowRight")){event.preventDefault();control.change(Math.max(min,Math.min(max,draft+(event.key==="ArrowRight"?1:-1)*step*10)));}}}
         aria-valuetext={format ? format(draft) : `${draft}${suffix}`}
       />
       {ticks ? (

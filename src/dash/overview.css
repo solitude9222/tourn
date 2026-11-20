@@ -96,3 +96,43 @@
 .tw-dash .tw-page-swap > .tw-overview {margin-top:0;gap:0;}
 .tw-dash:has(.tw-overview) .tw-page-head {margin-bottom:22px;}
 .tw-dash .tw-search {margin-bottom:13px;}
+
+/* --------------------------------------------------------------- your domains */
+.tw-domains {
+  margin-top: 22px;
+}
+
+.tw-domain-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.tw-domain-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bar);
+}
+
+.tw-domain-row span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tw-domain-row b {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--title);
+  word-break: break-all;
+}
+
+.tw-domain-row small {
+  font-size: 11px;
+  color: var(--sub);
+}
