@@ -323,3 +323,30 @@ html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
   .tw-dash .tw-unsaved { left: 8px; right: 8px; max-width: none; flex-wrap: wrap; }
   .tw-dash .tw-toolbar { flex-wrap: wrap; }
 }
+
+/* ── notch and home-bar insets ──────────────────────────────────────────────
+   Fixed chrome keeps its own offset when the device reserves the bottom edge. */
+.tw-unsaved { bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+.tw-toasts { top: calc(20px + env(safe-area-inset-top, 0px)); right: calc(24px + env(safe-area-inset-right, 0px)); }
+.tw-dash:has(.tw-modal-layer) .tw-toasts { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+
+@media (max-width: 900px) {
+  .tw-unsaved { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Touch has no hover, so the media tiles always show which one is editable. */
+@media (hover: none) {
+  .tw-profile-media-tile .tw-media-hover {
+    opacity: 1;
+    padding-top: 26px;
+    background: linear-gradient(to top, #09090be6, #09090b00);
+  }
+}
+
+/* The account check note sits above the gate buttons. */
+.tw-gate-note { margin: 0 0 14px; color: var(--nav); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* Nested nav results were still 26px after the mobile pass. */
+@media (max-width: 900px) {
+  .tw-dash .tw-nav-search-result { min-height: 40px; height: auto; padding: 10px 14px; font-size: 13px; }
+}

@@ -342,8 +342,6 @@ export type AudioSettings = {
   /** Play / pause button surface and icon. */
   buttonColor: string;
   buttonIconColor: string;
-  /** Player scale, 0.85–1.25 — retained for saved documents; always full width. */
-  size: number;
   /** Start playing as soon as the page opens (with an interaction fallback). */
   autoplay: boolean;
   /** Milliseconds of volume ramp from silence when playback starts. */
@@ -525,7 +523,6 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     trackOpacity: 0.14,
     buttonColor: "#f2f5f7",
     buttonIconColor: "#0b0d10",
-    size: 1,
     autoplay: true,
     /** Milliseconds of volume ramp when playback starts. 0 = no fade. */
     fadeIn: 0,
@@ -750,7 +747,6 @@ function loadAudio(value: unknown): AudioSettings {
     trackOpacity: numberIn(raw.trackOpacity, DEFAULT_PROFILE_ASSETS.audio.trackOpacity, 0, 1),
     buttonColor: colorIn(raw.buttonColor, DEFAULT_PROFILE_ASSETS.audio.buttonColor),
     buttonIconColor: colorIn(raw.buttonIconColor, DEFAULT_PROFILE_ASSETS.audio.buttonIconColor),
-    size: 1,
     autoplay: boolIn(raw.autoplay, DEFAULT_PROFILE_ASSETS.audio.autoplay),
     fadeIn: numberIn(raw.fadeIn, DEFAULT_PROFILE_ASSETS.audio.fadeIn, 0, 4000),
     lyricsSize: numberIn(raw.lyricsSize, DEFAULT_PROFILE_ASSETS.audio.lyricsSize, 8, 18),

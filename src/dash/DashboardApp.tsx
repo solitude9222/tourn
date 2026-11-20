@@ -664,6 +664,7 @@ export function Dashboard(props: DashboardProps) {
                 The account API didn't answer, so this could be a connection problem rather than a
                 signed-out browser. Nothing has been signed out.
               </p>
+              <AuthRetryNote onRetry={onRetryAuth} />
               <div className="tw-row">
                 {onRetryAuth ? <Button variant="primary" onClick={onRetryAuth}>Try again</Button> : null}
                 <Button onClick={onSignIn}>Sign in instead</Button>
@@ -819,5 +820,31 @@ export function Dashboard(props: DashboardProps) {
         <Suspense fallback={<div className="tw-page-loading" role="status" aria-label="Loading editor"><div /><div /><div /></div>}>{content}</Suspense>
       </Shell>
     </DashContext.Provider>
+  );
+}
+
+/* The account API is a separate service, so a failed check is often a blip.
+   Say when the last one happened and keep retrying on a slow beat instead of
+   leaving the owner to guess whether the page is stuck. */
+function AuthRetryNote({ onRetry }: { onRetry?: () => void }) {
+  const [at, setAt] = useState(() => Date.now());
+  const [left, setLeft] = useState(20);
+  const retry = useRef(onRetry);
+  retry.current = onRetry;
+  useEffect(() => {
+    const timer = window.setInterval(() => setLeft(value => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [at]);
+  useEffect(() => {
+    if (left > 0) return;
+    retry.current?.();
+    setAt(Date.now());
+    setLeft(20);
+  }, [left]);
+  return (
+    <p className="tw-gate-note" role="status">
+      Last checked {new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}.
+      {onRetry ? ` Trying again in ${left}s.` : " Reload the page to try again."}
+    </p>
   );
 }

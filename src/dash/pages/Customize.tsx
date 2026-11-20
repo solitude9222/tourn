@@ -292,7 +292,7 @@ export function AudioSettingsCard() {
       <SectionLabel hint="How the song behaves when someone opens your profile.">Playback</SectionLabel>
       <div className="tw-audio-group">
         <div className="tw-audio-sliders">
-          <Slider label="Start at" value={audio.startAt} min={0} max={300} suffix="s" onChange={(startAt) => updateAudio({ startAt })} />
+          <Slider label="Start at" value={audio.startAt} min={0} max={600} suffix="s" onChange={(startAt) => updateAudio({ startAt })} />
           <Slider label="Playback speed" value={audio.playbackRate} min={0.5} max={2} step={0.05} suffix="×" onChange={(playbackRate) => updateAudio({ playbackRate })} />
           <Slider label="Default volume" value={Math.round(audio.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAudio({ volume: volume / 100 })} />
           <Slider label="Fade in" value={audio.fadeIn} min={0} max={4000} step={100} suffix="ms" onChange={(fadeIn) => updateAudio({ fadeIn })} />

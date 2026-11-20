@@ -419,8 +419,6 @@ export type AboutDesign = {
   badgeY?: number;
   /** Avatar / badge hover tooltips. */
   tooltips: TooltipSettings;
-  /** Retained for saved documents; the pointer glare is no longer rendered. */
-  tiltGlare: boolean;
   pfpPosition: PfpPosition;
   badgePosition: BadgePosition;
   namePosition: TextAlignPosition;
@@ -543,7 +541,6 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   tilt: 0,
   stackTilt: false,
   widgetTilt: false,
-  tiltGlare: false,
   pfpPosition: "left",
   badgePosition: "default",
   namePosition: "left",
@@ -945,7 +942,6 @@ function loadDesignRaw(input: unknown): AboutDesign {
         ? (rawTooltips.animation as TooltipAnimation)
         : DEFAULT_ABOUT_DESIGN.tooltips.animation,
     },
-    tiltGlare: boolIn(raw.tiltGlare, DEFAULT_ABOUT_DESIGN.tiltGlare),
     pfpPosition: oneOf(raw.pfpPosition, PFP_POSITIONS, DEFAULT_ABOUT_DESIGN.pfpPosition),
     badgePosition: raw.badgePosition === "hidden" ? "default" : oneOf(raw.badgePosition, BADGE_POSITIONS, DEFAULT_ABOUT_DESIGN.badgePosition),
     namePosition: oneOf(raw.namePosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.namePosition),
