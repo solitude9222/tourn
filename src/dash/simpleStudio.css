@@ -376,3 +376,14 @@ html[data-editor-gesture="true"] .tw-dash * {animation:none!important;}
    breathing room between them instead of 50px-tall buttons. */
 .tw-dash .tw-nav:not(:has(.tw-nav-search-result)) { justify-content: space-between; }
 .tw-dash .tw-nav:not(:has(.tw-nav-search-result)) .tw-nav-block { max-height: 46px; }
+
+/* Track names wrap instead of truncating to nothing in the two-column grid. */
+@media (max-width: 600px) {
+  .tw-media-audio span { white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+}
+
+/* Landscape phones: keep the nav usable instead of losing the drawer footer. */
+@media (max-height: 480px) {
+  .tw-dash .tw-rail-foot .tw-premium-card { display: none; }
+  .tw-dash .tw-rail-foot { padding: 8px 12px; }
+}

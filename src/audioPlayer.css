@@ -713,3 +713,9 @@
   .ap--bars.is-playing .ap-eq i,
   .ap--cover.is-playing .ap-album img { animation: none; }
 }
+
+/* Phones get three lyric lines instead of five, so the card keeps room for
+   the profile itself while every line is still reachable by scrolling. */
+@media (max-width: 600px) {
+  .ap-lyrics { --ap-lyric-h: 18px; height: calc(var(--ap-lyric-h) * 3); }
+}

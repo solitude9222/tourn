@@ -19,7 +19,8 @@
     "test:security": "node --test tests/security.test.mjs tests/usernames.test.mjs",
     "test:usernames": "node --test tests/usernames.test.mjs",
     "test:analytics": "node --test tests/analytics.test.mjs",
-    "test:e2e": "node scripts/e2e.mjs"
+    "test:e2e": "node scripts/e2e.mjs",
+    "budget": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "@vercel/functions": "^3.11.3",
