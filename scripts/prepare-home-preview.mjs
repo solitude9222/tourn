@@ -64,7 +64,9 @@ try {
       const [meta, encoded] = value.split(",");
       const ext = meta.includes("svg") ? "svg" : meta.includes("png") ? "png" : meta.includes("gif") ? "gif" : meta.includes("webp") ? "webp" : "jpg";
       const name = createHash("sha256").update(value).digest("hex").slice(0, 20) + "." + ext;
-      await writeFile(new URL(name, assetDir), Buffer.from(encoded, "base64"));
+      const target = new URL(name, assetDir);
+      const cached = await readFile(target).then(() => true, () => false);
+      if (!cached) await writeFile(target, Buffer.from(encoded, "base64"));
       return "/home-preview-assets/" + name;
     }
     if (Array.isArray(value)) return Promise.all(value.map(externalize));
@@ -77,7 +79,15 @@ try {
   }
 
   data = await externalize(data);
-  await writeFile(output, JSON.stringify(data));
+  // Content-hashed assets and an identical snapshot mean a rebuild leaves the
+  // working tree clean instead of rewriting the same bytes every time.
+  const nextSnapshot = JSON.stringify(data);
+  const previousSnapshot = await readFile(output, "utf8").catch(() => null);
+  if (previousSnapshot === nextSnapshot) {
+    console.log("Home preview unchanged; kept the committed snapshot.");
+    process.exit(0);
+  }
+  await writeFile(output, nextSnapshot);
   console.log(
     `Prepared instant home previews (${data.mode}): ${(data.profiles || []).map((row) => row.account.username).join(", ") || "none"}`,
   );

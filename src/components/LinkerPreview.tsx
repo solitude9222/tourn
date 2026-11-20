@@ -1,5 +1,5 @@
 import {normalizeStudio} from "../lib/studioOptions";
-import {FpsMeter,useEffectsVisible,automaticQuality} from "./StudioRuntime";
+import {useEffectsVisible} from "./StudioRuntime";
 import { ProfileGallery } from "./ProfileGallery";
 import { DEFAULT_GALLERY, DEFAULT_PORTFOLIO } from "../lib/gallery";
 import {TECH_BY_ID,techIconUrl} from "../lib/techStack";
@@ -284,7 +284,7 @@ export function LinkerPreview({
 }) {
   const viewer = useOptionalAuth()?.user ?? null;
   const studio=normalizeStudio(about.studio);
-  const quality=studio.quality==="auto"?automaticQuality():studio.quality;
+
   const design = about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
   const previewMode = preview || !interactive;
@@ -319,7 +319,7 @@ export function LinkerPreview({
   // Page pins are portals into this element, so they sit on the page instead
   // of over whatever dashboard chrome happens to be behind the preview.
   const [pageHost, setPageHost] = useState<HTMLElement | null>(null);
-  const effectsVisible=useEffectsVisible(pageHost,studio.pauseOffscreen);
+  const effectsVisible=useEffectsVisible(pageHost);
   // Stable ref so React does not detach and re-attach the portal host every render.
   const attachPageHost = useCallback((node: HTMLElement | null) => setPageHost(node), []);
 
@@ -734,7 +734,7 @@ export function LinkerPreview({
       data-interactive={interactive ? "true" : undefined}
       data-project-lines={design.projectLayout.textLines === 0 ? "all" : undefined}
       data-scattered={design.scattered ? "true" : undefined}
-      data-quality={quality}
+
       data-nav-position={studio.navPosition}
       data-poster-info={studio.posterInfo}
       data-fx-filter={assets.effects.overlay.id}
@@ -748,12 +748,12 @@ export function LinkerPreview({
             style={{ backgroundImage: `url("${assets.background.imageUrl.replace(/"/g, '\\"')}")`, backgroundPosition: `${assets.background.positionX ?? 50}% ${assets.background.positionY ?? 50}%`, backgroundSize: assets.background.fit || "cover", backgroundRepeat: "no-repeat" }}
           />
         ) : null}
-        {assets.background.style === "video" && assets.background.videoUrl ? <ProfileBackgroundVideo settings={assets.background} entryActive={studio.coordinateEntry&&entryOpen} interactive={interactive} studio={studio}/> : null}
+        {assets.background.style === "video" && assets.background.videoUrl ? <ProfileBackgroundVideo settings={assets.background} entryActive={entryOpen} interactive={interactive} studio={studio}/> : null}
         <span className="lkr-bg-dim" />
       </div>
-      {effectsVisible?<BackgroundEffectLayer settings={{...assets.effects.background,intensity:Math.min(assets.effects.background.intensity,studio.effectLimit,quality==="low"?30:100),speed:assets.effects.background.speed/studio.motionSpeed}} />:null}
+      {effectsVisible?<BackgroundEffectLayer settings={assets.effects.background} />:null}
       {page}
-      {previewMode&&studio.fps?<FpsMeter/>:null}
+
       {studio.progress&&slideshowActive?<progress className="studio-slide-progress" max={Math.max(1,slideCount-1)} value={slideIndex} aria-label="Slideshow progress"/>:null}
       {slideshowActive && portfolio.hint && slideIndex === 0 ? (
         <button
@@ -787,7 +787,7 @@ export function LinkerPreview({
       ) : null}
       {hasTrack && assets.audio.muteButton && !previewMode ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
       {effectsVisible?<OverlayEffectLayer settings={assets.effects.overlay} />:null}
-      {effectsVisible&&(studio.touchCursor||matchMedia("(pointer:fine)").matches)?<CursorTrailLayer settings={assets.cursor} />:null}
+      {effectsVisible&&matchMedia("(pointer:fine)").matches?<CursorTrailLayer settings={assets.cursor} />:null}
       {user.aliasRequired && interactive ? <AliasRequiredOverlay account={user} owner={viewer?.id === user.id} /> : null}
       {entryOpen ? (
         <EntryOverlay
