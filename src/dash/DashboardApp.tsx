@@ -107,6 +107,7 @@ import "./dashboardStudio.css";
 import "./blueRefresh.css";
 import "./simpleStudio.css";
 import "./managePages.css";
+import "./overview.css";
 
 export type DashboardProps = {
   user: Account | null;
@@ -139,7 +140,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
   "portfolio-projects": {title:"Portfolio",subtitle:"Projects, artwork and links.",icon:"layers",crumb:"Customize"},
   "portfolio-interests": {title:"Portfolio",subtitle:"Games, anime and everything you enjoy.",icon:"gamepad",crumb:"Customize"},
   aliases: {title:"Inventory",subtitle:"Your usernames, badges and collectables.",icon:"layers",crumb:"Account"},
-  home: { title: "Home", subtitle: "Your profile, your community, your next idea.", icon: "home", crumb: "Home" },
+  home: { title: "Account Overview", subtitle: "Check out information about your account.", icon: "home", crumb: "Home" },
   "account-profile": {
     title: "Profile",
     subtitle: "Your name, picture and description.",

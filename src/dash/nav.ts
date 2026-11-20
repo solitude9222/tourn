@@ -79,3 +79,16 @@ export function navTabsForPage(page: Page, isAdmin = false): NavTab[] {
 export function navHome(item: NavItem): Page {
   return item.tabs[0]?.page ?? "home";
 }
+export type RailEntry={label:string;icon:IconName;page:Page;navKey?:string;adminOnly?:boolean};
+export type RailSection={key:string;label:string;icon:IconName;items:RailEntry[]};
+/** Six entry points; page tabs remain owned by NAV. */
+export const RAIL_SECTIONS:RailSection[]=[
+ {key:'home',label:'Home',icon:'home',items:[{label:'Home',icon:'home',page:'home'}]},
+ {key:'customize',label:'Customize',icon:'palette',items:[{label:'Appearance',icon:'palette',page:'appearance',navKey:'appearance'},{label:'Profile',icon:'user',page:'profile-main',navKey:'profile'},{label:'Layout',icon:'layers',page:'layout',navKey:'layout'},{label:'Portfolio',icon:'layers',page:'portfolio-general',navKey:'portfolio'},{label:'Importer',icon:'upload',page:'assets'},{label:'Social Links',icon:'link',page:'links',navKey:'links'},{label:'Widgets',icon:'grid',page:'widgets',navKey:'widgets'},{label:'Decorations',icon:'sparkles',page:'effects',navKey:'effects'}]},
+ {key:'premium',label:'Premium',icon:'star',items:[{label:'Overview',icon:'star',page:'premium'},{label:'Plan & billing',icon:'crown',page:'billing'}]},
+ {key:'assets',label:'Assets',icon:'layers',items:[{label:'Templates',icon:'grid',page:'templates'},{label:'Inventory',icon:'layers',page:'aliases'}]},
+ {key:'image-host',label:'Image Host',icon:'image',items:[{label:'Uploads',icon:'upload',page:'assets'},{label:'Gallery',icon:'image',page:'portfolio-gallery'}]},
+ {key:'account',label:'Account',icon:'user',items:[{label:'Settings',icon:'settings',page:'settings',navKey:'settings'},{label:'Badges',icon:'shield',page:'badges'},{label:'Analytics',icon:'chart',page:'analytics'},{label:'Leaderboard',icon:'crown',page:'leaderboard'},{label:'Support',icon:'help',page:'support'},{label:'Admin',icon:'shield',page:'admin',adminOnly:true}]}
+];
+export function railEntryOwns(entry:RailEntry,page:Page){return entry.page===page||Boolean(entry.navKey&&NAV.find(item=>item.key===entry.navKey)?.tabs.some(tab=>tab.page===page));}
+export function railSectionForPage(page:Page){return RAIL_SECTIONS.find(section=>section.items.some(entry=>railEntryOwns(entry,page)));}

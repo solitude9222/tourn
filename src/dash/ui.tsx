@@ -77,6 +77,7 @@ function useCommittedValue<T>(value: T, onChange: (value: T) => void) {
 /* ------------------------------------------------------------------ icons */
 
 export type IconName =
+  | "hash" | "info"
   | "home"
   | "user"
   | "users"
@@ -144,6 +145,8 @@ export type IconName =
   | "share";
 
 const ICONS: Record<IconName, ReactNode> = {
+ hash:<><path d="M5 9h14M4 15h14M11 3 7 21M17 3l-4 18"/></>,
+ info:<><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></>,
   home: (
     <>
       <path d="M3.5 10.2 12 3.5l8.5 6.7" />
