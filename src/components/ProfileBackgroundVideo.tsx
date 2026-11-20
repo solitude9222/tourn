@@ -1,6 +1,7 @@
 import {normalizeStudio,type StudioOptions} from "../lib/studioOptions";
 import {useEffect,useRef,useState} from "react";
 import type {BackgroundSettings} from "../lib/profileAssets";
+import {audioBusState,setAudioBus} from "../lib/audioBus";
 
 /** Start the fade only when real playback is ready; keep entry gating separate. */
 export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:input}:{settings:BackgroundSettings;entryActive:boolean;interactive:boolean;studio?:StudioOptions}) {
@@ -12,6 +13,8 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:
  /* A visitor who asked their browser to save data should not download a
     background video just to watch a card load. */
  const [saveData]=useState(()=>Boolean((navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData));
+ const [reduced,setReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+ useEffect(()=>{const motion=window.matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(motion.matches);motion.addEventListener('change',update);return()=>motion.removeEventListener('change',update);},[]);
  const waitingForEntry=settings.videoWaitForEntry && entryActive;
  allowSound.current=interactive && settings.videoAudio;
 
@@ -19,7 +22,14 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:
   const video=ref.current;if(!video)return;
   video.volume=settings.videoVolume;
   video.muted=!(allowSound.current && activated.current);
-  const unlock=()=>{activated.current=true;video.muted=!allowSound.current;};
+  const unlock=()=>{
+   const first=!activated.current;
+   activated.current=true;
+   video.muted=!allowSound.current;
+   /* Turning the video's sound on is the visitor's first gesture, so the
+      profile's track starts with it instead of waiting for a second click. */
+   if(first&&allowSound.current)setAudioBus({playToken:audioBusState().playToken+1});
+  };
   document.addEventListener("pointerdown",unlock);
   document.addEventListener("keydown",unlock);
   return()=>{document.removeEventListener("pointerdown",unlock);document.removeEventListener("keydown",unlock);};
@@ -29,7 +39,7 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:
   const video=ref.current;if(!video)return;
   let cancelled=false,delayElapsed=false;
   setVisible(false);video.pause();
-  if(waitingForEntry||saveData)return;
+  if(waitingForEntry||saveData||reduced)return;
   const seek=()=>{
    try{video.currentTime=Math.min(settings.videoStartAt||0,Number.isFinite(video.duration)?Math.max(0,video.duration-.1):settings.videoStartAt||0);}
    catch{/* Wait for loadedmetadata before seeking. */}
@@ -48,7 +58,7 @@ export function ProfileBackgroundVideo({settings,entryActive,interactive,studio:
    video.removeEventListener("loadedmetadata",seek);
    document.removeEventListener("pointerdown",play);document.removeEventListener("keydown",play);
   };
- },[settings.videoUrl,settings.videoDelay,settings.videoStartAt,waitingForEntry,saveData]);
+ },[settings.videoUrl,settings.videoDelay,settings.videoStartAt,waitingForEntry,saveData,reduced]);
 
- return <video ref={ref} className={`lkr-bg-video${visible?" is-playing":""}`} src={settings.videoUrl} poster={studio.videoPoster||undefined} onTimeUpdate={event=>{const video=event.currentTarget;const end=studio.videoLoopEnd||studio.videoEnd;if(end<=0||video.currentTime<end)return;const start=Math.max(0,studio.videoLoopStart||settings.videoStartAt||0);/* A loop that starts at or after its end would seek forever, so hold the last frame instead. */if(start>=end-.05){video.pause();return;}video.currentTime=start;}} muted loop playsInline preload={saveData?"none":"auto"} style={{objectFit:settings.fit||"cover",objectPosition:`${settings.positionX??50}% ${settings.positionY??50}%`,opacity:visible?1:0,transition:`opacity ${settings.videoFade??700}ms ease`}}/>;
+ return <>{studio.videoPoster?<img className="lkr-bg-video" src={studio.videoPoster} alt="" aria-hidden="true" style={{objectFit:settings.fit||'cover',objectPosition:(settings.positionX??50)+'% '+(settings.positionY??50)+'%',opacity:1}}/>:null}<video ref={ref} className={`lkr-bg-video${visible?" is-playing":""}`} src={settings.videoUrl} poster={studio.videoPoster||undefined} onTimeUpdate={event=>{const video=event.currentTarget;const end=studio.videoLoopEnd||studio.videoEnd;if(end<=0||video.currentTime<end)return;const start=Math.max(0,studio.videoLoopStart||settings.videoStartAt||0);/* A loop that starts at or after its end would seek forever, so hold the last frame instead. */if(start>=end-.05){video.pause();return;}video.currentTime=start;}} onError={()=>setVisible(false)} muted loop playsInline preload={saveData?"none":"auto"} style={{objectFit:settings.fit||"cover",objectPosition:`${settings.positionX??50}% ${settings.positionY??50}%`,opacity:visible?1:0,transition:`opacity ${settings.videoFade??700}ms ease`}}/></>;
 }

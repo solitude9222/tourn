@@ -7,7 +7,6 @@
 .ap-popup.ap-popup--mute.ap-popup-style--glass .ap-popup-icon { background:color-mix(in srgb,var(--popup-background,#151515) 45%,transparent); border:1px solid #ffffff50; box-shadow:inset 0 1px #ffffff25; backdrop-filter:blur(18px); }
 .ap-popup.ap-popup--mute.ap-popup-style--rounded .ap-popup-icon { border-radius:14px; background:var(--popup-background,#151515); border:1px solid #ffffff35; box-shadow:0 4px 18px #0004; backdrop-filter:none; }
 .ap-popup.ap-popup--mute .ap-popup-icon:focus-visible { outline:2px solid var(--popup-color,#fff); outline-offset:4px; }
-@media(prefers-reduced-motion:reduce) { .ap-popup.ap-popup--mute * { transition:none!important; } }
 
 .tw-mute-style-preview { display:flex; align-items:center; gap:18px; padding:22px; margin:18px 0; border:1px solid var(--border,#28282d); border-radius:12px; background:#09090b; color:var(--sub,#a7a7b2); }.tw-mute-style-preview small { font-size:12px; }
 /* Left corners reveal to the right; right corners reveal inward to the left. */
@@ -28,8 +27,13 @@
 /* The rail leaves the button as one solid piece: surface, border, track and
    thumb fade and slide together, so the track can never float out ahead of the
    pill it sits in. It starts tucked behind the button and slides out of it. */
-.ap-popup.ap-popup--mute .ap-popup-reveal {position:absolute;z-index:1;left:calc(100% + 10px);top:0;width:var(--popup-safe-width,var(--popup-bar-width,180px))!important;height:var(--popup-size,60px);overflow:visible;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-26px) scale(.92);transform-origin:left center;transition:transform var(--popup-duration,450ms) cubic-bezier(.32,0,.18,1),opacity var(--popup-duration,450ms) cubic-bezier(.32,0,.18,1),visibility 0s linear var(--popup-duration,450ms);}
-.ap-popup.ap-popup--mute.is-open .ap-popup-reveal {opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s;}
+/* The rail's open/close state belongs to this file alone. The shared player
+   CSS also styles .ap-popup-reveal on :hover, and which of the two stylesheets
+   loads last differs between dev and the built bundle, so the rail's own
+   properties are marked !important — otherwise the hover rule wins in
+   production and the rail snaps out instead of sliding. */
+.ap-popup.ap-popup--mute .ap-popup-reveal {position:absolute;z-index:1;left:calc(100% + 10px);top:0;width:var(--popup-safe-width,var(--popup-bar-width,180px))!important;height:var(--popup-size,60px);overflow:visible;opacity:0!important;visibility:hidden;pointer-events:none;transform:translateX(-26px) scale(.92)!important;transform-origin:left center;transition:transform var(--popup-duration,450ms) cubic-bezier(.32,0,.18,1),opacity var(--popup-duration,450ms) cubic-bezier(.32,0,.18,1),visibility 0s linear var(--popup-duration,450ms)!important;}
+.ap-popup.ap-popup--mute.is-open .ap-popup-reveal {opacity:1!important;visibility:visible;pointer-events:auto;transform:none!important;transition-delay:0s!important;}
 /* The pill wears the button's own surface: same opacity and same glow. */
 .ap-popup.ap-popup--mute .ap-popup-volume {position:relative;width:100%;height:100%;margin:0!important;box-sizing:border-box;opacity:1;transform:none;background:color-mix(in srgb,var(--popup-background,#151515) calc(var(--popup-opacity,.92)*100%),transparent);box-shadow:var(--popup-pill-glow,none);transition:none;}
 .ap-popup.ap-popup--mute .ap-popup-volume input {opacity:var(--popup-rail-opacity,1);}
@@ -44,8 +48,8 @@
 .ap-popup.ap-popup--mute.ap-edge-trace .ap-popup-volume::after,.ap-popup.ap-popup--mute.ap-edge-pulse .ap-popup-volume::after {content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;padding:1px;z-index:2;background:conic-gradient(from var(--ap-edge-angle),transparent 65%,var(--ap-edge-color,#fff) 85%,transparent 100%);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;animation:apEdgeTrace var(--ap-edge-speed,5s) linear infinite;}
 .ap-popup.ap-popup--mute.ap-edge-pulse .ap-popup-volume::after {background:var(--ap-edge-color);animation:apEdgePulse var(--ap-edge-speed,5s) ease-in-out infinite;}
 .lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute::after {left:auto;right:100%;}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-reveal {left:auto;right:calc(100% + 10px);transform:translateX(26px) scale(.92);transform-origin:right center;}
-.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute.is-open .ap-popup-reveal {transform:none;}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute .ap-popup-reveal {left:auto;right:calc(100% + 10px);transform:translateX(26px) scale(.92)!important;transform-origin:right center;}
+.lkr-popup-audio:is(.lkr-popup-audio--right,.lkr-popup-audio--bottom-right) .ap-popup--mute.is-open .ap-popup-reveal {transform:none!important;}
 .ap-popup.ap-popup--mute .ap-popup-volume input {direction:ltr;height:clamp(4px,calc(var(--popup-size,60px)/12),7px);}
 .ap-popup.ap-popup--mute .ap-popup-volume input:active {cursor:grabbing;}
 .ap-popup.ap-popup--mute .ap-popup-volume input::-webkit-slider-thumb {width:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);height:clamp(9px,calc(var(--popup-size,60px)/5.5),14px);transition:transform .16s ease,box-shadow .16s ease;}
@@ -54,6 +58,7 @@
 .ap-popup.ap-popup--mute .ap-popup-volume input:active::-moz-range-thumb {transform:scale(1.2);}
 @keyframes muteRelease {from{filter:brightness(1.25)}to{filter:brightness(1)}}
 .ap-popup.ap-popup--mute.is-settling .ap-popup-volume {animation:muteRelease .3s ease;}
-@media(prefers-reduced-motion:reduce){.ap-popup.ap-popup--mute .ap-popup-reveal,.ap-popup.ap-popup--mute .ap-popup-volume{transition:none!important;}.ap-popup.ap-popup--mute .ap-popup-volume{transform:none!important;animation:none!important;}}
+/* The reveal duration is the owner's own setting, like the rest of the
+   profile's motion, so it keeps animating whatever the visitor's OS asks for. */
 .ap-volume-disclosure {display:none;}
 @media(hover:none),(pointer:coarse){.ap-popup--mute .ap-volume-disclosure {display:grid;place-items:center;position:absolute;z-index:3;right:-8px;bottom:-6px;width:28px;height:28px;border:1px solid #ffffff40;border-radius:50%;background:var(--popup-background,#151515);color:var(--popup-color,#fff);}}
