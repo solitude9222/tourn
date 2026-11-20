@@ -17,39 +17,62 @@ import "../audioPlayer.css";
 const LyricsPanel = memo(function LyricsPanel({
   lines,
   activeLine,
+  position,
   loading,
   plainFallback,
   hint,
 }: {
   lines: LyricLine[];
   activeLine: number;
+  position: number;
   loading: boolean;
   plainFallback: string | null;
   hint: string;
 }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLParagraphElement>(null);
+
+  // The panel holds every line, not a five-line window; it scrolls so the line
+  // being sung sits in the middle and nothing is ever cut off.
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const row = activeRef.current;
+    if (!wrap || !row) return;
+    wrap.scrollTo({
+      top: Math.max(0, row.offsetTop - wrap.clientHeight / 2 + row.offsetHeight / 2),
+      behavior: "smooth",
+    });
+  }, [activeLine]);
+
   if (lines.length) {
-    // A fixed 5-line window whose middle row is the active line. The track
-    // physically slides by whole rows (transform transition) so the lyrics
-    // follow the song instead of jumping. The shift is clamped at both ends:
-    // the first lines start at the top rather than leaving blank rows, and the
-    // track never scrolls past the last line.
-    const visible = lines.slice(0, 160);
-    const rows = 5;
-    const middle = Math.floor(rows / 2);
-    const offset = Math.max(0, activeLine);
-    const shift = Math.min(0, Math.max(middle - offset, middle - (visible.length - 1)));
+    const current = activeLine >= 0 ? lines[activeLine] : undefined;
+    const next = activeLine >= 0 ? lines[activeLine + 1] : undefined;
+    const words = current ? current.text.split(/\s+/).filter(Boolean) : [];
+    // Spread the line's own duration over its words so the glow walks the line
+    // in time with the vocal instead of snapping on at the line start.
+    const span = current ? Math.max(0.6, (next ? next.time : current.time + 4) - current.time) : 1;
+    const progress = current ? Math.min(1, Math.max(0, (position - current.time) / span)) : 0;
+    const sung = Math.floor(progress * words.length);
     return (
-      <div className="ap-lyrics" aria-live="polite">
-        <div
-          className="ap-lyrics-track"
-          style={{ transform: `translateY(calc(var(--ap-lyric-h) * ${shift}))` }}
-        >
-          {visible.map((line, index) => (
-            <p key={index} className={index === activeLine ? "ap-lyric-current" : "ap-lyric-dim"}>
-              {line.text || "\u00A0"}
-            </p>
-          ))}
-        </div>
+      <div className="ap-lyrics" aria-live="polite" ref={wrapRef}>
+        {lines.map((line, index) => (
+          <p
+            key={index}
+            ref={index === activeLine ? activeRef : undefined}
+            className={
+              index === activeLine ? "ap-lyric-current" : index < activeLine ? "ap-lyric-past" : "ap-lyric-dim"
+            }
+          >
+            {index === activeLine && words.length
+              ? words.map((word, wordIndex) => (
+                  <span key={wordIndex} className={`ap-lyric-word${wordIndex <= sung ? " is-sung" : ""}`}>
+                    {word}
+                    {wordIndex < words.length - 1 ? " " : ""}
+                  </span>
+                ))
+              : line.text || "\u00A0"}
+          </p>
+        ))}
       </div>
     );
   }
@@ -136,6 +159,7 @@ export function AudioPlayer({
     // The player always spans the card at full size; only the compact layout
     // changes its shape.
     "--ap-scale": "1",
+    "--ap-lyric-size": `${settings.lyricsSize}px`,
   } as CSSProperties;
 
   // ── native <audio> playback ──────────────────────────────────────────
@@ -260,6 +284,30 @@ export function AudioPlayer({
     else el.pause();
   };
 
+  // Optional volume ramp when playback starts, so a track eases in instead of
+  // hitting at full level. 0ms leaves the level exactly where the slider is.
+  const fadeFrame = useRef(0);
+  const startFade = () => {
+    const el = audioRef.current;
+    window.cancelAnimationFrame(fadeFrame.current);
+    if (!el) return;
+    if (!settings.fadeIn || el.muted) {
+      el.volume = volume;
+      return;
+    }
+    const target = volume;
+    const startedAt = performance.now();
+    el.volume = 0;
+    const step = (now: number) => {
+      if (!audioRef.current) return;
+      const ratio = Math.min(1, (now - startedAt) / settings.fadeIn);
+      audioRef.current.volume = target * ratio;
+      if (ratio < 1) fadeFrame.current = window.requestAnimationFrame(step);
+    };
+    fadeFrame.current = window.requestAnimationFrame(step);
+  };
+  useEffect(() => () => window.cancelAnimationFrame(fadeFrame.current), []);
+
   // `timeupdate` only fires about four times a second, which makes the lyric
   // track visibly lag a fast line. While the track plays, read the real clock
   // on an animation frame (throttled) so the highlight and the scroll land on
@@ -328,7 +376,7 @@ export function AudioPlayer({
       }}
       onCanPlay={() => setLoadFailed(false)}
       loop={settings.loop}
-      onPlay={() => setPlaying(true)}
+      onPlay={() => { setPlaying(true); startFade(); }}
       onPause={() => setPlaying(false)}
       onEnded={() => setPlaying(false)}
       onLoadedMetadata={(event) => {
@@ -650,6 +698,7 @@ export function AudioPlayer({
         <LyricsPanel
           lines={syncedLines}
           activeLine={activeLine}
+          position={position}
           loading={autoLyrics.loading}
           plainFallback={plainFallback}
           hint="No lyrics yet — add them in the dashboard."

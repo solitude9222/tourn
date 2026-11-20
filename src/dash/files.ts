@@ -197,6 +197,40 @@ export async function imageToDataUrl(
   });
 }
 
+/** Favicons are always a square, transparent PNG: 64px renders crisply at the
+ *  16px a tab uses, and PNG keeps any transparent background the icon has.
+ *  SVG and ICO files are drawn through the same canvas. */
+export async function faviconToDataUrl(file: File, size = 64): Promise<string> {
+  const raw = await fileToDataUrl(file);
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = size;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        resolve(raw);
+        return;
+      }
+      // Contain, not cover: a wide mark keeps its whole shape inside the square.
+      const scale = Math.min(size / image.width, size / image.height);
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      context.imageSmoothingQuality = "high";
+      context.drawImage(
+        image,
+        Math.round((size - width) / 2),
+        Math.round((size - height) / 2),
+        width,
+        height,
+      );
+      resolve(canvas.toDataURL("image/png"));
+    };
+    image.onerror = () => resolve(raw);
+    image.src = raw;
+  });
+}
+
 export async function bannerToDataUrl(file: File, width = 1200, height = 630, quality = 0.9): Promise<string> {
   const raw = await fileToDataUrl(file);
   if (!file.type.startsWith("image/") || file.type === "image/gif") return raw;

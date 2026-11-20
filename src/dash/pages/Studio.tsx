@@ -6,7 +6,7 @@ import { AccountProfilePage } from "./Account";
 import { Button, Card, CardHead, Field, FileUpload, Select, Slider, TextInput, Textarea, Toggle } from "../ui";
 import { FontPicker } from "../../components/FontPicker";
 import { DotMatrixText } from "../../components/DotMatrixText";
-import { fileToDataUrl } from "../files";
+import { faviconToDataUrl, fileToDataUrl } from "../files";
 
 function ScatteredPreview({ active, text, color, size, cell, glow, shimmer, onToggle }: { active: boolean; text: string; color: string; size: number; cell: number; glow: number; shimmer: boolean; onToggle: () => void }) {
   return <button
@@ -45,13 +45,23 @@ export function ProfileGeneralPage() {
   </div></Card><BrowserTitleSettings /></div>;
 }
 
-export function DecorationsStudioPage() { return <div className="tw-studio-page"><StudioSettings group="motion"/><DecorationsPanel /></div>; }
+export function DecorationsStudioPage() { return <div className="tw-studio-page"><DecorationsPanel /></div>; }
 
 function BrowserTitleSettings() {
-  const {about,setAbout}=useDash(),meta=about.metadata;
+  const {about,setAbout,notify}=useDash(),meta=about.metadata;
   const update=(patch:Partial<typeof meta>)=>setAbout(current=>({...current,metadata:{...current.metadata,...patch}}));
-  return <Card><CardHead icon="code" title="Browser tab title" subtitle="Animate the tab name without changing your visible profile text."/><div className="tw-form-grid">
+  return <Card><CardHead icon="code" title="Browser tab title and icon" subtitle="What the tab and bookmarks show while someone is on your page."/><div className="tw-form-grid">
     <Field label="Custom tab title"><TextInput aria-label="Custom tab title" value={meta.title} maxLength={60} placeholder="Your name · tourn.lol" onChange={event=>update({title:event.target.value})}/></Field>
+    <Field label="Favicon" hint="Square PNG, SVG or ICO up to 1 MB. Transparent backgrounds look best; it is saved as a 64px PNG.">
+      <div className="tw-favicon-edit">
+        <span className="tw-favicon-edit-preview" aria-hidden="true">
+          <img src={meta.faviconUrl || "/brand/favicon-blue.svg"} alt="" />
+          <img className="is-small" src={meta.faviconUrl || "/brand/favicon-blue.svg"} alt="" />
+        </span>
+        <FileUpload aria-label="Upload favicon" accept="image/png,image/svg+xml,image/x-icon,image/webp,.png,.svg,.ico" onChange={async event=>{const file=event.target.files?.[0];if(!file)return;if(file.size>1_000_000){notify("Favicon","Choose an image under 1 MB.");event.target.value="";return;}try{const faviconUrl=await faviconToDataUrl(file);update({faviconUrl});notify("Favicon","Saved with your browser tab settings.");}catch{notify("Favicon","That image could not be read. Try a PNG or SVG.");}finally{event.target.value="";}}}/>
+        {meta.faviconUrl?<Button onClick={()=>{update({faviconUrl:""});notify("Favicon","Back to the tourn.lol icon.");}}>Remove</Button>:null}
+      </div>
+    </Field>
     <Field label="Title animation"><Select ariaLabel="Title animation" value={meta.animation} options={[{value:"none",label:"None"},{value:"cycle",label:"Cycle titles"},{value:"typewriter",label:"Typewriter"},{value:"marquee",label:"Marquee"}]} onChange={value=>update({animation:value as typeof meta.animation})}/></Field>
     {meta.animation!=="none"?<><Field label="Additional titles" hint="One per line, up to eight."><Textarea value={meta.messages.join("\n")} rows={3} onChange={event=>update({messages:event.target.value.split("\n").slice(0,8).map(value=>value.slice(0,60))})}/></Field><Slider label="Pause between titles" min={2} max={30} suffix="s" value={meta.interval} onChange={interval=>update({interval})}/></>:null}
   </div></Card>;

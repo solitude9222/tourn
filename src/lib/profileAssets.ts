@@ -346,6 +346,10 @@ export type AudioSettings = {
   size: number;
   /** Start playing as soon as the page opens (with an interaction fallback). */
   autoplay: boolean;
+  /** Milliseconds of volume ramp from silence when playback starts. */
+  fadeIn: number;
+  /** Lyric type size in px. */
+  lyricsSize: number;
 };
 
 export type BannerSettings = {
@@ -431,7 +435,7 @@ export const DEFAULT_TEXT_EFFECT: TextEffectSettings = {
   effect: "none",
   effects: [],
   colorA: "#ffcfa8",
-  colorB: "#93c5fd",
+  colorB: "#e3d9c8",
   speed: 3,
   strength: 1,
   params: defaultParamsFor(null),
@@ -444,13 +448,14 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   card: {
     // Two beams chase each other around the card's edge — the default look.
     id: "beam",
-    color: "#60a5fa",
+    // Warm neutral, not blue: the card light should read as light.
+    color: "#e7dfd2",
     intensity: 70,
     speed: 6,
   },
   decoration: {
     style: "none",
-    color: "#93c5fd",
+    color: "#ffffff",
     size: 1,
     spin: false,
   },
@@ -498,7 +503,7 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   audio: {
     volume: .7, startMuted: false, muteButton: false, shuffle: false, startAt: 0, queue: [], loop: true, playbackRate: 1,
     popupSide: "right", popupSideVersion: 2, popupSize: 60, popupStyle: "glossy", popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
-    popupOpacity:.92,popupRailOpacity:.92,popupIconOpacity:1,popupGlow:false,popupGlowColor:"#80aaff",popupGlowStrength:50,popupGlowBlur:18,
+    popupOpacity:.92,popupRailOpacity:.92,popupIconOpacity:1,popupGlow:false,popupGlowColor:"#ffffff",popupGlowStrength:50,popupGlowBlur:18,
     style: "none",
     fileUrl: "",
     coverUrl: "",
@@ -522,6 +527,10 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     buttonIconColor: "#0b0d10",
     size: 1,
     autoplay: true,
+    /** Milliseconds of volume ramp when playback starts. 0 = no fade. */
+    fadeIn: 0,
+    /** Lyric type size in px. */
+    lyricsSize: 10.5,
   },
   effects: {
     background: {
@@ -590,6 +599,10 @@ export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string 
   { id: "crt", name: "CRT", hint: "Scanlines, RGB stripes, a flicker and a heavy vignette" },
   { id: "grain", name: "Film Grain", hint: "Animated monochrome noise over the page" },
 ];
+/** Retired from the picker because the RGB-stripe look reads as cheap sci-fi;
+ *  saved profiles that use it keep rendering it. */
+export const RETIRED_OVERLAYS: OverlayEffectId[] = ["crt"];
+export const PICKABLE_OVERLAYS = OVERLAY_EFFECTS.filter((item) => !RETIRED_OVERLAYS.includes(item.id));
 export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = [
   { id: "none", name: "None", hint: "Plain text" },
   { id: "rgb", name: "RGB flow", hint: "Moving colour gradient" },
@@ -739,6 +752,8 @@ function loadAudio(value: unknown): AudioSettings {
     buttonIconColor: colorIn(raw.buttonIconColor, DEFAULT_PROFILE_ASSETS.audio.buttonIconColor),
     size: 1,
     autoplay: boolIn(raw.autoplay, DEFAULT_PROFILE_ASSETS.audio.autoplay),
+    fadeIn: numberIn(raw.fadeIn, DEFAULT_PROFILE_ASSETS.audio.fadeIn, 0, 4000),
+    lyricsSize: numberIn(raw.lyricsSize, DEFAULT_PROFILE_ASSETS.audio.lyricsSize, 8, 18),
   };
 }
 

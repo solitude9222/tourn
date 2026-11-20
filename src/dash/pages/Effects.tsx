@@ -1,6 +1,6 @@
 import { uploadAudioFile } from "../../lib/audioUpload";
 import { useState } from "react";
-import { CURSOR_TRAILS, CURSOR_SKINS, CLICK_EFFECTS, BACKGROUND_EFFECTS, OVERLAY_EFFECTS, TEXT_EFFECTS, CARD_EFFECTS, TEXT_EFFECT_PARAM, DEFAULT_CURSOR_MOTION, defaultParamsFor, type BackgroundEffectSettings, type ClickEffectId, type CursorMotionSettings, type CursorStyle, type CursorTrailType, type OverlayEffectSettings, type TextEffectId, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
+import { CURSOR_TRAILS, CURSOR_SKINS, CLICK_EFFECTS, BACKGROUND_EFFECTS, PICKABLE_OVERLAYS, TEXT_EFFECTS, CARD_EFFECTS, TEXT_EFFECT_PARAM, DEFAULT_CURSOR_MOTION, defaultParamsFor, type BackgroundEffectSettings, type ClickEffectId, type CursorMotionSettings, type CursorStyle, type CursorTrailType, type OverlayEffectSettings, type TextEffectId, type TextEffectSettings, type TextEffectTarget, type EffectParamSpec } from "../../lib/profileAssets";
 import { EffectBrowser, type EffectKind } from "../EffectBrowser";
 import { FontPicker } from "../../components/FontPicker";
 import { playInteractionSound } from "../../components/ProfileInteractions";
@@ -53,7 +53,7 @@ export function EffectsPage({ category = "background", embedded = false }: { cat
   const setCard = (patch: Partial<typeof assets.card>) => setAbout((current) => ({ ...current, assets: { ...current.assets, card: { ...current.assets.card, ...patch } } }));
   const setCursor = (patch: Partial<typeof assets.cursor>) => setAbout((current) => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, ...patch } } }));
   const setInteraction = (patch: Partial<typeof assets.interactions>) => setAbout((current) => ({ ...current, assets: { ...current.assets, interactions: { ...current.assets.interactions, ...patch } } }));
-  const catalogs = { trail: TRAILS, click: CLICK_EFFECTS, background: BACKGROUND_EFFECTS, overlay: OVERLAY_EFFECTS, text: TEXT_EFFECTS, card: CARD_EFFECTS };
+  const catalogs = { trail: TRAILS, click: CLICK_EFFECTS, background: BACKGROUND_EFFECTS, overlay: PICKABLE_OVERLAYS, text: TEXT_EFFECTS, card: CARD_EFFECTS };
   const values = { trail: assets.cursor.trailType, click: assets.cursor.click, background: effects.background.id, overlay: effects.overlay.id, text: text.effect, card: assets.card.id };
   const trailType = assets.cursor.trailType;
   const trailMotion = assets.cursor.trailSettings[trailType] ?? DEFAULT_CURSOR_MOTION;
@@ -77,7 +77,7 @@ export function EffectsPage({ category = "background", embedded = false }: { cat
     {!embedded ? <nav className="tw-workspace-tabs" aria-label="Effect categories">{(["background", "overlay", "text", "card", "cursor"] as EffectKind[]).map((kind) => <button type="button" aria-pressed={browser === kind} onClick={() => setBrowser(kind)} key={kind}>{({ background: "Background", overlay: "Overlays", text: "Text", card: "Card", cursor: "Pointer & sound", trail: "Trails", click: "Clicks" })[kind]}</button>)}</nav> : null}
     {browser === "background" ? <Card><CardHead icon="sparkles" title="Background effects" subtitle="Choose an atmosphere. Hover a tile to see its motion." />{chooser("background")}
     </Card> : null}
-    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlay effects" subtitle="Full-page filters: CRT, film grain, grid lines, blur, snow and texture." />{chooser("overlay")}
+    {browser === "overlay" ? <Card><CardHead icon="layers" title="Overlay effects" subtitle="Quiet full-page finishes: film grain, fine lines, a dot texture, blur or falling snow." />{chooser("overlay")}
     </Card> : null}
     {browser === "text" ? <Card><CardHead icon="edit" title="Text effects" subtitle="Choose a target, then browse animated lettering. Sparkle adds twinkling stars around the letters." />
       <div className="fx-categories">{["name", "alias", "bio"].map((id) => <button key={id} type="button" aria-pressed={target === id} onClick={() => setTarget(id as TextEffectTarget)}>{({ name: "Display name", alias: "Username", bio: "Bio" })[id as TextEffectTarget]}</button>)}</div>

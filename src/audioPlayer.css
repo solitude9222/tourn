@@ -170,16 +170,24 @@
 
 /* Five rows: the middle one is the line being sung, the two above and below
    fade out towards the edges. */
+/* Every line of the song lives in this panel and it scrolls itself so the
+   line being sung stays centred. Nothing is cut down to a five-line window. */
 .ap-lyrics {
   --ap-lyric-h: 20px;
   position: relative;
   height: calc(var(--ap-lyric-h) * 5);
   padding: 0 16px;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
   display: block;
   text-align: center;
-  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.ap-lyrics::-webkit-scrollbar {
+  display: none;
 }
 
 .ap-lyrics-track {
@@ -191,30 +199,48 @@
 }
 
 .ap-lyrics p {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--ap-lyric-h);
+  display: block;
   margin: 0;
+  padding: 2px 0;
   max-width: 100%;
-  font-size: 10.5px;
-  line-height: var(--ap-lyric-h);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color 0.35s ease, opacity 0.35s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  min-height: var(--ap-lyric-h);
+  font-size: var(--ap-lyric-size, 10.5px);
+  line-height: 1.45;
+  /* Long lines wrap instead of being cut with an ellipsis. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  transition: color 0.3s ease, opacity 0.3s ease;
 }
 
 .ap-lyric-current {
   color: var(--ap-title);
   font-weight: 700;
-  transform: scale(1.08);
+}
+
+.ap-lyric-past {
+  color: var(--ap-artist);
+  font-weight: 500;
+  opacity: 0.5;
 }
 
 .ap-lyric-dim {
   color: var(--ap-artist);
   font-weight: 500;
   opacity: 0.75;
+}
+
+/* Word-by-word: words already sung light up one at a time with a single soft
+   glow; the rest of the line stays quiet until its turn. */
+.ap-lyric-word {
+  color: var(--ap-artist);
+  opacity: 0.55;
+  transition: color 0.16s linear, opacity 0.16s linear, text-shadow 0.16s linear;
+}
+
+.ap-lyric-word.is-sung {
+  color: var(--ap-title);
+  opacity: 1;
+  text-shadow: 0 0 7px var(--ap-accent);
 }
 
 .ap-lyrics-empty {

@@ -244,7 +244,10 @@ export function mountBgEffect(container: HTMLElement, initial: BgFxInput): BgFxA
       for (let layer = 0; layer < 4; layer++) {
         const y = H * (.2 + layer * .16) + Math.sin(t / 2800 + layer) * H * .08;
         const gradient = ctx.createLinearGradient(0, y - H * spread, 0, y + H * spread);
-        const color = [Math.round(cr * .45 + layer * 12), Math.round(cg * .65 + (3-layer)*15), Math.round(cb * .75 + layer * 10)];
+        // Light fades with depth without shifting hue; the old mix pushed
+        // every layer towards blue whatever tint the owner picked.
+        const fade = 1 - layer * 0.16;
+        const color = [Math.round(cr * fade * .92), Math.round(cg * fade * .92), Math.round(cb * fade * .92)];
         gradient.addColorStop(0,"rgba(0,0,0,0)"); gradient.addColorStop(.48,`rgba(${color.join(",")},${strength*.28})`); gradient.addColorStop(1,"rgba(0,0,0,0)");
         ctx.fillStyle=gradient; ctx.beginPath();ctx.moveTo(-20,y);
         ctx.bezierCurveTo(W*.25,y-H*spread*Math.sin(t/3300+layer),W*.7,y+H*spread*Math.cos(t/2700+layer),W+20,y);

@@ -463,10 +463,11 @@ export const MAX_BIO_LENGTH = 800;
 
 export const DEFAULT_PROFILE_COLORS: ProfileColors = {
   accent: "#3b82f6",
-  text: "#eef2f8",
-  muted: "#98a2b3",
+  text: "#f3f3f5",
+  muted: "#a3a3ad",
   background: "#07070a",
-  card: "#14141e",
+  // Neutral card: the old value carried a blue cast into every profile.
+  card: "#151517",
   border: "#ffffff",
 };
 

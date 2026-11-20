@@ -295,6 +295,7 @@ export function AudioSettingsCard() {
           <Slider label="Start at" value={audio.startAt} min={0} max={300} suffix="s" onChange={(startAt) => updateAudio({ startAt })} />
           <Slider label="Playback speed" value={audio.playbackRate} min={0.5} max={2} step={0.05} suffix="×" onChange={(playbackRate) => updateAudio({ playbackRate })} />
           <Slider label="Default volume" value={Math.round(audio.volume * 100)} min={0} max={100} suffix="%" onChange={(volume) => updateAudio({ volume: volume / 100 })} />
+          <Slider label="Fade in" value={audio.fadeIn} min={0} max={4000} step={100} suffix="ms" onChange={(fadeIn) => updateAudio({ fadeIn })} />
         </div>
         <div className="tw-audio-toggles">
           <div className="tw-inline-toggle">
@@ -452,6 +453,7 @@ export function AudioSettingsCard() {
             <Toggle label="Auto-fetch lyrics" checked={audio.autoLyrics} onChange={(checked) => updateAudio({ autoLyrics: checked })} />
           </div>
         </div>
+        <Slider label="Lyric size" value={audio.lyricsSize} min={8} max={18} step={0.5} suffix="px" onChange={(lyricsSize) => updateAudio({ lyricsSize })} />
         <Field label="Lyrics text" hint={audio.lyrics.length + " / 40000"}>
           <Textarea
             rows={6}

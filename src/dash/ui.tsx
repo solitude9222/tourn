@@ -659,14 +659,79 @@ export function Textarea({
 
 export type Option = { value: string; label: string };
 
-function navigateOptions(event: React.KeyboardEvent<HTMLElement>) {
+/* Dropdowns float above the page. The menu is portalled to <body> and placed
+   from its trigger, so a card with overflow hidden — or the section that
+   follows it — can never clip the menu. It drops below the trigger, or flips
+   above it when there is more room there. */
+function dropdownKeys(
+  event: React.KeyboardEvent,
+  menuRef: { current: HTMLDivElement | null },
+  open: boolean,
+  triggerRef: { current: HTMLButtonElement | null },
+) {
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
-  const root = event.currentTarget;
-  const items = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="option"]'));
-  if (!items.length) { root.querySelector<HTMLButtonElement>('.tw-select-btn')?.click(); event.preventDefault(); requestAnimationFrame(() => { const opened = root.querySelectorAll<HTMLButtonElement>('[role="option"]'); (event.key === "ArrowUp" || event.key === "End" ? opened[opened.length - 1] : opened[0])?.focus(); }); return; }
+  event.preventDefault();
+  const items = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []);
+  if (!open || !items.length) {
+    triggerRef.current?.click();
+    window.requestAnimationFrame(() => {
+      const opened = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []);
+      if (!opened.length) return;
+      const pick = event.key === "ArrowUp" || event.key === "End" ? opened[opened.length - 1] : opened[0];
+      pick.focus({ preventScroll: true });
+    });
+    return;
+  }
   const current = items.indexOf(document.activeElement as HTMLButtonElement);
-  const index = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : current < 0 ? (event.key === "ArrowUp" ? items.length - 1 : 0) : (current + (event.key === "ArrowUp" ? -1 : 1) + items.length) % items.length;
-  event.preventDefault(); items[index].focus();
+  const index =
+    event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? items.length - 1
+        : current < 0
+          ? 0
+          : (current + (event.key === "ArrowUp" ? -1 : 1) + items.length) % items.length;
+  items[index].focus({ preventScroll: true });
+}
+
+function useDropdownMenu(open: boolean) {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [placement, setPlacement] = useState<CSSProperties | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setPlacement(null);
+      return;
+    }
+    const place = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const gap = 6;
+      const edge = 8;
+      const below = window.innerHeight - rect.bottom - gap - edge;
+      const above = rect.top - gap - edge;
+      // Only flip up when the menu genuinely does not fit underneath.
+      const up = below < 200 && above > below;
+      const width = Math.min(Math.max(180, rect.width), window.innerWidth - edge * 2);
+      setPlacement({
+        left: Math.min(Math.max(edge, rect.left), Math.max(edge, window.innerWidth - width - edge)),
+        width,
+        maxHeight: Math.max(140, Math.min(288, up ? above : below)),
+        ...(up ? { bottom: window.innerHeight - rect.top + gap } : { top: rect.bottom + gap }),
+      });
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [open]);
+
+  return { triggerRef, menuRef, placement };
 }
 
 export function Select({
@@ -688,16 +753,21 @@ export function Select({
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
+  const menu = useDropdownMenu(open);
   const current = options.find((option) => option.value === value);
   const label = current?.label ?? placeholder ?? "Select";
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !menu.menuRef.current?.contains(target)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        rootRef.current?.querySelector<HTMLButtonElement>(".tw-select-btn")?.focus({ preventScroll: true });
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKey);
@@ -710,12 +780,13 @@ export function Select({
   return (
     <span
       ref={rootRef}
-      onKeyDown={navigateOptions}
+      onKeyDown={(event) => dropdownKeys(event, menu.menuRef, open, menu.triggerRef)}
       className={`tw-control tw-select${icon ? " tw-control--icon" : ""}${open ? " is-open" : ""}`}
     >
       {icon ? <Icon name={icon} size={15} className="tw-control-icon" /> : null}
       <button
         type="button"
+        ref={menu.triggerRef}
         className="tw-select-btn"
         aria-label={ariaLabel}
         aria-haspopup="listbox"
@@ -727,8 +798,16 @@ export function Select({
         <Icon name="chevron-down" size={14} className="tw-select-chevron" />
       </button>
 
-      {open ? (
-        <div className="tw-select-menu" role="listbox" aria-label={ariaLabel}>
+      {open ? createPortal(
+        <div className="tw-dash tw-control-portal">
+        <div
+          ref={menu.menuRef}
+          className="tw-select-menu is-portal"
+          role="listbox"
+          aria-label={ariaLabel}
+          style={menu.placement ?? { visibility: "hidden" }}
+          onKeyDown={(event) => dropdownKeys(event, menu.menuRef, open, menu.triggerRef)}
+        >
           {placeholder && !current ? (
             <button
               type="button"
@@ -760,6 +839,7 @@ export function Select({
             </button>
           ))}
         </div>
+        </div>, document.body
       ) : null}
     </span>
   );
@@ -800,16 +880,21 @@ export function MultiSelect({
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
+  const menu = useDropdownMenu(open);
   const selected = options.filter((option) => value.includes(option.value));
   const label = selected.length ? selected.map((option) => option.label).join(", ") : placeholder;
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !menu.menuRef.current?.contains(target)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        rootRef.current?.querySelector<HTMLButtonElement>(".tw-select-btn")?.focus({ preventScroll: true });
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKey);
@@ -820,10 +905,11 @@ export function MultiSelect({
   }, [open]);
 
   return (
-    <span ref={rootRef} onKeyDown={navigateOptions}
+    <span ref={rootRef} onKeyDown={(event) => dropdownKeys(event, menu.menuRef, open, menu.triggerRef)}
       className={`tw-control tw-select tw-multi-select${open ? " is-open" : ""}`}>
       <button
         type="button"
+        ref={menu.triggerRef}
         className="tw-select-btn"
         aria-label={ariaLabel}
         aria-haspopup="listbox"
@@ -834,8 +920,17 @@ export function MultiSelect({
         <span>{label}</span>
         <Icon name="chevron-down" size={14} className="tw-select-chevron" />
       </button>
-      {open ? (
-        <div className="tw-select-menu" role="listbox" aria-label={ariaLabel} aria-multiselectable="true">
+      {open ? createPortal(
+        <div className="tw-dash tw-control-portal">
+        <div
+          ref={menu.menuRef}
+          className="tw-select-menu is-portal"
+          role="listbox"
+          aria-label={ariaLabel}
+          aria-multiselectable="true"
+          style={menu.placement ?? { visibility: "hidden" }}
+          onKeyDown={(event) => dropdownKeys(event, menu.menuRef, open, menu.triggerRef)}
+        >
           {options.map((option) => {
             const active = value.includes(option.value);
             return (
@@ -853,6 +948,7 @@ export function MultiSelect({
             );
           })}
         </div>
+        </div>, document.body
       ) : null}
     </span>
   );
