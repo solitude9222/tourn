@@ -59,10 +59,32 @@
 .tw-overview-guide .tw-btn {width:100%;font-size:11px;}
 .tw-overview-action-bottom {margin-top:auto;padding-top:24px;}
 .tw-overview-below {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:24px;}
-.tw-overview-help {display:grid;gap:20px;}
-.tw-overview-help section {padding-bottom:18px;border-bottom:1px solid var(--border);}
-.tw-overview-help h3 {font-size:15px;margin:0 0 8px;}
-.tw-overview-help p {color:var(--sub);font-size:12px;line-height:1.8;}
+/* Setup guide: a step rail on the left, the current step lit on the right. */
+.tw-guide-progress {height:3px;margin-bottom:16px;border-radius:999px;background:var(--border);overflow:hidden;}
+.tw-guide-progress i {display:block;height:100%;background:var(--accent);transition:width .28s ease;}
+.tw-guide {display:grid;grid-template-columns:minmax(0,248px) minmax(0,1fr);gap:16px;align-items:start;}
+.tw-guide-steps {list-style:none;margin:0;padding:0;display:grid;gap:4px;min-width:0;}
+.tw-guide-steps>li {min-width:0;}
+.tw-guide-step {display:flex;gap:10px;align-items:flex-start;width:100%;padding:10px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--sub);font:inherit;text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease;}
+.tw-guide-step:hover {background:var(--tile);color:var(--title);}
+.tw-guide-step.is-active {border-color:var(--accent-border);background:color-mix(in srgb,var(--accent-soft) 55%,var(--tile));color:var(--title);}
+.tw-guide-number {display:grid;place-items:center;width:22px;height:22px;flex:none;border:1px solid var(--border);border-radius:50%;font-size:11px;font-weight:700;line-height:1;}
+.tw-guide-step.is-active .tw-guide-number {border-color:var(--accent-border);background:var(--accent);color:var(--accent-on,#fff);}
+.tw-guide-step.is-done .tw-guide-number {border-color:#51db9366;color:#51db93;}
+.tw-guide-step b {display:block;font-size:12px;font-weight:600;line-height:1.35;}
+.tw-guide-step small {display:block;margin-top:2px;font-size:10px;line-height:1.4;color:var(--sub);}
+.tw-guide-panel {min-width:0;padding:18px;border:1px solid var(--accent-border,var(--border));border-radius:14px;background:color-mix(in srgb,var(--accent-soft) 18%,var(--card));box-shadow:0 18px 40px #0006;}
+.tw-guide-icon {display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--accent-soft);color:var(--accent-bright,var(--accent));}
+.tw-guide-panel h3 {margin:12px 0 6px;font-size:16px;}
+.tw-guide-panel p {margin:0;color:var(--sub);font-size:12px;line-height:1.7;}
+.tw-guide-list {list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px;}
+.tw-guide-list li {display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.55;color:var(--title);}
+.tw-guide-list li svg {flex:none;margin-top:2px;color:#51db93;}
+.tw-guide-where {display:flex;align-items:center;gap:6px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--sub);}
+.tw-guide-where svg {flex:none;color:var(--accent-text,var(--accent));}
+.tw-guide-count {margin-right:auto;font-size:11px;color:var(--sub);}
+@media(prefers-reduced-motion:no-preference){.tw-guide-panel {animation:twGuideIn .22s ease-out both;}@keyframes twGuideIn {from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+@media(max-width:640px){.tw-guide {grid-template-columns:minmax(0,1fr);}.tw-guide-steps {grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);}.tw-guide-step {justify-content:center;padding:8px 4px;}.tw-guide-step b,.tw-guide-step small {display:none;}.tw-guide-step.is-active .tw-guide-number {width:24px;height:24px;}.tw-guide-number {width:22px;height:22px;font-size:10px;}.tw-guide-count {flex:1 1 100%;}.tw-modal-foot:has(.tw-guide-count) {flex-wrap:wrap;}}
 @media(prefers-reduced-motion:no-preference){.tw-rail-screen {animation:overviewRailIn .18s ease-out both;}@keyframes overviewRailIn {from{opacity:0;transform:translateX(7px)}to{opacity:1;transform:none}}.tw-overview-stat,.tw-setup-steps>button {transition:background .15s,border-color .15s,transform .15s}.tw-overview-stat:hover,.tw-setup-steps>button:hover {border-color:var(--accent-border);background:color-mix(in srgb,var(--accent-soft) 22%,var(--card));}}
 @media(max-width:1200px){.tw-overview-stats {grid-template-columns:repeat(2,minmax(0,1fr));}.tw-setup-grid {grid-template-columns:minmax(0,1fr);}.tw-overview-action-bottom {margin-top:20px;}.tw-overview-below {grid-template-columns:minmax(0,1fr);}}
 @media(max-width:600px){.tw-overview-stats {gap:10px;}.tw-overview-stat {min-height:135px;padding:16px;}.tw-overview-stat>b {font-size:20px;}.tw-setup-steps {grid-template-columns:minmax(0,1fr);}.tw-setup-section h2 {font-size:24px;}.tw-dash .tw-setup-grid>.tw-card {padding:18px;}.tw-setup-progress-label {align-items:flex-start;}.tw-overview-action-pair {gap:8px;}}

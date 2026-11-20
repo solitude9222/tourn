@@ -108,15 +108,24 @@ export function Shell({
   const { user, about, settings, dirty, save, discard, undo, redo, isPremium, isAdmin, profileViews, go, notify } =
     useDash();
 
-  // One share action for the account menu and the mini profile block, so both
-  // always copy the same public address.
-  const shareProfile = () => {
-    const handle = user.alias?.trim() || user.username;
-    const url = `${window.location.origin}/${encodeURIComponent(handle)}`;
+  // Sharing prints the real public address instead of a generic toast: the
+  // popover below shows the link, the handle and the live view count.
+  const shareHandle = user.alias?.trim() || user.username;
+  const shareUrl = `${window.location.origin}/${encodeURIComponent(shareHandle)}`;
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
+  const copyTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
+  const copyShareUrl = () => {
     void navigator.clipboard
-      .writeText(url)
-      .then(() => notify("Profile link", "Copied to clipboard."))
-      .catch(() => notify("Profile link", url));
+      .writeText(shareUrl)
+      .then(() => {
+        setShareCopied(true);
+        window.clearTimeout(copyTimer.current);
+        copyTimer.current = window.setTimeout(() => setShareCopied(false), 2000);
+      })
+      .catch(() => notify("Profile link", shareUrl));
   };
   const { accounts, retryAuth } = useAuth();
   useDashTheme();
@@ -142,6 +151,32 @@ export function Shell({
   const closeMenuTimer=useRef<number|undefined>(undefined);
   const setMenuOpen=(next:boolean|((value:boolean)=>boolean))=>{const open=typeof next==="function"?next(menuOpen):next;clearTimeout(closeMenuTimer.current);if(open){setMenuClosing(false);setMenuVisible(true);}else{setMenuVisible(false);setMenuClosing(true);closeMenuTimer.current=window.setTimeout(()=>setMenuClosing(false),180);}};
   useEffect(()=>()=>clearTimeout(closeMenuTimer.current),[]);
+  const openShare = () => {
+    setMenuOpen(false);
+    setShareOpen(true);
+  };
+  const toggleShare = () => {
+    setMenuOpen(false);
+    setShareOpen((open) => !open);
+  };
+  useEffect(() => {
+    if (!shareOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (shareRef.current?.contains(event.target as Node)) return;
+      if (target?.closest?.(".tw-user-share")) return;
+      setShareOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShareOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [shareOpen]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notes, setNotes] = useState(false);
   const [trades, setTrades] = useState<ShellTrade[]>([]);
@@ -155,6 +190,8 @@ export function Shell({
 
   const displayName = about.displayName.trim() || user.alias?.trim() || user.username;
   const avatarUrl = (about.assets.avatarUrl || user.avatarUrl || "").trim();
+  // The rail avatar wears the same Discord decoration as the public profile.
+  const decorationUrl = (about.assets.decoration?.discordUrl || "").trim();
   const navItems = NAV.filter((item) => !item.adminOnly || isAdmin);
   const railSource = railKey ? RAIL_SECTIONS.find(item=>item.key===railKey)??null : null;
   const railItem=railSource?{...railSource,items:[...railSource.items].sort((a,b)=>{const order=subcategoryOrder[railSource.key]||[];const index=(page:string)=>order.includes(page)?order.indexOf(page):order.length+railSource.items.findIndex(entry=>entry.page===page);return index(a.page)-index(b.page);})}:null;
@@ -414,7 +451,7 @@ export function Shell({
                   </button>
                 </div>
 
-                <div className="tw-user-pop-actions"><button type="button" role="menuitem" className="tw-user-pop-item" onClick={shareProfile}><Icon name="share" size={14}/>Share profile</button><a role="menuitem" className="tw-user-pop-item" href="https://discord.gg/a9uwptuepD" target="_blank" rel="noreferrer"><Icon name="link" size={14}/>Discord server</a>
+                <div className="tw-user-pop-actions"><button type="button" role="menuitem" className="tw-user-pop-item" onClick={openShare}><Icon name="share" size={14}/>Share profile</button><a role="menuitem" className="tw-user-pop-item" href="https://discord.gg/a9uwptuepD" target="_blank" rel="noreferrer"><Icon name="link" size={14}/>Discord server</a>
                   <a
                     role="menuitem"
                     href={`/${encodeURIComponent(user.username)}`}
@@ -474,6 +511,7 @@ export function Shell({
               >
                 <span className="tw-avatar">
                   {avatarUrl ? <img src={avatarUrl} alt="" /> : displayName.slice(0, 1).toUpperCase()}
+                  {decorationUrl ? <img className="tw-avatar-decoration" src={decorationUrl} alt="" aria-hidden="true" /> : null}
                   <i className={settings.discordUserId ? "is-on" : ""} />
                 </span>
                 <span className="tw-user-meta">
@@ -498,12 +536,51 @@ export function Shell({
                 type="button"
                 className="tw-user-share"
                 aria-label="Share profile"
+                aria-expanded={shareOpen}
                 title="Share profile"
-                onClick={shareProfile}
+                onClick={toggleShare}
               >
                 <Icon name="share" size={15} />
               </button>
             </div>
+
+            {shareOpen ? (
+              <div className="tw-share-pop" role="dialog" aria-label="Share profile" ref={shareRef}>
+                <header className="tw-share-head">
+                  <b>Share profile</b>
+                  <small>@{shareHandle}</small>
+                </header>
+                <code className="tw-share-url" title={shareUrl}>{shareUrl}</code>
+                <p className="tw-share-stats">
+                  {displayName}
+                  {typeof profileViews === "number" ? ` · ${profileViews.toLocaleString()} views` : null}
+                </p>
+                <div className="tw-share-actions">
+                  <button type="button" className={`tw-share-action${shareCopied ? " is-done" : ""}`} onClick={copyShareUrl}>
+                    <Icon name={shareCopied ? "check" : "copy"} size={14} />
+                    {shareCopied ? "Copied to clipboard" : "Copy link"}
+                  </button>
+                  <a className="tw-share-action" href={shareUrl} target="_blank" rel="noreferrer">
+                    <Icon name="external" size={14} />
+                    Open public page
+                  </a>
+                  {typeof navigator !== "undefined" && typeof navigator.share === "function" ? (
+                    <button
+                      type="button"
+                      className="tw-share-action"
+                      onClick={() => {
+                        void navigator
+                          .share({ title: displayName, text: `${displayName} on Tourn`, url: shareUrl })
+                          .catch(() => undefined);
+                      }}
+                    >
+                      <Icon name="share" size={14} />
+                      Share with…
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
 
             {notes ? (
               <div className="tw-note-pop" role="dialog" aria-label="Notifications" ref={notesRef}>

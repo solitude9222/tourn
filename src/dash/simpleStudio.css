@@ -101,6 +101,11 @@ html[data-editor-gesture="true"] .tw-dash :is(.tw-card,.tw-modal,.fx-tile-previe
 .tw-dash .tw-user-row { flex:1 1 auto; width:auto; min-width:0; padding:12px; min-height:66px; gap:12px; border:0; background:transparent; }
 .tw-dash .tw-avatar { width:38px; height:38px; border:1px solid #303036; border-radius:50%; }
 .tw-dash .tw-avatar i { display:none; }
+/* The rail avatar wears the same Discord decoration as the public profile, so
+   it has to paint outside the round crop. */
+.tw-dash .tw-user-foot .tw-avatar { overflow:visible; }
+.tw-dash .tw-user-foot .tw-avatar > img:first-child { border-radius:50%; }
+.tw-dash .tw-user-foot .tw-avatar-decoration { position:absolute; left:50%; top:50%; width:136%; height:136%; transform:translate(-50%,-50%); object-fit:contain; pointer-events:none; z-index:1; }
 .tw-dash .tw-user-meta { flex:1; text-align:left; }
 .tw-dash .tw-user-meta b { color:#f0f0f4; font-size:12px; }
 .tw-dash .tw-user-meta small { color:#9696a2; font-size:10px; }
@@ -126,7 +131,18 @@ html[data-editor-gesture="true"] .tw-dash :is(.tw-card,.tw-modal,.fx-tile-previe
 .tw-dash .tw-note-stack .tw-note-bar:nth-child(8){animation-delay:.21s}
 @keyframes twNoteIn {from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes twNoteBarIn {from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce) { .tw-dash .tw-user-bell.is-on svg,.tw-dash .tw-rail-foot .tw-note-pop,.tw-dash .tw-note-bar { animation:none!important; } }
+/* Share popover: the real link, the handle and the live view count. */
+.tw-dash .tw-share-pop { position:absolute; left:0; bottom:calc(100% + 8px); z-index:6; width:min(304px,calc(100vw - 24px)); padding:12px; border:1px solid #303036; border-radius:12px; background:#111114; box-shadow:0 18px 44px #0009; animation:twNoteIn .22s cubic-bezier(.22,.8,.25,1) both; transform-origin:bottom left; }
+.tw-dash .tw-share-head { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.tw-dash .tw-share-head b { font-size:12px; color:#f0f0f4; }
+.tw-dash .tw-share-head small { font-size:10px; color:#9696a2; }
+.tw-dash .tw-share-url { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:8px 10px; border:1px solid #2a2a30; border-radius:8px; background:#0b0b0d; color:#c9d6ff; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; }
+.tw-dash .tw-share-stats { margin:8px 0 10px; font-size:10px; color:#9696a2; }
+.tw-dash .tw-share-actions { display:grid; gap:4px; }
+.tw-dash .tw-share-action { display:flex; align-items:center; gap:9px; min-height:34px; padding:0 9px; border:1px solid transparent; border-radius:8px; background:transparent; color:#c4cedf; font:inherit; font-size:12px; text-decoration:none; cursor:pointer; }
+.tw-dash .tw-share-action:hover { border-color:#303036; background:#1b1b20; color:#f0f0f4; }
+.tw-dash .tw-share-action.is-done { color:#51db93; }
+@media (prefers-reduced-motion:reduce) { .tw-dash .tw-user-bell.is-on svg,.tw-dash .tw-rail-foot .tw-note-pop,.tw-dash .tw-share-pop,.tw-dash .tw-note-bar { animation:none!important; } }
 .tw-dash .tw-profile-media-grid { grid-template-columns:repeat(5,minmax(0,1fr)); align-items:start; }
 .tw-dash .tw-profile-media-tile { width:100%; min-width:0; }
 .tw-dash .tw-media-background-placeholder,.tw-dash .tw-media-empty { display:flex; width:100%; height:100%; min-height:158px; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#a7a7b2; font-size:12px; }
