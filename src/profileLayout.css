@@ -37,37 +37,37 @@
   max-width: none;
   min-width: 0;
   height: auto;
-  min-height: 70px;
-  padding: 12px;
+  min-height: 112px;
+  padding: 14px 15px;
   box-sizing: border-box;
 }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-avatar {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
 }
-.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-name b { font-size: calc(13px * var(--pv-scale, 1)); line-height: 1.15; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-name b { font-size: calc(15px * var(--pv-scale, 1)); line-height: 1.2; }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-chip { padding: 1px 5px; }
-.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-handle { font-size: calc(11px * var(--pv-scale, 1)); }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-handle { font-size: calc(12px * var(--pv-scale, 1)); }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-inner { padding: 0; gap: 8px; }
 
-/* The Discord card used to stretch across the row; the reference puts four
-   equal cards on a 2×2 grid, so every platform is the same 288×70 box. */
+/* The Discord card used to stretch across the row; every platform now shares
+   the same two-column grid and the same 112px-tall box. */
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] {
   grid-column: span 1;
-  min-height: 70px;
-  padding: 12px;
+  min-height: 112px;
+  padding: 14px 15px;
 }
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-avatar {
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--wg-avatar-radius, 50%);
 }
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-name b {
-  font-size: calc(13px * var(--pv-scale, 1));
+  font-size: calc(15px * var(--pv-scale, 1));
 }
 .lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] .widget-card-meta {
-  font-size: calc(10px * var(--pv-scale, 1));
+  font-size: calc(11px * var(--pv-scale, 1));
 }
 .lkr-page .lkr-flow .lkr-stacked-widgets,
 .lkr-page .lkr-flow .lkr-stack {
@@ -259,11 +259,11 @@
 .lkr-page .profile-preview .pv-body > .pv-bio + .lkr-widgets-block { margin-top:16px; }
 @media(max-width:600px) { .lkr-page .profile-preview:not(.pv-has-banner) .pv-topline { gap:14px; margin-bottom:0; }.lkr-page .profile-preview .pv-body > .pv-bio { margin-bottom:0; font-size:max(12px,calc(var(--pv-bio-size,18px)*.88)); } }
 /* Version 6: every profile route uses one compact, stable social-card grid. */
-.lkr-page .lkr-flow .lkr-widgets { grid-template-columns:repeat(2,minmax(0,285px)); justify-content:center; gap:12px; }
+.lkr-page .lkr-flow .lkr-widgets { grid-template-columns:repeat(2,minmax(0,1fr)); justify-content:stretch; gap:12px; }
 .lkr-page .lkr-flow .lkr-widgets > .widget-card,
-.lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] { width:285px; max-width:100%; height:70px; min-height:70px; max-height:70px; border-radius:16px; padding:12px; overflow:hidden; }
-.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-avatar { width:42px; height:42px; flex:0 0 42px; }
-.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-head { gap:10px; }
+.lkr-page .lkr-flow .lkr-widgets .widget-card[data-platform="discord"] { width:100%; max-width:100%; height:auto; min-height:112px; max-height:none; border-radius:16px; padding:14px 15px; overflow:hidden; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-avatar { width:48px; height:48px; flex:0 0 48px; }
+.lkr-page .lkr-flow .lkr-widgets > .widget-card .widget-card-head { gap:12px; }
 .lkr-page .profile-preview[data-pfp="left"] .pv-topline { gap:16px; }
 .lkr-page .profile-preview .pv-body > .pv-bio { font-size:var(--pv-bio-size,14px); margin-top:12px; }
 .lkr-page .profile-preview .pv-body > .pv-badges--default { margin-top:8px; }
@@ -271,8 +271,8 @@
 .lkr-page .profile-preview .pv-body > .pv-badges--default .badge-chip { width:24px!important; height:24px!important; }
 .lkr-page .profile-preview .pv-links-block { margin-top:16px; }
 @media(max-width:640px) {
- .lkr-page .lkr-flow .lkr-widgets { grid-template-columns:minmax(0,285px); }
- .lkr-page .lkr-flow .lkr-widgets > .widget-card { justify-self:center; }
+ .lkr-page .lkr-flow .lkr-widgets { grid-template-columns:minmax(0,1fr); }
+ .lkr-page .lkr-flow .lkr-widgets > .widget-card { justify-self:stretch; }
 }
 .lkr-page .profile-preview .pv-body > .pv-badges--default .pv-badge-pill { min-height:58px; box-sizing:border-box; }
 .lkr-page .profile-preview .pv-body > .pv-bio { margin-top:16px; }

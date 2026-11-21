@@ -586,7 +586,8 @@
 
 .widget-card {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
   /* Cards fill their column: the dashboard shows them wide, the public page
      caps them to the profile card width. */
   width: 100%;
@@ -823,7 +824,8 @@
   position: relative;
   z-index: 2;
   display: flex;
-  height: 100%;
+  height: auto;
+  flex: 1 1 auto;
   flex-direction: column;
   justify-content: space-between;
   gap: 6px;
