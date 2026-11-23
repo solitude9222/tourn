@@ -335,7 +335,7 @@
   border: 1px solid rgba(96, 165, 250, 0.14);
   background:
     radial-gradient(200px 100px at 0% 0%, rgba(96, 165, 250, 0.14), transparent 70%),
-    rgba(32, 6, 7, 0.66);
+    rgba(7, 21, 32, 0.66);
 }
 
 .dash-beta-icon {
@@ -389,7 +389,7 @@
   border-radius: 11px;
   border: 1px solid rgba(85, 138, 212, 0.25);
   background: linear-gradient(160deg, rgba(85, 138, 212, 0.18), #101012);
-  color: #ffdcdd;
+  color: #ddf0ff;
   font-size: 14px;
   font-weight: 700;
 }
@@ -409,7 +409,7 @@
   height: 9px;
   border-radius: 50%;
   border: 2px solid #0a0a0b;
-  background: #4a3f3f;
+  background: #3f454a;
 }
 
 .dash-user-avatar i.is-on {
@@ -430,7 +430,7 @@
   font-weight: 650;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: #7e6f6f;
+  color: #6f777e;
 }
 
 .dash-user-meta b {
@@ -444,7 +444,7 @@
 
 .dash-user-meta small {
   font-size: 11px;
-  color: #897879;
+  color: #798289;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -466,7 +466,7 @@
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
-  color: #a99a9b;
+  color: #9ba3a9;
   font-family: inherit;
   font-size: 11px;
   font-weight: 550;
@@ -477,7 +477,7 @@
 .dash-user-action:hover {
   background: rgba(85, 138, 212, 0.1);
   border-color: rgba(85, 138, 212, 0.25);
-  color: #ffeaeb;
+  color: #ebf6ff;
 }
 
 .dash-icon-btn {
@@ -497,7 +497,7 @@
 .dash-icon-btn:hover {
   background: rgba(96, 165, 250, 0.12);
   border-color: rgba(96, 165, 250, 0.3);
-  color: #fff1f1;
+  color: #f1f9ff;
 }
 
 /* ---------------------------------------------------------------- main */
@@ -639,7 +639,7 @@
   background:
     radial-gradient(280px 160px at 100% 0%, rgba(96, 165, 250, 0.075), transparent 70%),
     linear-gradient(180deg, rgba(96, 165, 250, 0.035), rgba(96, 165, 250, 0.008)),
-    rgba(23, 4, 5, 0.72);
+    rgba(5, 15, 23, 0.72);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
   overflow: hidden;
   transition: border-color 0.24s ease, transform 0.24s var(--ease-out), box-shadow 0.24s ease;
@@ -692,7 +692,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #fff0f1;
+  color: #f1f9ff;
 }
 
 .dash-stat small {
@@ -788,7 +788,7 @@
   font-weight: 740;
   letter-spacing: -0.05em;
   line-height: 1;
-  color: #fef6f6;
+  color: #f6fafe;
 }
 
 .chart-donut-center span {
@@ -796,7 +796,7 @@
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8e7e7f;
+  color: #7f878e;
 }
 
 .chart-legend {
@@ -816,7 +816,7 @@
   gap: 7px;
   min-width: 0;
   font-size: 11px;
-  color: #8e7f7f;
+  color: #7f878e;
 }
 
 .chart-legend li.is-done {
@@ -855,7 +855,7 @@
   gap: 10px;
   margin-bottom: 5px;
   font-size: 11px;
-  color: #988a8a;
+  color: #8a9298;
 }
 
 .chart-bar-meta b {
@@ -898,11 +898,11 @@
   justify-content: space-between;
   gap: 10px;
   font-size: 11px;
-  color: #988a8a;
+  color: #8a9298;
 }
 
 .chart-readiness-head b {
-  color: #ffeaeb;
+  color: #ebf6ff;
   font-weight: 650;
 }
 
@@ -948,7 +948,7 @@
 }
 
 .dash-score-head b {
-  color: #ffeaeb;
+  color: #ebf6ff;
   font-size: 12px;
   font-weight: 650;
 }
@@ -992,7 +992,7 @@
 .dash-stat-row-value {
   margin-left: auto;
   min-width: 0;
-  color: #f7d7d8;
+  color: #d8e9f7;
   font-weight: 550;
   white-space: nowrap;
   overflow: hidden;
@@ -1074,7 +1074,7 @@
   background:
     radial-gradient(600px 280px at 100% 0%, rgba(96, 165, 250, 0.055), transparent 65%),
     linear-gradient(180deg, rgba(96, 165, 250, 0.03), rgba(96, 165, 250, 0.006)),
-    rgba(22, 4, 5, 0.7);
+    rgba(5, 14, 22, 0.7);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   overflow: hidden;
 }
@@ -1139,7 +1139,7 @@
   height: 100%;
   width: var(--progress);
   border-radius: inherit;
-  background: linear-gradient(90deg, #558ad4, #60a5fa 55%, #ffd0cd);
+  background: linear-gradient(90deg, #558ad4, #60a5fa 55%, #cde9ff);
   box-shadow: 0 0 14px rgba(96, 165, 250, 0.7);
   animation: growBar 1.2s var(--ease-out) both 0.25s;
 }
@@ -1182,7 +1182,7 @@
   display: block;
   font-size: 11px;
   font-weight: 650;
-  color: #e6d6a8;
+  color: #a8cae6;
 }
 
 .dash-note.is-done b {
@@ -1193,7 +1193,7 @@
   margin: 2px 0 0;
   font-size: 11px;
   line-height: 1.45;
-  color: #9e8f68;
+  color: #68869e;
 }
 
 .dash-note.is-done p {
@@ -1269,7 +1269,7 @@
 }
 
 .dash-task.is-done {
-  color: #e9c5c6;
+  color: #c6d9e9;
 }
 
 /* quick actions */
@@ -1297,7 +1297,7 @@
   border-radius: 8px;
   border: 1px solid rgba(96, 165, 250, 0.12);
   background: rgba(96, 165, 250, 0.035);
-  color: #dbb4b5;
+  color: #b5cadb;
   font-family: inherit;
   font-size: 11px;
   font-weight: 500;
@@ -1308,7 +1308,7 @@
 .dash-action-btn:hover {
   background: rgba(96, 165, 250, 0.09);
   border-color: rgba(96, 165, 250, 0.24);
-  color: #fff1f1;
+  color: #f1f9ff;
 }
 
 .dash-primary {
@@ -1322,7 +1322,7 @@
   padding: 0 10px;
   border-radius: 9px;
   border: 1px solid rgba(101, 164, 253, 0.6);
-  background: linear-gradient(180deg, #ffd0cd, #66a6ff);
+  background: linear-gradient(180deg, #cde9ff, #66a6ff);
   color: #0c131d;
   font-family: inherit;
   font-size: 11px;
@@ -1391,7 +1391,7 @@
   border-radius: 8px;
   border: 1px solid rgba(96, 165, 250, 0.12);
   background: rgba(96, 165, 250, 0.025);
-  color: #ddb6b7;
+  color: #b7ccdd;
   font-size: 11px;
   font-weight: 520;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
@@ -1406,7 +1406,7 @@
 .dash-secondary:hover {
   background: rgba(96, 165, 250, 0.08);
   border-color: rgba(96, 165, 250, 0.24);
-  color: #fff1f1;
+  color: #f1f9ff;
 }
 
 /* live cards */
@@ -1437,7 +1437,7 @@
 }
 
 .dash-link:hover {
-  color: #ffe3e4;
+  color: #e4f3ff;
 }
 
 /* lower panels */
@@ -1507,7 +1507,7 @@
 .dash-signal-text b {
   font-size: 12px;
   font-weight: 620;
-  color: #ebc6c7;
+  color: #c7dbeb;
 }
 
 .dash-signal-text span {
@@ -1584,7 +1584,7 @@
   padding: 8px 9px;
   border-radius: 9px;
   border: 1px dashed rgba(96, 165, 250, 0.16);
-  background: rgba(16, 2, 2, 0.4);
+  background: rgba(2, 10, 16, 0.4);
 }
 
 .dash-profile-link span {
@@ -1641,7 +1641,7 @@
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: #fff0f1;
+  color: #f1f9ff;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1697,7 +1697,7 @@
   margin-top: 4px;
   border-radius: 8px;
   border: 1px dashed rgba(96, 165, 250, 0.16);
-  background: rgba(16, 2, 2, 0.4);
+  background: rgba(2, 10, 16, 0.4);
   color: #558ad4;
   font-family: inherit;
   font-size: 11px;
@@ -1709,7 +1709,7 @@
 .about-copy:hover {
   background: rgba(96, 165, 250, 0.07);
   border-color: rgba(96, 165, 250, 0.28);
-  color: #fff1f1;
+  color: #f1f9ff;
 }
 
 .about-preview .dash-secondary {
@@ -1742,8 +1742,8 @@
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid rgba(96, 165, 250, 0.14);
-  background: rgba(18, 2, 3, 0.55);
-  color: #ffeaeb;
+  background: rgba(3, 11, 18, 0.55);
+  color: #ebf6ff;
   font-family: inherit;
   font-size: 12.5px;
   line-height: 1.5;
@@ -1764,7 +1764,7 @@
 .about-field input:focus,
 .about-field textarea:focus {
   border-color: rgba(96, 165, 250, 0.4);
-  background: rgba(26, 4, 5, 0.78);
+  background: rgba(5, 17, 26, 0.78);
 }
 
 .about-field small {
@@ -1795,7 +1795,7 @@
 }
 
 .about-readonly b {
-  color: #ebc6c7;
+  color: #c7dbeb;
   font-weight: 550;
   min-width: 0;
   overflow: hidden;
@@ -1850,7 +1850,7 @@
 }
 
 .dash-foot a:hover {
-  color: #ffe6e7;
+  color: #e7f4ff;
 }
 
 /* ---------------------------------------------------------------- gate */
@@ -1901,7 +1901,7 @@
   border: 1px solid rgba(96, 165, 250, 0.18);
   background:
     radial-gradient(520px 300px at 50% 0%, rgba(96, 165, 250, 0.11), transparent 65%),
-    linear-gradient(160deg, rgba(46, 10, 11, 0.94), rgba(17, 3, 3, 0.97));
+    linear-gradient(160deg, rgba(11, 30, 46, 0.94), rgba(3, 11, 17, 0.97));
   box-shadow:
     0 60px 130px -60px #000,
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -1958,7 +1958,7 @@
 }
 
 .dash-gate-back:hover {
-  color: #ffdfe0;
+  color: #e0f1ff;
 }
 
 /* ----------------------------------------------------------- animations */
@@ -2273,7 +2273,7 @@
 }
 
 .dash-nav-item {
-  color: #a99a9b;
+  color: #9ba3a9;
 }
 
 .dash-nav-item:hover {
@@ -2300,16 +2300,16 @@
 .dash-soon {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
-  color: #796b6b;
+  color: #6b7379;
 }
 
 .dash-nav-item:disabled,
 .dash-nav-item:disabled:hover {
-  color: #6a5c5c;
+  color: #5c646a;
 }
 
 .dash-rail-link {
-  color: #98898a;
+  color: #8a9298;
 }
 
 .dash-rail-link:hover {
@@ -2328,13 +2328,13 @@
 .dash-icon-btn {
   border-color: rgba(255, 255, 255, 0.09);
   background: rgba(255, 255, 255, 0.035);
-  color: #9f8f90;
+  color: #90989f;
 }
 
 .dash-icon-btn:hover {
   border-color: rgba(85, 138, 212, 0.28);
   background: rgba(85, 138, 212, 0.12);
-  color: #ffeaeb;
+  color: #ebf6ff;
 }
 
 .dash-crumbs {
@@ -2343,15 +2343,15 @@
   gap: 7px;
   margin-bottom: 15px;
   font-size: 11px;
-  color: #7e6f6f;
+  color: #6f777e;
 }
 
 .dash-crumbs a {
-  color: #988a8a;
+  color: #8a9298;
 }
 
 .dash-crumbs a:hover {
-  color: #ffeaeb;
+  color: #ebf6ff;
 }
 
 .dash-crumbs-sep {
@@ -2371,23 +2371,23 @@
 }
 
 .dash-kicker {
-  color: #8b7c7d;
+  color: #7d858b;
 }
 
 
 
 .dash-top p {
-  color: #968687;
+  color: #878f96;
 }
 
 .dash-live {
   border-color: rgba(255, 255, 255, 0.09);
   background: rgba(255, 255, 255, 0.03);
-  color: #988a8a;
+  color: #8a9298;
 }
 
 .dash-live i {
-  background: #645656;
+  background: #565e64;
 }
 
 .dash-live.is-live {
@@ -2416,7 +2416,7 @@
 }
 
 .dash-stat-label {
-  color: #958586;
+  color: #868e95;
 }
 
 .dash-stat-value {
@@ -2424,7 +2424,7 @@
 }
 
 .dash-stat small {
-  color: #7d6d6e;
+  color: #6e767d;
 }
 
 .dash-stat-icon {
@@ -2441,11 +2441,11 @@
 
 .dash-panel-head p,
 .dash-panel-sub {
-  color: #928384;
+  color: #848c92;
 }
 
 .dash-panel-hint {
-  color: #928384;
+  color: #848c92;
 }
 
 .dash-section-icon {
@@ -2460,7 +2460,7 @@
 }
 
 .dash-score-head {
-  color: #968687;
+  color: #878f96;
 }
 
 .dash-score-head b {
@@ -2468,7 +2468,7 @@
 }
 
 .dash-score p {
-  color: #807071;
+  color: #717980;
 }
 
 .dash-progress {
@@ -2485,7 +2485,7 @@
 }
 
 .dash-stat-row-label {
-  color: #8d7d7e;
+  color: #7e868d;
 }
 
 .dash-stat-row-value {
@@ -2495,13 +2495,13 @@
 .dash-copy {
   border-color: rgba(255, 255, 255, 0.09);
   background: rgba(255, 255, 255, 0.03);
-  color: #a39394;
+  color: #949ca3;
 }
 
 .dash-copy:hover {
   border-color: rgba(85, 138, 212, 0.3);
   background: rgba(85, 138, 212, 0.12);
-  color: #ffeff0;
+  color: #f0f8ff;
 }
 
 .dash-signal {
@@ -2517,7 +2517,7 @@
 .dash-signal-icon {
   border-color: rgba(255, 255, 255, 0.08);
   background: #111113;
-  color: #7e6f6f;
+  color: #6f777e;
 }
 
 .dash-signal-icon.is-ok {
@@ -2531,15 +2531,15 @@
 }
 
 .dash-signal-text span {
-  color: #827273;
+  color: #737b82;
 }
 
 .dash-signal-value {
-  color: #8d7d7e;
+  color: #7e868d;
 }
 
 .dash-signal-value i {
-  background: #584a4a;
+  background: #4a5258;
 }
 
 .dash-signal-value i.is-ok {
@@ -2552,25 +2552,25 @@
 }
 
 .about-handle {
-  color: #8d7d7e;
+  color: #7e868d;
 }
 
 .about-bio {
-  color: #b8aaaa;
+  color: #aab2b8;
 }
 
 .about-bio.is-empty {
-  color: #756667;
+  color: #676f75;
 }
 
 .about-meta span {
-  color: #8a7a7b;
+  color: #7b838a;
 }
 
 .about-copy {
   border-color: rgba(255, 255, 255, 0.09);
   background: #0c0c0d;
-  color: #a39394;
+  color: #949ca3;
 }
 
 .about-copy:hover {
@@ -2580,7 +2580,7 @@
 }
 
 .about-field > span {
-  color: #958586;
+  color: #868e95;
 }
 
 .about-field input,
@@ -2592,7 +2592,7 @@
 
 .about-field input::placeholder,
 .about-field textarea::placeholder {
-  color: #695b5b;
+  color: #5b6369;
 }
 
 .about-field input:focus,
@@ -2603,7 +2603,7 @@
 
 .about-field small,
 .about-note {
-  color: #7c6d6d;
+  color: #6d757c;
 }
 
 .about-readonly {
@@ -2612,7 +2612,7 @@
 }
 
 .about-readonly span {
-  color: #8e7f7f;
+  color: #7f878e;
 }
 
 .about-readonly b {
@@ -2622,7 +2622,7 @@
 .dash-secondary {
   border-color: rgba(255, 255, 255, 0.09);
   background: #0c0c0d;
-  color: #b4a4a5;
+  color: #a5adb4;
 }
 
 .dash-secondary:hover {
@@ -2658,20 +2658,20 @@
 }
 
 .dash-gate-card > p {
-  color: #988a8a;
+  color: #8a9298;
 }
 
 .dash-gate-back {
-  color: #897879;
+  color: #798289;
 }
 
 .dash-foot {
   border-top-color: rgba(255, 255, 255, 0.06);
-  color: #6c5e5e;
+  color: #5e666c;
 }
 
 .dash-foot a {
-  color: #988a8a;
+  color: #8a9298;
 }
 
 html:has(.dash) {
@@ -2684,11 +2684,11 @@ html:has(.dash) ::-webkit-scrollbar-track {
 
 html:has(.dash) ::-webkit-scrollbar-thumb {
   border-color: #050505;
-  background: linear-gradient(180deg, #18263b, #705f60);
+  background: linear-gradient(180deg, #18263b, #606970);
 }
 
 html:has(.dash) ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #473a3a, var(--accent, #3b82f6));
+  background: linear-gradient(180deg, #3a4147, var(--accent, #3b82f6));
 }
 
 html:has(.dash) ::-webkit-scrollbar-corner {
@@ -2728,13 +2728,13 @@ body:has(.dash) {
 
 .dash-group-head {
   padding: 8px 9px;
-  color: #b1a3a3;
+  color: #a3abb1;
   font-size: 11px;
   font-weight: 600;
 }
 
 .dash-group-head[aria-expanded="false"] {
-  color: #8a7b7b;
+  color: #7b838a;
 }
 
 .dash-group-head:hover {
@@ -2743,7 +2743,7 @@ body:has(.dash) {
 }
 
 .dash-group-chevron {
-  color: #776969;
+  color: #697177;
   opacity: 0.7;
 }
 
@@ -2769,7 +2769,7 @@ body:has(.dash) {
 
 
 .dash-top p {
-  color: #938585;
+  color: #858d93;
 }
 
 .dash-crumbs {
@@ -2805,7 +2805,7 @@ body:has(.dash) {
 }
 
 .dash-stat-label {
-  color: #8e7f7f;
+  color: #7f878e;
   font-size: 11px;
 }
 
@@ -2814,7 +2814,7 @@ body:has(.dash) {
 }
 
 .dash-stat small {
-  color: #7a6b6b;
+  color: #6b737a;
   font-size: 11px;
 }
 
@@ -2852,7 +2852,7 @@ body:has(.dash) {
 .dash-chart-kicker {
   display: block;
   margin-bottom: 5px;
-  color: #7c6d6d;
+  color: #6d757c;
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.17em;
@@ -2865,7 +2865,7 @@ body:has(.dash) {
 
 .dash-chart-panel .dash-panel-head p {
   max-width: 44ch;
-  color: #8d7e7e;
+  color: #7e868d;
 }
 
 .chart-count {
@@ -2875,7 +2875,7 @@ body:has(.dash) {
   padding: 0 9px;
   border-color: rgba(255, 255, 255, 0.09);
   background: #111214;
-  color: #b7a9a9;
+  color: #a9b1b7;
 }
 
 .dash-chart-panel .dash-live {
@@ -2907,7 +2907,7 @@ body:has(.dash) {
 }
 
 .chart-donut-center span {
-  color: #7e6f6f;
+  color: #6f777e;
 }
 
 .chart-ring-track {
@@ -2928,7 +2928,7 @@ body:has(.dash) {
   display: flex;
   justify-content: space-between;
   margin: 0 0 6px;
-  color: #6d5f5f;
+  color: #5f676d;
   font-size: 11px;
   letter-spacing: 0.08em;
 }
@@ -2963,7 +2963,7 @@ body:has(.dash) {
 .profile-bar-meta > small {
   min-width: 0;
   overflow: hidden;
-  color: #746666;
+  color: #666e74;
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2983,11 +2983,11 @@ body:has(.dash) {
 }
 
 .profile-bar.is-missing .profile-bar-meta > span {
-  color: #988a8a;
+  color: #8a9298;
 }
 
 .profile-bar.is-missing .profile-bar-meta > b {
-  color: #766868;
+  color: #687076;
 }
 
 .profile-bar-track {
@@ -3023,7 +3023,7 @@ body:has(.dash) {
   margin-top: 16px;
   padding-top: 13px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  color: #7a6c6c;
+  color: #6c747a;
   font-size: 11px;
 }
 
@@ -3077,7 +3077,7 @@ body:has(.dash) {
 }
 
 .reach-guild-text span {
-  color: #7e6f6f;
+  color: #6f777e;
   font-size: 11px;
 }
 
@@ -3120,7 +3120,7 @@ body:has(.dash) {
 }
 
 .reach-stats span {
-  color: #8a7b7b;
+  color: #7b838a;
   font-size: 11px;
 }
 
@@ -3156,7 +3156,7 @@ body:has(.dash) {
 
 .reach-note {
   margin: 8px 0 0;
-  color: #6d5f5f;
+  color: #5f676d;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -3192,7 +3192,7 @@ body:has(.dash) {
 .chart-empty p {
   max-width: 30ch;
   margin: 0;
-  color: #7a6c6c;
+  color: #6c747a;
   font-size: 11px;
   line-height: 1.55;
 }
@@ -3227,7 +3227,7 @@ body:has(.dash) {
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  color: #6e6060;
+  color: #60686e;
   font-size: 11px;
 }
 
@@ -3282,7 +3282,7 @@ body:has(.dash) {
 
 .dash-share-text small {
   overflow: hidden;
-  color: #7a6c6c;
+  color: #6c747a;
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3297,7 +3297,7 @@ body:has(.dash) {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.03);
-  color: #918283;
+  color: #838b91;
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
@@ -3305,7 +3305,7 @@ body:has(.dash) {
 .dash-share-copy:hover {
   border-color: rgba(85, 138, 212, 0.26);
   background: rgba(85, 138, 212, 0.1);
-  color: #ffeaeb;
+  color: #ebf6ff;
 }
 
 .dash-user-row {
@@ -3357,7 +3357,7 @@ body:has(.dash) {
 }
 
 .dash-user-meta > span {
-  color: #756667;
+  color: #676f75;
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.13em;
@@ -3375,7 +3375,7 @@ body:has(.dash) {
 
 .dash-user-meta small {
   overflow: hidden;
-  color: #857576;
+  color: #767e85;
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3383,7 +3383,7 @@ body:has(.dash) {
 
 .dash-user-chevron {
   flex: none;
-  color: #7a6b6b;
+  color: #6b737a;
   transform: rotate(-90deg);
   transition: transform 0.2s var(--ease-out), color 0.18s ease;
 }
@@ -3432,7 +3432,7 @@ body:has(.dash) {
 }
 
 .dash-user-pop-id small {
-  color: #827273;
+  color: #737b82;
   font-size: 11px;
 }
 
@@ -3464,7 +3464,7 @@ body:has(.dash) {
   border: 0;
   border-radius: 8px;
   background: none;
-  color: #b2a3a3;
+  color: #a3abb2;
   font-family: inherit;
   font-size: 11px;
   text-align: left;
@@ -3478,7 +3478,7 @@ body:has(.dash) {
 
 .dash-user-pop-item svg:first-child {
   flex: none;
-  color: #9a8788;
+  color: #88929a;
 }
 
 .dash-user-pop-item:hover svg:first-child {
@@ -3664,7 +3664,7 @@ body:has(.dash) {
 }
 
 .adm-gate p {
-  color: var(--muted, #a69596);
+  color: var(--muted, #969fa6);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -3684,7 +3684,7 @@ body:has(.dash) {
 
 .adm-top p {
   margin-top: 6px;
-  color: var(--muted, #a69596);
+  color: var(--muted, #969fa6);
   font-size: 12.5px;
 }
 
@@ -3717,7 +3717,7 @@ body:has(.dash) {
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted-2, #806f70);
+  color: var(--muted-2, #707980);
 }
 
 .adm-stat-value {
@@ -3725,7 +3725,7 @@ body:has(.dash) {
 }
 
 .adm-stat small {
-  color: var(--muted-2, #806f70);
+  color: var(--muted-2, #707980);
   font-size: 11px;
 }
 
@@ -3770,7 +3770,7 @@ body:has(.dash) {
   padding: 7px 11px;
   border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
   border-radius: 10px;
-  color: var(--muted-2, #806f70);
+  color: var(--muted-2, #707980);
 }
 
 .adm-search input {
@@ -3800,7 +3800,7 @@ body:has(.dash) {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted-2, #806f70);
+  color: var(--muted-2, #707980);
   border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.08));
 }
 
@@ -3839,13 +3839,13 @@ body:has(.dash) {
 
 .adm-user-cell small {
   display: block;
-  color: var(--muted-2, #806f70);
+  color: var(--muted-2, #707980);
   font-size: 11px;
 }
 
 .adm-claim {
   display: block;
-  color: var(--muted, #a69596);
+  color: var(--muted, #969fa6);
   font-size: 11.5px;
   line-height: 1.7;
 }
@@ -3855,7 +3855,7 @@ body:has(.dash) {
 }
 
 .adm-claim--unset b {
-  color: var(--muted-2, #806f70);
+  color: var(--muted-2, #707980);
 }
 
 .adm-toggle {
@@ -3866,7 +3866,7 @@ body:has(.dash) {
   border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
   border-radius: 999px;
   background: none;
-  color: var(--muted, #a69596);
+  color: var(--muted, #969fa6);
   font: inherit;
   font-size: 11px;
   font-weight: 600;
@@ -3919,7 +3919,7 @@ body:has(.dash) {
 .adm-notes li {
   display: flex;
   gap: 9px;
-  color: var(--muted, #a69596);
+  color: var(--muted, #969fa6);
   font-size: 12.5px;
   line-height: 1.65;
 }
@@ -3973,7 +3973,7 @@ body:has(.dash) {
 }
 
 .dash-link-domain {
-  color: var(--muted-2, #806f70);
+  color: var(--muted-2, #707980);
   font-size: 12.5px;
 }
 
@@ -4063,7 +4063,7 @@ body:has(.dash) {
   display: grid;
   place-items: center;
   background: rgba(85, 138, 212, 0.12);
-  color: #f7cbcc;
+  color: #cce4f7;
   font-weight: 700;
   font-size: 17px;
 }
@@ -4083,7 +4083,7 @@ body:has(.dash) {
 }
 
 .settings-hero-name small {
-  color: #a18a8b;
+  color: #8b97a1;
   font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
@@ -4106,7 +4106,7 @@ body:has(.dash) {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
-  color: #ccb9ba;
+  color: #bac4cc;
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.04em;
@@ -4129,7 +4129,7 @@ body:has(.dash) {
 .settings-tag--dim {
   border-color: transparent;
   background: transparent;
-  color: #846d6e;
+  color: #6e7a84;
 }
 
 .settings-hero-actions {
@@ -4372,7 +4372,7 @@ body:has(.dash) {
 }
 
 .dash-rank-figure span {
-  color: #806f70;
+  color: #707980;
   font-size: 11px;
   font-weight: 620;
   letter-spacing: 0.13em;
@@ -4380,7 +4380,7 @@ body:has(.dash) {
 }
 
 .dash-rank-figure b {
-  color: #f9f1f1;
+  color: #f1f5f9;
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.05em;
@@ -4407,7 +4407,7 @@ body:has(.dash) {
 .dash-rank-body small {
   display: block;
   margin-top: 3px;
-  color: #867576;
+  color: #767f86;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -4417,7 +4417,7 @@ body:has(.dash) {
   flex: none;
   align-items: center;
   gap: 4px;
-  color: #9d8b8c;
+  color: #8c959d;
   font-size: 11px;
   font-weight: 550;
   transition: color 0.16s ease;
@@ -4450,7 +4450,7 @@ body:has(.dash) {
 
 .dash-board-head p {
   margin: 3px 0 0;
-  color: #806f70;
+  color: #707980;
   font-size: 11px;
 }
 
@@ -4463,7 +4463,7 @@ body:has(.dash) {
   padding: 0 7px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 999px;
-  color: #9d8b8c;
+  color: #8c959d;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
@@ -4511,12 +4511,12 @@ body:has(.dash) {
 
 .board--dash .board-id span {
   margin-top: 1px;
-  color: #7c6b6c;
+  color: #6c757c;
   font-size: 11px;
 }
 
 .board--dash .board-joined {
-  color: #7c6b6c;
+  color: #6c757c;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
@@ -4534,7 +4534,7 @@ body:has(.dash) {
 
 .dash-board-empty {
   margin: 16px 0 0;
-  color: #8d7d7e;
+  color: #7e868d;
   font-size: 11px;
   line-height: 1.6;
 }
@@ -4595,7 +4595,7 @@ body:has(.dash) {
 }
 
 .settings-connection-copy small {
-  color: #8d7d7e;
+  color: #7e868d;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -4668,13 +4668,13 @@ body:has(.dash) {
 .dash-edit-head span {
   display: grid;
   gap: 1px;
-  color: #977f80;
+  color: #808d97;
   font-size: 11px;
   letter-spacing: 0.02em;
 }
 
 .dash-edit-head b {
-  color: #fbf1f1;
+  color: #f1f7fb;
   font-size: 16px;
   font-weight: 680;
   letter-spacing: -0.02em;
@@ -4689,7 +4689,7 @@ body:has(.dash) {
   border: 0;
   border-radius: 9px;
   background: transparent;
-  color: #e0cfd0;
+  color: #d0d9e0;
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 550;
@@ -4873,7 +4873,7 @@ body:has(.dash) {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #977f80;
+  color: #808d97;
   font-size: 11px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -4884,7 +4884,7 @@ body:has(.dash) {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
   background: transparent;
-  color: #dbc9ca;
+  color: #cad3db;
   font-family: inherit;
   font-size: 11px;
   letter-spacing: 0;
@@ -4895,7 +4895,7 @@ body:has(.dash) {
 
 .dash-accounts-add:hover {
   border-color: rgba(85, 138, 212, 0.38);
-  color: #ffeaeb;
+  color: #ebf6ff;
 }
 
 .dash-accounts-list {
@@ -4922,7 +4922,7 @@ body:has(.dash) {
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #dac9ca;
+  color: #cad3da;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -4942,7 +4942,7 @@ body:has(.dash) {
   overflow: hidden;
   border-radius: 7px;
   background: #141619;
-  color: #f2d8d9;
+  color: #d9e7f2;
   font-size: 11px;
   font-weight: 700;
 }
@@ -4967,7 +4967,7 @@ body:has(.dash) {
 }
 
 .dash-account-copy small {
-  color: #8a7778;
+  color: #78828a;
   font-size: 11px;
 }
 
@@ -4980,7 +4980,7 @@ body:has(.dash) {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #7d6b6c;
+  color: #6c757d;
   font-family: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -4993,7 +4993,7 @@ body:has(.dash) {
 
 .dash-accounts-hint {
   margin: 0;
-  color: #7a6667;
+  color: #67717a;
   font-size: 11px;
   line-height: 1.45;
 }
@@ -5045,11 +5045,11 @@ body:has(.dash) {
 .tw-dash .tw-control input:not(#_)::placeholder,
 .tw-dash .tw-search input:not(#_)::placeholder,
 .tw-dash .tw-textarea:not(#_)::placeholder {
-  color: #907d7e;
+  color: #7e8890;
 }
 .tw-dash .tw-search:not(#_) {
   border-radius: 12px;
-  color: #9d8a8b;
+  color: #8b959d;
 }
 /* dropdown menus float above cards, so they sit one step lighter */
 .tw-dash .ui-select-pop:not(#_) {

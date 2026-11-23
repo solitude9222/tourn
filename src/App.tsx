@@ -1,3 +1,4 @@
+import {PublicPageLoading} from "./components/PublicPageLoading";
 import "./lib/preloadLinks";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AuthProvider, useAuth } from "./lib/auth";
@@ -1037,7 +1038,7 @@ function Site() {
         />
       ) : (
         <>
-          <Suspense fallback={null}><main key={route} className="page-enter">
+          <Suspense fallback={<PublicPageLoading key={route} page={route||"home"}/>}><main key={route} className="page-enter">
             {route === "contact" ? (<ContactPage/>) : route === "leaderboard" ? (
               <LeaderboardPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "shop" ? (

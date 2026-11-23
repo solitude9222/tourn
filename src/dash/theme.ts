@@ -96,7 +96,7 @@ export function useDashTheme(): [DashTheme, (theme: DashTheme) => void] {
 
 const ACCENT_KEY = "tourn.dashAccent";
 export function readDashAccent(): string {
-  try { const value = localStorage.getItem(ACCENT_KEY) || ""; return /^#[0-9a-f]{6}$/i.test(value) ? value : ""; } catch { return ""; }
+  try { let value = localStorage.getItem(ACCENT_KEY) || ""; if(["#d40410","#dc2626","#ff4d4d"].includes(value.toLowerCase())){value="#3b82f6";localStorage.setItem(ACCENT_KEY,value);} return /^#[0-9a-f]{6}$/i.test(value) ? value : ""; } catch { return ""; }
 }
 export function setDashAccent(color: string) {
   try { color ? localStorage.setItem(ACCENT_KEY, color) : localStorage.removeItem(ACCENT_KEY); } catch { /* optional */ }

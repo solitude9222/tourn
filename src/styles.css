@@ -128,7 +128,7 @@ button {
 .site-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   background: #000;
 }
@@ -5436,3 +5436,8 @@ html { scrollbar-color:#315b92 #080a0e; }
 ::-webkit-scrollbar-thumb { border-color:#080a0e; background:#315b92; }
 ::-webkit-scrollbar-thumb:hover { background:#3b82f6; }
 .app .brand img,.app .brand-mark img { filter:none; }
+
+/* The ambient canvas must never cover non-positioned pages or the footer. */
+.app--site {isolation:isolate;}
+.app--site > .site-backdrop {z-index:-1;}
+.app--site > main,.app--site > .hm-footer {position:relative;z-index:1;}
