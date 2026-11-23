@@ -1,0 +1,23 @@
+/* Standalone footer: no dependency on homepage showcase code or theme tokens. */
+footer.hm-footer {padding:44px 0 24px;border-top:1px solid #26262c;background:#09090b;color:#b4b6c2;}
+.hm-footer .hm-wrap {box-sizing:border-box;width:min(1150px,100%);padding-inline:24px;margin-inline:auto;}
+.hm-footer .hm-footer-top {display:grid;grid-template-columns:1.3fr .75fr .85fr 1.1fr;gap:32px;}
+.hm-footer .hm-footer-logo {display:inline-flex;align-items:center;gap:0;color:#f4f5fa;font-size:23px;font-weight:800;letter-spacing:-.6px;}
+.hm-footer-logo img {margin-right:10px;flex-shrink:0;}.hm-footer .hm-footer-logo span {color:#80aaff;}
+.hm-footer .hm-footer-brand p {max-width:32ch;margin:14px 0 18px;font-size:13px;line-height:1.7;color:#a8aabb;}
+.hm-footer .hm-footer-account {display:flex;gap:10px;flex-wrap:wrap;}
+.hm-footer .hm-footer-account button {min-height:44px;padding:9px 14px;border:1px solid #343746;border-radius:9px;background:#151722;color:#dfe8ff;font:inherit;font-size:13px;cursor:pointer;}
+.hm-footer .hm-footer-account button:first-child {background:#1e3270;border-color:#344f9b;color:#edf2ff;}
+.hm-footer .hm-footer-col {display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;}
+.hm-footer h2 {margin:0 0 10px;font-size:12px;font-weight:650;line-height:1.5;color:#e9ebf5;letter-spacing:.02em;}
+.hm-footer .hm-footer-col a,.hm-footer .hm-footer-link {display:flex;align-items:center;box-sizing:border-box;min-height:44px;max-width:100%;padding:8px 0;border:0;background:none;color:#b4b6c2;font:inherit;font-size:13px;line-height:1.5;text-align:left;text-decoration:none;overflow-wrap:anywhere;cursor:pointer;}
+.hm-footer .hm-footer-community {min-width:0;align-self:start;padding:20px;border:1px solid #292c38;border-radius:12px;background:#11131a;}
+.hm-footer .hm-footer-community p {margin:0 0 14px;color:#a8aabb;font-size:13px;line-height:1.65;}
+.hm-footer .hm-footer-discord {display:flex;align-items:center;gap:10px;min-height:44px;color:#9bb9ff;font-size:13px;font-weight:600;text-decoration:none;}
+.hm-footer-discord svg {flex-shrink:0;}.hm-footer-discord>span {margin-left:auto;}
+.hm-footer .hm-footer-bottom {display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-top:28px;padding-top:18px;border-top:1px solid #26262c;color:#8f92a2;font-size:12px;}
+.hm-footer .hm-footer-bottom nav {display:flex;flex-wrap:wrap;gap:4px 20px;}
+.hm-footer .hm-footer-bottom a {display:inline-flex;align-items:center;min-height:44px;color:#b4b6c2;text-decoration:none;}
+.hm-footer :is(a,button):hover {color:#fff;}.hm-footer :is(a,button):focus-visible {outline:2px solid #8aaeff;outline-offset:4px;border-radius:4px;}
+@media(max-width:1000px){.hm-footer .hm-footer-top {grid-template-columns:1fr 1fr;gap:26px;}}
+@media(max-width:600px){footer.hm-footer {padding:30px 0 calc(18px + env(safe-area-inset-bottom,0px));}.hm-footer .hm-wrap {padding-inline:20px;}.hm-footer .hm-footer-top {grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 18px;}.hm-footer .hm-footer-brand,.hm-footer .hm-footer-community {grid-column:1/-1;}.hm-footer .hm-footer-brand p {max-width:36ch;}.hm-footer .hm-footer-account button {flex:1;}.hm-footer .hm-footer-community {padding:16px;}.hm-footer .hm-footer-community p {margin-bottom:4px;}.hm-footer .hm-footer-bottom {margin-top:24px;align-items:flex-start;gap:8px;}.hm-footer .hm-footer-bottom>span {width:100%;}.hm-footer .hm-footer-bottom nav {justify-content:space-between;width:100%;gap:2px 14px;}.hm-footer .hm-footer-col a,.hm-footer .hm-footer-link {font-size:13px;}}

@@ -29,7 +29,7 @@ import { formatJoinDate } from "./lib/format";
 import { useReveal } from "./lib/useReveal";
 import { getSiteStats, type SiteStats } from "./lib/siteStats";
 import { Header } from "./components/Header";
-const Hero = lazy(() => import("./components/Sections").then(module => ({ default: module.Hero })));
+const Hero = lazy(() => import("./components/HomeHero").then(module => ({ default: module.Hero })));
 const StatsBand = lazy(() => import("./components/Sections").then(module => ({ default: module.StatsBand })));
 const BentoSection = lazy(() => import("./components/Sections").then(module => ({ default: module.BentoSection })));
 const AudioSection = lazy(() => import("./components/Sections").then(module => ({ default: module.AudioSection })));
@@ -37,7 +37,7 @@ const BadgesSection = lazy(() => import("./components/Sections").then(module => 
 const PagesSection = lazy(() => import("./components/Sections").then(module => ({ default: module.PagesSection })));
 const CtaBanner = lazy(() => import("./components/Sections").then(module => ({ default: module.CtaBanner })));
 const FaqSection = lazy(() => import("./components/Sections").then(module => ({ default: module.FaqSection })));
-const Footer = lazy(() => import("./components/Sections").then(module => ({ default: module.Footer })));
+import {Footer} from "./components/Footer";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
 import { SiteBackdrop } from "./components/Chrome";
 import { Oneko } from "./components/Oneko";
@@ -1079,13 +1079,13 @@ function Site() {
                 </DeferredHomeSection>
               </>
             )}
-          </main>
+          </main></Suspense>
 
           <Footer
             onSignIn={() => setAuthMode("signin")}
             onSignUp={() => setAuthMode("signup")}
             onFaq={openFaq}
-          /></Suspense>
+          />
         </>
       )}
       </Suspense>

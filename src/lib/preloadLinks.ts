@@ -64,6 +64,8 @@ function warmVisibleLinks(): void {
   if (!connectionAllowsWarming()) return;
   const seen = new Set<string>();
   document.querySelectorAll<HTMLAnchorElement>('a[href^="/"],a[href^="#/profile/"]').forEach((anchor) => {
+    const bounds=anchor.getBoundingClientRect();
+    if(bounds.bottom<=0||bounds.top>=innerHeight||bounds.right<=0||bounds.left>=innerWidth||!anchor.getClientRects().length)return;
     const handle = handleFrom(anchor);
     if (!handle || seen.has(handle.toLowerCase())) return;
     seen.add(handle.toLowerCase());

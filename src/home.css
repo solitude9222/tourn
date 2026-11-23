@@ -1441,3 +1441,5 @@ button.hm-metric:focus-visible {
 .app.app--home .hm-hero-sub { max-width:440px; line-height:1.75; }
 .app.app--home .hm-btn--blue { background:#2563eb; border-color:#3b82f6; color:#fff; }
 .app.app--home .hm-btn--blue:hover { background:#3b82f6; }
+
+.hm-hero-preview-loading {display:grid;place-items:center;min-height:340px;max-width:100%;border:1px solid #262b3a;border-radius:20px;background:#10131b;color:#a7b4d0;font-size:13px;}
