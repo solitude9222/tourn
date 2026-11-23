@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import "../headerAccount.css";
+import { useEffect, useId, useRef, useState } from "react";
 import { hrefFor, type Route } from "../lib/router";
 import { preloadRoute } from "../lib/routePreload";
 import { useAuth, type Account } from "../lib/auth";
@@ -7,6 +8,7 @@ import {
   ChevronIcon,
   CloseIcon,
   GridIcon,
+  ExternalIcon,
   LogoutIcon,
   MenuIcon,
   SettingsIcon,
@@ -45,7 +47,13 @@ export function Header({
   const { isOwner, setAlias, user: viewer } = useAuth();
   const avatarUrl = (avatar || user?.avatarUrl || "").trim();
   const publicName = user?.alias?.trim() || user?.username || "";
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuVisible] = useState(false);
+  const [menuClosing,setMenuClosing]=useState(false);
+  const closeTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const triggerRef=useRef<HTMLButtonElement>(null);
+  const menuId=useId();
+  const setMenuOpen=(value:boolean|((open:boolean)=>boolean))=>{const next=typeof value==='function'?value(menuOpen):value;if(closeTimer.current)clearTimeout(closeTimer.current);if(next){setMenuClosing(false);setMenuVisible(true);}else if(menuOpen){setMenuVisible(false);setMenuClosing(true);closeTimer.current=setTimeout(()=>setMenuClosing(false),160);}else{setMenuVisible(false);setMenuClosing(false);}};
+  useEffect(()=>()=>{if(closeTimer.current)clearTimeout(closeTimer.current);},[]);
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [cartTotal, setCartTotal] = useState(() => cartCount());
@@ -66,7 +74,8 @@ export function Header({
       if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if(event.key==='Escape'){event.preventDefault();setMenuOpen(false);triggerRef.current?.focus();return;}
+      if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key)||!menuRef.current?.contains(event.target as Node))return;event.preventDefault();const items=Array.from(menuRef.current.querySelectorAll<HTMLElement>('[role=menuitem]'));const index=items.indexOf(document.activeElement as HTMLElement);const next=event.key==='Home'?0:event.key==='End'?items.length-1:event.key==='ArrowDown'?(index+1)%items.length:(index-1+items.length)%items.length;items[next]?.focus();
     };
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
@@ -141,18 +150,15 @@ export function Header({
           {loading ? (
             <span className="head-skeleton" aria-label="Checking sign-in state" />
           ) : user ? (
-            <div className={`profile-menu${menuOpen ? " is-open" : ""}`} ref={menuRef}>
-              <button type="button" className="profile-trigger" aria-label="Account menu" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(open=>!open)} onPointerEnter={()=>preloadRoute("dashboard")}>
+            <div className={`profile-menu${menuOpen ? " is-open" : ""}`} ref={menuRef} onBlurCapture={event=>{if(menuOpen&&!event.currentTarget.contains(event.relatedTarget as Node|null))setMenuOpen(false);}}>
+              <button ref={triggerRef} type="button" className="profile-trigger" aria-label="Account menu" aria-controls={menuId} onKeyDown={event=>{if(event.key!=="ArrowDown"&&event.key!=="ArrowUp")return;event.preventDefault();setMenuOpen(true);const last=event.key==="ArrowUp";requestAnimationFrame(()=>{const items=menuRef.current?.querySelectorAll<HTMLElement>("[role=menuitem]");if(items?.length)items[last?items.length-1:0].focus();});}} aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(open=>!open)} onPointerEnter={()=>preloadRoute("dashboard")}>
                 {avatarUrl?<img className="avatar avatar--xs" src={avatarUrl} alt=""/>:<span className="avatar avatar--xs avatar--initial">{publicName.slice(0,1).toUpperCase()}</span>}
-                <span className="profile-trigger-copy"><span className="profile-trigger-name">{publicName}</span><span className="profile-trigger-sub">Account</span></span><ChevronIcon size={14} className="profile-chevron"/>
+                <span className="profile-trigger-copy"><span className="profile-trigger-name">{publicName}</span><span className="profile-trigger-sub">My account</span></span><ChevronIcon size={14} className="profile-chevron"/>
               </button>
 
-              {menuOpen ? (
-                <div className="menu" role="menu">
-                  <div className="menu-head">
-                    <p className="menu-name">{publicName}</p>
-                    <p className="menu-mail">{user.email ?? "Discord account"}</p>
-                  </div>
+              {menuOpen||menuClosing ? (
+                <div id={menuId} className={`menu${menuClosing?" is-closing":""}`} role="menu" aria-label="Your account" inert={!menuOpen} onClick={event=>{if((event.target as Element).closest("a[role=menuitem]"))setMenuOpen(false);}}>
+                  <div className="menu-head">{avatarUrl?<img className="menu-account-avatar" src={avatarUrl} alt=""/>:<span className="menu-account-avatar">{publicName.slice(0,1).toUpperCase()}</span>}<div><p className="menu-name">{publicName}</p><p className="menu-mail">@{user.username}</p></div><span className="menu-account-status">Signed in</span></div>
                   <a className="menu-item" role="menuitem" href={hrefFor("dashboard")}>
                     <GridIcon size={15} />
                     Dashboard
@@ -162,9 +168,10 @@ export function Header({
                     role="menuitem"
                     href={`/${encodeURIComponent(user.username)}`}
                   >
-                    <SettingsIcon size={15} />
-                    View public bio
+                    <ExternalIcon size={15} />
+                    View profile
                   </a>
+                  <a className="menu-item" role="menuitem" href={hrefFor("dashboard")+"/settings"}><SettingsIcon size={15}/>Account settings</a>
                   {isOwner ? (
                     <button
                       type="button"

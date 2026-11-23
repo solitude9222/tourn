@@ -21,7 +21,7 @@ export function normalizeCursorArt(
   // Cropping a GIF would throw away its animation, so leave animated cursors
   // untouched and keep their measured hotspot.
   if (/^data:image\/gif/i.test(url) || /\.gif(?:[?#]|$)/i.test(url)) {
-    return detectCursorHotspot(url).then((hotspot) => ({ url, hotspot }));
+    return new Promise(resolve=>{const image=new Image();image.onerror=()=>resolve({url,hotspot:{x:0,y:0}});image.onload=()=>{void detectCursorHotspot(url).then(hotspot=>{const scale=Math.min(size/image.naturalWidth,size/image.naturalHeight);resolve({url,hotspot:{x:Math.min(size-1,Math.round((size-image.naturalWidth*scale)/2+hotspot.x*scale)),y:Math.min(size-1,Math.round((size-image.naturalHeight*scale)/2+hotspot.y*scale))}});});};image.src=url;});
   }
 
   return new Promise((resolve) => {
@@ -70,7 +70,7 @@ export function normalizeCursorArt(
           }
         }
         if (maxX < 0) {
-          resolve({ url, hotspot: { x: 0, y: 0 } });
+          resolve({ url: "", hotspot: { x: 0, y: 0 } });
           return;
         }
         const cropWidth = maxX - minX + 1;

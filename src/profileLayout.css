@@ -441,3 +441,7 @@
 
 .lkr-entry .lkr-entry-action {min-height:44px;}
 @media(prefers-reduced-motion:reduce){.lkr-entry,.lkr-entry * {animation:none!important;transition:none!important;}}
+/* Hide the system pointer only after the uploaded image has actually loaded. */
+.profile-uploaded-cursor-active,.profile-uploaded-cursor-active * {cursor:none!important;}
+.profile-uploaded-cursor {user-select:none;contain:layout paint;}
+@media(pointer:coarse){.profile-uploaded-cursor {display:none;}.profile-uploaded-cursor-active,.profile-uploaded-cursor-active * {cursor:auto!important;}}

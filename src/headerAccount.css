@@ -1,0 +1,24 @@
+/* Account controls share the blue navigation palette and spacing. */
+.site-head .profile-menu .profile-trigger {min-height:46px;max-width:220px;padding:5px 12px 5px 6px;gap:10px;border:1px solid #2b3c55;border-radius:12px;background:#111b2b;box-shadow:inset 0 1px #ffffff06;}
+.site-head .profile-menu .profile-trigger:hover,.site-head .profile-menu.is-open .profile-trigger {background:#172943;border-color:#4d76ae;}
+.site-head .profile-menu .profile-trigger .avatar {width:34px;height:34px;flex:0 0 34px;object-fit:cover;border-radius:9px;border:1px solid #395375;}
+.site-head .profile-menu .profile-trigger-copy {min-width:0;display:flex;gap:2px;text-align:left;}
+.site-head .profile-menu .profile-trigger-name {display:block;max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;line-height:17px;letter-spacing:0;}
+.site-head .profile-menu .profile-trigger-sub {font-size:11px;line-height:14px;letter-spacing:0;text-transform:none;color:#8fa8cb;}
+.site-head .profile-menu .profile-chevron {margin-left:8px;flex-shrink:0;color:#a1bddf;}
+.site-head .profile-menu .menu {box-sizing:border-box;position:absolute;right:0;top:calc(100% + 10px);width:310px;min-width:0;max-width:calc(100vw - 28px);max-height:calc(100dvh - 95px);overflow:auto;overscroll-behavior:contain;padding:8px;border:1px solid #304b70;border-radius:14px;background:#101b2c;box-shadow:0 16px 48px #0008;transform-origin:top right;}
+.site-head .profile-menu .menu-head {display:flex;align-items:center;gap:10px;padding:12px 8px 16px;border-bottom:1px solid #263b55;margin-bottom:8px;}
+.site-head .profile-menu .menu-head>div {min-width:0;flex:1;}
+.site-head .profile-menu .menu-account-avatar {display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;object-fit:cover;border:1px solid #385479;border-radius:11px;background:#203552;color:#d4e5ff;font-weight:600;}
+.site-head .profile-menu .menu-name {margin:0 0 4px;font-size:14px;font-weight:600;color:#e5efff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.site-head .profile-menu .menu-mail {margin:0;font-size:11px;color:#96aecf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.site-head .profile-menu .menu-account-status {font-size:10px;color:#a6c6f3;border:1px solid #2c4d79;border-radius:5px;padding:4px 6px;white-space:nowrap;}
+.site-head .profile-menu .menu-item {box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:11px 12px;border-radius:8px;font-size:13px;line-height:18px;color:#c2d5ef;}
+.site-head .profile-menu .menu-item svg {flex:0 0 16px;}
+.site-head .profile-menu .menu-item:hover,.site-head .profile-menu .menu-item:focus-visible {background:#203957;color:#f0f6ff;}
+.site-head .profile-menu .menu-item:focus-visible,.site-head .profile-menu .profile-trigger:focus-visible {outline:2px solid #8cbcff;outline-offset:2px;}
+.site-head .profile-menu .menu-item--danger {margin-top:8px;border-top:1px solid #29405e;border-radius:0 0 8px 8px;color:#a7c4eb;}
+@keyframes accountHeaderOut {to{opacity:0;transform:translateY(-5px) scale(.98)}}
+.site-head .profile-menu .menu.is-closing {animation:accountHeaderOut .16s ease both;pointer-events:none;}
+@media(max-width:650px){.site-head .profile-menu .profile-trigger {max-width:150px;gap:7px;padding-right:8px;}.site-head .profile-menu .profile-trigger-name {max-width:70px;font-size:12px;}.site-head .profile-menu .profile-trigger-sub {display:none;}.site-head .profile-menu .profile-chevron {margin-left:0;}.site-head .profile-menu .menu {position:fixed;right:14px;top:72px;}}
+@media(prefers-reduced-motion:reduce){.site-head .profile-menu .menu,.site-head .profile-menu .menu.is-closing {animation:none;transition:none;}}

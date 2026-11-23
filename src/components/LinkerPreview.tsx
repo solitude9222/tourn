@@ -1,3 +1,4 @@
+import {CustomCursor} from "./CustomCursor";
 import {WidgetBoundary} from "./WidgetBoundary";
 import {normalizeStudio} from "../lib/studioOptions";
 import {useEffectsVisible} from "./StudioRuntime";
@@ -791,6 +792,7 @@ export function LinkerPreview({
       ) : null}
       {hasTrack && assets.audio.muteButton && !previewMode ? <aside className={`lkr-popup-audio lkr-popup-audio--${assets.audio.popupSide}`} style={{ "--popup-offset": `${assets.audio.popupOffset}px` } as CSSProperties} aria-label="Mute button"><MuteButton settings={assets.audio} /></aside> : null}
       {effectsVisible?<OverlayEffectLayer settings={assets.effects.overlay} />:null}
+      {matchMedia("(pointer:fine)").matches&&(customCursorUrl||pointerCursorUrl)?<CustomCursor host={pageHost} normal={displayCursorUrl?{url:displayCursorUrl,hotspot:{x:manualHotspot?assets.cursor.hotspotX:preparedCursors.cursor?.hotspot.x??0,y:manualHotspot?assets.cursor.hotspotY:preparedCursors.cursor?.hotspot.y??0}}:null} pointer={displayPointerUrl?{url:displayPointerUrl,hotspot:{x:manualHotspot?assets.cursor.hotspotX:preparedCursors.pointer?.hotspot.x??0,y:manualHotspot?assets.cursor.hotspotY:preparedCursors.pointer?.hotspot.y??0}}:null}/>:null}
       {effectsVisible&&matchMedia("(pointer:fine)").matches?<CursorTrailLayer settings={assets.cursor} />:null}
       {user.aliasRequired && interactive ? <AliasRequiredOverlay account={user} owner={viewer?.id === user.id} /> : null}
       {entryOpen ? (

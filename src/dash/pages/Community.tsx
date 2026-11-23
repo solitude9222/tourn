@@ -129,7 +129,7 @@ export function AssetBrowserPage() {
     } else if (asset.type === "Cursor") {
       setAbout((current) => ({
         ...current,
-        assets: { ...current.assets, cursor: { ...current.assets.cursor, imageUrl: asset.url } },
+        assets: { ...current.assets, cursor: { ...current.assets.cursor, style: "custom", imageUrl: asset.url,hotspotX:0,hotspotY:0 } },
       }));
     } else {
       setAbout((current) => ({
