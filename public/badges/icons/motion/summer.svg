@@ -1,0 +1,11 @@
+<!-- Derived from Lucide sun; ISC license: ./LICENSE. Motion by Tourn. --><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><defs><g id="summerbase" fill="none" stroke="#ffd21f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><title>Summer 2026</title>
+  <circle cx="12" cy="12" r="4" />
+  <path d="M12 2v2" />
+  <path d="M12 20v2" />
+  <path d="m4.93 4.93 1.41 1.41" />
+  <path d="m17.66 17.66 1.41 1.41" />
+  <path d="M2 12h2" />
+  <path d="M20 12h2" />
+  <path d="m6.34 17.66-1.41 1.41" />
+  <path d="m19.07 4.93-1.41 1.41" />
+</g><mask id="summermask" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24" style="mask-type:alpha"><use href="#summerbase"/></mask></defs><g><animateTransform attributeName="transform" type="translate" values="0 0;0 -0.8;0 0" dur="3.2s" repeatCount="indefinite"/><use href="#summerbase"/><g mask="url(#summermask)"><g transform="rotate(20 12 12)"><rect x="-12" y="-10" width="5" height="44" fill="#fff" opacity=".65"><animateTransform attributeName="transform" type="translate" values="0 0;46 0;46 0" keyTimes="0;.6;1" dur="3.6s" repeatCount="indefinite"/></rect></g></g></g></svg>

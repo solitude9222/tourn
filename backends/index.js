@@ -583,7 +583,7 @@ async function earnedBadges(user, profile) {
 
 const RESERVED = new Set([
   "admin", "about", "shop", "leaderboard", "dashboard", "profile", "demo",
-  "login", "signin", "signup", "help", "support", "api", "assets", "premium",
+  "login", "signin", "signup", "help", "support", "api", "assets", "premium", "contact",
 ]);
 
 async function claimTaken(clean, exceptUserId) {

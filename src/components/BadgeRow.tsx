@@ -1,3 +1,4 @@
+import {useReducedMotion} from "../lib/useReducedMotion";
 import { Fragment, useState, type CSSProperties } from "react";
 import { hexToRgba } from "../lib/about";
 import { badgeDef, type BadgeInstance, type BadgeStyle } from "../lib/badges";
@@ -13,6 +14,8 @@ export function BadgeChip({
   style: BadgeStyle;
   size?: number;
 }) {
+  const reduced=useReducedMotion();
+  const animated=style.animated!==false&&!reduced;
   const def = badgeDef(badge.id);
   // Animated art is the default. If it cannot load, try the still version, then
   // fall back to a monogram rather than a broken-image icon.
@@ -22,7 +25,7 @@ export function BadgeChip({
   const px = size ?? 24;
   const glowAlpha = Math.round((style.glowIntensity / 100) * 255).toString(16).padStart(2, "0");
   const glowRadius = style.glowRadius ?? 12;
-  const art = style.animated === false ? def.artStatic || def.art : artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
+  const art = artStage>=2 ? "" : !animated ? def.artStatic || def.art : artStage === 0 ? def.art : artStage === 1 && def.artStatic ? def.artStatic : "";
   const maskArt = def.artStatic || def.art;
   const tint = style.monochrome ? style.monoColor : def.color;
 
@@ -55,7 +58,7 @@ export function BadgeChip({
 
   return (
     <span
-      className={`badge-chip${style.glow ? " has-glow" : ""}${style.animated !== false && style.glowPulse ? " glow-pulse" : ""} badge-anim--${style.animated === false ? "none" : style.animation}${art ? "" : " badge-chip--monogram"}`}
+      className={`badge-chip${style.glow ? " has-glow" : ""}${animated && style.glowPulse ? " glow-pulse" : ""} badge-anim--${!animated ? "none" : style.animation}${art ? "" : " badge-chip--monogram"}`}
       style={chipStyle}
       title={def.name}
     >

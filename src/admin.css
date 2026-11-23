@@ -6,7 +6,7 @@
 
 .adm {
   --adm-brand: var(--accent-text, #60a5fa);
-  --adm-brand-strong: var(--accent, #d40410);
+  --adm-brand-strong: var(--accent, #558ad4);
   --adm-brand-soft: rgba(59, 130, 246, 0.16);
   --adm-ink: var(--page, #0b0b0d);
   --adm-glass: rgba(255, 255, 255, 0.03);
@@ -132,7 +132,7 @@
 
 .adm-btn--primary:hover {
   border-color: transparent;
-  background: linear-gradient(135deg, #ffd3d4 0%, #ffc2c4 55%, #f7a3a6 100%);
+  background: linear-gradient(135deg, #ffd3d4 0%, #66a6ff 55%, #63a1f7 100%);
   color: #0b0b0d;
 }
 
@@ -929,7 +929,7 @@
 
 .adm-mini--danger {
   border-color: rgba(150, 158, 176, 0.22);
-  color: #f0a3a3;
+  color: #609cf0;
 }
 
 .adm-mini--danger:hover {
@@ -2072,7 +2072,7 @@
 
 .adm.adm--embedded {
   --adm-brand: var(--accent-text, #60a5fa);
-  --adm-brand-strong: var(--accent, #d40410);
+  --adm-brand-strong: var(--accent, #558ad4);
   --adm-brand-soft: rgba(59, 130, 246, 0.14);
   --adm-line: var(--border, #1f1f1f);
   --adm-line-soft: #1b1b1f;
@@ -2218,7 +2218,7 @@
 
 .adm.adm--embedded .adm-btn--primary:hover {
   border-color: transparent;
-  background: #f2161c;
+  background: #619df2;
   color: #fff;
 }
 
@@ -2309,7 +2309,7 @@
 }
 .adm-serial-error {
   margin: 10px 0 0;
-  color: #e09393;
+  color: #5a92e0;
   font-size: 12px;
 }
 .adm-serial-skipped {
@@ -2385,13 +2385,13 @@
 .adm-action--primary {
   border-color: #eef2f8;
   background: #eef2f8;
-  color: #1c1010;
+  color: #0b121c;
 }
 
 .adm-action--primary:hover:not(:disabled) {
   border-color: #ffffff;
   background: #ffffff;
-  color: #1c1010;
+  color: #0b121c;
 }
 
 .adm-field {
@@ -2574,8 +2574,8 @@
 .adm input:focus-visible,
 .adm textarea:focus-visible {
   outline: none;
-  border-color: rgba(245, 125, 129, 0.6);
-  box-shadow: 0 0 0 3px rgba(245, 125, 129, 0.14);
+  border-color: rgba(98, 159, 245, 0.6);
+  box-shadow: 0 0 0 3px rgba(98, 159, 245, 0.14);
 }
 
 .adm .adm-field {
@@ -2624,8 +2624,8 @@
 
 .adm .adm-check input[type="checkbox"]:checked,
 .adm .adm-rule-options input[type="checkbox"]:checked {
-  border-color: rgba(245, 125, 129, 0.9);
-  background: #f57d81;
+  border-color: rgba(98, 159, 245, 0.9);
+  background: #629ff5;
 }
 
 .adm .adm-check input[type="checkbox"]:checked::after,
@@ -2636,7 +2636,7 @@
 
 .adm .adm-check input[type="checkbox"]:focus-visible,
 .adm .adm-rule-options input[type="checkbox"]:focus-visible {
-  outline: 2px solid rgba(245, 125, 129, 0.6);
+  outline: 2px solid rgba(98, 159, 245, 0.6);
   outline-offset: 2px;
 }
 
@@ -2673,14 +2673,14 @@
 .adm .adm-action--primary {
   border-color: #eef2f8;
   background: #eef2f8;
-  color: #1c1010;
+  color: #0b121c;
 }
 
 .adm .adm-btn--primary:hover,
 .adm .adm-action--primary:hover {
   border-color: #fff;
   background: #fff;
-  color: #1c1010;
+  color: #0b121c;
 }
 
 /* the pinned server row replaces the old dropdown */
@@ -2843,7 +2843,7 @@
 }
 
 .adm .adm-tab.is-active {
-  border-color: #5a2b2d;
+  border-color: #243b5a;
   background: #10182a;
   color: #ffd6d3;
 }
@@ -2871,8 +2871,8 @@
 
 .adm .adm-btn--primary,
 .adm .adm-action--primary {
-  border-color: #b8362f;
-  background: #4a1d1f;
+  border-color: #4a78b8;
+  background: #1e304a;
   color: #ffe1df;
 }
 

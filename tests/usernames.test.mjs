@@ -6,7 +6,7 @@ let db, pool, routes;
 const owner='00000000-0000-4000-8000-000000000001', recipient='00000000-0000-4000-8000-000000000002', order='00000000-0000-4000-8000-000000000003';
 before(async()=>{
  db=new PGlite();pool={query:(...a)=>db.query(...a),connect:async()=>({query:(...a)=>db.query(...a),release(){}})};
- await db.exec('create table users(id uuid primary key,username text unique,alias text unique,alias2 text unique);'+MARKET_SCHEMA);
+ await db.exec('create table users(id uuid primary key,username text unique,alias text unique,alias2 text unique,alias_required boolean not null default false);'+MARKET_SCHEMA);
  routes=new Map();const app={get:(path,...handlers)=>routes.set('GET '+path,handlers),post:(path,...handlers)=>routes.set('POST '+path,handlers)};
  registerUsernameMarket(app,{pool,stripe:null,requireAuth:()=>{},requireAdmin:()=>{},limiter:()=>{},origin:'https://tourn.lol',invalidate(){}});
 });

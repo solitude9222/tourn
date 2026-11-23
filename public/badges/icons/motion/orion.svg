@@ -1,0 +1,7 @@
+<!-- Derived from Lucide orbit; ISC license: ./LICENSE. Motion by Tourn. --><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><defs><g id="orionbase" fill="none" stroke="#c084fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><title>Orion</title>
+  <circle cx="12" cy="12" r="3" />
+  <circle cx="19" cy="5" r="2" />
+  <circle cx="5" cy="19" r="2" />
+  <path d="M10.4 21.9a10 10 0 0 0 9.941-15.416" />
+  <path d="M13.5 2.1a10 10 0 0 0-9.841 15.416" />
+</g><mask id="orionmask" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24" style="mask-type:alpha"><use href="#orionbase"/></mask></defs><g><animateTransform attributeName="transform" type="translate" values="0 0;0 -0.8;0 0" dur="3.2s" repeatCount="indefinite"/><use href="#orionbase"/><g mask="url(#orionmask)"><g transform="rotate(20 12 12)"><rect x="-12" y="-10" width="5" height="44" fill="#fff" opacity=".65"><animateTransform attributeName="transform" type="translate" values="0 0;46 0;46 0" keyTimes="0;.6;1" dur="3.6s" repeatCount="indefinite"/></rect></g></g></g></svg>

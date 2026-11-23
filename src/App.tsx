@@ -72,6 +72,7 @@ const CartPage = lazy(() => import("./components/CartPage").then((m) => ({ defau
 const PremiumPage = lazy(() =>
   import("./components/Pages").then((m) => ({ default: m.PremiumPage })),
 );
+const ContactPage=lazy(()=>import("./components/ContactPage").then(module=>({default:module.ContactPage})));
 const LegalPage = lazy(() => import("./components/Pages").then((m) => ({ default: m.LegalPage })));
 
 import type { Account } from "./lib/auth";
@@ -1037,7 +1038,7 @@ function Site() {
       ) : (
         <>
           <Suspense fallback={null}><main key={route} className="page-enter">
-            {route === "leaderboard" ? (
+            {route === "contact" ? (<ContactPage/>) : route === "leaderboard" ? (
               <LeaderboardPage onSignUp={() => setAuthMode("signup")} />
             ) : route === "shop" ? (
               <ShopPage onSignUp={() => setAuthMode("signup")} />

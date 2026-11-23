@@ -285,7 +285,7 @@ const DISCORD: BadgeDef[] = [
 
 /* ── full catalogue ────────────────────────────────────────── */
 
-export const BADGE_CATALOGUE: BadgeDef[] = [...PLATFORM, ...EXTRA, ...SEASONAL, ...DISCORD].map(badge => ({...badge, art: `/badges/v2/${badge.id}.svg`, artStatic: `/badges/v2/still/${badge.id}.svg`}));
+export const BADGE_CATALOGUE: BadgeDef[] = [...PLATFORM, ...EXTRA, ...SEASONAL, ...DISCORD].map(badge => ({...badge, art: `/badges/icons/motion/${badge.id}.svg`, artStatic: `/badges/icons/motion/still/${badge.id}.svg`}));
 /** Unlocked by activity, dates or staff. */
 export const EARNABLE_BADGES: BadgeDef[] = BADGE_CATALOGUE.filter((badge) => !badge.buyable);
 /** Bought from the store and granted on delivery. */

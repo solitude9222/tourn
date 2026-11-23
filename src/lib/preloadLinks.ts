@@ -13,7 +13,7 @@ const RESERVED = new Set([
   "shop",
   "admin",
   "demo",
-  "legal",
+  "legal", "contact",
   "faq",
   "about",
   "login",

@@ -1,0 +1,8 @@
+<!-- Derived from Lucide snowflake; ISC license: ./LICENSE. Motion by Tourn. --><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><defs><g id="christmas2025base" fill="none" stroke="#6fc3ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><title>Christmas 2025</title>
+  <line x1="2" x2="22" y1="12" y2="12" />
+  <line x1="12" x2="12" y1="2" y2="22" />
+  <path d="m20 16-4-4 4-4" />
+  <path d="m4 8 4 4-4 4" />
+  <path d="m16 4-4 4-4-4" />
+  <path d="m8 20 4-4 4 4" />
+</g><mask id="christmas2025mask" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24" style="mask-type:alpha"><use href="#christmas2025base"/></mask></defs><g><animateTransform attributeName="transform" type="translate" values="0 0;0 -0.8;0 0" dur="3.2s" repeatCount="indefinite"/><use href="#christmas2025base"/><g mask="url(#christmas2025mask)"><g transform="rotate(20 12 12)"><rect x="-12" y="-10" width="5" height="44" fill="#fff" opacity=".65"><animateTransform attributeName="transform" type="translate" values="0 0;46 0;46 0" keyTimes="0;.6;1" dur="3.6s" repeatCount="indefinite"/></rect></g></g></g></svg>

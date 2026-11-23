@@ -11,6 +11,7 @@ const loaders: Partial<Record<Route, () => Promise<unknown>>> = {
   shop: () => import("../components/Pages"),
   cart: () => import("../components/Pages"),
   premium: () => import("../components/Pages"),
+  contact: () => import("../components/ContactPage"),
   legal: () => import("../components/Pages"),
   profile: () => import("../components/LinkerPreview"),
   demo: () => import("../components/DemoPage"),
