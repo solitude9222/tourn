@@ -100,9 +100,7 @@ export function InventoryPage() {
             <button type="button" className="invt-copy" aria-label="Copy profile link" onClick={() => void copyLink()}>
               <Icon name="copy" size={14} />
             </button>
-            <span className={`invt-chip${isPremiumUser ? " is-prem" : ""}`}>{isPremiumUser ? "✦ Premium" : "Free"}</span>
-            {names?.alias2 ? <span className="invt-chip">swats.bio works too</span> : null}
-          </div>
+            <span className={`invt-chip${isPremiumUser ? " is-prem" : ""}`}>{isPremiumUser ? "✦ Premium" : "Free"}</span>          </div>
         </div>
         <div className="invt-cta">
           <a className="invt-btn" href={shown ? `#/profile/${encodeURIComponent(shown)}` : "#/dashboard/profile"}>

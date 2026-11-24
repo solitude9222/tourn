@@ -47,6 +47,7 @@ export const NAV: NavItem[] = [
 
 /** Pages that exist but are reached from inside another place. */
 const OWNER: Partial<Record<Page, string>> = {
+  "getting-started": "dashboard",
   "account-profile": "profile",
   "customize-profile": "profile",
   assets: "importer",
@@ -91,4 +92,4 @@ export const RAIL_SECTIONS:RailSection[]=[
  {key:'account',label:'Account',icon:'user',items:[{label:'Settings',icon:'settings',page:'settings',navKey:'settings'},{label:'Badges',icon:'shield',page:'badges'},{label:'Analytics',icon:'chart',page:'analytics'},{label:'Leaderboard',icon:'crown',page:'leaderboard'},{label:'Support',icon:'help',page:'support'},{label:'Admin',icon:'shield',page:'admin',adminOnly:true}]}
 ];
 export function railEntryOwns(entry:RailEntry,page:Page){return entry.page===page||Boolean(entry.navKey&&NAV.find(item=>item.key===entry.navKey)?.tabs.some(tab=>tab.page===page));}
-export function railSectionForPage(page:Page){return RAIL_SECTIONS.find(section=>section.items.some(entry=>railEntryOwns(entry,page)));}
+export function railSectionForPage(page:Page){if(page==="getting-started")return RAIL_SECTIONS[0];return RAIL_SECTIONS.find(section=>section.items.some(entry=>railEntryOwns(entry,page)));}

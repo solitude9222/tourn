@@ -160,10 +160,7 @@ export function AccountProfilePage({ section = "details" }: { section?: "details
             <small>Public name</small>
             <b>{user.alias?.trim() ? `@${user.alias}` : `@${user.username}`}</b>
           </div>
-          <div>
-            <small>swats.bio</small>
-            <b>{user.alias2 ? `swats.bio/${user.alias2}` : "Not claimed yet"}</b>
-          </div>
+
         </div>
 
         <div className="tw-row" style={{ marginTop: 16 }}>
@@ -450,13 +447,7 @@ export function AffiliatesPage() {
       href: `https://tourn.lol/${publicHandle}`,
       locked: false,
     },
-    {
-      id: "alias",
-      label: "swats.bio",
-      value: user.alias2 ? `swats.bio/${user.alias2}` : "No swats.bio alias",
-      href: user.alias2 ? `https://swats.bio/${user.alias2}` : "#/dashboard/settings",
-      locked: false,
-    },
+
   ];
 
   return (

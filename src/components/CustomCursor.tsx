@@ -53,7 +53,15 @@ export function CustomCursor({host, normal, pointer}: {
     document.addEventListener('visibilitychange', hide);
     current.current = null;
     ready.current = false;
-    setArt(null);
+    // Image normalization can finish after the last pointer event. Re-select
+    // the image at that position so changing cursor art does not leave it
+    // hidden until the visitor moves their mouse again.
+    const target = inside.current ? document.elementFromPoint(point.current.x, point.current.y) : null;
+    inside.current = Boolean(target && host.contains(target));
+    const interactive = Boolean(target?.closest('a,button,[role=button],input[type=range]'));
+    const next = inside.current ? (interactive ? pointer || normal : normal) : null;
+    current.current = next;
+    setArt(next);
     return () => {
       cancelAnimationFrame(frame);
       document.removeEventListener('pointermove', move);

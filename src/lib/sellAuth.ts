@@ -105,3 +105,9 @@ async function openPayload(payload: CheckoutPayload): Promise<void> {
     },
   });
 }
+
+export async function openCatalogCheckout(productId:string):Promise<void>{
+ const result=await api<CheckoutPayload>('/api/marketplace/checkout',{method:'POST',body:JSON.stringify({productId})});
+ if(!result.ok)throw new Error(result.error||'Checkout is unavailable.');
+ await openPayload(result.data);
+}

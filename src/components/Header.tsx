@@ -13,7 +13,6 @@ import {
   MenuIcon,
   SettingsIcon,
 } from "./Icons";
-import { cartCount, cartSubscribe } from "../lib/cart";
 
 /* The site header: the site, the board, the plan and the legal pages. The
    shop and admin console live in the dashboard instead. */
@@ -56,10 +55,8 @@ export function Header({
   useEffect(()=>()=>{if(closeTimer.current)clearTimeout(closeTimer.current);},[]);
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [cartTotal, setCartTotal] = useState(() => cartCount());
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => cartSubscribe(() => setCartTotal(cartCount())), []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -140,12 +137,11 @@ export function Header({
 
         <div className="head-actions">
           <a
-            className={`head-cart${route === "cart" ? " is-active" : ""}`}
-            href={hrefFor("cart")}
-            aria-label={`Cart, ${cartTotal} item${cartTotal === 1 ? "" : "s"}`}
+            className={`head-cart${route === "shop" || route === "cart" ? " is-active" : ""}`}
+            href={hrefFor("shop")}
+            aria-label="Marketplace"
           >
             <BagIcon size={16} />
-            {cartTotal ? <span className="head-cart-count">{cartTotal}</span> : null}
           </a>
           {loading ? (
             <span className="head-skeleton" aria-label="Checking sign-in state" />

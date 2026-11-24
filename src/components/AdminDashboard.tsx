@@ -1,5 +1,5 @@
+import { AdminMarketplace } from "./Marketplace";
 import { DiscordAutomationPanel } from "./DiscordAutomationPanel";
-import { UsernameSerialsPanel } from "./UsernameSerialsPanel";
 import { DataTransferPanel } from "./DataTransferPanel";
 import { HOME_PREVIEW_MODE_KEY, type HomePreviewMode } from "../lib/homePreview";
 import {
@@ -41,7 +41,7 @@ import {
 import { Select } from "./Select";
 import "../admin.css";
 
-type Tab = "overview" | "members" | "invites" | "serials" | "settings" | "data" | "bot";
+type Tab = "marketplace" | "overview" | "members" | "invites" | "settings" | "data" | "bot";
 
 type RegistrationMode = "open" | "invite" | "closed";
 
@@ -98,7 +98,7 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: "overview", label: "Overview", icon: <EyeIcon size={13} /> },
   { id: "members", label: "Members", icon: <UsersIcon size={13} /> },
   { id: "invites", label: "Invites", icon: <KeyIcon size={13} /> },
-  { id: "serials", label: "Username serials", icon: <KeyIcon size={13} /> },
+  { id: "marketplace", label: "Marketplace", icon: <KeyIcon size={13} /> },
   { id: "settings", label: "Site settings", icon: <SettingsIcon size={13} /> },
   { id: "data", label: "Data transfer", icon: <SaveIcon size={13} /> },
   { id: "bot", label: "Discord bot", icon: <DiscordIcon size={13} /> },
@@ -106,6 +106,7 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
 
 /* Section cards on the admin landing — orientation, not a second navigation. */
 const ADMIN_CARDS: { tab: Tab; title: string; body: string; icon: ReactNode }[] = [
+ {tab:"marketplace",title:"Marketplace",body:"Create products, set stock and configure a backend checkout key for each product.",icon:<KeyIcon size={16}/>},
   {
     tab: "members",
     title: "Members",
@@ -180,7 +181,7 @@ function errorText(message: string): string {
    the fields room to breathe.
    ---------------------------------------------------------------------- */
 
-type MemberDraft = { alias: string; alias2: string; views: string };
+type MemberDraft = { alias: string; views: string };
 
 type AdminRole = "owner" | "staff" | "member";
 
@@ -209,12 +210,11 @@ function MemberEditor({
   /** Only owners can hand out owner. */
   canGrantOwner: boolean;
   onClose: () => void;
-  onSave: (fields: { alias: string | null; alias2: string | null; views: number }) => Promise<boolean>;
+  onSave: (fields: { alias: string | null; views: number }) => Promise<boolean>;
   onToggle: (fields: MemberPatch, label: string) => Promise<boolean>;
 }) {
   const [draft, setDraft] = useState<MemberDraft>({
     alias: row.alias ?? "",
-    alias2: row.alias2 ?? "",
     views: String(row.views),
   });
   const [badges, setBadges] = useState<string[]>(row.badges ?? []);
@@ -287,7 +287,6 @@ function MemberEditor({
     setLocalError(null);
     const ok = await onSave({
       alias: draft.alias.trim() || null,
-      alias2: draft.alias2.trim() || null,
       views,
     });
     if (ok) onClose();
@@ -349,15 +348,7 @@ function MemberEditor({
                 spellCheck={false}
               />
             </label>
-            <label className="adm-field">
-              <span>swats.bio claim</span>
-              <input
-                value={draft.alias2}
-                onChange={(event) => setDraft({ ...draft, alias2: event.target.value })}
-                placeholder="not claimed"
-                spellCheck={false}
-              />
-            </label>
+
             <div className="adm-field">
               <span>Profile views</span>
               <span className="adm-field-row">
@@ -682,8 +673,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
     if (!q) return true;
     return (
       row.username.toLowerCase().includes(q) ||
-      (row.alias ?? "").toLowerCase().includes(q) ||
-      (row.alias2 ?? "").toLowerCase().includes(q)
+      (row.alias ?? "").toLowerCase().includes(q)
     );
   });
 
@@ -980,9 +970,6 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
                         <span className="adm-claim">
                           tourn.lol/<b>{row.alias?.trim() || row.username}</b>
                         </span>
-                        <span className={`adm-claim${row.alias2 ? "" : " adm-claim--unset"}`}>
-                          swats.bio/<b>{row.alias2 || "—"}</b>
-                        </span>
                         <span className="adm-claim adm-claim--views">
                           <EyeIcon size={10} /> {row.views.toLocaleString("en-US")}
                         </span>
@@ -1042,7 +1029,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
         </section>
       ) : null}
 
-      {tab === "serials" ? <UsernameSerialsPanel /> : null}
+      {tab === "marketplace" ? <AdminMarketplace /> : null}
 
       {tab === "invites" ? (
         <>
@@ -1328,7 +1315,7 @@ export function AdminDashboard({ embedded = false }: { embedded?: boolean }) {
 
           <p className="adm-hint adm-hint--block">
             While this is on, every account created — Discord or email — keeps Premium permanently.
-            They keep the rain effect, every other Premium cosmetic and their second claim even after
+            They keep the rain effect, every other Premium cosmetic and their profile customization even after
             you switch this off. Accounts created while it was off are not changed.
           </p>
 

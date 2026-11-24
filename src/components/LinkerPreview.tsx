@@ -475,7 +475,7 @@ export function LinkerPreview({
       </div>
     </div>
   ) : (
-    <p className="lkr-empty">No widgets yet.</p>
+    null
   );
 
   // The player has four homes: inside the card's bottom edge, under the

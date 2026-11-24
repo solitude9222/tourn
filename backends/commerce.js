@@ -1,3 +1,4 @@
+import { providerMapping } from './marketplace.js';
 import crypto from 'node:crypto';
 
 export const COMMERCE_SCHEMA = `
@@ -8,7 +9,8 @@ create table if not exists commerce_codes(
  handle text, redeemed_by uuid references users(id) on delete set null, redeemed_at timestamptz,
  created_at timestamptz not null default now()
 );
-create unique index if not exists commerce_unique_handle on commerce_codes(handle) where handle is not null;
+drop index if exists commerce_unique_handle;
+create unique index if not exists commerce_unique_username_handle on commerce_codes(handle) where kind='username' and handle is not null;
 alter table commerce_codes drop constraint if exists commerce_codes_kind_check;
 alter table commerce_codes add constraint commerce_codes_kind_check check(kind in ('premium','username','badge'));
 create table if not exists commerce_deliveries(
@@ -111,8 +113,16 @@ export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=proc
   if(payload.event!=='INVOICE.ITEM.DELIVER-DYNAMIC'||String(payload.shop_id)!==String(config.shopId)||!['partially_completed','completed'].includes(payload.status))throw fail(400,'Unsupported delivery.');
   const item=payload.item;const quantity=Number(item?.quantity);
   if(!item?.id||!payload.id||!Number.isInteger(quantity)||quantity<1||quantity>20)throw fail(400,'Invalid invoice item.');
-  let kind,handle=null;
-  if(config.products.premium && Number(item.product_id)===config.products.premium)kind='premium';
+  let kind,handle=null,catalog=null;
+  const catalogRows=(await pool.query('select * from marketplace_products')).rows;
+  const matches=catalogRows.filter(row=>{const mapping=providerMapping(row.checkout_env,env);return mapping&&mapping.productId===Number(item.product_id)&&mapping.variantId===Number(item.variant_id);});
+  if(matches.length>1)throw fail(409,'Ambiguous product mapping. Contact support.');
+  catalog=matches[0]||null;
+  if(catalog){
+   if(quantity!==1)throw fail(400,'Catalog products must be purchased individually.');
+   kind=catalog.reward;handle=kind==='badge'?catalog.badge_id:null;
+  }
+  else if(config.products.premium && Number(item.product_id)===config.products.premium)kind='premium';
   else if(config.products.badge && Number(item.product_id)===config.products.badge){
    const badges=badgeVariantMap(env);
    const badge=badges[String(item.variant_id)];
@@ -139,10 +149,11 @@ export function registerSellAuthDelivery(app,{pool,rawParser,jwt,secret,env=proc
    await db.query('begin');await db.query("select pg_advisory_xact_lock(hashtextextended($1,0))",['sellauth:'+payload.shop_id+':'+item.id]);
    const previous=(await db.query('select invoice_id,digests from commerce_deliveries where shop_id=$1 and item_id=$2',[String(payload.shop_id),String(item.id)])).rows[0];
    if(previous){if(previous.invoice_id!==String(payload.id))throw fail(409,'Invoice mismatch.');const codes=[];for(const hash of previous.digests){const row=(await db.query('select encrypted from commerce_codes where digest=$1',[hash])).rows[0];codes.push(unseal(row.encrypted,secret));}await db.query('commit');return res.type('text/plain').send(codes.join('\n'));}
+   if(catalog)await db.query('update marketplace_products set stock=case when stock is null then null else greatest(0,stock-$2) end,updated_at=now() where id=$1',[catalog.id,quantity]);
    const codes=[];for(let n=0;n<quantity;n++)codes.push(await issueCommerceCode(db,kind,handle,secret));
    // Metadata is signed by Tourn, not an email typed at checkout. If a provider
    // omits metadata, the delivered one-use code remains a complete fallback.
-   let userId=null;try{const ticket=jwt.verify(payload.metadata?.tourn_checkout||'',secret,{algorithms:['HS256']});if(ticket.kind==='commerce'){const user=(await db.query('select id,token_version from users where id=$1',[ticket.sub])).rows[0];if(user?.token_version===ticket.v)userId=user.id;}}catch{}
+   let userId=null;try{const ticket=jwt.verify(payload.metadata?.tourn_checkout||'',secret,{algorithms:['HS256']});if(ticket.kind==='commerce'&&(!catalog||ticket.catalogId===catalog.id)){const user=(await db.query('select id,token_version from users where id=$1',[ticket.sub])).rows[0];if(user?.token_version===ticket.v)userId=user.id;}}catch{}
    if(userId && quantity===1)await redeemCommerceCode(db,codes[0].code,userId);
    await db.query('insert into commerce_deliveries(shop_id,invoice_id,item_id,digests) values($1,$2,$3,$4::jsonb)',[String(payload.shop_id),String(payload.id),String(item.id),JSON.stringify(codes.map(x=>x.digest))]);
    await db.query('commit');invalidate();res.type('text/plain').send(codes.map(x=>x.code).join('\n'));
@@ -153,91 +164,11 @@ export function registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limite
  app.get('/api/commerce/config',(_req,res)=>res.set('Cache-Control','no-store').json(commerceConfig(env)));
  app.post('/api/commerce/checkout',limiter,requireAuth,wrap(async(req,res)=>{
   const config=commerceConfig(env);const kind=req.body?.kind;
-  // A cart order: any number of badges plus at most one username, all paid for
-  // in a single SellAuth checkout.
-  const cartRequest=Array.isArray(req.body?.items)?req.body.items:null;
-  if(cartRequest){
-   if(!cartRequest.length||cartRequest.length>10)throw fail(400,'Add between 1 and 10 items.');
-   if(!config.shopId||!config.shopUrl)throw fail(503,'The store is not open yet.');
-   const db=await pool.connect();const cart=[],ticketItems=[];let cartHandle=null,hasUsername=false;
-   try{
-    for(const entry of cartRequest){
-     const type=entry?.type;
-     if(type==='badge'){
-      const wanted=typeof entry.badge==='string'?entry.badge.trim():'';
-      const match=Object.entries(badgeVariantMap(env)).find(([, value])=>value.badge===wanted&&Number(value.productId)===Number(config.products.badge));
-      if(!match)throw fail(400,'That badge is not on sale yet.');
-      cart.push({productId:Number(config.products.badge),variantId:Number(match[0]),quantity:1});
-      ticketItems.push({badge:wanted});
-      continue;
-     }
-     const characterKind=type==='letter'?'oneCharacter':type==='number'||type==='symbol'?'special':null;
-     if(!characterKind)throw fail(400,'Unknown item in the cart.');
-     if(hasUsername)throw fail(400,'One username per order. Buy a second name in its own order.');
-     const raw=typeof entry.handle==='string'?entry.handle.trim().toLowerCase():'';
-     let chosen=raw;
-     if(!chosen){
-      const classList=characterKind==='oneCharacter'?LETTERS:[...NUMBERS,...SYMBOLS];
-      const {rows}=await db.query(`select h from (${CLAIMED_HANDLES}) claimed where h = any($1)`,[classList]);
-      const taken=new Set(rows.map(row=>row.h));
-      const free=classList.filter(character=>!taken.has(character));
-      if(!free.length)throw fail(409,'That category is sold out.');
-      chosen=free[Math.floor(Math.random()*free.length)];
-     } else {
-      const valid=characterKind==='oneCharacter'?/^[a-z]$/.test(chosen):[...chosen].length===1&&(/^[0-9]$/.test(chosen)||/^\p{S}$/u.test(chosen));
-      if(!valid)throw fail(400,'Choose one valid character.');
-      const {rows}=await db.query(`select 1 from (${CLAIMED_HANDLES}) claimed where h=$1 limit 1`,[chosen]);
-      if(rows.length)throw fail(409,`@${chosen} is already taken.`);
-     }
-     const variant=config.variants?.[characterKind];
-     const symbolVariant=characterKind==='special'?symbolVariantFor(chosen,env):null;
-     cart.push({productId:Number(config.products[characterKind]),...(symbolVariant?{variantId:symbolVariant}:variant?{variantId:Number(variant)}:{}),quantity:1});
-     ticketItems.push({type,handle:chosen});
-     cartHandle=chosen;hasUsername=true;
-    }
-   } finally { db.release(); }
-   const cartTicket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(cartHandle?{handle:cartHandle}:{}),items:ticketItems},secret,{algorithm:'HS256',expiresIn:'2h'});
-   return res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart,metadata:{tourn_checkout:cartTicket},theme:'dark'});
-  }
-  if(!['premium','oneCharacter','special','badge'].includes(kind))throw fail(400,'Choose a product.');
-  if(!config.shopId||!config.shopUrl||!config.products[kind])throw fail(503,'The store is not open yet.');
-  // 1-character usernames are chosen on tourn.lol and travel inside the signed
-  // ticket, so the store needs one product rather than a variant per character.
-  let handle=null;
-  if(kind==='oneCharacter'||kind==='special'){
-   const raw=typeof req.body?.handle==='string'?req.body.handle.trim().toLowerCase():'';
-   const db=await pool.connect();
-   try{
-    if(!raw){
-     // No specific character chosen: hand out a random free one from the class.
-     const pool_=kind==='oneCharacter'?LETTERS:[...NUMBERS,...SYMBOLS];
-     const {rows}=await db.query(`select h from (${CLAIMED_HANDLES}) claimed where h = any($1)`,[pool_]);
-     const taken=new Set(rows.map(row=>row.h));
-     const free=pool_.filter(character=>!taken.has(character));
-     if(!free.length)throw fail(409,kind==='oneCharacter'?'Every single letter is sold out.':'Every single number is sold out.');
-     handle=free[Math.floor(Math.random()*free.length)];
-    } else {
-     const valid=kind==='oneCharacter' ? /^[a-z]$/.test(raw) : [...raw].length===1&&(/^[0-9]$/.test(raw)||/^\p{S}$/u.test(raw));
-     if(!valid)throw fail(400,kind==='oneCharacter'?'Choose a single letter.':'Choose a single number or symbol.');
-     const {rows}=await db.query(`select 1 from (${CLAIMED_HANDLES}) claimed where h=$1 limit 1`,[raw]);
-     if(rows.length)throw fail(409,'That username is already taken.');
-     handle=raw;
-    }
-   } finally { db.release(); }
-  }
-  // A badge purchase names the badge; its variant comes from the env mapping so
-  // the buyer never has to pick a variant in the store's own UI.
-  let badgeVariantId=null;
-  if(kind==='badge'){
-   const wanted=typeof req.body?.badge==='string'?req.body.badge.trim():'';
-   const match=Object.entries(badgeVariantMap(env)).find(([, entry]) => entry.badge===wanted && Number(entry.productId)===Number(config.products.badge));
-   if(!match)throw fail(400,'That badge is not on sale yet.');
-   badgeVariantId=match[0];
-  }
-  const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce',...(handle?{handle}:{})},secret,{algorithm:'HS256',expiresIn:'2h'});
-  const symbolVariantId=kind==='special'&&handle?symbolVariantFor(handle,env):null;
-  const variantId=badgeVariantId || symbolVariantId || config.variants?.[kind];
-  res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products[kind],...(variantId?{variantId}:{}),quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark'});
+  if(Array.isArray(req.body?.items)||kind!=='premium')throw fail(410,'Use the Admin-managed marketplace catalog. Character sales have been retired.');
+  if(!config.shopId||!config.shopUrl||!config.products.premium)throw fail(503,'Premium checkout is not configured yet.');
+  const ticket=jwt.sign({sub:req.auth.sub,v:req.auth.v,kind:'commerce'},secret,{algorithm:'HS256',expiresIn:'2h'});
+  const variantId=config.variants.premium;
+  res.json({shopId:config.shopId,shopUrl:config.shopUrl,cart:[{productId:config.products.premium,...(variantId?{variantId}:{}),quantity:1}],metadata:{tourn_checkout:ticket},theme:'dark'});
  }));
  app.post('/api/commerce/redeem',limiter,requireAuth,wrap(async(req,res)=>{
   const code=typeof req.body?.code==='string'?req.body.code.trim().toUpperCase():'';if(!/^TOURN-[A-F0-9]{32}$/.test(code))throw fail(400,'Enter the complete TOURN code from your purchase.');

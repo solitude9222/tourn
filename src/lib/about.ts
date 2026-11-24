@@ -353,8 +353,9 @@ export type AboutDesign = {
   aboutSlide: { title: string; subtitle: string; text: string; tags: string[]; showProjects?: boolean; widgetIds?: string[] };
   /** Move the avatar, name and bio away from the layout's default composition. */
   advancedLayout?: boolean;
-  /** The Portfolio tab in the dashboard sidebar. Hidden means gone, not greyed. */
-  /** The location pill, above the card on the right, beside the account date. */
+  /** Empty new profiles use a minimal name-only composition. */
+  minimalStart: boolean;
+  /** Show the location when supplied. */
   showLocation: boolean;
   /** The view counter, in the card's bottom-left corner. */
   showViews: boolean;
@@ -468,7 +469,7 @@ export const DEFAULT_PROFILE_COLORS: ProfileColors = {
   muted: "#a3a3ad",
   background: "#07070a",
   // Neutral card: the old value carried a blue cast into every profile.
-  card: "#151517",
+  card: "#111111",
   border: "#ffffff",
 };
 
@@ -531,30 +532,31 @@ export const DEFAULT_ABOUT_DESIGN: AboutDesign = {
   scatteredShimmer: true,
   version: 7,
   // Comfortable default width; typography scales from the 648px reference.
-  cardWidth: 760,
-  cardRadius: 35,
+  cardWidth: 640,
+  cardRadius: 22,
   borderWidth: 1,
-  borderOpacity: 0.12,
-  backgroundOpacity: 0.55,
-  backgroundBlur: 12,
+  borderOpacity: 0,
+  backgroundOpacity: 1,
+  backgroundBlur: 0,
   avatarSize: 105,
   widgetGap: 12,
-  cardPadding: 30,
+  cardPadding: 24,
   nameSize: 38,
   bioSize: 14,
   tilt: 0,
   stackTilt: false,
   widgetTilt: false,
-  pfpPosition: "left",
+  pfpPosition: "center",
   badgePosition: "default",
-  namePosition: "left",
+  namePosition: "center",
   bioPosition: "center",
   avatarShape: "circle",
   advancedLayout: false,
+  minimalStart: true,
   showLocation: true,
   showViews: true,
-  showJoined: true,
-  viewSlot: "card-tr",
+  showJoined: false,
+  viewSlot: "card-bl",
   likeSlot: "card-br",
   locationSlot: "card-bl",
   joinedSlot: "card-bl",
@@ -759,6 +761,7 @@ function loadEntry(input: unknown): EntrySettings {
 /* Geometry versioning reaches existing saved profiles as well as new ones. */
 function loadDesign(input: unknown): AboutDesign {
   const design = loadDesignRaw(input);
+  if (!input || design.minimalStart) return design;
   // Version 6 applies the requested compact proportions to every existing
   // profile, including old customized geometry. Subsequent edits are retained.
   const storedVersion = Number((input as { version?: unknown } | null)?.version) || 0;
@@ -955,6 +958,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
     bioPosition: oneOf(raw.bioPosition, TEXT_POSITIONS, DEFAULT_ABOUT_DESIGN.bioPosition),
     avatarShape: oneOf(raw.avatarShape, AVATAR_SHAPES, DEFAULT_ABOUT_DESIGN.avatarShape),
     advancedLayout: boolIn(raw.advancedLayout, false),
+    minimalStart: typeof raw.minimalStart === "boolean" ? raw.minimalStart : !input,
     showLocation: boolIn(raw.showLocation, DEFAULT_ABOUT_DESIGN.showLocation),
     showViews: boolIn(raw.showViews, DEFAULT_ABOUT_DESIGN.showViews),
     showJoined: boolIn(raw.showJoined, DEFAULT_ABOUT_DESIGN.showJoined),

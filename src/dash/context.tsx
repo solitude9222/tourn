@@ -18,6 +18,7 @@ export type Page =
   | "portfolio-projects"
   | "portfolio-interests"
   | "home"
+  | "getting-started"
   | "account-profile"
   | "badges"
   | "aliases"

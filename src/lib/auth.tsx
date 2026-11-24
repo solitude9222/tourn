@@ -27,11 +27,11 @@ export type Account = {
   aliasRequired?: boolean;
   /** When the automatic Discord-username alias was released. */
   aliasResetAt?: string | null;
-  /** Premium second claim — shown as swats.bio/<alias2>. */
+  /** Legacy response compatibility; always null after the single-alias migration. */
   alias2?: string | null;
   /** Last primary-claim change — drives the 2-day cooldown. */
   aliasUpdatedAt?: string | null;
-  /** Last second-claim change — drives the 2-day cooldown. */
+  /** Retired secondary-alias timestamp. */
   alias2UpdatedAt?: string | null;
   email: string | null;
   avatarUrl: string | null;
@@ -89,8 +89,6 @@ type AuthValue = {
   isPremiumUser: boolean;
   /** Trait aliases (primary claim). Owner can set it; all accounts can claim. */
   setAlias: (alias: string) => Promise<AuthResult>;
-  /** Second alias (swats.bio claim) — premium only. */
-  setAlias2: (alias2: string | null) => Promise<AuthResult>;
   security: {
     changePassword: (input: { currentPassword: string; newPassword: string }) => Promise<AuthResult>;
     changeEmail: (email: string) => Promise<AuthResult>;
@@ -268,21 +266,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, refreshFirst],
   );
 
-  const setAlias2 = useCallback<AuthValue["setAlias2"]>(
-    async (input) => {
-      if (!user) return { error: "Sign in to claim an alias." };
-      const clean = input ? normalizeHandle(input) : "";
-      if (clean && RESERVED_HANDLES.has(clean)) {
-        return { error: `"${clean}" is already taken.` };
-      }
-      const result = await post<{ account: Account }>("/api/profile/alias2", { alias2: clean });
-      if (!result.ok) return { error: result.error };
-      setUser(result.data.account);
-      return {};
-    },
-    [user],
-  );
-
   const changePassword = useCallback<AuthValue["security"]["changePassword"]>(
     async ({ currentPassword, newPassword }) => {
       if (!user) return { error: "Sign in to manage your password." };
@@ -366,7 +349,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin,
       isPremiumUser: ownPremium,
       setAlias,
-      setAlias2,
       security,
       loading,
       unavailable,
@@ -388,7 +370,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin,
       ownPremium,
       setAlias,
-      setAlias2,
       security,
       loading,
       unavailable,

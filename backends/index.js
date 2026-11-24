@@ -1,3 +1,5 @@
+import { MARKETPLACE_SCHEMA, registerMarketplaceRoutes } from "./marketplace.js";
+import {SINGLE_ALIAS_SCHEMA,needsPrimaryAlias} from "./singleAlias.js";
 import {SESSION_SCHEMA,touchSession,registerSessionRoutes} from "./sessions.js";
 import { COMMERCE_SCHEMA, registerSellAuthDelivery, registerSellAuthRoutes } from "./commerce.js";
 import { requestOriginAllowed, canEditMember, verifiedDiscordEmail, privilegedEmail } from "./security.js";
@@ -251,8 +253,10 @@ async function initDb() {
   await pool.query("alter table users add column if not exists alias_required boolean not null default false");
   await pool.query("alter table users add column if not exists alias_reset_at timestamptz");
   await pool.query("alter table users add column if not exists discord_username text");
+  await pool.query(SINGLE_ALIAS_SCHEMA);
   await pool.query(MARKET_SCHEMA);
   await pool.query(COMMERCE_SCHEMA);
+  await pool.query(MARKETPLACE_SCHEMA);
   await pool.query(TRADE_SCHEMA);
   await pool.query(TEMPLATE_SCHEMA);
   startUsernameReconciliation(pool,stripe);
@@ -359,11 +363,11 @@ function accountOf(row) {
     uid: row.uid ?? null,
     username: row.username,
     alias: row.alias ?? null,
-    alias2: row.alias2 ?? null,
-    aliasRequired: Boolean(row.alias_required),
+    alias2: null,
+    aliasRequired: Boolean(row.alias_required || !row.alias?.trim()),
     aliasResetAt: row.alias_reset_at ?? null,
     aliasUpdatedAt: row.alias_updated_at ?? null,
-    alias2UpdatedAt: row.alias2_updated_at ?? null,
+    alias2UpdatedAt: null,
     email: row.email ?? null,
     avatarUrl: row.avatar_url ?? null,
     joinedAt: row.created_at,
@@ -450,7 +454,7 @@ async function currentUser(req) {
 const cleanHandle = (input) =>
   String(input ?? "").trim().toLowerCase();
 
-/* Both claim slots can change once every 48 hours. The timestamp is written
+/* The primary alias can change once every 48 hours. The timestamp is written
    on every real change (including releasing a name), so a claim cannot be
    hopped repeatedly to reserve handles. */
 const CLAIM_COOLDOWN_MS = 2 * 24 * 60 * 60 * 1000;
@@ -485,8 +489,8 @@ function publicAccountOf(row) {
     uid: row.uid ?? null,
     username: row.username,
     alias: row.alias ?? null,
-    alias2: row.alias2 ?? null,
-    aliasRequired: Boolean(row.alias_required),
+    alias2: null,
+    aliasRequired: Boolean(row.alias_required || !row.alias?.trim()),
     avatarUrl: row.avatar_url ?? null,
     joinedAt: row.created_at,
     premium: Boolean(row.premium),
@@ -500,7 +504,7 @@ async function userByHandle(handle) {
   if (!clean) return null;
   const { rows } = await pool.query(
     `select * from users
-     where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null)
+     where lower(username) = $1 or lower(alias) = $1
      limit 1`,
     [clean],
   );
@@ -589,7 +593,7 @@ const RESERVED = new Set([
 async function claimTaken(clean, exceptUserId) {
   const { rows } = await pool.query(
     `select id from users
-     where (username = $1 or alias = $1 or alias2 = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null)) and id <> $2
+     where (username = $1 or alias = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null)) and id <> $2
      limit 1`,
     [clean, exceptUserId ?? "00000000-0000-0000-0000-000000000000"],
   );
@@ -668,7 +672,7 @@ async function uniqueUsername(base) {
   const root = raw.length >= 3 ? raw.slice(0, 20) : "player";
   let candidate = root;
   for (let i = 0; i < 50; i += 1) {
-    const { rows } = await pool.query("select id from users where username = $1 or alias = $1 or alias2 = $1", [candidate]);
+    const { rows } = await pool.query("select id from users where username = $1 or alias = $1", [candidate]);
     if (rows.length === 0) return candidate;
     candidate = `${root}${Math.floor(Math.random() * 9000) + 100}`;
   }
@@ -824,6 +828,10 @@ registerDataTransfer(app,pool,requireOwner,()=>profilePageCache.clear());
 app.put("/api/profile", express.json({ limit: PROFILE_JSON_LIMIT }), requireAuth, async (req, res) => {
   let client;
   try {
+    const aliasAccount = await currentUser(req);
+    if (needsPrimaryAlias(aliasAccount)) {
+      return res.status(409).json({ error: "Choose your primary alias before saving a profile.", aliasRequired: true });
+    }
     if (req.body?.accountId && String(req.body.accountId) !== String(req.auth.sub)) {
       return res.status(409).json({ error: "Your account changed. Switch back to publish this draft." });
     }
@@ -1057,6 +1065,7 @@ app.use(express.json({ limit: "256kb" }));
 registerProfileWebhookRoutes(app, { pool, requireAuth, limiter: billingLimiter, allowHttp: WEBHOOK_ALLOW_HTTP });
 
 registerSellAuthRoutes(app,{pool,requireAuth,requireAdmin,limiter:billingLimiter,jwt,secret:JWT_SECRET,invalidate:()=>profilePageCache.clear()});
+registerMarketplaceRoutes(app,{pool,requireAuth,requireAdmin,limiter:billingLimiter,jwt,secret:JWT_SECRET});
 // Exact paths only: app.use() would also swallow /api/admin/usernames/claim.
 app.all(["/api/market/usernames","/api/market/checkout","/api/admin/usernames"],(_req,res)=>res.status(410).json({error:"Products, prices and stock are managed in SellAuth."}));
 registerUsernameMarket(app, {pool, stripe, requireAuth, requireAdmin, limiter:billingLimiter, origin:CANONICAL_FRONTEND_ORIGIN, invalidate:()=>profilePageCache.clear()});
@@ -1960,50 +1969,7 @@ app.post("/api/profile/alias", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/profile/alias2", requireAuth, async (req, res) => {
-  try {
-    const user = await currentUser(req);
-    if (!user) return res.status(401).json({ error: "Sign in again." });
-    const clean = cleanHandle(req.body?.alias2);
-    const next = clean || null;
-    if (clean && !user.premium) {
-      return res.status(403).json({ error: "A second claim is Premium only." });
-    }
-    if (next === (user.alias2 ?? null)) return res.json({ account: accountOf(user) });
-    if (clean) {
-      if (!freeHandleValid(clean) && !(await handleOwned(pool, user.id, clean)))
-        return res.status(400).json({ error: "Single characters and symbols have to be bought from the store first." });
-      if (clean.length < 3 && freeHandleValid(clean)) return res.status(400).json({ error: "Aliases need at least 3 characters." });
-      if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
-      if (RESERVED.has(clean) || clean === user.username) {
-        return res.status(400).json({ error: `"${clean}" is already taken.` });
-      }
-      if (user.discord_username && aliasMatchesDiscord(clean, user.discord_username)) {
-        return res.status(400).json({ error: "That is your Discord username — choose a different alias." });
-      }
-      if (await claimTaken(clean, user.id)) {
-        return res.status(400).json({ error: `@${clean} is already claimed — try another.` });
-      }
-    }
-    if (claimCooldownMs(user.alias2_updated_at)) {
-      return cooldownResponse(res, "Your second claim", user.alias2_updated_at);
-    }
-    const { rows } = await pool.query(
-      `update users set alias2 = $1, alias2_updated_at = now()
-       where id = $2 and (alias2_updated_at is null or alias2_updated_at <= now() - interval '2 days')
-       returning *`,
-      [next, user.id],
-    );
-    if (!rows[0]) {
-      const fresh = await pool.query("select alias2_updated_at from users where id = $1", [user.id]);
-      if (!fresh.rows[0]) return res.status(401).json({ error: "Sign in again." });
-      return cooldownResponse(res, "Your second claim", fresh.rows[0].alias2_updated_at);
-    }
-    res.json({ account: accountOf(rows[0]) });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+app.post("/api/profile/alias2",requireAuth,(_req,res)=>res.status(410).json({error:"Secondary aliases have been removed. Use your primary alias."}));
 
 /* ── public reads ──────────────────────────────────────────────────────── */
 
@@ -2314,7 +2280,7 @@ async function canonicalViewHandle(input) {
   const handle = cleanHandle(input);
   if (!handle) return null;
   const { rows } = await pool.query(
-    "select username from users where lower(username) = $1 or lower(alias) = $1 or lower(alias2) = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null) limit 1", [handle],
+    "select username from users where lower(username) = $1 or lower(alias) = $1 limit 1", [handle],
   );
   return rows[0]?.username?.toLowerCase() || null;
 }
@@ -2486,9 +2452,10 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
       patch.badges = JSON.stringify(ids);
     }
 
-    // Handles are unique across username + both claims, so an admin edit is
+    if(Object.hasOwn(req.body??{},"alias2"))return res.status(400).json({error:"Secondary aliases have been removed."});
+    // Handles are unique across username + primary alias, so an admin edit is
     // validated exactly like a claim.
-    for (const field of ["alias", "alias2"]) {
+    for (const field of ["alias"]) {
       if (!Object.prototype.hasOwnProperty.call(req.body ?? {}, field)) continue;
       const clean = cleanHandle(req.body[field]);
       if (clean) {
@@ -2496,7 +2463,7 @@ app.patch("/api/admin/profiles/:id", requireAdmin, async (req, res) => {
         if (clean.length > 24) return res.status(400).json({ error: "Aliases must be 24 characters or fewer." });
         if (RESERVED.has(clean)) return res.status(400).json({ error: `"${clean}" is reserved by the site.` });
         const taken = await pool.query(
-          `select id from users where (username = $1 or alias = $1 or alias2 = $1 or id in (select owner_id from username_inventory where handle=$1 and owner_id is not null)) and id <> $2 limit 1`,
+          `select id from users where (username = $1 or alias = $1) and id <> $2 limit 1`,
           [clean, account.id],
         );
         if (taken.rowCount > 0) return res.status(400).json({ error: `@${clean} is already claimed.` });

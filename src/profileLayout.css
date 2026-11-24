@@ -445,3 +445,13 @@
 .profile-uploaded-cursor-active,.profile-uploaded-cursor-active * {cursor:none!important;}
 .profile-uploaded-cursor {user-select:none;contain:layout paint;}
 @media(pointer:coarse){.profile-uploaded-cursor {display:none;}.profile-uploaded-cursor-active,.profile-uploaded-cursor-active * {cursor:auto!important;}}
+/* New, empty profiles start as a quiet name card, not a filled example. */
+.lkr-page .profile-preview[data-bare=true] {width:min(100%,var(--pv-width));min-height:130px;padding:0;border:var(--pv-border-width) solid var(--pv-border-color);border-radius:var(--pv-radius);background:var(--pv-card);}
+.profile-preview[data-bare=true] .pv-avatar-wrap,.profile-preview[data-bare=true] .pv-bio.is-empty {display:none;}
+.profile-preview[data-bare=true] .pv-topline {justify-content:center;min-height:70px;margin:0;}
+.profile-preview[data-bare=true] .pv-head-text {width:100%;text-align:center;}.profile-preview[data-bare=true] .pv-id {justify-content:center;}.profile-preview[data-bare=true] .pv-id h3 {text-align:center;text-shadow:0 0 14px #ffffff50;}
+.profile-preview[data-bare=true] .pv-slot-item--likes {display:none;}
+/* Reactions remain usable without a surrounding pill or frosted plate. */
+.lkr-page .pv-react {background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;padding:0;}
+
+.lkr-page .profile-preview[data-bare=true] .pv-head-text .pv-id{justify-content:center;width:100%}.lkr-page .profile-preview[data-bare=true] .pv-topline{margin:0;min-height:70px}.lkr-page .profile-preview[data-bare=true] .pv-head-text .pv-id h3{text-align:center}

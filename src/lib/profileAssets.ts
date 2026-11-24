@@ -459,8 +459,8 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   interactions: { sound: "none", fileUrl: "", volume: 0.35, ripple: false, allClicks: false, color: "#ffffff" },
   avatarUrl: "",
   card: {
-    // Two beams chase each other around the card's edge — the default look.
-    id: "beam",
+    // New profiles start without an animated edge; saved effects stay intact.
+    id: "none",
     // Warm neutral, not blue: the card light should read as light.
     color: "#e7dfd2",
     intensity: 70,
@@ -490,8 +490,8 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
   },
   background: {
     style: "solid",
-    color: "#0b0d10",
-    from: "#0b0d10",
+    color: "#080808",
+    from: "#080808",
     to: "#16181d",
     imageUrl: "",
     videoUrl: "",

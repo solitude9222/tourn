@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { useAuth } from "../lib/auth";
 import { useDash } from "./context";
 import { Button, Icon } from "./ui";
@@ -15,6 +15,21 @@ export function AliasRequiredGate() {
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const dialog=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    if(!user?.aliasRequired)return;
+    const previous=document.activeElement as HTMLElement|null;
+    const trap=(event:KeyboardEvent)=>{
+      if(event.key!=='Tab')return;
+      const controls=Array.from(dialog.current?.querySelectorAll<HTMLElement>('input:not(:disabled),button:not(:disabled),a[href]')||[]);
+      const first=controls[0],last=controls.at(-1);
+      if(!first)return;
+      if(event.shiftKey&&(document.activeElement===first||!dialog.current?.contains(document.activeElement))){event.preventDefault();last?.focus();}
+      else if(!event.shiftKey&&(document.activeElement===last||!dialog.current?.contains(document.activeElement))){event.preventDefault();first.focus();}
+    };
+    document.addEventListener('keydown',trap,true);
+    return()=>{document.removeEventListener('keydown',trap,true);previous?.focus();};
+  },[user?.aliasRequired]);
   if (!user?.aliasRequired) return null;
 
   const submit = async (event: FormEvent) => {
@@ -32,7 +47,7 @@ export function AliasRequiredGate() {
   };
 
   return (
-    <div className="tw-alias-gate" role="dialog" aria-modal="true" aria-labelledby="alias-gate-title">
+    <div ref={dialog} className="tw-alias-gate" role="dialog" aria-modal="true" aria-labelledby="alias-gate-title">
       <form className="tw-alias-gate-card" onSubmit={submit}>
         <span className="tw-alias-gate-icon">
           <Icon name="at" size={20} />
@@ -65,7 +80,7 @@ export function AliasRequiredGate() {
           {busy ? "Saving…" : "Set alias"}
         </Button>
         <p className="tw-alias-gate-note">
-          Your swats.bio alias, profile content and settings stay exactly as they are.
+          This is your only alias. Your profile content and settings stay in place.
         </p>
         {message ? (
           <p className="tw-alias-gate-error" role="alert">

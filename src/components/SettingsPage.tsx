@@ -42,7 +42,7 @@ export function SettingsPage({
   onNavigate?: (page: SettingsNavigateTarget) => void;
   onReset?: () => void;
 }) {
-  const { user, isPremiumUser, setAlias, setAlias2, security, configured, isAdmin, linkDiscord } =
+  const { user, isPremiumUser, setAlias, security, configured, isAdmin, linkDiscord } =
     useAuth();
   const [linkBusy, setLinkBusy] = useState(false);
   // The Discord link flow returns here with its result in the hash.
@@ -56,16 +56,13 @@ export function SettingsPage({
     return null;
   });
   const [aliasDraft, setAliasDraft] = useState("");
-  const [alias2Draft, setAlias2Draft] = useState("");
   const [aliasMsg, setAliasMsg] = useState<string | null>(null);
-  const [alias2Msg, setAlias2Msg] = useState<string | null>(null);
   const [aliasBusy, setAliasBusy] = useState(false);
   const [section, setSection] = useState<SettingsSection>("account");
 
   useEffect(() => {
     setAliasDraft(user?.alias ?? "");
-    setAlias2Draft(user?.alias2 ?? "");
-  }, [user?.id, user?.alias, user?.alias2]);
+  }, [user?.id, user?.alias]);
 
   const saveAlias = async () => {
     setAliasBusy(true);
@@ -76,25 +73,11 @@ export function SettingsPage({
     else setAliasMsg("Primary claim saved.");
   };
 
-  const saveAlias2 = async () => {
-    setAliasBusy(true);
-    setAlias2Msg(null);
-    const result = await setAlias2(alias2Draft.trim() || null);
-    setAliasBusy(false);
-    if (result.error) setAlias2Msg(result.error);
-    else
-      setAlias2Msg(
-        alias2Draft.trim() ? "Second claim saved — live on swats.bio." : "Second claim cleared.",
-      );
-  };
-
   const displayName = user?.alias?.trim() || user?.username || "Account";
   const uid = accountUid(user);
   const emailHandle = (user?.email?.split("@")[0] ?? user?.username ?? "").slice(0, 24);
   const aliasCooldown = claimCooldown(user?.aliasUpdatedAt);
-  const alias2Cooldown = claimCooldown(user?.alias2UpdatedAt);
   const aliasChanged = (aliasDraft.trim().toLowerCase() || null) !== (user?.alias ?? null);
-  const alias2Changed = (alias2Draft.trim().toLowerCase() || null) !== (user?.alias2 ?? null);
 
   return (
     <div className="tw-set">
@@ -162,7 +145,7 @@ export function SettingsPage({
         <CardHead
           icon="link"
           title="Claims"
-          subtitle="Your handle on tourn.lol, plus a swats.bio address of your own."
+          subtitle="Your one public alias on tourn.lol."
         />
 
         <div className="tw-set-grid">
@@ -201,54 +184,7 @@ export function SettingsPage({
             {aliasMsg ? <p className="tw-set-note">{aliasMsg}</p> : null}
           </div>
 
-          <div className="tw-set-block">
-            <div className="tw-set-block-head">
-              <b>swats.bio address</b>
-              <Chip tone="success">Free</Chip>
-            </div>
-            <Field
-              label="swats.bio alias"
-              hint="Free for everyone. Checked against every taken handle first, with one change every 2 days."
-            >
-              <span className="tw-prefix">
-                <i>swats.bio/</i>
-                <input
-                  value={alias2Draft}
-                  onChange={(event) => setAlias2Draft(event.target.value)}
-                  placeholder="yoursecondname"
-                  maxLength={24}
-                  spellCheck={false}
-                />
-              </span>
-            </Field>
-            <div className="tw-row">
-              <Button
-                variant="primary"
-                disabled={aliasBusy || Boolean(alias2Cooldown && alias2Changed)}
-                onClick={() => void saveAlias2()}
-              >
-                Save swats.bio alias
-              </Button>
-              {user?.alias2 ? (
-                <Button
-                  icon="trash"
-                  disabled={aliasBusy || Boolean(alias2Cooldown)}
-                  onClick={() => {
-                    setAlias2Draft("");
-                    void setAlias2(null).then((result) => {
-                      setAlias2Msg(result.error ?? "swats.bio alias cleared.");
-                    });
-                  }}
-                >
-                  Release
-                </Button>
-              ) : null}
-            </div>
-            {alias2Cooldown ? (
-              <p className="tw-set-note">Your swats.bio alias can change again in {alias2Cooldown}.</p>
-            ) : null}
-            {alias2Msg ? <p className="tw-set-note">{alias2Msg}</p> : null}
-          </div>
+
         </div>
 
         {user ? (
@@ -257,10 +193,7 @@ export function SettingsPage({
               <code>tourn.lol/{user.alias?.trim() || user.username}</code>
               <small>always live</small>
             </span>
-            <span>
-              <code>swats.bio/{user.alias2 || user.username}</code>
-              <small>always live</small>
-            </span>
+
           </div>
         ) : null}
       </Card>
@@ -359,7 +292,7 @@ export function SettingsPage({
             ["Background / overlay effects", isPremiumUser],
             ["Every audio style and file upload", isPremiumUser],
             ["Glass and glow link card styles", isPremiumUser],
-            ["Second claim on swats.bio", isPremiumUser],
+
             ["Ten template shares instead of two", isPremiumUser],
           ].map(([label, on]) => (
             <li key={String(label)} className={on ? "is-on" : ""}>

@@ -290,7 +290,7 @@ function GrantedRow({ kind, handle }: { kind: string; handle: string | null }) {
   const label = kind === "premium" ? "Premium" : kind === "badge" ? "Badge" : "Username";
   const detail =
     kind === "premium"
-      ? "Lifetime Premium is active — effects, audio and the second claim are unlocked."
+      ? "Lifetime Premium is active — effects, audio and advanced customization are unlocked."
       : kind === "badge"
         ? `The “${handle}” badge was added to your profile.`
         : `@${handle} is yours. Turn it on from your inventory.`;

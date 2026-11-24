@@ -105,7 +105,7 @@ export function ProfilePreview({
   const secondaryName = about.displayName.trim();
   const bio = about.bio.trim();
   const location = about.location.trim();
-  const avatar = assets.avatarUrl.trim() || user.avatarUrl;
+  const avatar = assets.avatarUrl.trim() || (design.minimalStart ? "" : user.avatarUrl);
   const decoration = assets.decoration;
   const banner = assets.banner;
   // A banner without an image is just a blank tinted band, so it needs both.
@@ -127,7 +127,7 @@ export function ProfilePreview({
   // Left and stacked share the reference identity row. Centered remains an
   // explicit alternative; advanced alignment still takes precedence.
   const pfpPosition = custom ? design.pfpPosition : design.layout === "centered" ? "above" : "left";
-  const namePosition = custom ? design.namePosition : design.layout === "centered" ? "center" : "left";
+  const namePosition = custom ? design.namePosition : design.minimalStart&&!assets.avatarUrl.trim()&&!bio ? "center" : design.layout === "centered" ? "center" : "left";
   const bioPosition = custom ? design.bioPosition : "center";
   // A dashboard preview has no counter to read, but the element still has to
   // exist so its corner is visible while editing.
@@ -343,6 +343,7 @@ export function ProfilePreview({
         compact ? " profile-preview--compact" : ""
       }${className ? ` ${className}` : ""}`}
       style={{ ...style, ...tilt.style }}
+      data-bare={design.minimalStart&&!assets.avatarUrl.trim()&&!bio&&!hasLinks ? "true" : undefined}
       data-pfp={pfpPosition}
       data-badges={design.badgePosition}
       data-name={namePosition}
@@ -454,7 +455,7 @@ export function ProfilePreview({
               <SparkleLayer settings={bioEffect} spread />
             </>
           ) : (
-            <span>A bio is on the way.</span>
+            null
           )}
         </div>
 

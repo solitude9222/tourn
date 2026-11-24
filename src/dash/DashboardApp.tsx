@@ -1,3 +1,4 @@
+import "../gettingStarted.css";
 import type { ProfileDocument } from "../lib/serverProfile";
 /* ---------------------------------------------------------------------------
    tourn.lol dashboard root.
@@ -36,6 +37,7 @@ const PortfolioGeneralPage = lazyPage(() => import("./pages/PortfolioStudio"), "
 const PortfolioAboutPage = lazyPage(() => import("./pages/PortfolioStudio"), "PortfolioAboutPage");
 const GalleryPage = lazyPage(() => import("./pages/Gallery"), "GalleryPage");
 const DesignPage = lazyPage(() => import("./pages/Design"), "DesignPage");
+const GettingStartedPage = lazyPage(() => import("./pages/GettingStarted"), "GettingStartedPage");
 const HomePage = lazyPage(() => import("./pages/Home"), "HomePage");
 const AccountProfilePage = lazyPage(() => import("./pages/Account"), "AccountProfilePage");
 const AffiliatesPage = lazyPage(() => import("./pages/Account"), "AffiliatesPage");
@@ -141,6 +143,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
   "portfolio-projects": {title:"Portfolio",subtitle:"Projects, artwork and links.",icon:"layers",crumb:"Customize"},
   "portfolio-interests": {title:"Portfolio",subtitle:"Games, anime and everything you enjoy.",icon:"gamepad",crumb:"Customize"},
   aliases: {title:"Inventory",subtitle:"Your usernames, badges and collectables.",icon:"layers",crumb:"Account"},
+  "getting-started": {title:"Getting started",subtitle:"Build your profile, step by step.",icon:"sparkles",crumb:"Home"},
   home: { title: "Account Overview", subtitle: "Check out information about your account.", icon: "home", crumb: "Home" },
   "account-profile": {
     title: "Profile",
@@ -694,6 +697,9 @@ export function Dashboard(props: DashboardProps) {
 
   let content: React.ReactNode;
   switch (page) {
+    case "getting-started":
+      content = <GettingStartedPage />;
+      break;
     case "home":
       content = <HomePage />;
       break;
