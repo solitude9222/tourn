@@ -15,6 +15,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm ci
+        working-directory: backends
       - run: npm run typecheck
       - run: npx vite build
       - run: npm run budget
@@ -24,3 +26,31 @@ jobs:
       - run: npm run test:discord
       - run: npm run test:profile-history
       - run: npm run test:analytics
+      - run: node --test tests/backlog-services.test.mjs tests/marketplace-single-alias.test.mjs tests/catalog-concurrency.test.mjs
+
+  dashboard-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node node_modules/playwright-core/cli.js install --with-deps chromium
+      - name: Start mocked-API UI test server
+        run: node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5180 --strictPort > vite.log 2>&1 &
+      - run: node tests/backlog-ui.mjs
+      - run: node tests/draft-runtime-performance.mjs
+      - run: node tests/playlist-crossfade.mjs
+      - run: node tests/studio-models.mjs
+      - run: node tests/marketplace-guide-ui.mjs
+      - run: node tests/footer-loading.mjs
+      - name: Keep visual audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-visual-audit
+          path: |
+            .tmp/*.png
+            vite.log

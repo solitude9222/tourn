@@ -199,6 +199,7 @@ export function mountCursorEffects(
   let width = 1;
   let height = 1;
   let particles: Particle[] = [];
+  const particlePool:Particle[]=[];
   let spawnBudget=24;
   let mx = -100;
   let my = -100;
@@ -235,8 +236,9 @@ export function mountCursorEffects(
     if (particle.R) particle.R *= motion.size;
     if(spawnBudget<=0)return;
     spawnBudget--;
-    if(particles.length>=160)particles.shift();
-    particles.push(particle);
+    if(particles.length>=160){const oldest=particles.shift();if(oldest)particlePool.push(oldest);}
+    const recycled=particlePool.pop();
+    if(recycled){for(const key in recycled)(recycled as unknown as Record<string,unknown>)[key]=undefined;particles.push(Object.assign(recycled,particle));}else particles.push(particle);
   };
 
   const spawn = (x: number, y: number, dx: number, dy: number) => {
@@ -500,7 +502,7 @@ export function mountCursorEffects(
       const particle = particles[i];
       particle.life++;
       if (particle.life > particle.max) {
-        particles.splice(i, 1);
+        particlePool.push(particles.splice(i, 1)[0]);
         continue;
       }
       if (particle.acc) {
@@ -694,6 +696,7 @@ export function mountCursorEffects(
   };
 
   const onMove = (event: PointerEvent) => {
+    if(event.target instanceof Element && event.target.closest('input,textarea,[contenteditable="true"]')){onLeave();return;}
     if (event.pointerType === "touch" || document.hidden || document.documentElement.hasAttribute("data-editor-gesture")) return;
     const { x, y } = pointInCanvas(event);
     mx = x;
@@ -730,7 +733,7 @@ export function mountCursorEffects(
   const onLeave = () => {
     active = false;
     onActive(false);
-    particles = [];
+    particlePool.push(...particles);if(particlePool.length>160)particlePool.length=160;particles = [];
     history = [];
     ghostHistory = [];
     points = Array.from({ length: 8 }, () => ({ x: -100, y: -100 }));

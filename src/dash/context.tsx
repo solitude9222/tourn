@@ -17,6 +17,7 @@ export type Page =
   | "appearance"
   | "portfolio-projects"
   | "portfolio-interests"
+  | "workspace"
   | "home"
   | "getting-started"
   | "account-profile"

@@ -1,0 +1,1326 @@
+{
+  "updated": "2026-11-27",
+  "note": "This is a progress record, not a claim that all 220 recommendations are finished.",
+  "items": [
+    {
+      "id": 1,
+      "recommendation": "Check alias availability while typing with a short debounce.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 2,
+      "recommendation": "Offer available alias suggestions after a collision.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 3,
+      "recommendation": "Explain alias length and character rules beside the field.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 4,
+      "recommendation": "Preview the exact public address before confirming an alias change.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 5,
+      "recommendation": "Show the next eligible alias-change date consistently.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 6,
+      "recommendation": "Add a user-controlled pronunciation field to the identity preview.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 7,
+      "recommendation": "Explain the difference between account username and display name.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 8,
+      "recommendation": "Let users restart the setup walkthrough at any time.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 9,
+      "recommendation": "Remember the last completed walkthrough step per account.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 10,
+      "recommendation": "Add an optional privacy-first onboarding path with fewer visible details.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 11,
+      "recommendation": "Allow personal ordering of sidebar categories.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 12,
+      "recommendation": "Allow personal ordering of settings within a category.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 13,
+      "recommendation": "Provide a reset action for custom navigation order.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 14,
+      "recommendation": "Add pinned destinations for frequently used controls.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 15,
+      "recommendation": "Make search results show their full settings path.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 16,
+      "recommendation": "Highlight the matching setting after navigation from search.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 17,
+      "recommendation": "Add keyboard shortcuts for recent destinations.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 18,
+      "recommendation": "Keep scroll position separately for each dashboard page.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 19,
+      "recommendation": "Show an accessible breadcrumb on narrow screens.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 20,
+      "recommendation": "Add a compact navigation density preference.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 21,
+      "recommendation": "Audit shared button-to-label spacing at every breakpoint.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 22,
+      "recommendation": "Standardize icon-to-label gaps across all control variants.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 23,
+      "recommendation": "Add minimum widths to mixed input/action rows.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 24,
+      "recommendation": "Wrap long translated labels without hiding controls.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 25,
+      "recommendation": "Standardize modal content padding across managers.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 26,
+      "recommendation": "Audit sticky headers against tall content.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 27,
+      "recommendation": "Reserve consistent space for inline validation messages.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 28,
+      "recommendation": "Check nested scrolling for bottom-of-page clipping.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 29,
+      "recommendation": "Make destructive action groups visually distinct without red theme accents.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 30,
+      "recommendation": "Document the spacing scale in reusable design tokens.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 31,
+      "recommendation": "Audit Admin, public and dashboard accents with screenshot comparisons.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 32,
+      "recommendation": "Add saved user color palettes.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 33,
+      "recommendation": "Show text contrast estimates beside color controls.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 34,
+      "recommendation": "Offer a high-contrast blue dashboard theme.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 35,
+      "recommendation": "Add a clear opacity checkerboard to transparent color swatches.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 36,
+      "recommendation": "Let users copy and paste entire color palettes.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 37,
+      "recommendation": "Add per-section color reset actions.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 38,
+      "recommendation": "Keep theme colors separate from user profile colors.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 39,
+      "recommendation": "Add a neutral monochrome profile starting preset.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 40,
+      "recommendation": "Publish a small shared palette for all product surfaces.",
+      "status": "Documented",
+      "evidence": "See product-design-tokens.md and external-providers.md."
+    },
+    {
+      "id": 41,
+      "recommendation": "Add side-by-side identity layout presets.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 42,
+      "recommendation": "Allow safe text-width limits independently of card width.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 43,
+      "recommendation": "Preview exceptionally long names before publishing.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 44,
+      "recommendation": "Offer independent phone and desktop bio alignment.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 45,
+      "recommendation": "Add optional line clamping with a readable expansion action.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 46,
+      "recommendation": "Provide an exact pixel measurement overlay in Layout.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 47,
+      "recommendation": "Add avatar crop focal-point controls.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 48,
+      "recommendation": "Offer balanced two-column widget layout presets.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 49,
+      "recommendation": "Let users lock widget dimensions during reordering.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 50,
+      "recommendation": "Add safe-area guides for profile corner metadata.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 51,
+      "recommendation": "Profile the sorter with many visible widgets.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 52,
+      "recommendation": "Add keyboard reorder controls to every sortable list.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 53,
+      "recommendation": "Keep the dragged item’s original dimensions throughout a drag.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 54,
+      "recommendation": "Limit expensive preview updates during pointer movement.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 55,
+      "recommendation": "Add a clear insertion marker between items.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 56,
+      "recommendation": "Improve edge auto-scroll for long lists.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 57,
+      "recommendation": "Provide a cancel-drag shortcut with Escape.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 58,
+      "recommendation": "Add undo for an accidental reorder.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 59,
+      "recommendation": "Announce reordered positions to screen readers.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 60,
+      "recommendation": "Add touch drag handles large enough for fingers.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 61,
+      "recommendation": "Measure input-to-paint latency while animated previews are running.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 62,
+      "recommendation": "Update slider labels without rerendering unrelated editors.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 63,
+      "recommendation": "Commit expensive color computations after the interaction ends.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 64,
+      "recommendation": "Support precise keyboard increments on every slider.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 65,
+      "recommendation": "Add direct numeric entry beside range controls.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 66,
+      "recommendation": "Make slider units visible and consistent.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 67,
+      "recommendation": "Add a recent-colors strip scoped to the active account.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 68,
+      "recommendation": "Keep picker popovers inside the visible viewport.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 69,
+      "recommendation": "Ensure pickers escape ancestor clipping containers.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 70,
+      "recommendation": "Test pointer capture when dragging outside a slider rail.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 71,
+      "recommendation": "Show upload dimensions and file size before saving.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 72,
+      "recommendation": "Add local avatar crop previews.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 73,
+      "recommendation": "Add separate media replacement and deletion actions.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 74,
+      "recommendation": "Show failed upload retries beside the failed file.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 75,
+      "recommendation": "Detect unsupported video codecs before publishing.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 76,
+      "recommendation": "Warn about unusually large profile background videos.",
+      "status": "Needs audit",
+      "evidence": "Not claimed complete in this release."
+    },
+    {
+      "id": 77,
+      "recommendation": "Add optional automatically generated video poster frames.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 78,
+      "recommendation": "Show upload progress as actual transferred bytes.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 79,
+      "recommendation": "Offer reusable media folders with clear ownership.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 80,
+      "recommendation": "Add an unused-assets review before deleting files.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 81,
+      "recommendation": "Preview video delay and fade timing on a short timeline.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 82,
+      "recommendation": "Provide a poster-first option on slow connections.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 83,
+      "recommendation": "Add an obvious background-video pause control.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 84,
+      "recommendation": "Keep overlay intensity independent of background brightness.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 85,
+      "recommendation": "Add effect presets with clear performance estimates.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 86,
+      "recommendation": "Test transparent overlays on both light and dark media.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 87,
+      "recommendation": "Allow separate reduced-motion overlay choices.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 88,
+      "recommendation": "Pause off-screen background animations.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 89,
+      "recommendation": "Add a maximum background-video resolution setting.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 90,
+      "recommendation": "Provide a simple before/after effect preview.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 91,
+      "recommendation": "Add a gallery of restrained cursor presets.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 92,
+      "recommendation": "Preview the custom cursor hotspot before saving.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 93,
+      "recommendation": "Add a cursor reset control beside the upload field.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 94,
+      "recommendation": "Disable decorative trails on touch-only devices.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 95,
+      "recommendation": "Pool trail particles instead of allocating per pointer event.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 96,
+      "recommendation": "Cap trail density on high-polling-rate mice.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 97,
+      "recommendation": "Add a separate click-effect preview area.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 98,
+      "recommendation": "Keep custom cursors visible over nested dialogs.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 99,
+      "recommendation": "Add a cursor image size warning for inaccessible tiny artwork.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 100,
+      "recommendation": "Preserve a clear text-selection pointer in editable fields.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 101,
+      "recommendation": "Create a coherent hand-designed SVG badge family.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 102,
+      "recommendation": "Add per-badge motion previews before equipping.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 103,
+      "recommendation": "Provide a master badge-animation toggle.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 104,
+      "recommendation": "Add independent glow color and strength controls.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 105,
+      "recommendation": "Make glow settings available without forcing monochrome badges.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 106,
+      "recommendation": "Add a reduced-motion badge preview mode.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 107,
+      "recommendation": "Show exact unlock requirements in badge tooltips.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 108,
+      "recommendation": "Add a badge shelf reorder action with keyboard support.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 109,
+      "recommendation": "Keep donation amounts exclusively in tooltips where requested.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 110,
+      "recommendation": "Show owned, equipped and unavailable badges as separate states.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 111,
+      "recommendation": "Compare volume-slider entrance and exit timing across styles.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 112,
+      "recommendation": "Preserve focus while the volume rail expands.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 113,
+      "recommendation": "Add keyboard volume steps and mute shortcuts.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 114,
+      "recommendation": "Show a clear reason when autoplay is blocked.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 115,
+      "recommendation": "Improve track drag handles in the audio manager.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 116,
+      "recommendation": "Add track duration and file-size metadata.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 117,
+      "recommendation": "Add an optional crossfade between playlist tracks.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 118,
+      "recommendation": "Preview mute-button glow and opacity in the manager.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 119,
+      "recommendation": "Offer explicit hover, click and always-visible rail behavior.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 120,
+      "recommendation": "Keep audio player dimensions stable while metadata loads.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 121,
+      "recommendation": "Normalize custom social artwork into the same icon box.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 122,
+      "recommendation": "Remove unnecessary white plates from transparent platform artwork.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 123,
+      "recommendation": "Show invalid links before publication.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 124,
+      "recommendation": "Add per-link accessible labels.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 125,
+      "recommendation": "Preview external-link targets clearly in the editor.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 126,
+      "recommendation": "Add per-widget loading skeletons with fixed dimensions.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 127,
+      "recommendation": "Show recoverable provider errors inside the affected widget.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 128,
+      "recommendation": "Add provider refresh timestamps where useful.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 129,
+      "recommendation": "Cache repeated provider lookups on the backend.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 130,
+      "recommendation": "Test widget widths with unusually long server names.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 131,
+      "recommendation": "Render anime search results in a portal above the editor.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 132,
+      "recommendation": "Add keyboard navigation to interest search results.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 133,
+      "recommendation": "Keep selected interests visible while searching for more.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 134,
+      "recommendation": "Prevent duplicate interests by provider ID.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 135,
+      "recommendation": "Add configurable poster ratios for interest cards.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 136,
+      "recommendation": "Support a readable horizontal interest carousel on phones.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 137,
+      "recommendation": "Add project image focal points.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 138,
+      "recommendation": "Improve skill-chip wrapping for long technology names.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 139,
+      "recommendation": "Add optional project status labels.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 140,
+      "recommendation": "Provide accessible next/previous controls on galleries.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 141,
+      "recommendation": "Add entry animation presets that avoid layout shifts.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 142,
+      "recommendation": "Preview entry transitions without starting real audio.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 143,
+      "recommendation": "Keep the entry action usable before background media loads.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 144,
+      "recommendation": "Add a skip-animation action for long entrances.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 145,
+      "recommendation": "Apply reduced-motion preferences across all entry layers.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 146,
+      "recommendation": "Audit entrance and exit animations for interrupted interactions.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 147,
+      "recommendation": "Use consistent motion durations for menus and popovers.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 148,
+      "recommendation": "Animate empty-to-loaded states without moving nearby controls.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 149,
+      "recommendation": "Pause expensive animation loops in background tabs.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 150,
+      "recommendation": "Add visual regression captures of key animation frames.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 151,
+      "recommendation": "Audit 320px-wide dashboard pages for horizontal overflow.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 152,
+      "recommendation": "Keep bottom actions clear of phone safe areas.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 153,
+      "recommendation": "Make long forms use one column at narrow widths.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 154,
+      "recommendation": "Test dialogs with the virtual keyboard visible.",
+      "status": "Requires device/manual QA",
+      "evidence": "Real virtual-keyboard, screen-reader and low-powered-phone testing has not been performed."
+    },
+    {
+      "id": 155,
+      "recommendation": "Add a mobile navigation search shortcut.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 156,
+      "recommendation": "Keep footer links visible without oversized empty space.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 157,
+      "recommendation": "Make small icon-only actions at least finger-sized.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 158,
+      "recommendation": "Test landscape phone layouts.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 159,
+      "recommendation": "Make media previews respect limited viewport height.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 160,
+      "recommendation": "Add mobile-specific drag instructions only when needed.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 161,
+      "recommendation": "Audit all icon-only buttons for meaningful accessible names.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 162,
+      "recommendation": "Restore focus to the trigger after closing every dialog.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 163,
+      "recommendation": "Trap focus consistently in modal managers.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 164,
+      "recommendation": "Add visible keyboard focus to custom effect cards.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 165,
+      "recommendation": "Respect reduced motion in all third-party decorations.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 166,
+      "recommendation": "Announce upload and save failures without stealing focus.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 167,
+      "recommendation": "Verify text contrast for muted helper copy.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 168,
+      "recommendation": "Add descriptive alternatives for meaningful portfolio images.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 169,
+      "recommendation": "Test the dashboard using only a keyboard.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 170,
+      "recommendation": "Run a screen-reader walkthrough of signup and profile editing.",
+      "status": "Requires device/manual QA",
+      "evidence": "Real virtual-keyboard, screen-reader and low-powered-phone testing has not been performed."
+    },
+    {
+      "id": 171,
+      "recommendation": "Record real input responsiveness on low-powered phones.",
+      "status": "Requires device/manual QA",
+      "evidence": "Real virtual-keyboard, screen-reader and low-powered-phone testing has not been performed."
+    },
+    {
+      "id": 172,
+      "recommendation": "Track route loading time separately from backend latency.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 173,
+      "recommendation": "Add performance budgets for animated profile presets.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 174,
+      "recommendation": "Avoid loading unused effect galleries on first dashboard paint.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 175,
+      "recommendation": "Deduplicate concurrent requests for the same resource.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 176,
+      "recommendation": "Add timeouts and retry actions for stalled provider requests.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 177,
+      "recommendation": "Use image dimensions to prevent cumulative layout shifts.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 178,
+      "recommendation": "Check memory use after repeatedly opening media managers.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 179,
+      "recommendation": "Abort obsolete searches when the query changes.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 180,
+      "recommendation": "Add slow-network regression runs for public pages.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 181,
+      "recommendation": "Show the exact time of the last successful save.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 182,
+      "recommendation": "Compare conflicting drafts before overwriting either version.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 183,
+      "recommendation": "Add per-section reset with an immediate undo.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 184,
+      "recommendation": "Explain which settings are draft-only versus already saved.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 185,
+      "recommendation": "Make account switching preserve each account’s own draft.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 186,
+      "recommendation": "Add downloadable user-owned profile backups.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 187,
+      "recommendation": "Validate imported settings before replacing a profile.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 188,
+      "recommendation": "Add a recovery view for failed media references.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 189,
+      "recommendation": "Document schema migrations and backward compatibility.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 190,
+      "recommendation": "Test leaving a page during an in-flight save.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 191,
+      "recommendation": "Add product ordering controls in Admin.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 192,
+      "recommendation": "Add product search and publication filters.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 193,
+      "recommendation": "Show a product preview before publishing it.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 194,
+      "recommendation": "Add an Admin audit trail for catalog edits.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 195,
+      "recommendation": "Integrate authenticated provider price reconciliation.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 196,
+      "recommendation": "Add provider-stock synchronization rather than manual matching.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 197,
+      "recommendation": "Add invoice lookup for support without exposing payment details.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 198,
+      "recommendation": "Add scheduled product publication with a visible timezone.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 199,
+      "recommendation": "Add a read-only fulfillment health panel.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 200,
+      "recommendation": "Add an owner-only review step for changes to store integration.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 201,
+      "recommendation": "Add leaderboard period filters backed by real historical data.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 202,
+      "recommendation": "Add accessible ranking-change indicators when historical data exists.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 203,
+      "recommendation": "Preserve leaderboard filters in shareable URLs.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 204,
+      "recommendation": "Add a clear empty state for new leaderboard periods.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 205,
+      "recommendation": "Improve contact forms with delivery confirmation and retries.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 206,
+      "recommendation": "Keep legal-page typography consistent with public navigation.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 207,
+      "recommendation": "Add verified community links with consistent logo treatment.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 208,
+      "recommendation": "Add public-page loading and error states to every route.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 209,
+      "recommendation": "Review footer content ordering with phone users.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 210,
+      "recommendation": "Add share-image previews generated from the actual profile.",
+      "status": "Existing or extended",
+      "evidence": "Existing controls were retained or extended. This is not a claim of exhaustive verification for every profile/provider."
+    },
+    {
+      "id": 211,
+      "recommendation": "Create shared stories for every input and button variant.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 212,
+      "recommendation": "Capture desktop, tablet and mobile screenshots in CI.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 213,
+      "recommendation": "Test dialogs near all four viewport edges.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 214,
+      "recommendation": "Add regression cases for long names and missing artwork.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 215,
+      "recommendation": "Add a theme-token check for unintended old accent colors.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 216,
+      "recommendation": "Track JavaScript errors by route and release without collecting profile content.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 217,
+      "recommendation": "Add deployment smoke tests for public, dashboard and Admin routes.",
+      "status": "Partial",
+      "evidence": "See remaining work in website-improvements-release.md; coverage or rollout is incomplete."
+    },
+    {
+      "id": 218,
+      "recommendation": "Maintain a documented inventory of external provider dependencies.",
+      "status": "Documented",
+      "evidence": "See product-design-tokens.md and external-providers.md."
+    },
+    {
+      "id": 219,
+      "recommendation": "Add migration tests using representative older profile documents.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    },
+    {
+      "id": 220,
+      "recommendation": "Publish a short changelog that distinguishes fixes from new features.",
+      "status": "Implemented",
+      "evidence": "Code included in this release; scope and local validation are recorded in website-improvements-release.md."
+    }
+  ]
+}

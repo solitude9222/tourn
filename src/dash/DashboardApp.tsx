@@ -1,3 +1,6 @@
+import {readDurableDraft,writeDurableDraft} from '../lib/draftStorage';
+import {normalizeDocument} from '../lib/serverProfile';
+import {useWorkspaceScroll} from './workspaceNavigation';
 import "../gettingStarted.css";
 import type { ProfileDocument } from "../lib/serverProfile";
 /* ---------------------------------------------------------------------------
@@ -38,6 +41,8 @@ const PortfolioAboutPage = lazyPage(() => import("./pages/PortfolioStudio"), "Po
 const GalleryPage = lazyPage(() => import("./pages/Gallery"), "GalleryPage");
 const DesignPage = lazyPage(() => import("./pages/Design"), "DesignPage");
 const GettingStartedPage = lazyPage(() => import("./pages/GettingStarted"), "GettingStartedPage");
+const WorkspacePage = lazyPage(() => import("./pages/Workspace"), "WorkspacePage");
+const RecoveryReview=lazyPage(()=>import("./RecoveryReview"),"RecoveryReview");
 const HomePage = lazyPage(() => import("./pages/Home"), "HomePage");
 const AccountProfilePage = lazyPage(() => import("./pages/Account"), "AccountProfilePage");
 const AffiliatesPage = lazyPage(() => import("./pages/Account"), "AffiliatesPage");
@@ -144,6 +149,7 @@ const META: Record<Page, { title: string; subtitle: string; icon: IconName; crum
   "portfolio-interests": {title:"Portfolio",subtitle:"Games, anime and everything you enjoy.",icon:"gamepad",crumb:"Customize"},
   aliases: {title:"Inventory",subtitle:"Your usernames, badges and collectables.",icon:"layers",crumb:"Account"},
   "getting-started": {title:"Getting started",subtitle:"Build your profile, step by step.",icon:"sparkles",crumb:"Home"},
+  workspace:{title:"Workspace",subtitle:"Arrange, compare and recover your profile.",icon:"sliders",crumb:"Account"},
   home: { title: "Account Overview", subtitle: "Check out information about your account.", icon: "home", crumb: "Home" },
   "account-profile": {
     title: "Profile",
@@ -412,13 +418,19 @@ export function Dashboard(props: DashboardProps) {
     job.frame=requestAnimationFrame(()=>{job.timer=window.setTimeout(()=>{if(draftJob.current===job){draftJob.current=null;draftCallback.current(job.value);}},0);});
   },[]);
   useEffect(()=>()=>{const job=draftJob.current;if(job){cancelAnimationFrame(job.frame);clearTimeout(job.timer);draftJob.current=null;draftCallback.current(job.value);}},[]);
+  const [recovery,setRecovery]=useState<{document:ProfileDocument;savedAt:number}|null>(null),[reviewRecovery,setReviewRecovery]=useState(false);
+  const editorBase=useRef({about,widgets,badges,links:profileLinks});editorBase.current={about,widgets,badges,links:profileLinks};
+  const editGeneration=useRef(0);
+  const persistEditor=(document:ProfileDocument)=>{if(user){void writeDurableDraft('editor:'+user.id,{document,base:editorBase.current,savedAt:Date.now()});}};
+  useEffect(()=>{setRecovery(null);setReviewRecovery(false);if(authLoading||!user)return;let active=true;const generation=editGeneration.current;void readDurableDraft<{document:ProfileDocument;savedAt:number}>('editor:'+user.id).then(saved=>{if(active&&saved?.document&&generation===editGeneration.current){const normalized=normalizeDocument(saved.document);if(JSON.stringify(normalized)!==JSON.stringify(editorBase.current))setRecovery({document:normalized,savedAt:saved.savedAt});}});return()=>{active=false;};},[authLoading,user?.id]);
   const history = useRef<{ past: ProfileDocument[]; future: ProfileDocument[]; at: number; section: string }>({ past: [], future: [], at: 0, section: "" });
   const [historyVersion, setHistoryVersion] = useState(0);
+  useEffect(()=>{const boundary=()=>{history.current.at=0;history.current.section="";};window.addEventListener("tourn:history-boundary",boundary);return()=>window.removeEventListener("tourn:history-boundary",boundary);},[]);
   const restoreDraft = useCallback((next: ProfileDocument) => {
-    draftRef.current = next;
+    draftRef.current = next;persistEditor(next);editGeneration.current++;
     setAboutDraft(next.about); setWidgetsDraft(next.widgets); setBadgesDraft(next.badges); setLinksDraft(next.links);
     queueDraft(next);
-  }, [queueDraft]);
+  }, [queueDraft,user?.id]);
   const undo = useCallback(() => {
     if (!user || authLoading) return;
     const previous = history.current.past.pop();
@@ -442,7 +454,7 @@ export function Dashboard(props: DashboardProps) {
     // Coalesce typing and slider gestures, retaining the state before the gesture.
     if (h.section !== section || now - h.at > 600 || !h.past.length) h.past = [...h.past.slice(-39), draftRef.current];
     h.at = now; h.section = section; h.future = [];
-    setHistoryVersion(v => v + 1); draftRef.current=next;
+    setHistoryVersion(v => v + 1); draftRef.current=next;editGeneration.current++;persistEditor(next);
     queueDraft(next);
     if(section==='about')setAboutDraft(next.about);if(section==='widgets')setWidgetsDraft(next.widgets);if(section==='badges')setBadgesDraft(next.badges);if(section==='links')setLinksDraft(next.links);
   };
@@ -522,15 +534,7 @@ export function Dashboard(props: DashboardProps) {
     return () => window.removeEventListener("hashchange", apply);
   }, [isAdmin]);
 
-  useLayoutEffect(() => {
-    const main = document.querySelector<HTMLElement>(".tw-main");
-    if (main) main.scrollTop = 0;
-    const frame = window.requestAnimationFrame(() => {
-      const section = new URLSearchParams(window.location.hash.split("?")[1]).get("section");
-      if (section) document.getElementById(`dash-section-${section}`)?.scrollIntoView({ block: "start" });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [page, profileTab]);
+  useWorkspaceScroll(page,profileTab,user?.id);
 
   const aboutChanged = useMemo(() => serialized(aboutDraft) !== serialized(about), [aboutDraft,about]);
   const widgetsChanged = useMemo(() => serialized(widgetsDraft) !== serialized(widgets), [widgetsDraft,widgets]);
@@ -575,10 +579,12 @@ export function Dashboard(props: DashboardProps) {
 
 
   const discard = useCallback(() => {
+    if(user)void writeDurableDraft('editor:'+user.id,null);setRecovery(null);
     history.current.past.push(draftRef.current);
     history.current.future = []; history.current.at = 0;
     restoreDraft({ about, widgets, badges, links: profileLinks });
     setHistoryVersion(v => v + 1);
+    if(user)void writeDurableDraft('editor:'+user.id,null);
     notify("Changes discarded", "Your profile is back to the saved version.");
   }, [about, widgets, badges, profileLinks, notify, restoreDraft]);
 
@@ -699,6 +705,9 @@ export function Dashboard(props: DashboardProps) {
   switch (page) {
     case "getting-started":
       content = <GettingStartedPage />;
+      break;
+    case "workspace":
+      content = <WorkspacePage />;
       break;
     case "home":
       content = <HomePage />;
@@ -825,6 +834,8 @@ export function Dashboard(props: DashboardProps) {
         onAddAccount={onAddAccount}
         onSignOut={onSignOut}
       >
+        {recovery?<div className="workspace-recovery" role="status"><span>A browser draft is available from {new Date(recovery.savedAt).toLocaleString()}. Your saved profile is unchanged.</span><Button onClick={()=>setReviewRecovery(true)}>Review recovered draft</Button><Button onClick={()=>{if(user)void writeDurableDraft('editor:'+user.id,null);setRecovery(null);}}>Keep saved profile</Button></div>:null}
+        {recovery&&reviewRecovery?<Suspense fallback={<p role="status">Loading comparison…</p>}><RecoveryReview document={recovery.document} savedAt={recovery.savedAt} onClose={()=>setReviewRecovery(false)} onRestore={()=>{restoreDraft({...recovery.document,badges:{...recovery.document.badges,equipped:recovery.document.badges.equipped.filter(item=>earned.includes(item.id))}});setReviewRecovery(false);setRecovery(null);notify('Draft restored','Review your changes, then Save now to publish.');}}/></Suspense>:null}
         <Suspense fallback={<div className="tw-page-loading" role="status" aria-label="Loading editor"><div /><div /><div /></div>}>{content}</Suspense>
       </Shell>
     </DashContext.Provider>

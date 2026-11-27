@@ -8,6 +8,7 @@ export type LeaderboardEntry = {
   avatarUrl: string | null;
   views: number;
   likes: number;
+  rankChange?:number|null;
 };
 
 type Payload = {
@@ -20,6 +21,7 @@ type Payload = {
     avatar_url?: string | null;
     views?: number;
     likes?: number;
+    rankChange?: number|null;
   }[];
   total?: number;
 };
@@ -36,8 +38,9 @@ export async function fetchLeaderboard(
   sort: "views" | "likes" = "views",
   limit = 25,
   offset = 0,
+  period: "all"|"7d"|"30d" = "all",
 ): Promise<LeaderboardResult> {
-  const params = new URLSearchParams({ sort, limit: String(limit), offset: String(offset) });
+  const params = new URLSearchParams({ sort, period, limit: String(limit), offset: String(offset) });
   const result = await api<Payload>(`/api/leaderboard?${params}`);
   if (!result.ok) throw new Error(result.error);
   const rows = Array.isArray(result.data?.profiles) ? result.data.profiles : [];
@@ -53,6 +56,7 @@ export async function fetchLeaderboard(
       avatarUrl: row.avatarUrl ?? row.avatar_url ?? null,
       views: count(row.views),
       likes: count(row.likes),
+      rankChange:typeof row.rankChange==='number'&&Number.isInteger(row.rankChange)?row.rankChange:null,
     }));
   const total = Number(result.data?.total);
   return { entries, total: Number.isFinite(total) ? Math.max(entries.length, count(total)) : entries.length };

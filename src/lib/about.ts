@@ -267,6 +267,7 @@ export type SectionPick = {
   /** Poster shown on the profile — a catalogue image or a custom upload. */
   image: string;
   /** The catalogue poster, kept so a custom upload can be undone. */
+  catalogId?: string;
   catalogImage?: string;
   meta: string;
   url: string;
@@ -305,6 +306,7 @@ export const DEFAULT_PROJECT_LAYOUT: ProjectLayout = {
 };
 
 export type ProfileSection = {
+  cropX?:number;cropY?:number;
   id: string;
   title: string;
   text: string;
@@ -879,6 +881,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
         id: typeof item.id === "string" ? item.id.slice(0, 80) : `section-${index}`,
         title: typeof item.title === "string" ? item.title.slice(0, 100) : "",
         text: typeof item.text === "string" ? item.text.slice(0, 4000) : "",
+        cropX:numberIn(item.cropX,50,0,100),cropY:numberIn(item.cropY,50,0,100),
         image: typeof item.image === "string" ? item.image.slice(0, 1_000_000) : "",
         url: typeof item.url === "string" && /^https?:\/\//i.test(item.url) ? item.url.slice(0, 1000) : "",
         kind,
@@ -899,6 +902,7 @@ function loadDesignRaw(input: unknown): AboutDesign {
                 title: typeof pick.title === "string" ? pick.title.slice(0, 100) : "",
                 subtitle: typeof pick.subtitle === "string" ? pick.subtitle.slice(0, 180) : "",
                 image: typeof pick.image === "string" ? pick.image.slice(0, 1_000_000) : "",
+                catalogId: typeof pick.catalogId === "string" ? pick.catalogId.slice(0,160) : undefined,
                 catalogImage: typeof pick.catalogImage === "string" ? pick.catalogImage.slice(0, 1_000_000) : undefined,
                 meta: typeof pick.meta === "string" ? pick.meta.slice(0, 80) : "",
                 url: typeof pick.url === "string" && /^https?:\/\//i.test(pick.url) ? pick.url.slice(0, 1000) : "",

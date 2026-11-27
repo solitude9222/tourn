@@ -1,4 +1,5 @@
 import {needsPrimaryAlias} from './singleAlias.js';
+import {readProviderProduct} from './marketplaceProvider.js';
 /** Admin owns the catalog; deployment owns provider identifiers. No secrets are stored in products. */
 export const MARKETPLACE_SCHEMA = `
 create table if not exists marketplace_products(
@@ -8,6 +9,13 @@ create table if not exists marketplace_products(
  badge_id text, checkout_env text not null unique, stock integer check(stock>=0),
  enabled boolean not null default false, created_at timestamptz not null default now(),
  updated_at timestamptz not null default now()
+);
+alter table marketplace_products add column if not exists sort_order integer not null default 0;
+alter table marketplace_products add column if not exists publish_at timestamptz;
+create table if not exists marketplace_audit(
+ id bigserial primary key, actor uuid references users(id) on delete set null,
+ product_id text, action text not null, detail jsonb not null default '{}',
+ created_at timestamptz not null default now()
 );`;
 export const SALE_BADGES=['easter','autumn','summer','christmas_2026','halloween_2026'];
 const fail=(status,message)=>Object.assign(new Error(message),{status});
@@ -35,7 +43,10 @@ export function validateProduct(input){
  if(!['premium','badge'].includes(reward)||reward==='badge'&&!SALE_BADGES.includes(badge_id))throw fail(400,'Choose Premium or a supported store badge. Staff roles cannot be sold.');
  if(stock!==null&&(!Number.isSafeInteger(stock)||stock<0||stock>10000000))throw fail(400,'Stock must be a non-negative whole number, or blank for unlimited digital stock.');
  if(typeof input.enabled!=='boolean')throw fail(400,'Choose whether the product is published.');
- return {id,title,description,image_url,price_cents,currency,reward,badge_id,checkout_env,stock,enabled:input.enabled};
+ const sort_order=Number(input.sort_order??0),publish_at=input.publish_at?new Date(input.publish_at):null;
+ if(!Number.isInteger(sort_order)||sort_order<0||sort_order>10000)throw fail(400,'Display order must be a whole number from 0 to 10000.');
+ if(publish_at&&!Number.isFinite(publish_at.getTime()))throw fail(400,'Choose a valid publication time.');
+ return {id,title,description,image_url,price_cents,currency,reward,badge_id,checkout_env,stock,enabled:input.enabled,sort_order,publish_at:publish_at?publish_at.toISOString():null};
 }
 export function shopMapping(env=process.env){
  const shopId=Number(env.SELLAUTH_SHOP_ID);let shopUrl='';
@@ -44,17 +55,17 @@ export function shopMapping(env=process.env){
 }
 export function publicProduct(row,env=process.env,admin=false){
  const {id,title,description,image_url,price_cents,currency,reward,badge_id,stock,enabled}=row;
- return {id,title,description,image_url,price_cents,currency,reward,badge_id,stock,enabled,
+ return {id,title,description,image_url,price_cents,currency,reward,badge_id,stock,enabled,sort_order:row.sort_order??0,publish_at:row.publish_at??null,
  ready:Boolean(providerMapping(row.checkout_env,env)&&shopMapping(env)),
  ...(admin?{checkout_env:row.checkout_env}:{} )};
 }
 export function registerMarketplaceRoutes(app,{pool,requireAuth,requireAdmin,limiter,jwt,secret,env=process.env}){
  app.get('/api/marketplace/products',wrap(async(_req,res)=>{
-  const {rows}=await pool.query('select * from marketplace_products where enabled=true order by created_at,id');
+  const {rows}=await pool.query('select * from marketplace_products where enabled=true and (publish_at is null or publish_at<=now()) order by sort_order,created_at,id');
   res.set('Cache-Control','no-store').json({products:rows.map(row=>publicProduct(row,env))});
  }));
  app.get('/api/admin/marketplace/products',requireAdmin,wrap(async(_req,res)=>{
-  const {rows}=await pool.query('select * from marketplace_products order by created_at desc,id');
+  const {rows}=await pool.query('select * from marketplace_products order by sort_order,created_at desc,id');
   res.set('Cache-Control','no-store').json({products:rows.map(row=>publicProduct(row,env,true))});
  }));
  const save=creating=>wrap(async(req,res)=>{
@@ -69,19 +80,45 @@ export function registerMarketplaceRoutes(app,{pool,requireAuth,requireAdmin,lim
    if(previous.reward!==product.reward||previous.badge_id!==product.badge_id||previous.checkout_env!==product.checkout_env)throw fail(409,'Delivery and checkout mapping are fixed after creation. Create a new product instead.');
   }
   const values=Object.values(product);
-  try{
-   if(creating)await pool.query('insert into marketplace_products(id,title,description,image_url,price_cents,currency,reward,badge_id,checkout_env,stock,enabled) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',values);
-   else {const result=await pool.query('update marketplace_products set title=$2,description=$3,image_url=$4,price_cents=$5,currency=$6,reward=$7,badge_id=$8,checkout_env=$9,stock=$10,enabled=$11,updated_at=now() where id=$1 returning id',values);if(!result.rows.length)throw fail(404,'Product not found.');}
-  }catch(error){if(error.code==='23505')throw fail(409,'That product ID or environment key already exists.');throw error;}
+  const db=await pool.connect();try{
+   await db.query('begin');
+   if(creating)await db.query('insert into marketplace_products(id,title,description,image_url,price_cents,currency,reward,badge_id,checkout_env,stock,enabled,sort_order,publish_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',values);
+   else {const result=await db.query('update marketplace_products set title=$2,description=$3,image_url=$4,price_cents=$5,currency=$6,reward=$7,badge_id=$8,checkout_env=$9,stock=$10,enabled=$11,sort_order=$12,publish_at=$13,updated_at=now() where id=$1 returning id',values);if(!result.rows.length)throw fail(404,'Product not found.');}
+   await db.query('insert into marketplace_audit(actor,product_id,action,detail) values($1,$2,$3,$4::jsonb)',[req.user?.id||req.auth?.sub||null,product.id,creating?'created':'updated',JSON.stringify(product)]);
+   await db.query('commit');
+  }catch(error){await db.query('rollback');if(error.code==='23505')throw fail(409,'That product ID or environment key already exists.');throw error;}finally{db.release();}
   res.status(creating?201:200).json({product:publicProduct(product,env,true)});
  });
  app.post('/api/admin/marketplace/products',limiter,requireAdmin,save(true));
  app.patch('/api/admin/marketplace/products/:id',limiter,requireAdmin,save(false));
+ app.get('/api/admin/marketplace/audit',requireAdmin,wrap(async(_req,res)=>{
+  const {rows}=await pool.query('select id,actor,product_id,action,created_at from marketplace_audit order by id desc limit 100');res.set('Cache-Control','no-store').json({events:rows});
+ }));
+ app.get('/api/admin/marketplace/health',requireAdmin,wrap(async(_req,res)=>{
+  const {rows}=await pool.query('select count(*)::integer deliveries,max(item_id) latest_item from commerce_deliveries');
+  res.set('Cache-Control','no-store').json({providerChecksConfigured:Boolean(env.SELLAUTH_API_KEY),shopConfigured:Boolean(shopMapping(env)),webhookConfigured:Boolean(env.SELLAUTH_WEBHOOK_SECRET),deliveries:rows[0]?.deliveries??0});
+ }));
+ app.get('/api/admin/marketplace/invoices/:id',requireAdmin,wrap(async(req,res)=>{
+  const invoice=String(req.params.id);if(!/^[a-zA-Z0-9_-]{1,100}$/.test(invoice))throw fail(400,'Enter a valid invoice ID.');
+  const {rows}=await pool.query('select invoice_id,item_id,jsonb_array_length(digests) delivered_codes from commerce_deliveries where invoice_id=$1',[invoice]);
+  res.set('Cache-Control','no-store').json({deliveries:rows});
+ }));
+ app.post('/api/admin/marketplace/products/:id/provider-check',limiter,requireAdmin,wrap(async(req,res)=>{
+  const row=(await pool.query('select * from marketplace_products where id=$1',[req.params.id])).rows[0];if(!row)throw fail(404,'Product not found.');
+  const provider=await readProviderProduct(providerMapping(row.checkout_env,env),env);
+  res.json({provider,matches:provider.price_cents===row.price_cents&&provider.currency===row.currency&&(provider.stock===undefined||provider.stock===row.stock)});
+ }));
+ app.post('/api/admin/marketplace/products/:id/provider-sync',limiter,requireAdmin,wrap(async(req,res)=>{
+  if(req.body?.confirm!==true)throw fail(400,'Review the provider comparison before syncing.');
+  const row=(await pool.query('select * from marketplace_products where id=$1',[req.params.id])).rows[0];if(!row)throw fail(404,'Product not found.');
+  const provider=await readProviderProduct(providerMapping(row.checkout_env,env),env),db=await pool.connect();
+  try{await db.query('begin');await db.query('update marketplace_products set price_cents=$2,currency=$3,stock=$4,updated_at=now() where id=$1',[row.id,provider.price_cents,provider.currency,provider.stock===undefined?row.stock:provider.stock]);await db.query("insert into marketplace_audit(actor,product_id,action,detail) values($1,$2,'provider-sync',$3::jsonb)",[req.user?.id||req.auth?.sub||null,row.id,JSON.stringify(provider)]);await db.query('commit');res.json({ok:true,provider});}catch(error){await db.query('rollback');throw error;}finally{db.release();}
+ }));
  app.post('/api/marketplace/checkout',limiter,requireAuth,wrap(async(req,res)=>{
   const account=(await pool.query('select alias,alias_required from users where id=$1',[req.auth.sub])).rows[0];
   if(needsPrimaryAlias(account))throw fail(409,'Choose your primary alias before checkout.');
   const product=(await pool.query('select * from marketplace_products where id=$1',[String(req.body?.productId||'')])).rows[0];
-  if(!product?.enabled)throw fail(404,'This product is not on sale.');
+  if(!product?.enabled||product.publish_at&&new Date(product.publish_at).getTime()>Date.now())throw fail(404,'This product is not on sale.');
   if(product.stock!==null&&product.stock<1)throw fail(409,'This product is sold out.');
   const mapping=providerMapping(product.checkout_env,env);
   const shop=shopMapping(env);

@@ -58,7 +58,7 @@ export function SectionEditor({
   };
 
   const addPick = (pick: Omit<ProfileSection["items"][number], "id">) => {
-    if(picks.some(item=>item.title.trim().toLowerCase()===pick.title.trim().toLowerCase() || Boolean(item.url&&pick.url&&item.url===pick.url))){notify("Already added","That interest is already in this section.");return;}
+    if(picks.some(item=>Boolean(pick.catalogId&&item.catalogId===pick.catalogId)||item.title.trim().toLowerCase()===pick.title.trim().toLowerCase() || Boolean(item.url&&pick.url&&item.url===pick.url))){notify("Already added","That interest is already in this section.");return;}
     if (picks.length >= PICK_LIMIT) {
       notify("Interests", `${PICK_LIMIT} picks is the limit for one section.`);
       return;
@@ -120,6 +120,7 @@ export function SectionEditor({
         ))}
       </div>
 
+      {project && section.image ? <div className="tw-form-grid"><Slider label="Project image horizontal focus" min={0} max={100} suffix="%" value={section.cropX??50} onChange={cropX=>onChange({cropX})}/><Slider label="Project image vertical focus" min={0} max={100} suffix="%" value={section.cropY??50} onChange={cropY=>onChange({cropY})}/></div>:null}
       {project ? (
         <div className="tw-form-grid">
           <Field label="Project name">
@@ -347,6 +348,7 @@ export function SectionEditor({
         onClose={() => setLibraryOpen(false)}
         onPick={(item) =>
           addPick({
+            catalogId: `${libraryKind}:${item.id}`,
             category:libraryKind==="game"?"game":libraryKind==="movie"?"film":["song","artist"].includes(libraryKind)?"music":"anime",
             title: item.title,
             subtitle: item.subtitle,

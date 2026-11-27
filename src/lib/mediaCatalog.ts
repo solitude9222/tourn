@@ -127,16 +127,26 @@ function animeItem(anime: AniListMedia): CatalogItem {
   };
 }
 
-export async function loadCatalog(
+const pendingCatalog = new Map<string,{controller:AbortController,promise:Promise<CatalogPage>,users:number}>();
+export function loadCatalog(kind:CatalogKind,query:string,page:number,signal?:AbortSignal):Promise<CatalogPage>{
+ if(signal?.aborted)return Promise.reject(signal.reason||new DOMException('Cancelled','AbortError'));
+ const key=JSON.stringify([kind,query.trim().toLowerCase(),page]);let entry=pendingCatalog.get(key);
+ if(!entry){const controller=new AbortController();entry={controller,users:0,promise:loadCatalogRequest(kind,query,page,controller.signal)};pendingCatalog.set(key,entry);const active=entry;void entry.promise.finally(()=>{if(pendingCatalog.get(key)===active)pendingCatalog.delete(key);}).catch(()=>{});}
+ const active=entry;active.users++;
+ return new Promise((resolve,reject)=>{let ended=false;const done=()=>{if(ended)return false;ended=true;signal?.removeEventListener('abort',abort);active.users--;return true;};const abort=()=>{if(done()){reject(signal?.reason||new DOMException('Cancelled','AbortError'));if(!active.users){if(pendingCatalog.get(key)===active)pendingCatalog.delete(key);active.controller.abort();}}};signal?.addEventListener('abort',abort,{once:true});active.promise.then(value=>{if(done())resolve(value);},error=>{if(done())reject(error);});});
+}
+async function loadCatalogRequest(
   kind: CatalogKind,
   query: string,
   page: number,
   signal?: AbortSignal,
 ): Promise<CatalogPage> {
-  if (kind === "anime") return loadAnime(query, page, signal);
-  if (kind === "game") return loadGames(query, page, signal);
-  if (kind === "movie") return loadMovies(query, page, signal);
-  return loadITunes(kind, query, page, signal);
+  const controller=new AbortController(),abort=()=>controller.abort(signal?.reason);
+  if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true});
+  const timer=setTimeout(()=>controller.abort(new DOMException('Library request timed out','TimeoutError')),12000);
+  try{if(kind==='anime')return await loadAnime(query,page,controller.signal);if(kind==='game')return await loadGames(query,page,controller.signal);if(kind==='movie')return await loadMovies(query,page,controller.signal);return await loadITunes(kind,query,page,controller.signal);}
+  catch(error){if(controller.signal.reason?.name==='TimeoutError')throw new Error('The library took too long to respond. Retry the search.');throw error;}
+  finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
 }
 
 async function loadAnime(query: string, page: number, signal?: AbortSignal): Promise<CatalogPage> {
@@ -177,7 +187,7 @@ async function allGames(): Promise<CatalogItem[]> {
   if (gamesCache) return gamesCache;
   if (gamesPromise) return gamesPromise;
   const request = (async () => {
-    const response = await fetch("https://www.freetogame.com/api/games");
+    const response = await fetch("https://www.freetogame.com/api/games",{signal:AbortSignal.timeout(12000)});
     if (!response.ok) throw new Error("The game library could not be reached.");
     const payload = (await response.json()) as FreeToGameItem[];
     const items = (Array.isArray(payload) ? payload : []).map((game) => ({

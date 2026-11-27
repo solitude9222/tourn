@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
    One mute state for the whole page.
 
-   The player owns the only <audio> element on a profile. A mute button is just
+   The player owns playback; the optional playlist uses two decks during a crossfade. A mute button is just
    a control, so it speaks to the player through this bus instead of mounting a
    second copy of the track and playing it over the top of the first.
    --------------------------------------------------------------------------- */

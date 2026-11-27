@@ -1,0 +1,8 @@
+import {useEffect,useState} from 'react';
+import {api} from '../lib/backend';
+type Availability={alias:string;available:boolean;message:string;suggestions:string[];nextChangeAt:string|null};
+export function AliasAvailability({value,onChoose}:{value:string;onChoose:(value:string)=>void}){
+ const [result,setResult]=useState<Availability|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState('');
+ useEffect(()=>{const clean=value.trim().toLowerCase();setResult(null);setError('');setLoading(false);if(clean.length<3)return;const controller=new AbortController();const timer=setTimeout(()=>{setLoading(true);void api<Availability>('/api/profile/alias-availability?alias='+encodeURIComponent(clean),{signal:controller.signal}).then(response=>{if(controller.signal.aborted)return;setLoading(false);if(response.ok)setResult(response.data);else setError('Availability could not be checked. Saving will check again.');});},300);return()=>{clearTimeout(timer);controller.abort();};},[value]);
+ return <div className="alias-availability" role="status" aria-live="polite"><p>{loading?'Checking availability…':error||result?.message||'Use 3–24 letters or numbers. You can change your alias once every 48 hours.'}</p>{value.trim()?<p>Profile address: <strong>tourn.lol/{value.trim().toLowerCase()}</strong></p>:null}{result?.suggestions?.length?<div><span>Available suggestions:</span>{result.suggestions.map(alias=><button type="button" key={alias} onClick={()=>onChoose(alias)}>{alias}</button>)}</div>:null}{result?.nextChangeAt&&Date.parse(result.nextChangeAt)>Date.now()?<p>Next alias change: <time dateTime={result.nextChangeAt}>{new Date(result.nextChangeAt).toLocaleString()}</time>.</p>:null}</div>;
+}

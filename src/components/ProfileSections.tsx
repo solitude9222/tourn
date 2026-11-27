@@ -176,7 +176,7 @@ export function ProfileSections({
           >
             <div className={`lkr-showcase-art${section.image ? "" : " is-empty"}`}>
               {section.image ? (
-                <img src={section.image} alt="" loading="lazy" />
+                <img src={section.image} alt={section.title ? `${section.title} project artwork` : "Project artwork"} loading="lazy" style={{objectPosition:`${section.cropX??50}% ${section.cropY??50}%`}} />
               ) : (
                 <span aria-hidden="true">{(section.title || KIND_LABEL[section.kind]).slice(0, 1).toUpperCase()}</span>
               )}

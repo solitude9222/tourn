@@ -373,6 +373,7 @@ export function mountAmbientScene(
   window.addEventListener("resize", resize);
   const resume=()=>{cancelAnimationFrame(raf);raf=0;if(stopped)return;if(!document.hidden&&inView){last=performance.now();raf=requestAnimationFrame(loop);}};
   const intersection=new IntersectionObserver(entries=>{inView=entries.some(entry=>entry.isIntersecting);resume();});intersection.observe(host);
+  const motion=matchMedia('(prefers-reduced-motion: reduce)');motion.addEventListener('change',resume);
   document.addEventListener('visibilitychange',resume);resume();
 
   return {

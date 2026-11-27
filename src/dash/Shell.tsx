@@ -1,3 +1,4 @@
+import {rememberSettingQuery} from './workspaceNavigation';
 import {ArrangementController} from "./ArrangeTools";
 import {Connectivity} from "./Connectivity";
 import {matchesSetting} from "./search";
@@ -135,20 +136,16 @@ export function Shell({
   const [categoryOrder,setCategoryOrder]=usePreference<string[]>('category-order',[]);
   const railSections=[...RAIL_SECTIONS].sort((a,b)=>{const index=(id:string)=>categoryOrder.includes(id)?categoryOrder.indexOf(id):categoryOrder.length+RAIL_SECTIONS.findIndex(s=>s.key===id);return index(a.key)-index(b.key);});
   useEffect(()=>{const update=(event:Event)=>setCategoryOrder((event as CustomEvent<string[]>).detail);window.addEventListener('tourn:category-order',update);return()=>window.removeEventListener('tourn:category-order',update);},[]);
-  const [savedAt,setSavedAt]=useState<Date|null>(null);
+  const [savedAt,setSavedAt]=useState<Date|null>(()=>{try{const value=Number(localStorage.getItem('tourn/last-save/'+user.id));return value?new Date(value):null;}catch{return null;}});
   const [justSaved,setJustSaved]=useState(false);
   const {publishStatus}=useDash();
-  useEffect(()=>{if(publishStatus==="saved")setSavedAt(new Date());},[publishStatus]);
-  /* A short confirmation once a save lands, so the bottom of the page answers
-     "did that stick?" without leaving the editor. */
-  useEffect(()=>{
-    if(publishStatus!=="saved"){setJustSaved(false);return;}
-    setJustSaved(true);
-    const timer=window.setTimeout(()=>setJustSaved(false),3200);
-    return ()=>window.clearTimeout(timer);
-  },[publishStatus]);
+  const previousPublish=useRef(publishStatus);
+  useEffect(()=>{previousPublish.current=publishStatus;setJustSaved(false);try{const value=Number(localStorage.getItem("tourn/last-save/"+user.id));setSavedAt(value?new Date(value):null);}catch{setSavedAt(null);}},[user.id]);
+  useEffect(()=>{const completed=publishStatus==='saved'&&previousPublish.current!=='saved';previousPublish.current=publishStatus;if(!completed){if(publishStatus!=='saved')setJustSaved(false);return;}const date=new Date();setSavedAt(date);setJustSaved(true);try{localStorage.setItem('tourn/last-save/'+user.id,String(date.getTime()));}catch{/* optional */}const timer=setTimeout(()=>setJustSaved(false),3200);return()=>clearTimeout(timer);},[publishStatus,user.id]);
   const [query, setQuery] = useState("");
-  const [,setRecentPages]=usePreference<string[]>("recent-"+user.id,[]);
+  const [pins,setPins]=usePreference<string[]>("pins-"+user.id,[]);
+  const [density]=usePreference<string>("density","comfortable");
+  const [recentPages,setRecentPages]=usePreference<string[]>("recent-"+user.id,[]);
   useEffect(()=>{setRecentPages(old=>[page,...old.filter(id=>id!==page)].slice(0,8));},[page]);
   /* The rail shows one category at a time. Picking a category swaps the list
      to its subtabs instead of stacking them underneath it. */
@@ -339,7 +336,8 @@ export function Shell({
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       const targetElement=event.target as HTMLElement;
-      if(event.altKey&&!event.ctrlKey&&!event.metaKey&&!targetElement.closest('input,textarea,[contenteditable=true]')){const section=railSections[Number(event.key)-1];if(section){event.preventDefault();if(section.key==='home'){onNavigate('home');setRailKey(null);}else setRailKey(section.key);return;}}
+      if(event.altKey&&event.shiftKey&&!event.ctrlKey&&!event.metaKey&&!targetElement.closest('input,textarea,[contenteditable=true]')){const destination=recentPages.filter(id=>id!==page&&navItems.some(item=>item.tabs.some(tab=>tab.page===id)))[Number(event.key)-1];if(destination){event.preventDefault();onNavigate(destination as Page);return;}}
+      if(event.altKey&&!event.shiftKey&&!event.ctrlKey&&!event.metaKey&&!targetElement.closest('input,textarea,[contenteditable=true]')){const section=railSections[Number(event.key)-1];if(section){event.preventDefault();if(section.key==='home'){onNavigate('home');setRailKey(null);}else setRailKey(section.key);return;}}
       if (!(event.ctrlKey || event.metaKey)) return;
       if (event.key.toLowerCase() === "k") { event.preventDefault(); setMobileOpen(true); searchRef.current?.focus(); }
       if (event.key.toLowerCase() === "s") { event.preventDefault(); if (dirty) save(); }
@@ -350,7 +348,7 @@ export function Shell({
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [save, dirty, undo, redo,categoryOrder]);
+  }, [save, dirty, undo, redo,categoryOrder,recentPages,page]);
 
   const searching = query.trim().length > 0;
 
@@ -359,7 +357,7 @@ export function Shell({
   const showSectionCrumb = crumb !== (breadcrumbLabel ?? title);
 
   return (
-    <div className={`tw-dash${mobileOpen ? " is-menu-open" : ""}`} style={accent ? { "--accent": accent, "--accent-on": accentForeground(accent), "--accent-bright": accent, "--accent-text": accent, "--accent-soft": `color-mix(in srgb, ${accent} 16%, var(--page))`, "--accent-border": `color-mix(in srgb, ${accent} 45%, var(--border))` } as CSSProperties : undefined}>
+    <div data-density={density} className={`tw-dash${mobileOpen ? " is-menu-open" : ""}`} style={accent ? { "--accent": accent, "--accent-on": accentForeground(accent), "--accent-bright": accent, "--accent-text": accent, "--accent-soft": `color-mix(in srgb, ${accent} 16%, var(--page))`, "--accent-border": `color-mix(in srgb, ${accent} 45%, var(--border))` } as CSSProperties : undefined}>
       <a className="tw-skip-link" href="#dash-main" onClick={event=>{event.preventDefault();document.getElementById("dash-main")?.focus();}}>Skip to editor</a>
       <Connectivity/>
       <ArrangementController/>
@@ -387,7 +385,8 @@ export function Shell({
 
         <div className="tw-rail-scroll">
           <nav className="tw-nav" aria-label="Dashboard">
-            {searching?<div className="tw-rail-screen" key="search-results">{navItems.flatMap(item=>item.tabs.filter(tab=>matches(item.label)||matches(tab.label)).map(tab=><button className="tw-nav-item" type="button" key={tab.page} onClick={()=>{setRailKey(tab.page==="home"?null:railSectionForPage(tab.page)?.key??null);onNavigate(tab.page);setQuery("");}}><Icon name={tab.icon} size={18} className="tw-nav-symbol"/>{item.label===tab.label?tab.label:item.label+" · "+tab.label}</button>))}{!navItems.some(item=>matches(item.label)||item.tabs.some(tab=>matches(tab.label)))?<p className="tw-foot-note" role="status">No matching settings. Try Audio, Card, or Links.</p>:null}</div>:railItem?<div className="tw-rail-screen" key={railItem.key}><button type="button" className="tw-category-back" aria-label="Back to main menu" onClick={()=>setRailKey(null)}><Icon name="chevron-right" size={18} className="tw-nav-back-chev"/><b>{railItem.label}</b></button>{railItem.items.filter(entry=>!entry.adminOnly||isAdmin).map(entry=><button type="button" key={entry.label} className={`tw-nav-item${railEntryOwns(entry,page)?" is-active":""}`} aria-current={railEntryOwns(entry,page)?"page":undefined} onClick={()=>onNavigate(entry.page)} onPointerEnter={()=>onPrefetchPage?.(entry.page)} onFocus={()=>onPrefetchPage?.(entry.page)}><Icon name={entry.icon} size={18} className="tw-nav-symbol"/>{entry.label}</button>)}</div>:<div className="tw-rail-screen" key="main-menu">{railSections.map(section=>{const active=section.items.some(entry=>railEntryOwns(entry,page));return <button type="button" key={section.key} className={`tw-nav-item${active?" is-active":""}`} aria-current={section.key==="home"&&page==="home"?"page":undefined} aria-haspopup={section.key==="home"?undefined:"menu"} onClick={()=>{if(section.key==="home"){onNavigate("home");setRailKey(null);}else setRailKey(section.key);}}><Icon name={section.icon} size={18} className="tw-nav-symbol"/>{section.label}{section.key!=="home"?<Icon name="chevron-right" size={14} className="tw-nav-chev"/>:null}</button>;})}</div>}
+            {!query&&pins.length?<div className="workspace-pins" aria-label="Pinned destinations">{pins.slice(0,8).map(id=>{const tab=navItems.flatMap(item=>item.tabs).find(item=>item.page===id);return tab?<button type="button" key={id} className="tw-nav-item" onClick={()=>onNavigate(tab.page)}><Icon name="pin" size={15}/>{tab.label}</button>:null;})}</div>:null}
+            {searching?<div className="tw-rail-screen" key="search-results">{navItems.flatMap(item=>item.tabs.filter(tab=>matches(item.label)||matches(tab.label)).map(tab=><button className="tw-nav-item" type="button" key={tab.page} onClick={()=>{setRailKey(tab.page==="home"?null:railSectionForPage(tab.page)?.key??null);rememberSettingQuery(query);onNavigate(tab.page);setQuery("");}}><Icon name={tab.icon} size={18} className="tw-nav-symbol"/>{item.label===tab.label?tab.label:item.label+" · "+tab.label}</button>))}{!navItems.some(item=>matches(item.label)||item.tabs.some(tab=>matches(tab.label)))?<p className="tw-foot-note" role="status">No matching settings. Try Audio, Card, or Links.</p>:null}</div>:railItem?<div className="tw-rail-screen" key={railItem.key}><button type="button" className="tw-category-back" aria-label="Back to main menu" onClick={()=>setRailKey(null)}><Icon name="chevron-right" size={18} className="tw-nav-back-chev"/><b>{railItem.label}</b></button>{railItem.items.filter(entry=>!entry.adminOnly||isAdmin).map(entry=><button type="button" key={entry.label} className={`tw-nav-item${railEntryOwns(entry,page)?" is-active":""}`} aria-current={railEntryOwns(entry,page)?"page":undefined} onClick={()=>onNavigate(entry.page)} onPointerEnter={()=>onPrefetchPage?.(entry.page)} onFocus={()=>onPrefetchPage?.(entry.page)}><Icon name={entry.icon} size={18} className="tw-nav-symbol"/>{entry.label}</button>)}</div>:<div className="tw-rail-screen" key="main-menu">{railSections.map(section=>{const active=section.items.some(entry=>railEntryOwns(entry,page));return <button type="button" key={section.key} className={`tw-nav-item${active?" is-active":""}`} aria-current={section.key==="home"&&page==="home"?"page":undefined} aria-haspopup={section.key==="home"?undefined:"menu"} onClick={()=>{if(section.key==="home"){onNavigate("home");setRailKey(null);}else setRailKey(section.key);}}><Icon name={section.icon} size={18} className="tw-nav-symbol"/>{section.label}{section.key!=="home"?<Icon name="chevron-right" size={14} className="tw-nav-chev"/>:null}</button>;})}</div>}
 
           </nav>
         </div>
@@ -679,7 +678,7 @@ export function Shell({
       <a className="tw-skip-link" href="#dash-main" onClick={event => { event.preventDefault(); document.getElementById("dash-main")?.focus(); }}>Skip to editor</a>
       <main className="tw-main" id="dash-main" tabIndex={-1}>
         <div className="tw-topline">
-          <div className="tw-crumbs" aria-label="Breadcrumb">
+          <nav className="tw-crumbs" aria-label="Breadcrumb">
             <button
               type="button"
               className="tw-crumb-home"
@@ -696,10 +695,10 @@ export function Shell({
               </>
             ) : null}
             <b>{breadcrumbLabel ?? title}</b>
-          </div>
+          </nav>
 
           <div className="tw-row">
-            {actions}<span className="studio-save-status" role="status">{publishStatus==="saving"?"Saving…":publishStatus==="retrying"?"Retrying save…":savedAt?`Saved ${savedAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`:"Not saved yet"}</span>
+            {actions}<span className="studio-save-status" role="status" title={savedAt?`Last successful save: ${savedAt.toLocaleString()}`:undefined}>{publishStatus==="saving"?"Saving…":publishStatus==="retrying"?"Retrying save…":dirty?"Unsaved draft":savedAt?`Saved ${savedAt.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`:"Saved profile loaded"}</span>
           </div>
         </div>
 
@@ -773,7 +772,7 @@ function Toasts() {
       const detail = (event as CustomEvent<{ title: string; message: string }>).detail;
       if (!detail) return;
       const id = Date.now() + Math.random();
-      setItems((current) => [...current.filter((item) => item.title !== detail.title || item.message !== detail.message), { id, ...detail }].slice(-3));
+      setItems((current) => [...current.filter((item) => item.title !== detail.title || item.message !== detail.message), { id, ...detail }].slice(-(matchMedia("(max-width:600px)").matches?1:3)));
       window.setTimeout(() => {
         setItems((current) => current.filter((item) => item.id !== id));
       }, 4200);

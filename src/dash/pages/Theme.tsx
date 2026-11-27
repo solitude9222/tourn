@@ -1,3 +1,4 @@
+import {usePreference} from '../preferences';
 /* ---------------------------------------------------------------------------
    Settings > Theme — the console's own palette.
 
@@ -21,6 +22,7 @@ export function ThemePage() {
   const [theme, setTheme] = useDashTheme();
   const [accent, setAccent] = useDashAccent();
   const { go } = useDash();
+  const [density,setDensity]=usePreference<string>("density","comfortable");
 
   return (
     <>
@@ -69,6 +71,7 @@ export function ThemePage() {
         </div>
       </Card>
 
+      <Card><CardHead icon="layout" title="Workspace density" subtitle="Choose how much space navigation and form rows use."/><div className="tw-row"><Button aria-pressed={density==='comfortable'} onClick={()=>setDensity('comfortable')}>Comfortable</Button><Button aria-pressed={density==='compact'} onClick={()=>setDensity('compact')}>Compact</Button></div><p>Ctrl/Cmd K finds settings. Alt 1–6 opens categories. Alt Shift 1–8 opens recent destinations.</p></Card>
       <Card><CardHead icon="palette" title="Custom accent" subtitle="Preview an accent instantly across buttons, selected tabs and focus rings." /><ColorField label="Accent color" value={accent || DASH_THEMES.find(item => item.id === theme)!.swatch[2]} onChange={setAccent} /><Button disabled={!accent} onClick={() => setAccent("")}>Use theme accent</Button></Card>
       <Card>
         <CardHead

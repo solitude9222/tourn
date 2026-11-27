@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type {
   BackgroundEffectSettings,
   OverlayEffectSettings,
@@ -88,6 +88,8 @@ export function OverlayEffectLayer({
   compact?: boolean;
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
+  const [reduced,setReduced]=useState(()=>matchMedia("(prefers-reduced-motion: reduce)").matches);
+  useEffect(()=>{const motion=matchMedia("(prefers-reduced-motion: reduce)"),change=()=>setReduced(motion.matches);motion.addEventListener("change",change);return()=>motion.removeEventListener("change",change);},[]);
   const opacity = Math.min(1, Math.max(0, settings.opacity));
 
   useEffect(() => {
@@ -97,7 +99,8 @@ export function OverlayEffectLayer({
     return () => api.destroy();
   }, [settings.id, compact]);
 
-  if (settings.id === "none") return null;
+  if (settings.id === "none" || (reduced&&settings.reducedMotion==="none")) return null;
+  if(reduced&&settings.reducedMotion==="grain")return <span className="profile-fx-overlay profile-fx-overlay--dotPattern" style={{"--fx-opacity":opacity} as CSSProperties} aria-hidden="true"/>;
   if (settings.id === "blurred") {
     // The page itself blurs its background layer through data-fx-filter.
     // A dashboard preview has no background layer, so it gets a local wash.

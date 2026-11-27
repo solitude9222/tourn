@@ -1,5 +1,5 @@
 import {normalizeStudio} from "../lib/studioOptions";
-import { useEffect, useLayoutEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, useId, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { donationTotalFor } from "../lib/donation";
 import type { Account } from "../lib/auth";
@@ -96,6 +96,7 @@ export function ProfilePreview({
 }) {
   const studio=normalizeStudio(about.studio);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [bioExpanded,setBioExpanded]=useState(false);const bioId=useId();
   const mobile=useNarrowCard();
   const design=studio.mobileLayout&&mobile?{...about.design,cardWidth:studio.mobileWidth}:about.design;
   const assets = about.assets ?? DEFAULT_PROFILE_ASSETS;
@@ -105,7 +106,7 @@ export function ProfilePreview({
   const secondaryName = about.displayName.trim();
   const bio = about.bio.trim();
   const location = about.location.trim();
-  const avatar = assets.avatarUrl.trim() || (design.minimalStart ? "" : user.avatarUrl);
+  const avatar = studio.hideAvatar ? "" : assets.avatarUrl.trim() || (design.minimalStart ? "" : user.avatarUrl);
   const decoration = assets.decoration;
   const banner = assets.banner;
   // A banner without an image is just a blank tinted band, so it needs both.
@@ -128,7 +129,7 @@ export function ProfilePreview({
   // explicit alternative; advanced alignment still takes precedence.
   const pfpPosition = custom ? design.pfpPosition : design.layout === "centered" ? "above" : "left";
   const namePosition = custom ? design.namePosition : design.minimalStart&&!assets.avatarUrl.trim()&&!bio ? "center" : design.layout === "centered" ? "center" : "left";
-  const bioPosition = custom ? design.bioPosition : "center";
+  const bioPosition = mobile&&studio.mobileBioAlign!=="inherit"?studio.mobileBioAlign:custom ? design.bioPosition : "center";
   // A dashboard preview has no counter to read, but the element still has to
   // exist so its corner is visible while editing.
   const viewCount = typeof views === "number" ? views : 0;
@@ -291,6 +292,8 @@ export function ProfilePreview({
 
   const style = {
     "--pv-scale": scale,
+    "--studio-avatar-position":`${studio.avatarX}% ${studio.avatarY}%`,
+    "--studio-bio-lines":studio.bioLines,
     "--identity-gap":`${studio.identityGap}px`,"--bio-width":`${studio.bioWidth}px`,"--bio-line-height":studio.bioLineHeight,
     "--studio-display-size":`${studio.displaySize}px`,"--studio-display-opacity":studio.displayOpacity,
     "--studio-banner-position":`${studio.bannerX}% ${mobile?studio.mobileBannerY:studio.bannerY}%`,
@@ -444,6 +447,7 @@ export function ProfilePreview({
 
 
         <div
+          id={bioId} data-collapsed={studio.bioLines>0&&!bioExpanded?"true":undefined}
           className={`pv-bio${bio ? "" : " is-empty"}${
             textEffectClass(bioEffect) ? ` ${textEffectClass(bioEffect)}` : ""
           }`}
@@ -459,6 +463,7 @@ export function ProfilePreview({
           )}
         </div>
 
+        {bio&&studio.bioLines>0?<button type="button" className="profile-bio-expand" aria-expanded={bioExpanded} aria-controls={bioId} onClick={()=>setBioExpanded(value=>!value)}>{bioExpanded?"Show less":"Read full bio"}</button>:null}
         {children}
 
         {hasLinks && !hideLinks ? (

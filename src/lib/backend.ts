@@ -57,6 +57,10 @@ export async function api<T = unknown>(
   path: string,
   init: RequestInit = {},
 ): Promise<ApiResult<T>> {
+  const controller=new AbortController();
+  const abort=()=>controller.abort(init.signal?.reason);
+  if(init.signal?.aborted)abort();else init.signal?.addEventListener('abort',abort,{once:true});
+  const timeout=setTimeout(()=>controller.abort(new DOMException('Request timed out','TimeoutError')),30000);
   try {
     await ensurePublicEnv();
     const res = await fetch(`${apiBase()}${path}`, {
@@ -68,6 +72,7 @@ export async function api<T = unknown>(
         ...(init.body ? { "Content-Type": "application/json" } : {}),
       },
       ...init,
+      signal:controller.signal,
     });
     const body = (await res.json().catch(() => ({}))) as T & { error?: string };
     if (!res.ok) {
@@ -76,13 +81,13 @@ export async function api<T = unknown>(
     return { ok: true, data: body };
   } catch (error) {
     // Keep the technical detail in the console; visitors get a plain message.
-    console.warn("[backend] request failed", path, error);
+    if(!init.signal?.aborted)console.warn("[backend] request failed", path, error);
     return {
       ok: false,
-      error: "Couldn't reach tourn.lol right now — try again in a moment.",
+      error: controller.signal.reason?.name==='TimeoutError'?"That request took too long. Try again.":"Couldn't reach tourn.lol right now — try again in a moment.",
       status: 0,
     };
-  }
+  } finally {clearTimeout(timeout);init.signal?.removeEventListener('abort',abort);}
 }
 
 export async function post<T = unknown>(path: string, body?: unknown): Promise<ApiResult<T>> {

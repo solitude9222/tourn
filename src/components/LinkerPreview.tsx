@@ -738,6 +738,7 @@ export function LinkerPreview({
       style={style}
       data-interactive={interactive ? "true" : undefined}
       data-project-lines={design.projectLayout.textLines === 0 ? "all" : undefined}
+      data-poster-ratio={studio.posterRatio}
       data-scattered={design.scattered ? "true" : undefined}
 
       data-nav-position={studio.navPosition}
@@ -753,7 +754,7 @@ export function LinkerPreview({
             style={{ backgroundImage: `url("${assets.background.imageUrl.replace(/"/g, '\\"')}")`, backgroundPosition: `${assets.background.positionX ?? 50}% ${assets.background.positionY ?? 50}%`, backgroundSize: assets.background.fit || "cover", backgroundRepeat: "no-repeat" }}
           />
         ) : null}
-        {assets.background.style === "video" && assets.background.videoUrl ? <ProfileBackgroundVideo settings={assets.background} entryActive={entryOpen} interactive={interactive} studio={studio}/> : null}
+        {assets.background.style === "video" && assets.background.videoUrl ? <ProfileBackgroundVideo settings={assets.background} entryActive={entryOpen} interactive={interactive} studio={studio} controlTarget={pageHost}/> : null}
         <span className="lkr-bg-dim" />
       </div>
       {effectsVisible?<BackgroundEffectLayer settings={assets.effects.background} />:null}

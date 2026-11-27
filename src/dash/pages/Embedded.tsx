@@ -21,7 +21,7 @@ export function AccountSettingsPage() {
     if (!window.confirm("Reset your card, widget style and effects to the defaults?")) return;
     setAbout((current) => ({
       ...current,
-      design: { ...DEFAULT_ABOUT_DESIGN },
+      design: { ...DEFAULT_ABOUT_DESIGN,sections:current.design.sections,aboutSlide:current.design.aboutSlide,skills:current.design.skills },
       assets: { ...current.assets, card: { ...current.assets.card, id: "none" } },
     }));
     setWidgets((current) => ({ ...current, design: { ...DEFAULT_WIDGET_DESIGN } }));

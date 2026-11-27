@@ -1,3 +1,4 @@
+import {AliasAvailability} from "./AliasAvailability";
 import {SessionManager} from "./SessionManager";
 /* ---------------------------------------------------------------------------
    Account settings.
@@ -154,10 +155,11 @@ export function SettingsPage({
               <b>Primary claim</b>
               <Chip tone="success">Free</Chip>
             </div>
-            <Field label="Alias" hint="Letters, numbers, dots, underscores and dashes only. 3–24 characters, and one change every 2 days.">
+            <Field label="Alias" hint="3–24 letters or numbers. Your alias is the address; your display name is the name shown on your profile.">
               <span className="tw-prefix">
                 <i>tourn.lol/</i>
                 <input
+                  aria-label="Public alias"
                   value={aliasDraft}
                   onChange={(event) => setAliasDraft(event.target.value)}
                   placeholder={emailHandle || "yourname"}
@@ -166,6 +168,7 @@ export function SettingsPage({
                 />
               </span>
             </Field>
+            <AliasAvailability value={aliasDraft} onChoose={setAliasDraft}/>
             <div className="tw-row">
               <Button
                 variant="primary"

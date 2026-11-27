@@ -18,6 +18,7 @@ export type LibraryAsset = {
   downloads: number;
   likes: number;
   favorite?: boolean;
+  bytes?:number; width?:number; height?:number;
 };
 
 const MAX_LIBRARY_BYTES = 3_500_000;

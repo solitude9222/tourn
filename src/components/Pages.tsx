@@ -15,6 +15,7 @@ type BoardRow = {
   avatarUrl: string | null;
   views: number | null;
   likes?: number | null;
+  rankChange?:number|null;
 };
 
 const profileHrefFor = (handle: string) => `#/profile/${encodeURIComponent(handle)}`;
@@ -25,16 +26,16 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
   const [failed, setFailed] = useState(false);
   const [attempt,setAttempt] = useState(0);
   const [visible, setVisible] = useState(18);
-  const [sort, setSort] = useState<"views" | "likes">("views");
+  const [sort, setSort] = useState<"views" | "likes">(()=>new URLSearchParams(location.hash.split('?')[1]).get('sort')==='likes'?'likes':'views');
+  const [period,setPeriod]=useState<'all'|'7d'|'30d'>(()=>{const value=new URLSearchParams(location.hash.split('?')[1]).get('period');return value==='7d'||value==='30d'?value:'all';});
+  useEffect(()=>{const params=new URLSearchParams({sort,period:sort==='likes'?'all':period});history.replaceState(null,'',location.hash.split('?')[0]+'?'+params);},[sort,period]);
   useEffect(()=>{let alive=true;setLoading(true);setFailed(false);setVisible(18);
-    void fetchLeaderboard(sort,100).then(result=>{if(alive)setRows(result.entries);}).catch(()=>{if(alive){setRows([]);setFailed(true);}}).finally(()=>{if(alive)setLoading(false);});
+    void fetchLeaderboard(sort,100,0,period).then(result=>{if(alive)setRows(result.entries);}).catch(()=>{if(alive){setRows([]);setFailed(true);}}).finally(()=>{if(alive)setLoading(false);});
     return()=>{alive=false;};
-  },[sort,attempt]);
+  },[sort,period,attempt]);
 
   const metric = (row: BoardRow) => (sort === "likes" ? row.likes ?? 0 : row.views ?? 0);
-  const ranked = [...rows].sort(
-    (a, b) => numberCompare(metric(a), metric(b), "desc") || naturalCompare(a.username, b.username),
-  );
+  const ranked = rows;
   const podium = ranked.slice(0, 3);
   const rest = ranked.slice(3, visible);
   const maxViews = ranked.reduce((top, row) => Math.max(top, metric(row)), 0);
@@ -47,8 +48,9 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
         <span className="eyebrow eyebrow--sm">leaderboard</span>
         <h1 className="page-title">Meet the community.</h1>
         <p className="page-sub">
-          Explore the top 100 profiles by lifetime views or likes. Find your next favorite.
+          Explore the top profiles by recorded visits or lifetime likes.
         </p>
+        <label className="board-period">Views period <select aria-label="Views period" disabled={sort==='likes'} value={period} onChange={e=>setPeriod(e.target.value as typeof period)}><option value="all">Lifetime</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option></select></label>
         <div className="board-sort" role="tablist" aria-label="Rank the board by">
           <button type="button" role="tab" aria-selected={sort === "views"} className={sort === "views" ? "is-active" : ""} onClick={() => setSort("views")}>Most viewed</button>
           <button type="button" role="tab" aria-selected={sort === "likes"} className={sort === "likes" ? "is-active" : ""} onClick={() => setSort("likes")}>Most liked</button>
@@ -105,7 +107,7 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
                   </span>
                   <span className="board-podium-views">
                     <b>{metric(row).toLocaleString()}</b>
-                    <small>{metricLabel}</small>
+                    <small>{metricLabel}</small>{row.rankChange!==null&&row.rankChange!==undefined?<small aria-label={`Rank change ${row.rankChange>0?'up':row.rankChange<0?'down':'unchanged'} ${Math.abs(row.rankChange)}`}>{row.rankChange>0?'↑':row.rankChange<0?'↓':'—'} {Math.abs(row.rankChange)}</small>:null}
                   </span>
                   <span className="board-podium-bar" aria-hidden="true">
                     <i style={{ width: share(metric(row)) }} />

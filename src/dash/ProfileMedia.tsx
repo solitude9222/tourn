@@ -1,3 +1,6 @@
+import {VideoTimingPreview} from './VideoTimingPreview';
+import {MediaUploadReview} from './MediaUploadReview';
+import {normalizeStudio} from '../lib/studioOptions';
 import "./effectsStudio.css";
 import { useRef, useState } from "react";
 import { useDash } from "./context";
@@ -20,16 +23,20 @@ export function ProfileMedia() {
   const [avatarTab,setAvatarTab]=useState("profile");
   const [backgroundTab,setBackgroundTab]=useState("media");
   const assets = about.assets;
+  const studio=normalizeStudio(about.studio);
+  const [review,setReview]=useState<{files:File[];kind:MediaKind}|null>(null),[uploadError,setUploadError]=useState('');
+  const lastUpload=useRef<{files:File[];kind:MediaKind}|null>(null);
   const choose = (kind: MediaKind) => {
     if (busy) return;
     kindRef.current = kind;
     setAccept(kind === "background" ? "image/*,video/mp4,video/webm,video/quicktime" : "image/*");
     window.setTimeout(() => fileInput.current?.click(), 0);
   };
-  const upload = async (files?: FileList) => {
+  const upload = async (files?: File[]) => {
     const file = files?.[0];
     if (!file) return;
     const kind = kindRef.current;
+    lastUpload.current={files:files||[],kind};setUploadError('');
     setBusy(kind);
     setProgress(null);
     try {
@@ -79,7 +86,7 @@ export function ProfileMedia() {
             background: { ...current.assets.background, style: "video", videoUrl },
           },
         }));
-        notify("Background video updated", "Your changes publish automatically.");
+        notify("Background video updated", "Save now to publish your changes.");
         return;
       }
       if (!file.type.startsWith("image/")) throw new Error("Choose a PNG, JPG, WebP, GIF, MP4, WebM or MOV file.");
@@ -89,14 +96,15 @@ export function ProfileMedia() {
         ? await cursorToDataUrl(file)
         : await imageToDataUrl(file, limit, limit);
       if (url.length > ((kind === "cursor" || kind === "pointer") ? 700_000 : 2_500_000)) throw new Error("That image is still too large. Resize it or choose a smaller animation.");
-      setAbout(current => ({ ...current, assets: { ...current.assets,
+      setAbout(current => ({ ...current, ...(kind === "avatar" ? {studio:{...normalizeStudio(current.studio),hideAvatar:false}} : {}), assets: { ...current.assets,
         ...(kind === "avatar" ? { avatarUrl: url } : {}),
         ...(kind === "banner" ? { banner: { ...current.assets.banner, imageUrl: url, enabled: true } } : {}),
         ...(kind === "background" ? { background: { ...current.assets.background, style: "image", imageUrl: url } } : {}),
         ...(kind === "cursor" || kind === "pointer" ? { cursor: { ...current.assets.cursor, ...(kind === "cursor" ? { style: "custom", imageUrl: url, customCursorUrls: [url, ...current.assets.cursor.customCursorUrls.filter((item) => item !== url)].slice(0, 8), hotspotX: 0, hotspotY: 0 } : { pointerImageUrl: url }) } } : {}),
       } }));
-      notify("Media updated", "Your changes publish automatically.");
-    } catch (error) { notify("Media not uploaded", error instanceof Error ? error.message : "Try a different file."); }
+      notify("Media updated", "Save now to publish your changes.");
+    } catch (error) {
+      setUploadError(error instanceof Error?error.message:"Upload failed. Try again."); notify("Media not uploaded", error instanceof Error ? error.message : "Try a different file."); }
     finally { setBusy(null); setProgress(null); }
   };
   const busyLabel = (kind: MediaKind, idle: string) =>
@@ -145,23 +153,25 @@ export function ProfileMedia() {
       {assets.cursor.imageUrl || assets.cursor.customCursorUrls.length ? (
         <div className="tw-media-zoom">
           <div className="tw-media-setting-head"><b>Cursor hotspot</b><small>Transparent padding is compensated automatically. Use these sliders to fine-tune the click point.</small></div>
-          <Slider label="Hotspot X" value={assets.cursor.hotspotX} min={0} max={31} suffix="px" onChange={(hotspotX) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotX } } }))} />
+          <div className="cursor-hotspot-preview" aria-label="Cursor hotspot preview"><img src={assets.cursor.imageUrl} alt="Custom cursor at four times its display size"/><span style={{left:`${assets.cursor.hotspotX/32*100}%`,top:`${assets.cursor.hotspotY/32*100}%`}} aria-hidden="true"/></div><small>The blue cross marks your click point in the 32px cursor box.</small><Slider label="Hotspot X" value={assets.cursor.hotspotX} min={0} max={31} suffix="px" onChange={(hotspotX) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotX } } }))} />
           <Slider label="Hotspot Y" value={assets.cursor.hotspotY} min={0} max={31} suffix="px" onChange={(hotspotY) => setAbout(current => ({ ...current, assets: { ...current.assets, cursor: { ...current.assets.cursor, hotspotY } } }))} />
         </div>
       ) : null}
 
     </div> : null}
-    <input ref={fileInput} type="file" accept={accept} multiple hidden onChange={event => { void upload(event.target.files ?? undefined); event.target.value = ""; }} />
+    <input ref={fileInput} type="file" accept={accept} multiple hidden onChange={event => { if(event.target.files?.length)setReview({files:Array.from(event.target.files),kind:kindRef.current}); event.target.value = ""; }} />
+    {uploadError?<div role="alert"><p>{uploadError}</p><Button disabled={Boolean(busy)} onClick={()=>{const retry=lastUpload.current;if(retry){kindRef.current=retry.kind;void upload(retry.files);}}}>Retry upload</Button></div>:null}
   </Card>
+  {review?<MediaUploadReview maxVideoHeight={review.kind==='background'?studio.maxVideoHeight:0} file={review.files[0]} avatar={review.kind==='avatar'} onClose={()=>setReview(null)} onConfirm={(info,x,y)=>{const selected=review;setReview(null);kindRef.current=selected.kind;if(selected.kind==='avatar')setAbout(current=>({...current,studio:normalizeStudio({...current.studio,avatarX:x,avatarY:y})}));if(selected.kind==='background'&&info.poster)setAbout(current=>({...current,studio:normalizeStudio({...current.studio,videoPoster:info.poster})}));void upload(selected.files);}}/>:null}
   <Modal open={editor==="avatar"} title="Profile picture" subtitle="Your avatar and its decoration, together." onClose={()=>setEditor(null)} width={940}>
     <div className="tw-editor-tabs" role="tablist" aria-label="Profile picture sections">{["profile","decorations"].map(tab=><button type="button" role="tab" aria-selected={avatarTab===tab} key={tab} onClick={()=>setAvatarTab(tab)}>{tab==="profile"?"Profile":"Decorations"}</button>)}</div>
-    {avatarTab==="decorations"?<DecorationsPanel avatarOnly/>:<div className="tw-media-editor-grid"><div className="tw-avatar-editor-preview"><span className="tw-avatar-editor-crop">{assets.avatarUrl||user.avatarUrl?<img src={assets.avatarUrl||user.avatarUrl||""} alt="Profile picture preview" style={{transform:`scale(${assets.decoration.zoom}) rotate(${assets.decoration.rotate}deg)`}}/>:<Icon name="user" size={64}/>}</span>{assets.decoration.discordUrl?<img className="tw-avatar-editor-decoration" src={assets.decoration.discordUrl} alt="Avatar decoration preview"/>:null}</div><div className="tw-editor-stack"><Button icon="upload" variant="primary" disabled={Boolean(busy)} onClick={()=>choose("avatar")}>{busyLabel("avatar","Upload profile picture")}</Button><Button disabled={!assets.avatarUrl} onClick={()=>setAbout(current=>({...current,assets:{...current.assets,avatarUrl:""}}))}>Use Discord picture</Button><Slider label="Picture zoom" min={60} max={250} suffix="%" value={Math.round((assets.decoration.zoom??1)*100)} onChange={zoom=>setAbout(current=>({...current,assets:{...current.assets,decoration:{...current.assets.decoration,zoom:zoom/100}}}))}/><Slider label="Picture rotation" min={-180} max={180} suffix="°" value={assets.decoration.rotate??0} onChange={rotate=>setAbout(current=>({...current,assets:{...current.assets,decoration:{...current.assets.decoration,rotate}}}))}/></div></div>}
+    {avatarTab==="decorations"?<DecorationsPanel avatarOnly/>:<div className="tw-media-editor-grid"><div className="tw-avatar-editor-preview"><span className="tw-avatar-editor-crop">{assets.avatarUrl||user.avatarUrl?<img src={assets.avatarUrl||user.avatarUrl||""} alt="Profile picture preview" style={{objectPosition:`${studio.avatarX}% ${studio.avatarY}%`,transform:`scale(${assets.decoration.zoom}) rotate(${assets.decoration.rotate}deg)`}}/>:<Icon name="user" size={64}/>}</span>{assets.decoration.discordUrl?<img className="tw-avatar-editor-decoration" src={assets.decoration.discordUrl} alt="Avatar decoration preview"/>:null}</div><div className="tw-editor-stack"><Button icon="upload" variant="primary" disabled={Boolean(busy)} onClick={()=>choose("avatar")}>{busyLabel("avatar","Upload profile picture")}</Button><Button disabled={!user.avatarUrl} onClick={()=>setAbout(current=>({...current,studio:{...normalizeStudio(current.studio),hideAvatar:false},assets:{...current.assets,avatarUrl:user.avatarUrl||""}}))}>Use Discord picture</Button><Button onClick={()=>setAbout(current=>({...current,studio:{...normalizeStudio(current.studio),hideAvatar:true},assets:{...current.assets,avatarUrl:""}}))}>Remove picture</Button><Slider label="Picture zoom" min={60} max={250} suffix="%" value={Math.round((assets.decoration.zoom??1)*100)} onChange={zoom=>setAbout(current=>({...current,assets:{...current.assets,decoration:{...current.assets.decoration,zoom:zoom/100}}}))}/><Slider label="Picture rotation" min={-180} max={180} suffix="°" value={assets.decoration.rotate??0} onChange={rotate=>setAbout(current=>({...current,assets:{...current.assets,decoration:{...current.assets.decoration,rotate}}}))}/></div></div>}
   </Modal>
   <Modal open={editor==="banner"} title="Banner" subtitle="A separate header image for your profile card." onClose={()=>setEditor(null)} width={760}><div className="tw-background-editor-preview">{assets.banner.imageUrl?<img src={assets.banner.imageUrl} alt="Banner preview"/>:<span>Upload a banner image</span>}</div>    <div className="tw-editor-stack"><div className="tw-inline-toggle"><b>Show banner</b><Toggle label="Show banner" checked={assets.banner.enabled} onChange={enabled=>setAbout(current=>({...current,assets:{...current.assets,banner:{...current.assets.banner,enabled}}}))}/></div><Button icon="upload" onClick={()=>choose("banner")}>Upload banner</Button><Slider label="Banner height" value={assets.banner.height} min={110} max={260} suffix="px" onChange={height=>setAbout(current=>({...current,assets:{...current.assets,banner:{...current.assets.banner,height}}}))}/></div><Button disabled={!assets.banner.imageUrl} onClick={()=>setAbout(current=>({...current,assets:{...current.assets,banner:{...current.assets.banner,imageUrl:"",enabled:false}}}))}>Remove banner</Button></Modal>
   <Modal open={editor==="background"} title="Background" subtitle="Choose a scene, tune its framing, and control how it arrives." onClose={()=>setEditor(null)} width={900}>
     <div className="tw-editor-tabs" role="tablist" aria-label="Background sections">{["media","color"].map(tab=><button type="button" role="tab" aria-selected={backgroundTab===tab} key={tab} onClick={()=>setBackgroundTab(tab)}>{tab==="media"?"Media":"Color"}</button>)}</div>
     {backgroundTab==="media"?<div className="tw-editor-stack"><div className="tw-background-editor-preview">{background.style==="video"&&background.videoUrl?<video src={background.videoUrl} muted controls playsInline preload="metadata"/>:background.imageUrl?<img src={background.imageUrl} alt="Background preview"/>:<span>Choose an image or video</span>}</div><div className="tw-row"><Button icon="upload" variant="primary" disabled={Boolean(busy)} onClick={()=>choose("background")}>{busyLabel("background","Upload background")}</Button>{background.imageUrl&&background.style!=="image"?<Button onClick={()=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,style:"image"}}}))}>Use saved image</Button>:null}{background.videoUrl&&background.style!=="video"?<Button onClick={()=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,style:"video"}}}))}>Use saved video</Button>:null}<Button disabled={!background.imageUrl&&!background.videoUrl} onClick={removeBackground}>Remove media</Button></div><small className="tw-field-hint">Images up to 12 MB. Videos up to {isPremium?"100 MB":"4 MB"}.</small></div>:<div className="tw-editor-stack"><div className="tw-editor-tabs"><button type="button" aria-pressed={background.style!=="gradient"} onClick={()=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,style:"solid"}}}))}>Solid</button><button type="button" aria-pressed={background.style==="gradient"} onClick={()=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,style:"gradient"}}}))}>Gradient</button></div><div className="tw-background-editor-preview" style={{background:background.style==="gradient"?`linear-gradient(${background.angle}deg,${background.from},${background.to})`:background.color}}/>{background.style==="gradient"?<div className="tw-form-grid"><ColorField label="Gradient start" value={background.from} onChange={from=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,from}}}))}/><ColorField label="Gradient end" value={background.to} onChange={to=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,to}}}))}/><Slider label="Gradient angle" value={background.angle??160} min={0} max={360} suffix="°" onChange={angle=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,angle}}}))}/></div>:<ColorField label="Background color" value={background.color} onChange={color=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,style:"solid",color}}}))}/>}</div>}
-    {background.videoUrl?<div className="tw-video-timing"><h3>Video entrance</h3><div className="tw-inline-toggle"><span><b>Wait for entry screen</b><small>Start playback after your visitor enters.</small></span><Toggle label="Wait for entry screen" checked={background.videoWaitForEntry} onChange={videoWaitForEntry=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,videoWaitForEntry}}}))}/></div><div className="tw-form-grid">{([{key:"videoStartAt",label:"Start at",max:120,suffix:"s"},{key:"videoDelay",label:"Playback delay",max:30,suffix:"s"},{key:"videoFade",label:"Fade in",max:3000,suffix:"ms"}] as const).map(control=><Slider key={control.key} label={control.label} value={background[control.key]} min={0} max={control.max} suffix={control.suffix} onChange={value=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,[control.key]:value}}}))}/>)}</div></div>:null}
+    <Field label="Maximum height for new video uploads"><select aria-label="Maximum video upload height" value={studio.maxVideoHeight} onChange={event=>setAbout(current=>({...current,studio:normalizeStudio({...current.studio,maxVideoHeight:Number(event.target.value)})}))}>{[0,720,1080,1440,2160].map(value=><option key={value} value={value}>{value?`${value}px`:"Original resolution"}</option>)}</select><small>Checks new uploads; existing videos are unchanged. Export smaller videos in your video editor.</small></Field>{background.videoUrl?<div className="tw-video-timing"><h3>Video entrance</h3><VideoTimingPreview settings={background}/><div className="tw-inline-toggle"><span><b>Wait for entry screen</b><small>Start playback after your visitor enters.</small></span><Toggle label="Wait for entry screen" checked={background.videoWaitForEntry} onChange={videoWaitForEntry=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,videoWaitForEntry}}}))}/></div><div className="tw-form-grid">{([{key:"videoStartAt",label:"Start at",max:120,suffix:"s"},{key:"videoDelay",label:"Playback delay",max:30,suffix:"s"},{key:"videoFade",label:"Fade in",max:3000,suffix:"ms"}] as const).map(control=><Slider key={control.key} label={control.label} value={background[control.key]} min={0} max={control.max} suffix={control.suffix} onChange={value=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,[control.key]:value}}}))}/>)}</div></div>:null}
     <div className="tw-form-grid"><Slider label="Background dim" value={Math.round(background.dim*100)} min={0} max={85} suffix="%" onChange={dim=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,dim:dim/100}}}))}/><Slider label="Background blur" value={background.blur} min={0} max={30} suffix="px" onChange={blur=>setAbout(current=>({...current,assets:{...current.assets,background:{...current.assets.background,blur}}}))}/></div>
       {background.style === "video" ? (
         <div className="tw-media-video-sound">

@@ -25,10 +25,11 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
   const closeTimer = useRef<number | undefined>(undefined);
   const openReveal = () => {
     window.clearTimeout(closeTimer.current);
-    setOpen(true);
+    if(settings.popupTrigger!=="click")setOpen(true);
   };
   const closeReveal = () => {
     window.clearTimeout(closeTimer.current);
+    if(settings.popupTrigger==="always")return;
     closeTimer.current = window.setTimeout(() => { if (!dragging.current && !popupRef.current?.matches(":hover")) setOpen(false); }, 170);
   };
   const settleTimer = useRef<number | undefined>(undefined);
@@ -53,6 +54,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
     });
   };
 
+  const expanded=settings.popupTrigger==="always"||open;
   const silent = state.muted || state.volume === 0;
 
   const toggle = () => {
@@ -68,8 +70,8 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
   return (
     <div
       ref={popupRef}
-      className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}${open ? " is-open" : ""}`}
-      onKeyDown={event => { if (event.key === "Escape") { setOpen(false); event.stopPropagation(); } }}
+      className={`ap-popup ap-popup--mute ap-popup-style--${settings.popupStyle || "glossy"}${silent ? " is-muted" : ""}${settling ? " is-settling" : ""}${expanded ? " is-open" : ""}`}
+      onKeyDown={event => { if(event.key.toLowerCase()==="m"&&!(event.target as HTMLElement).matches("input,textarea")){event.preventDefault();toggle();} if (event.key === "Escape") { setOpen(false); event.stopPropagation(); } }}
       onPointerEnter={openReveal}
       onPointerLeave={closeReveal}
       onFocus={event => { if (event.currentTarget.contains(event.relatedTarget as Node | null) === false) openReveal(); }}
@@ -113,7 +115,7 @@ export function MuteButton({ settings }: { settings: AudioSettings }) {
           </svg>
         </span>
       </button>
-      <button type="button" className="ap-volume-disclosure" aria-label={open?"Hide volume":"Show volume"} aria-expanded={open} onClick={()=>{clearTimeout(closeTimer.current);setOpen(current=>!current);}}>⌄</button>
+      <button type="button" className="ap-volume-disclosure" disabled={settings.popupTrigger==="always"} aria-label={expanded?"Hide volume":"Show volume"} aria-expanded={expanded} onClick={()=>{clearTimeout(closeTimer.current);setOpen(current=>!current);}}>⌄</button>
       <div className="ap-popup-reveal">
         <div className="ap-popup-volume">
           <input

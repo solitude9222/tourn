@@ -1,3 +1,4 @@
+import {AliasAvailability} from "../components/AliasAvailability";
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import { useAuth } from "../lib/auth";
 import { useDash } from "./context";
@@ -76,6 +77,7 @@ export function AliasRequiredGate() {
             aria-label="Your new alias"
           />
         </label>
+        <AliasAvailability value={draft} onChoose={setDraft}/>
         <Button type="submit" variant="primary" disabled={busy || draft.trim().length < 3}>
           {busy ? "Saving…" : "Set alias"}
         </Button>

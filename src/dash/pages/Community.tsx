@@ -49,9 +49,10 @@ function iconFor(asset: LibraryAsset) {
 }
 
 export function AssetBrowserPage() {
-  const { user, about, setAbout, notify } = useDash();
+  const { user, about, links, widgets, setAbout, notify } = useDash();
   const [library, setLibrary] = useState<LibraryAsset[]>(() => loadLibrary(user.id));
   const [mode, setMode] = useState("uploads");
+  const [folders,setFolders]=usePreference<Record<string,string>>('asset-folders/'+user.id,{}),[folder,setFolder]=useState('all'),[folderName,setFolderName]=useState('');
   const [type, setType] = usePreference(`asset-type/${user.id}`, "all");
   const [query, setQuery] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -73,7 +74,7 @@ export function AssetBrowserPage() {
   };
 
   const shown = useMemo(() => {
-    const list = library.filter((asset) => (type === "all" || asset.type === type) && (!favoritesOnly || asset.favorite) && asset.name.toLowerCase().includes(query.trim().toLowerCase()));
+    const list = library.filter((asset) => (folder==='all'||folder==='unfiled'&&!folders[asset.id]||folder==='folder:'+folders[asset.id])&&(type === "all" || asset.type === type) && (!favoritesOnly || asset.favorite) && asset.name.toLowerCase().includes(query.trim().toLowerCase()));
     return sorted(list, (a, b) => {
       if (sort === "popular") return numberCompare(a.downloads, b.downloads, "desc");
       if (sort === "oldest") return numberCompare(a.createdAt, b.createdAt, "asc");
@@ -82,7 +83,7 @@ export function AssetBrowserPage() {
       if (sort === "type") return naturalCompare(a.type, b.type) || naturalCompare(a.name, b.name);
       return numberCompare(a.createdAt, b.createdAt, "desc");
     });
-  }, [library, type, sort, query, favoritesOnly]);
+  }, [library, type, sort, query, favoritesOnly,folder,folders]);
   useEffect(() => setVisible(15), [type, sort, query, favoritesOnly]);
 
   const upload = async (file: File | undefined) => {
@@ -99,6 +100,8 @@ export function AssetBrowserPage() {
           : uploadType;
       const url = type === "Audio" ? await fileToDataUrl(file, setProgress) : await imageToDataUrl(file, 1400, 1400);
       const asset = newAsset(type, file.name.replace(/\.[^.]+$/, ""), url);
+      asset.bytes=file.size;
+      if(file.type.startsWith("image/")){const image=new Image();image.src=url;await image.decode();asset.width=image.naturalWidth;asset.height=image.naturalHeight;}
       if (libraryRef.current.some(entry => entry.type === asset.type && entry.url === asset.url)) { notify("Already in your library", "This file is already saved under the same asset type."); return; }
       if (!persist([asset, ...libraryRef.current])) return;
       setProgress(100);
@@ -145,7 +148,7 @@ export function AssetBrowserPage() {
         },
       }));
     }
-    notify("Asset applied", "Save your changes to publish it.");
+    notify("Asset applied", "Your profile updates when this change finishes saving.");
   };
 
   const download = (asset: LibraryAsset) => {
@@ -177,6 +180,7 @@ export function AssetBrowserPage() {
             <span className="tw-asset-type">{asset.type}</span>
           </div>
           <div className="tw-asset-meta">
+            {asset.bytes?<small>{(asset.bytes/1024).toFixed(0)} KB source{asset.width?` · ${asset.width} × ${asset.height}px stored`:""}</small>:null}
             <div className="tw-asset-line">
               <span className="tw-asset-user">
                 <Icon name="upload" size={11} /> {asset.name}
@@ -267,8 +271,9 @@ export function AssetBrowserPage() {
           <Button onClick={() => setFavoritesOnly(value => !value)} aria-pressed={favoritesOnly}>Favorites {favoritesOnly ? "only" : ""}</Button>
           <Button onClick={() => setSelected(shown.map(asset => asset.id))}>Select filtered ({shown.length})</Button>
           <Button disabled={!selected.length} onClick={() => setSelected([])}>Clear selection</Button>
+          <Select ariaLabel="Media folder" value={folder} onChange={setFolder} options={[{value:'all',label:'All folders'},{value:'unfiled',label:'Unfiled'},...[...new Set(Object.values(folders).filter(value=>typeof value==='string'&&value))].map(label=>({value:'folder:'+label,label}))]}/><TextInput aria-label="Folder name" placeholder="Folder name" maxLength={40} value={folderName} onChange={e=>setFolderName(e.target.value)}/><Button disabled={!selected.length||!folderName.trim()} onClick={()=>{const name=folderName.trim();setFolders(old=>({...old,...Object.fromEntries(selected.map(id=>[id,name]))}));notify('Files organized',selected.length+' files moved to '+name+'.');setFolderName('');}}>Move selected to folder</Button><Button disabled={!selected.length} onClick={()=>setFolders(old=>Object.fromEntries(Object.entries(old).filter(([id])=>!selected.includes(id))))}>Remove from folders</Button>
           <Button variant="danger" disabled={!selected.length} onClick={() => setDeleting(library.filter(asset => selected.includes(asset.id)))}>Delete selected ({selected.length})</Button>
-          <Button onClick={() => { const profile = JSON.stringify(about); const unused = library.filter(asset => !profile.includes(JSON.stringify(asset.url).slice(1, -1))); if (unused.length) setDeleting(unused); else notify("All assets are in use", "Every library file is referenced by your current profile draft."); }}>Review unused</Button>
+          <Button onClick={() => { const profile = JSON.stringify({about,links,widgets}); const unused = library.filter(asset => !profile.includes(JSON.stringify(asset.url).slice(1, -1))); if (unused.length) setDeleting(unused); else notify("All assets are in use", "Every library file is referenced by your current profile draft."); }}>Review unused</Button>
           <Button onClick={() => { const seen = new Set<string>(); const duplicates = library.filter(asset => { const key = asset.type + ":" + asset.url; if (seen.has(key)) return true; seen.add(key); return false; }); if (duplicates.length) setDeleting(duplicates); else notify("No duplicates found", "No identical files of the same type are saved twice."); }}>Review duplicates</Button>
         </div>
         <CardHead
@@ -401,6 +406,7 @@ export function LeaderboardPage() {
   const [query, setQuery] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [sort, setSort] = usePreference<"views" | "likes">("leaderboard-sort", "views");
+  const [period,setPeriod]=usePreference<"all"|"7d"|"30d">("leaderboard-period","all");
   const [moreError, setMoreError] = useState("");
   const boardRequest = useRef(0);
 
@@ -423,14 +429,14 @@ export function LeaderboardPage() {
     return () => {
       alive = false;
     };
-  }, [sort, attempt]);
+  }, [sort, period, attempt]);
 
   const loadMore = async () => {
     if (!rows || loadingMore) return;
     const request = boardRequest.current;
     setLoadingMore(true); setMoreError("");
     try {
-      const result = await fetchLeaderboard(sort, 25, rows.length);
+      const result = await fetchLeaderboard(sort, 25, rows.length,period);
       if (request !== boardRequest.current) return;
       setTotal(result.total);
       setRows((current) => {
@@ -461,8 +467,8 @@ export function LeaderboardPage() {
         actions={<Button icon="refresh" disabled={rows===null} onClick={()=>setAttempt(value=>value+1)}>Refresh rankings</Button>}
       />
 
-      <div className="tw-board-summary"><div><small>Community profiles</small><b>{rows===null?"—":total.toLocaleString()}</b></div><div><small>Leading {sort}</small><b>{rows?.length?metric(rows[0]).toLocaleString():"—"}</b></div><div><small>Your loaded rank</small><b>{ownRank>=0?"#"+(ownRank+1):"Not loaded"}</b></div><span>Lifetime rankings · refresh for the latest counts</span></div>
-      <div className="tw-toolbar"><TextInput aria-label="Search loaded rankings" value={query} placeholder="Search loaded rankings…" onChange={event => setQuery(event.target.value)} /><Select ariaLabel="Rank profiles by" value={sort} onChange={value => setSort(value as "views" | "likes")} options={[{ value: "views", label: "Most views" }, { value: "likes", label: "Most likes" }]} /><Button disabled={ownRank < 0} onClick={() => { setQuery(""); requestAnimationFrame(() => { const row = document.getElementById("tw-own-rank"); row?.scrollIntoView({ block: "center", behavior: "smooth" }); row?.focus({ preventScroll: true }); }); }}>Your rank{ownRank >= 0 ? ` · #${ownRank + 1}` : " not loaded"}</Button></div>
+      <div className="tw-board-summary"><div><small>Community profiles</small><b>{rows===null?"—":total.toLocaleString()}</b></div><div><small>Leading {sort}</small><b>{rows?.length?metric(rows[0]).toLocaleString():"—"}</b></div><div><small>Your loaded rank</small><b>{ownRank>=0?"#"+(ownRank+1):"Not loaded"}</b></div><span>{sort==='likes'||period==='all'?'Lifetime rankings':'Last '+(period==='7d'?'7':'30')+' days'} · refresh for the latest counts</span></div>
+      <div className="tw-toolbar"><Select ariaLabel="Views period" disabled={sort==='likes'} value={period} onChange={value=>setPeriod(value as typeof period)} options={[{value:"all",label:"Lifetime"},{value:"7d",label:"Last 7 days"},{value:"30d",label:"Last 30 days"}]}/><TextInput aria-label="Search loaded rankings" value={query} placeholder="Search loaded rankings…" onChange={event => setQuery(event.target.value)} /><Select ariaLabel="Rank profiles by" value={sort} onChange={value => setSort(value as "views" | "likes")} options={[{ value: "views", label: "Most views" }, { value: "likes", label: "Most likes" }]} /><Button disabled={ownRank < 0} onClick={() => { setQuery(""); requestAnimationFrame(() => { const row = document.getElementById("tw-own-rank"); row?.scrollIntoView({ block: "center", behavior: "smooth" }); row?.focus({ preventScroll: true }); }); }}>Your rank{ownRank >= 0 ? ` · #${ownRank + 1}` : " not loaded"}</Button></div>
       {query && rows ? <p className="tw-foot-note">Searching {rows.length} loaded profiles. Original ranks are preserved; load more to search further.</p> : null}
       {failed ? (
         <EmptyState

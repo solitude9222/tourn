@@ -104,6 +104,7 @@ export type BackgroundEffectId = "none" | "rain" | "snow" | "night" | "storm" | 
 /** Full-page CSS filters, grain and the snowfall filter. */
 export type OverlayEffectId = "none" | "oldTv" | "blurred" | "snowFall" | "dotPattern" | "lines" | "gridLines" | "crt" | "grain" | "vignette" | "halftone" | "bokeh" | "scanSweep";
 export type AudioStyle =
+  | "playlist"
   | "none"
   | "compact"
   | "lyrics"
@@ -303,9 +304,10 @@ export type AudioSettings = {
   /** Seconds into the song where playback starts. */
   startAt: number;
   /** Extra songs beyond the main file; three playable tracks in total. */
-  queue: { id: string; url: string; title: string }[];
+  queue: { id: string; url: string; title: string;bytes?:number;duration?:number }[];
   loop: boolean;
   playbackRate: number;
+  crossfade:number;
   popupSide: "left" | "right" | "bottom-left" | "bottom-right";
   /** One-time placement migration; older profiles shipped in the left corner. */
   popupSideVersion: number;
@@ -316,6 +318,7 @@ export type AudioSettings = {
   popupBarWidth: number;
   popupOffset: number;
   popupDuration: number;
+  popupTrigger:"hover"|"click"|"always";
   popupOpacity: number;
   popupRailOpacity: number;
   popupIconOpacity: number;
@@ -326,6 +329,7 @@ export type AudioSettings = {
   style: AudioStyle;
   /** Uploaded audio as a data URL — the only playback source. */
   fileUrl: string;
+  fileBytes:number;fileDuration:number;
   /** Uploaded/pasted cover art shown in the player. */
   coverUrl: string;
   /** Manual track title — required, there's no metadata to read from a file. */
@@ -390,6 +394,7 @@ export type BackgroundEffectSettings = {
 };
 
 export type OverlayEffectSettings = {
+  reducedMotion?: "static"|"none"|"grain";
   imageUrl: string;
   id: OverlayEffectId;
   /** Canvas layer opacity, 0–1. */
@@ -514,11 +519,11 @@ export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
     opacity: 0.92,
   },
   audio: {
-    volume: .7, startMuted: false, muteButton: false, shuffle: false, startAt: 0, queue: [], loop: true, playbackRate: 1,
-    popupSide: "right", popupSideVersion: 2, popupSize: 60, popupStyle: "glossy", popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
+    volume: .7, startMuted: false, muteButton: false, shuffle: false, startAt: 0, queue: [], loop: true, playbackRate: 1, crossfade:2,
+    popupSide: "right", popupSideVersion: 2, popupTrigger:"hover", popupSize: 60, popupStyle: "glossy", popupColor: "#ffffff", popupBackground: "#151515", popupBarWidth: 110, popupOffset: 20, popupDuration: 250,
     popupOpacity:.92,popupRailOpacity:.92,popupIconOpacity:1,popupGlow:false,popupGlowColor:"#ffffff",popupGlowStrength:50,popupGlowBlur:18,
     style: "none",
-    fileUrl: "",
+    fileUrl: "",fileBytes:0,fileDuration:0,
     coverUrl: "",
     title: "",
     artist: "",
@@ -649,6 +654,7 @@ export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = 
 ];
 
 export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
+ {id:"playlist",name:"Crossfade playlist",hint:"Play your uploaded tracks in sequence with optional true crossfades"},
   { id: "none", name: "None", hint: "No audio player shown" },
   { id: "compact", name: "Compact", hint: "One row: cover, title, transport, progress" },
   { id: "lyrics", name: "Lyrics", hint: "Custom or auto-fetched lyrics that follow playback" },
@@ -753,9 +759,10 @@ function loadAudio(value: unknown): AudioSettings {
       DEFAULT_PROFILE_ASSETS.audio.style,
     ),
     popupOpacity:numberIn(raw.popupOpacity,.92,0,1),popupRailOpacity:numberIn(raw.popupRailOpacity,.92,0,1),popupIconOpacity:numberIn(raw.popupIconOpacity,1,0,1),popupGlow:boolIn(raw.popupGlow,false),popupGlowColor:colorIn(raw.popupGlowColor,"#80aaff"),popupGlowStrength:numberIn(raw.popupGlowStrength,50,0,100),popupGlowBlur:numberIn(raw.popupGlowBlur,18,0,60),
-    volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), muteButton: boolIn(raw.muteButton, false), shuffle: boolIn(raw.shuffle, false), startAt: numberIn(raw.startAt, 0, 0, 600), queue: Array.isArray(raw.queue) ? raw.queue.filter((item) => item && typeof item.url === "string" && item.url).slice(0, 2).map((item, index) => ({ id: typeof item.id === "string" ? item.id : "q" + index, url: item.url.slice(0, 8_500_000), title: typeof item.title === "string" ? item.title.slice(0, 80) : "" })) : [], loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2),
-    popupSide: numberIn(raw.popupSideVersion, 1, 0, 999) < 2 ? "right" : choiceIn(raw.popupSide, ["left", "right", "bottom-left", "bottom-right"], "right"), popupSideVersion: 2, popupSize: numberIn(!raw.popupStyle && raw.popupSize === 42 ? 60 : raw.popupSize, 60, 28, 64), popupStyle: choiceIn(raw.popupStyle, ["glossy", "minimal", "glass", "rounded"] as const, "glossy"), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700),
+    volume: numberIn(raw.volume, .7, 0, 1), startMuted: boolIn(raw.startMuted, false), muteButton: boolIn(raw.muteButton, false), shuffle: boolIn(raw.shuffle, false), startAt: numberIn(raw.startAt, 0, 0, 600), queue: Array.isArray(raw.queue) ? raw.queue.filter((item) => item && typeof item.url === "string" && item.url).slice(0, 2).map((item, index) => ({ id: typeof item.id === "string" ? item.id : "q" + index, url: item.url.slice(0, 8_500_000), title: typeof item.title === "string" ? item.title.slice(0, 80) : "",bytes:numberIn(item.bytes,0,0,1000000000),duration:numberIn(item.duration,0,0,86400) })) : [], loop: boolIn(raw.loop, true), playbackRate: numberIn(raw.playbackRate, 1, .5, 2), crossfade:numberIn(raw.crossfade,2,0,8),
+    popupSide: numberIn(raw.popupSideVersion, 1, 0, 999) < 2 ? "right" : choiceIn(raw.popupSide, ["left", "right", "bottom-left", "bottom-right"], "right"), popupSideVersion: 2, popupSize: numberIn(!raw.popupStyle && raw.popupSize === 42 ? 60 : raw.popupSize, 60, 28, 64), popupStyle: choiceIn(raw.popupStyle, ["glossy", "minimal", "glass", "rounded"] as const, "glossy"), popupColor: colorIn(raw.popupColor, "#ffffff"), popupBackground: colorIn(raw.popupBackground, "#151515"), popupBarWidth: numberIn(raw.popupBarWidth, 110, 60, 180), popupOffset: numberIn(raw.popupOffset, 20, 8, 80), popupDuration: numberIn(raw.popupDuration, 250, 100, 700), popupTrigger:choiceIn(raw.popupTrigger,["hover","click","always"] as const,"hover"),
     fileUrl: textIn(raw.fileUrl, DEFAULT_PROFILE_ASSETS.audio.fileUrl, 8_500_000),
+    fileBytes:numberIn(raw.fileBytes,0,0,1000000000),fileDuration:numberIn(raw.fileDuration,0,0,86400),
     coverUrl: textIn(raw.coverUrl, "", 2_500_000),
     title: textIn(raw.title, DEFAULT_PROFILE_ASSETS.audio.title, 80),
     artist: textIn(raw.artist, DEFAULT_PROFILE_ASSETS.audio.artist, 80),
@@ -959,6 +966,7 @@ export function loadProfileAssets(input: unknown): ProfileAssets {
           DEFAULT_PROFILE_ASSETS.effects.overlay.id,
         );
         return {
+          reducedMotion: choiceIn<"static"|"none"|"grain">(overlay.reducedMotion,["static","none","grain"],"static"),
           id,
           imageUrl: textIn(overlay.imageUrl, "", 1_000_000),
           opacity: numberIn(overlay.opacity, DEFAULT_PROFILE_ASSETS.effects.overlay.opacity, 0, 1),

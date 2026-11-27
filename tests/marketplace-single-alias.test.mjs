@@ -24,7 +24,7 @@ before(async()=>{
  server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));base=`http://127.0.0.1:${server.address().port}`;
 });
 beforeEach(async()=>{
- await db.exec('truncate commerce_deliveries,commerce_codes,marketplace_products,username_inventory,users cascade');
+ await db.exec('truncate marketplace_audit,commerce_deliveries,commerce_codes,marketplace_products,username_inventory,users cascade');
  await db.query("insert into users(id,username,alias) values($1,'first','chosen'),($2,'second','chosen2')",[id,second]);
  delete env.TOURN_PRODUCT_DUPLICATE;env.TOURN_PRODUCT_SUMMER='121:232';
 });
@@ -109,4 +109,16 @@ test('legacy paid character orders still fulfill after storefront retirement',as
  const result=await deliver({event:'INVOICE.ITEM.DELIVER-DYNAMIC',shop_id:123,id:'old-invoice',status:'completed',item:{id:'old-item',quantity:1,product_id:994091,variant_id:2079173},metadata:{tourn_checkout:ticket}});
  assert.equal(result.status,200);assert.equal((await db.query('select owner_id from username_inventory where handle=$1',['☿'])).rows[0].owner_id,id);
  assert.equal((await db.query('select alias from users where id=$1',[id])).rows[0].alias,'☿');
+});
+
+test('scheduled products stay private until their publication time and catalog edits are audited',async()=>{
+ const future=new Date(Date.now()+86400000).toISOString();
+ assert.equal((await call('/api/admin/marketplace/products',{body:product({publish_at:future,sort_order:5}),admin:true})).status,201);
+ assert.equal((await call('/api/marketplace/products',{auth:false})).data.products.length,0);
+ assert.equal((await call('/api/marketplace/checkout',{body:{productId:'summer'}})).status,404);
+ assert.equal((await call('/api/admin/marketplace/audit',{admin:false})).status,403);
+ const events=(await call('/api/admin/marketplace/audit',{admin:true})).data.events;assert.equal(events.length,1);assert.equal(events[0].action,'created');assert.equal(events[0].product_id,'summer');
+ await db.query("update marketplace_products set publish_at=now()-interval '1 hour'");assert.equal((await call('/api/marketplace/products',{auth:false})).data.products[0].sort_order,5);
+ assert.equal((await call('/api/admin/marketplace/health',{admin:true})).data.providerChecksConfigured,false);
+ assert.equal((await call('/api/admin/marketplace/products/summer/provider-check',{body:{},admin:true})).status,503);
 });

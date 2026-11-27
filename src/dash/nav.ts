@@ -26,6 +26,7 @@ export type NavItem = {
 };
 
 export const NAV: NavItem[] = [
+ {key:"workspace",group:"ACCOUNT",label:"Workspace",icon:"sliders",tabs:[{page:"workspace",label:"Workspace",icon:"sliders"}]},
  {key:"dashboard",group:"OVERVIEW",label:"Home",icon:"home",tabs:[{page:"home",label:"Overview",icon:"home"}]},
  {key:"analytics",group:"OVERVIEW",label:"Analytics",icon:"chart",tabs:[{page:"analytics",label:"Analytics",icon:"chart"}]},
  {key:"leaderboard",group:"OVERVIEW",label:"Leaderboard",icon:"crown",tabs:[{page:"leaderboard",label:"Leaderboard",icon:"crown"}]},
@@ -89,7 +90,7 @@ export const RAIL_SECTIONS:RailSection[]=[
  {key:'premium',label:'Premium',icon:'star',items:[{label:'Overview',icon:'star',page:'premium'},{label:'Plan & billing',icon:'crown',page:'billing'}]},
  {key:'assets',label:'Assets',icon:'layers',items:[{label:'Templates',icon:'grid',page:'templates'},{label:'Inventory',icon:'layers',page:'aliases'}]},
  {key:'image-host',label:'Image Host',icon:'image',items:[{label:'Uploads',icon:'upload',page:'assets'},{label:'Gallery',icon:'image',page:'portfolio-gallery'}]},
- {key:'account',label:'Account',icon:'user',items:[{label:'Settings',icon:'settings',page:'settings',navKey:'settings'},{label:'Badges',icon:'shield',page:'badges'},{label:'Analytics',icon:'chart',page:'analytics'},{label:'Leaderboard',icon:'crown',page:'leaderboard'},{label:'Support',icon:'help',page:'support'},{label:'Admin',icon:'shield',page:'admin',adminOnly:true}]}
+ {key:'account',label:'Account',icon:'user',items:[{label:'Workspace',icon:'sliders',page:'workspace',navKey:'workspace'},{label:'Settings',icon:'settings',page:'settings',navKey:'settings'},{label:'Badges',icon:'shield',page:'badges'},{label:'Analytics',icon:'chart',page:'analytics'},{label:'Leaderboard',icon:'crown',page:'leaderboard'},{label:'Support',icon:'help',page:'support'},{label:'Admin',icon:'shield',page:'admin',adminOnly:true}]}
 ];
 export function railEntryOwns(entry:RailEntry,page:Page){return entry.page===page||Boolean(entry.navKey&&NAV.find(item=>item.key===entry.navKey)?.tabs.some(tab=>tab.page===page));}
 export function railSectionForPage(page:Page){if(page==="getting-started")return RAIL_SECTIONS[0];return RAIL_SECTIONS.find(section=>section.items.some(entry=>railEntryOwns(entry,page)));}

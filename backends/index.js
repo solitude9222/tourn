@@ -1,3 +1,5 @@
+import {leaderboard} from './leaderboard.js';
+import {aliasAvailability} from './aliasAvailability.js';
 import { MARKETPLACE_SCHEMA, registerMarketplaceRoutes } from "./marketplace.js";
 import {SINGLE_ALIAS_SCHEMA,needsPrimaryAlias} from "./singleAlias.js";
 import {SESSION_SCHEMA,touchSession,registerSessionRoutes} from "./sessions.js";
@@ -752,6 +754,7 @@ const authLimiter = rateLimit({
   max: 40,
   message: "Too many sign-in attempts — wait a few minutes and try again.",
 });
+const aliasLookupLimiter = rateLimit({windowMs:60_000,max:120,message:"Alias checks are busy. Wait a moment and try again."});
 const billingLimiter = rateLimit({
   windowMs: 10 * 60_000,
   max: 20,
@@ -1927,6 +1930,11 @@ app.post("/api/security/confirm-code", requireAuth, async (req, res) => {
 
 /* ── profiles & claims ─────────────────────────────────────────────────── */
 
+app.get('/api/profile/alias-availability',requireAuth,aliasLookupLimiter,async(req,res)=>{
+ try{const user=await currentUser(req);if(!user)return res.status(401).json({error:'Sign in again.'});res.set('Cache-Control','no-store').json(await aliasAvailability(pool,user,req.query.alias,RESERVED));}
+ catch(error){console.error('[alias availability]',error.message);res.status(503).json({error:'Alias availability is temporarily unavailable.'});}
+});
+
 app.post("/api/profile/alias", requireAuth, async (req, res) => {
   try {
     const user = await currentUser(req);
@@ -2103,44 +2111,9 @@ app.get("/api/stats", async (_req, res) => {
 });
 
 /* Public leaderboard: top profiles by lifetime views or by likes. */
-app.get("/api/leaderboard", async (req, res) => {
-  try {
-    const order = req.query.sort === "likes"
-      ? "likes desc, views desc, u.created_at asc"
-      : "views desc, u.created_at asc";
-    // Paged so the dashboard can keep loading until every registered profile
-    // is on screen instead of silently stopping at 25.
-    const limit = Math.min(100, Math.max(1, Number.parseInt(String(req.query.limit ?? ""), 10) || 25));
-    const offset = Math.max(0, Number.parseInt(String(req.query.offset ?? ""), 10) || 0);
-    const { rows } = await pool.query(
-      `select u.username, u.alias, u.avatar_url, coalesce(v.views, 0)::int as views,
-              coalesce(r.likes, 0)::int as likes
-       from users u
-       left join profile_views v on v.username = u.username
-       left join (
-         select username, count(*) filter (where kind = 'like')::int as likes
-         from profile_reactions group by username
-       ) r on r.username = u.username
-       order by ${order}
-       limit $1 offset $2`,
-      [limit, offset],
-    );
-    const counted = await pool.query("select count(*)::int as total from users");
-    res.set("Cache-Control", "public, max-age=60");
-    res.json({
-      profiles: rows.map((row) => ({
-        username: row.username,
-        handle: row.alias ?? row.username,
-        displayName: row.alias ?? null,
-        avatarUrl: row.avatar_url ?? null,
-        views: Number(row.views) || 0,
-        likes: Number(row.likes) || 0,
-      })),
-      total: Number(counted.rows[0]?.total) || 0,
-    });
-  } catch {
-    res.json({ profiles: [], total: 0 });
-  }
+app.get('/api/leaderboard',async(req,res)=>{
+ try{res.set('Cache-Control','public, max-age=30').json(await leaderboard(pool,req.query));}
+ catch(error){console.error('[leaderboard]',error.message);res.status(503).json({error:'Rankings are temporarily unavailable.'});}
 });
 
 /* Homepage hero preview: real published profiles, bundled into the frontend at

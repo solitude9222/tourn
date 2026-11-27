@@ -64,9 +64,10 @@ export function LayoutPreview() {
     if (!stage || !card) return;
     const s = stage.getBoundingClientRect();
     const c = card.getBoundingClientRect();
-    setBox({ x: c.left - s.left, y: c.top - s.top, w: c.width, h: c.height });
+    const next={x:c.left-s.left,y:c.top-s.top,w:c.width,h:c.height};setBox(previous=>previous&&Object.keys(next).every(key=>Math.abs(previous[key as keyof typeof next]-next[key as keyof typeof next])<.2)?previous:next);
   };
 
+  useEffect(()=>{const host=stageRef.current;if(!host)return;let frame=0;const resize=new ResizeObserver(()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(measure);});resize.observe(host);const card=host.querySelector('.profile-preview');if(card)resize.observe(card);const observer=new MutationObserver(()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const current=host.querySelector('.profile-preview');if(current)resize.observe(current);measure();});});observer.observe(host,{childList:true,subtree:true});frame=requestAnimationFrame(measure);return()=>{cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();};},[scale]);
   const fieldFor = (kind: DragKind) =>
     kind === "views"
       ? "viewSlot"
@@ -91,7 +92,7 @@ export function LayoutPreview() {
             : kind === "location"
               ? "Location"
               : "Account creation";
-    notify("Placed", `${label} moved. Changes publish automatically.`);
+    notify("Placed", `${label} moved. Save now to publish.`);
     stop();
   };
 
@@ -123,6 +124,7 @@ export function LayoutPreview() {
         subtitle="Drag a detail or the audio player onto a ghost position. Press Escape to cancel."
       />
 
+      <p className="workspace-measurement" aria-live="polite">{box?Math.round(box.w/scale)+' × '+Math.round(box.h/scale)+' px card · '+Math.round(scale*100)+'% preview scale':'Measuring profile card…'}</p>
       <div
         className={`tw-layout-stage${dragging ? " is-dragging" : ""}`}
         ref={stageRef}

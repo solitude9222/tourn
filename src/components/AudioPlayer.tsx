@@ -1,3 +1,4 @@
+import {PlaylistAudioPlayer} from './PlaylistAudioPlayer';
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
 import { formatClock } from "../lib/format";
 import {
@@ -96,7 +97,7 @@ const LyricsPanel = memo(function LyricsPanel({
  * Lyrics come from the owner first (pasted or uploaded LRC/plain text) and
  * optionally fall back to a synced lookup for the Lyrics style.
  */
-export function AudioPlayer({
+function SingleAudioPlayer({
   settings,
   enabled = true,
   tilt = 0,
@@ -140,6 +141,7 @@ export function AudioPlayer({
   // A track can outlive its upload (re-deploy, deleted row). Say so instead of
   // presenting a play button that silently does nothing.
   const [loadFailed, setLoadFailed] = useState(false);
+  const [autoplayBlocked,setAutoplayBlocked]=useState(false);
 
   const cardStyle = {
     "--ap-opacity": settings.cardOpacity,
@@ -254,7 +256,7 @@ export function AudioPlayer({
     const armRetry = () => {
       const retry = () => {
         cleanup();
-        if (!cancelled) void el.play().catch(() => undefined);
+        if (!cancelled) void el.play().then(()=>setAutoplayBlocked(false)).catch(()=>setAutoplayBlocked(true));
       };
       const cleanup = () => {
         window.removeEventListener("pointerdown", retry);
@@ -267,7 +269,7 @@ export function AudioPlayer({
     };
 
     void el.play().catch(() => {
-      if (!cancelled) armRetry();
+      if (!cancelled){setAutoplayBlocked(true);armRetry();}
     });
 
     return () => {
@@ -376,7 +378,7 @@ export function AudioPlayer({
       }}
       onCanPlay={() => setLoadFailed(false)}
       loop={settings.loop}
-      onPlay={() => { setPlaying(true); startFade(); }}
+      onPlay={() => { setPlaying(true);setAutoplayBlocked(false); startFade(); }}
       onPause={() => setPlaying(false)}
       onEnded={() => setPlaying(false)}
       onLoadedMetadata={(event) => {
@@ -418,7 +420,7 @@ export function AudioPlayer({
         className={`ap ap--vinyl ap-edge-${settings.edgeEffect}${tilt > 0 ? " has-tilt" : ""}`}
         style={cardStyle}
       >
-        {audioEl}
+        {audioEl}{autoplayBlocked&&!preview?<span className="ap-playback-status" role="status">Playback is paused by your browser. Press Play or Unmute to start.</span>:null}
         <span className={`ap-vinyl-disc${playing ? " is-spinning" : ""}`}>
           <span className="ap-vinyl-label">{coverNode}</span>
         </span>
@@ -484,7 +486,7 @@ export function AudioPlayer({
         className={`ap ap-edge-${settings.edgeEffect} ap--bars${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
         style={cardStyle}
       >
-        {audioEl}
+        {audioEl}{autoplayBlocked&&!preview?<span className="ap-playback-status" role="status">Playback is paused by your browser. Press Play or Unmute to start.</span>:null}
         {errorNode}
         <div className="ap-row">
           <span className="ap-cover">{coverNode}</span>
@@ -509,7 +511,7 @@ export function AudioPlayer({
         className={`ap ap-edge-${settings.edgeEffect} ap--minimal${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
         style={cardStyle}
       >
-        {audioEl}
+        {audioEl}{autoplayBlocked&&!preview?<span className="ap-playback-status" role="status">Playback is paused by your browser. Press Play or Unmute to start.</span>:null}
         {errorNode}
         <div className="ap-min-row">
           {playButton}
@@ -534,7 +536,7 @@ export function AudioPlayer({
         className={`ap ap-edge-${settings.edgeEffect} ap--cover${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
         style={cardStyle}
       >
-        {audioEl}
+        {audioEl}{autoplayBlocked&&!preview?<span className="ap-playback-status" role="status">Playback is paused by your browser. Press Play or Unmute to start.</span>:null}
         {errorNode}
         <div className="ap-album">{coverNode}</div>
         <div className="ap-album-body">
@@ -575,7 +577,7 @@ export function AudioPlayer({
         className={`ap ap-edge-${settings.edgeEffect} ap--glass${playing ? " is-playing" : ""}${tilt > 0 ? " has-tilt" : ""}`}
         style={glassStyle}
       >
-        {audioEl}
+        {audioEl}{autoplayBlocked&&!preview?<span className="ap-playback-status" role="status">Playback is paused by your browser. Press Play or Unmute to start.</span>:null}
         {errorNode}
         <span className="ap-glass-bg" aria-hidden="true" />
         <div className="ap-row">
@@ -609,7 +611,7 @@ export function AudioPlayer({
         className={`ap ap-edge-${settings.edgeEffect} ap--pill${playing ? " is-playing" : ""}${pillOverflow ? " is-scrolling" : ""}${tilt > 0 ? " has-tilt" : ""}`}
         style={cardStyle}
       >
-        {audioEl}
+        {audioEl}{autoplayBlocked&&!preview?<span className="ap-playback-status" role="status">Playback is paused by your browser. Press Play or Unmute to start.</span>:null}
         {loadFailed ? <span className="ap-load-error" role="status">Track unavailable — re-upload it in Customise</span> : null}
         <div className="ap-pill">
           <span className="ap-cover ap-pill-cover">{coverNode}</span>
@@ -660,7 +662,7 @@ export function AudioPlayer({
       className={`ap ap-edge-${settings.edgeEffect} ap--${style}${tilt > 0 ? " has-tilt" : ""}`}
       style={cardStyle}
     >
-      {audioEl}
+      {audioEl}{autoplayBlocked&&!preview?<span className="ap-playback-status" role="status">Playback is paused by your browser. Press Play or Unmute to start.</span>:null}
       {loadFailed ? <span className="ap-load-error" role="status">Track unavailable — re-upload it in Customise</span> : null}
       <div className="ap-row">
         <span className="ap-cover">{coverNode}</span>
@@ -739,3 +741,5 @@ function useAutoLyrics(
 
   return state;
 }
+
+export function AudioPlayer(props:Parameters<typeof SingleAudioPlayer>[0]){return props.settings.style==="playlist"?<PlaylistAudioPlayer {...props}/>:<SingleAudioPlayer {...props}/>;}

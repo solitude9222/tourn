@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 
-export type DashTheme = "default" | "black" | "mono" | "ocean" | "lime";
+export type DashTheme = "contrast" | "default" | "black" | "mono" | "ocean" | "lime";
 
 export type DashThemeDef = {
   id: DashTheme;
@@ -19,6 +19,7 @@ export type DashThemeDef = {
 };
 
 export const DASH_THEMES: DashThemeDef[] = [
+ {id:"contrast",label:"High contrast blue",description:"Brighter text, clearer outlines and blue keyboard focus on black.",swatch:["#000000","#101722","#80b4ff"]},
   {
     id: "default",
     label: "Tourn blue",

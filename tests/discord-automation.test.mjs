@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {EventEmitter} from 'node:events';
 import {PGlite} from '@electric-sql/pglite';
-import {createDiscordAutomation,matchedRoleBadges,normalizeAutomation,DISCORD_AUTOMATION_SCHEMA,registerDiscordAutomation} from '../backends/discordAutomation.js';
-const guild='111111111111111111',role='222222222222222222',discord='333333333333333333',userId='00000000-0000-4000-8000-000000000001';
+import {createDiscordAutomation,matchedRoleBadges,normalizeAutomation,DISCORD_AUTOMATION_SCHEMA,TOURN_GUILD_ID,registerDiscordAutomation} from '../backends/discordAutomation.js';
+const guild=TOURN_GUILD_ID,role='222222222222222222',discord='333333333333333333',userId='00000000-0000-4000-8000-000000000001';
 let db,pool,config,roles,failure,service,requested;
 before(async()=>{db=new PGlite();await db.exec(`create table users(id uuid primary key,discord_id text,badges jsonb);${DISCORD_AUTOMATION_SCHEMA}`);pool={query:(...args)=>db.query(...args),connect:async()=>({query:(...args)=>db.query(...args),release(){}})};});
 beforeEach(async()=>{

@@ -181,7 +181,7 @@ export function LayoutPage({
 
   return (
     <div className="tw-card-page">
-{section==='layout'?<Card><CardHead title="Size presets" subtitle="Change proportions without replacing content or colours."/><div className="tw-recovery-actions">{[{label:'Compact',width:648,avatar:96,name:34},{label:'Comfortable',width:760,avatar:105,name:38},{label:'Wide',width:900,avatar:116,name:42}].map(preset=><Button key={preset.label} onClick={()=>updateDesign({cardWidth:preset.width,avatarSize:preset.avatar,nameSize:preset.name})}>{preset.label} · {preset.width}px</Button>)}</div><p className="tw-foot-note">Preview the card at each width before you pick one.</p></Card>:null}
+{section==='layout'?<Card><CardHead title="Size presets" subtitle="Change proportions without replacing content or colours."/><div className="tw-recovery-actions">{[{label:'Compact',width:648,avatar:96,name:34},{label:'Comfortable',width:760,avatar:105,name:38},{label:'Wide',width:900,avatar:116,name:42}].map(preset=><Button key={preset.label} onClick={()=>updateDesign({cardWidth:preset.width,avatarSize:preset.avatar,nameSize:preset.name})}>{preset.label} · {preset.width}px</Button>)}</div><Button onClick={()=>updateDesign({colors:{...design.colors,card:"#111111",text:"#ffffff",accent:"#b9c2d0"}})}>Use neutral monochrome colors</Button><p className="tw-foot-note">Preview the card at each width before you pick one.</p></Card>:null}
       <div className="tw-card-main" key={section}>
       {section === "layout" ? <Card>
         <CardHead

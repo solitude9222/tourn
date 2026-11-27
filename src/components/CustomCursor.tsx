@@ -34,7 +34,7 @@ export function CustomCursor({host, normal, pointer}: {
       if (event.pointerType === 'touch') return;
       point.current = {x: event.clientX, y: event.clientY};
       const target = event.target as Element;
-      inside.current = host.contains(target);
+      inside.current = (host.contains(target)||Boolean(target.closest('.wg-info-backdrop')))&&!target.closest('input:not([type=range]),textarea,[contenteditable=true]');
       const interactive = Boolean(target.closest('a,button,[role=button],input[type=range]'));
       const next = inside.current ? (interactive ? pointer || normal : normal) : null;
       if (next?.url !== current.current?.url) {

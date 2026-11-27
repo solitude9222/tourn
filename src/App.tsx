@@ -1,3 +1,5 @@
+import "./lib/runtimeDiagnostics";
+import "./usability.css";
 import {PublicPageLoading} from "./components/PublicPageLoading";
 import "./lib/preloadLinks";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
@@ -740,7 +742,7 @@ function Site() {
     // Loading a profile is not editing it. Until an edit actually happens,
     // keep the server's published document authoritative. This also keeps a
     // new device with empty local stores from erasing links and widgets.
-    if (!userEdited.current && lastSaved.current) return;
+    if (!userEdited.current) return;
     let cancelled = false;
     let retryTimer = 0;
     let conflictRetries = 0;
@@ -843,6 +845,7 @@ function Site() {
   useEffect(() => {
     if (!user || hydratedFor.current !== user.id) return;
     const flush = () => {
+      if(!userEdited.current)return;
       const pending = loadPendingDocument(user.id);
       const document = pending?.document ?? { about, widgets, badges, links: profileLinks };
       if (profileFingerprint(document) === lastSaved.current) return;

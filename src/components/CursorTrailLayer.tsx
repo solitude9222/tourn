@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CursorSettings } from "../lib/profileAssets";
 import { mountCursorEffects } from "../lib/cursorEffects";
 
@@ -9,10 +9,12 @@ export function CursorTrailLayer({ settings, preview }: { settings: CursorSettin
   const layerRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const [allowed,setAllowed]=useState(()=>!matchMedia('(prefers-reduced-motion: reduce)').matches&&!matchMedia('(pointer:coarse)').matches);
+  useEffect(()=>{const reduced=matchMedia('(prefers-reduced-motion: reduce)'),coarse=matchMedia('(pointer:coarse)');const sync=()=>setAllowed(!reduced.matches&&!coarse.matches);reduced.addEventListener('change',sync);coarse.addEventListener('change',sync);return()=>{reduced.removeEventListener('change',sync);coarse.removeEventListener('change',sync);};},[]);
   const hasTrail = settings.trail && settings.trailType !== "none";
   const hasClick = settings.click !== "none";
   const hasSkin = settings.style !== "system" && settings.style !== "custom";
-  const active = hasTrail || hasClick || hasSkin;
+  const active = allowed&&(hasTrail || hasClick || hasSkin);
 
   useEffect(() => {
     const layer = layerRef.current;

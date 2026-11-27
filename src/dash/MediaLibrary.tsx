@@ -45,6 +45,7 @@ export function MediaLibrary({
   onClose: () => void;
   onPick: (item: CatalogItem) => void;
 }) {
+  const [view,setView]=usePreference("catalog-view","grid");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<CatalogItem[]>([]);
@@ -122,6 +123,7 @@ export function MediaLibrary({
             placeholder={LIBRARY_COPY[kind].search}
             onChange={(event) => changeQuery(event.target.value)}
           />
+          <Button onClick={()=>setView(view==="grid"?"list":"grid")}>{view==="grid"?"Compact list":"Poster grid"}</Button>
           <SortSelect
             value={order}
             onChange={setOrder}
@@ -147,12 +149,14 @@ export function MediaLibrary({
         ) : items.length === 0 ? (
           <p className="tw-empty-note">Nothing matched that search.</p>
         ) : (
-          <div className="tw-media-grid">
+          <div className={`tw-media-grid${view==="list"?" is-list":""}`}>
             {ordered.map((item) => (
               <button
                 type="button"
                 className={`tw-media-card tw-media-card--${item.kind}`}
                 key={item.id}
+                aria-label={item.title}
+                onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();const parent=event.currentTarget.parentElement!;const buttons=Array.from(parent.querySelectorAll<HTMLButtonElement>('.tw-media-card'));const columns=view==='list'?1:getComputedStyle(parent).gridTemplateColumns.split(' ').length;const delta=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?columns:-columns;buttons[Math.max(0,Math.min(buttons.length-1,buttons.indexOf(event.currentTarget)+delta))]?.focus();}}
                 onClick={() => {
                   onPick(item);
                   onClose();

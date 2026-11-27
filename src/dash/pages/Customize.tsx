@@ -1,3 +1,4 @@
+import {inspectAudio} from '../../lib/mediaInspection';
 import {usePointerSort} from "../Sortable";
 /* ---------------------------------------------------------------------------
    Customize > Profile — Profile, Appearance, Experience, Integrations and
@@ -104,18 +105,19 @@ export function AudioSettingsCard() {
       },
     }));
 
+  const audioMeta=(bytes=0,duration=0)=>[bytes?(bytes/1048576).toFixed(2)+' MB':'Size unavailable',duration?Math.floor(duration/60)+':'+String(Math.floor(duration%60)).padStart(2,'0'):'Duration unavailable'].join(' · ');
   const queueSort=usePointerSort(audio.queue,(from,to)=>{const next=[...audio.queue];const [song]=next.splice(from,1);next.splice(to,0,song);updateAudio({queue:next});});
   const uploadTrack = async (file: File | undefined) => {
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadAudioFile(file, setUploadProgress);
+      const [url,metadata] = await Promise.all([uploadAudioFile(file,setUploadProgress),inspectAudio(file).catch(()=>null)]);
       updateAudio({
-        fileUrl: url,
+        fileUrl: url,fileBytes:file.size,fileDuration:metadata?.duration||0,
         style: audio.style === "none" ? "compact" : audio.style,
         title: audio.title || file.name.replace(/\.[^.]+$/, ""),
       });
-      notify("Audio", "Track added. Changes save automatically.");
+      notify("Audio", "Track added. Save now to publish.");
     } catch (error) {
       notify("Upload failed", error instanceof Error ? error.message : "That audio file could not be read.");
     } finally {
@@ -126,7 +128,7 @@ export function AudioSettingsCard() {
   const uploadQueueSong = async (file: File | undefined) => {
     if (!file) return;
     try {
-      const url = await uploadAudioFile(file);
+      const [url,metadata] = await Promise.all([uploadAudioFile(file),inspectAudio(file).catch(()=>null)]);
       updateAudio({
         queue: [
           ...audio.queue,
@@ -144,7 +146,7 @@ export function AudioSettingsCard() {
     try {
       const url = await imageToDataUrl(file, 512, 512);
       updateAudio({ coverUrl: url });
-      notify("Cover art", "Cover updated. Changes save automatically.");
+      notify("Cover art", "Cover updated. Save now to publish.");
     } catch {
       notify("Upload failed", "That image could not be read.");
     }
@@ -157,7 +159,7 @@ export function AudioSettingsCard() {
     try {
       const text = (await file.text()).slice(0, 40_000);
       updateAudio({ lyrics: text, autoLyrics: false });
-      notify("Lyrics", file.name + " loaded. Changes save automatically.");
+      notify("Lyrics", file.name + " loaded. Save now to publish.");
     } catch {
       notify("Lyrics", "That lyrics file could not be read.");
     }
@@ -183,6 +185,7 @@ export function AudioSettingsCard() {
         subtitle="Songs first, then how it plays, where it sits and how it looks."
       />
 
+      {audio.fileUrl?<p className="audio-file-metadata">{audioMeta(audio.fileBytes,audio.fileDuration)}</p>:null}
       {audio.fileUrl && audio.style !== "none" && audio.cardOpacity > 0.005 ? (
         <div className="tw-audio-live-preview">
           <AudioPlayer settings={{ ...audio, autoplay: false }} preview />
@@ -238,7 +241,7 @@ export function AudioSettingsCard() {
             <div className="tw-queue-row" key={song.id} ref={queueSort.register(song.id)}>
               <button type="button" className="tw-row-grip" aria-label={"Reorder "+(song.title||"song")} onPointerDown={event=>queueSort.begin(event,index)} onKeyDown={event=>queueSort.keyDown(event,index)}>⠿</button>
               <span>
-                <input aria-label={`Extra song ${index+1} title`} value={song.title} maxLength={80} onChange={event=>updateAudio({queue:audio.queue.map(item=>item.id===song.id?{...item,title:event.target.value}:item)})}/>
+                <small className="audio-file-metadata">{audioMeta(song.bytes,song.duration)}</small><input aria-label={`Extra song ${index+1} title`} value={song.title} maxLength={80} onChange={event=>updateAudio({queue:audio.queue.map(item=>item.id===song.id?{...item,title:event.target.value}:item)})}/>
                 <small>{"Extra song " + (index + 2)}</small>
               </span>
               <Button
@@ -328,11 +331,12 @@ export function AudioSettingsCard() {
           <span><b>Show mute button</b><small>Floats in a corner of the page and mutes the track.</small></span>
           <Toggle label="Mute button" checked={audio.muteButton} onChange={(muteButton) => updateAudio({ muteButton })} />
         </div>
+        {audio.style==='playlist'?<Slider label="Playlist crossfade" min={0} max={8} step={.25} suffix="s" value={audio.crossfade} onChange={crossfade=>updateAudio({crossfade})}/>:null}
         {audio.muteButton ? (
           <>
             <div className="tw-mute-style-preview"><MuteButton settings={audio}/><small>Live mute-button preview</small></div>
             <div className="tw-form-grid">
-              <Field label="Mute button style"><Select ariaLabel="Mute button style" value={audio.popupStyle} options={[{value:"glossy",label:"Glossy circle"},{value:"minimal",label:"Minimal circle"},{value:"glass",label:"Glass"},{value:"rounded",label:"Rounded square"}]} onChange={popupStyle=>updateAudio({popupStyle:popupStyle as typeof audio.popupStyle})}/></Field>
+              <Field label="Volume rail behavior"><Select ariaLabel="Volume rail behavior" value={audio.popupTrigger} options={[{value:"hover",label:"Hover and keyboard focus"},{value:"click",label:"Disclosure button"},{value:"always",label:"Always visible"}]} onChange={popupTrigger=>updateAudio({popupTrigger:popupTrigger as typeof audio.popupTrigger})}/></Field><Field label="Mute button style"><Select ariaLabel="Mute button style" value={audio.popupStyle} options={[{value:"glossy",label:"Glossy circle"},{value:"minimal",label:"Minimal circle"},{value:"glass",label:"Glass"},{value:"rounded",label:"Rounded square"}]} onChange={popupStyle=>updateAudio({popupStyle:popupStyle as typeof audio.popupStyle})}/></Field>
               <Field label="Corner" hint="Where the mute button sits on the page.">
                 <Select
                   value={audio.popupSide}

@@ -65,6 +65,7 @@ export function AnalyticsPanel({ compact = false }: { compact?: boolean }) {
   const [period, setPeriod] = useState("7d");
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState("");
+  const [refreshed,setRefreshed]=useState<Date|null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let active = true;
@@ -72,7 +73,7 @@ export function AnalyticsPanel({ compact = false }: { compact?: boolean }) {
     const load = async () => {
       const result = await api<AnalyticsData>(`/api/analytics?period=${period}`);
       if (!active) return;
-      if (result.ok && Array.isArray(result.data.daily) && Array.isArray(result.data.devices) && Array.isArray(result.data.sources)) { setData(result.data); setError(""); }
+      if (result.ok && Array.isArray(result.data.daily) && Array.isArray(result.data.devices) && Array.isArray(result.data.sources)) { setData(result.data);setRefreshed(new Date()); setError(""); }
       else setError(result.ok ? "Analytics returned an incomplete response." : result.error);
     };
     void load();
@@ -89,6 +90,7 @@ export function AnalyticsPanel({ compact = false }: { compact?: boolean }) {
     {error ? <div className="tw-analytics-error" role="alert"><p>{error}</p><Button icon="refresh" onClick={() => setAttempt((n) => n + 1)}>Retry analytics</Button></div> : !data ? <p className="tw-chart-note" role="status">Loading analytics…</p> : <>
       <div className="tw-analytics-totals"><span><b>{data.periodViews.toLocaleString()}</b> recorded visits in this period</span><span><b>{data.total.toLocaleString()}</b> lifetime views</span></div>
       <p className="tw-analytics-range">{new Date(today.getTime() - (days - 1) * 86400000).toISOString().slice(0, 10)} – {today.toISOString().slice(0, 10)} (UTC) · {(data.periodViews / Math.max(1, days)).toFixed(1)} visits/day</p>
+      {refreshed?<p className="tw-chart-note">Updated {refreshed.toLocaleTimeString()} · daily reporting timezone UTC</p>:null}
       <ViewsChart daily={data.daily} days={days} />
       {!compact ? <PeriodComparison data={data} days={days} /> : null}
       <p className="tw-chart-note">{data.historySince ? `Daily history available since ${data.historySince}.` : "Daily history begins with the first recorded visit."} Older lifetime views are kept; their dates and sources cannot be reconstructed.</p>
